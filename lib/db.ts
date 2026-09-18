@@ -138,14 +138,30 @@ export async function getWeeklyStats(): Promise<WeeklyStats> {
   return { workouts: recent.length, volume, streakDays };
 }
 
-export async function listWorkouts(limit = 50) {
+export type WorkoutSummary = Workout & { setCount: number; volume: number };
+
+export async function listWorkouts(limit = 50): Promise<WorkoutSummary[]> {
   const { data, error } = await supabase
     .from('workouts')
-    .select('*')
+    .select('*, workout_sets(weight_kg, reps, done)')
     .order('started_at', { ascending: false })
     .limit(limit);
   if (error) throw error;
-  return data as Workout[];
+  return (data as (Workout & { workout_sets: Pick<WorkoutSet, 'weight_kg' | 'reps' | 'done'>[] })[]).map(
+    ({ workout_sets, ...workout }) => {
+      const done = workout_sets.filter((s) => s.done);
+      return {
+        ...workout,
+        setCount: done.length,
+        volume: done.reduce((sum, s) => sum + s.weight_kg * s.reps, 0),
+      };
+    }
+  );
+}
+
+export async function updateWorkout(id: string, patch: Partial<Pick<Workout, 'title' | 'memo'>>) {
+  const { error } = await supabase.from('workouts').update(patch).eq('id', id);
+  if (error) throw error;
 }
 
 export async function getActiveWorkout() {

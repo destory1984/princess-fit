@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { confirmAction, notify } from '@/lib/confirm';
-import { deleteWorkout, listWorkouts } from '@/lib/db';
+import { deleteWorkout, listWorkouts, type WorkoutSummary } from '@/lib/db';
 import { formatDate } from '@/lib/format';
 import type { Workout } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
@@ -16,7 +16,7 @@ function duration(workout: Workout) {
 
 export default function HistoryScreen() {
   const router = useRouter();
-  const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const [workouts, setWorkouts] = useState<WorkoutSummary[]>([]);
 
   const load = useCallback(() => {
     listWorkouts()
@@ -49,9 +49,12 @@ export default function HistoryScreen() {
             style={styles.row}
             onPress={() => router.push(`/workout/${item.id}`)}
             onLongPress={() => confirmDelete(item)}>
-            <View>
+            <View style={styles.rowMain}>
               <Text style={styles.rowTitle}>{item.title}</Text>
-              <Text style={styles.rowSub}>{formatDate(item.started_at)}</Text>
+              <Text style={styles.rowSub}>
+                {formatDate(item.started_at)}
+                {item.setCount > 0 && ` · ${item.setCount}세트 · ${item.volume.toLocaleString()}kg`}
+              </Text>
             </View>
             <Text style={[styles.badge, !item.ended_at && styles.badgeActive]}>
               {duration(item)}
@@ -75,6 +78,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  rowMain: { flex: 1, marginRight: spacing.md },
   rowTitle: { color: colors.text, fontSize: 16, fontWeight: '600' },
   rowSub: { color: colors.textDim, marginTop: spacing.xs },
   badge: { color: colors.textDim },
