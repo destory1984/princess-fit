@@ -8,6 +8,7 @@ import {
   listRoutineExercises,
   listRoutines,
   removeRoutineExercise,
+  updateRoutineExercise,
 } from '@/lib/db';
 import type { Exercise, Routine, RoutineExercise } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
@@ -47,6 +48,18 @@ export default function RoutineScreen() {
     }
   }
 
+  async function adjust(item: RoutineExercise, field: 'target_sets' | 'target_reps', delta: number) {
+    const next = Math.max(1, item[field] + delta);
+    if (next === item[field]) return;
+    setItems((prev) => prev.map((x) => (x.id === item.id ? { ...x, [field]: next } : x)));
+    try {
+      await updateRoutineExercise(item.id, { [field]: next });
+    } catch (e: any) {
+      notify('저장 실패', e.message);
+      load();
+    }
+  }
+
   function remove(item: RoutineExercise) {
     confirmAction('종목 제거', `"${exerciseName(item.exercise_id)}"을 루틴에서 뺄까요?`, async () => {
       try {
@@ -70,9 +83,18 @@ export default function RoutineScreen() {
           items.map((item) => (
             <Pressable key={item.id} style={styles.row} onLongPress={() => remove(item)}>
               <Text style={styles.rowTitle}>{exerciseName(item.exercise_id)}</Text>
-              <Text style={styles.rowSub}>
-                {item.target_sets}세트 × {item.target_reps}회
-              </Text>
+              <View style={styles.stepperRow}>
+                <Stepper
+                  label="세트"
+                  value={item.target_sets}
+                  onChange={(d) => adjust(item, 'target_sets', d)}
+                />
+                <Stepper
+                  label="회"
+                  value={item.target_reps}
+                  onChange={(d) => adjust(item, 'target_reps', d)}
+                />
+              </View>
             </Pressable>
           ))
         )}
@@ -111,6 +133,31 @@ export default function RoutineScreen() {
   );
 }
 
+function Stepper({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  onChange: (delta: number) => void;
+}) {
+  return (
+    <View style={styles.stepper}>
+      <Pressable style={styles.stepButton} onPress={() => onChange(-1)} hitSlop={6}>
+        <Text style={styles.stepButtonText}>−</Text>
+      </Pressable>
+      <Text style={styles.stepValue}>
+        {value}
+        <Text style={styles.stepLabel}>{label}</Text>
+      </Text>
+      <Pressable style={styles.stepButton} onPress={() => onChange(1)} hitSlop={6}>
+        <Text style={styles.stepButtonText}>+</Text>
+      </Pressable>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.lg, gap: spacing.sm },
@@ -121,12 +168,22 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: radius.md,
     padding: spacing.lg,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    gap: spacing.md,
   },
   rowTitle: { color: colors.text, fontSize: 16, fontWeight: '600' },
   rowSub: { color: colors.textDim },
+  stepperRow: { flexDirection: 'row', gap: spacing.md },
+  stepper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: radius.sm,
+    overflow: 'hidden',
+  },
+  stepButton: { paddingVertical: spacing.sm, paddingHorizontal: spacing.md },
+  stepButtonText: { color: colors.accent, fontSize: 18, fontWeight: '700' },
+  stepValue: { color: colors.text, fontWeight: '700', minWidth: 44, textAlign: 'center' },
+  stepLabel: { color: colors.textDim, fontWeight: '400', fontSize: 12 },
   secondary: {
     marginTop: spacing.md,
     borderColor: colors.border,
