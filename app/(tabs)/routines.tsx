@@ -1,14 +1,7 @@
 import { useCallback, useState } from 'react';
-import {
-  Alert,
-  FlatList,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
+import { confirmAction, notify } from '@/lib/confirm';
 import { createRoutine, deleteRoutine, listRoutines } from '@/lib/db';
 import type { Routine } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
@@ -21,7 +14,7 @@ export default function RoutinesScreen() {
   const load = useCallback(() => {
     listRoutines()
       .then(setRoutines)
-      .catch((e) => Alert.alert('불러오기 실패', e.message));
+      .catch((e) => notify('불러오기 실패', e.message));
   }, []);
 
   useFocusEffect(load);
@@ -34,26 +27,19 @@ export default function RoutinesScreen() {
       setName('');
       load();
     } catch (e: any) {
-      Alert.alert('추가 실패', e.message);
+      notify('추가 실패', e.message);
     }
   }
 
   function confirmDelete(routine: Routine) {
-    Alert.alert('루틴 삭제', `"${routine.name}"을 삭제할까요?`, [
-      { text: '취소', style: 'cancel' },
-      {
-        text: '삭제',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await deleteRoutine(routine.id);
-            load();
-          } catch (e: any) {
-            Alert.alert('삭제 실패', e.message);
-          }
-        },
-      },
-    ]);
+    confirmAction('루틴 삭제', `"${routine.name}"을 삭제할까요?`, async () => {
+      try {
+        await deleteRoutine(routine.id);
+        load();
+      } catch (e: any) {
+        notify('삭제 실패', e.message);
+      }
+    });
   }
 
   return (

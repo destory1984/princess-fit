@@ -1,14 +1,8 @@
 import { useCallback, useState } from 'react';
-import {
-  Alert,
-  FlatList,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
+import { seedDefaultExercises } from '@/lib/catalog';
+import { confirmAction, notify } from '@/lib/confirm';
 import { createExercise, deleteExercise, listExercises } from '@/lib/db';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
@@ -20,11 +14,12 @@ export default function SettingsScreen() {
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [name, setName] = useState('');
   const [group, setGroup] = useState<string>(MUSCLE_GROUPS[0]);
+  const [seeding, setSeeding] = useState(false);
 
   const load = useCallback(() => {
     listExercises()
       .then(setExercises)
-      .catch((e) => Alert.alert('불러오기 실패', e.message));
+      .catch((e) => notify('불러오기 실패', e.message));
   }, []);
 
   useFocusEffect(load);
@@ -37,26 +32,32 @@ export default function SettingsScreen() {
       setName('');
       load();
     } catch (e: any) {
-      Alert.alert('추가 실패', e.message);
+      notify('추가 실패', e.message);
+    }
+  }
+
+  async function seed() {
+    setSeeding(true);
+    try {
+      const added = await seedDefaultExercises();
+      notify(added ? `${added}개 종목을 추가했어요.` : '이미 기본 종목이 모두 있어요.');
+      load();
+    } catch (e: any) {
+      notify('불러오기 실패', e.message);
+    } finally {
+      setSeeding(false);
     }
   }
 
   function confirmDelete(exercise: Exercise) {
-    Alert.alert('종목 삭제', `"${exercise.name}"을 삭제할까요?`, [
-      { text: '취소', style: 'cancel' },
-      {
-        text: '삭제',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await deleteExercise(exercise.id);
-            load();
-          } catch (e: any) {
-            Alert.alert('삭제 실패', e.message);
-          }
-        },
-      },
-    ]);
+    confirmAction('종목 삭제', `"${exercise.name}"을 삭제할까요?`, async () => {
+      try {
+        await deleteExercise(exercise.id);
+        load();
+      } catch (e: any) {
+        notify('삭제 실패', e.message);
+      }
+    });
   }
 
   return (
@@ -88,6 +89,15 @@ export default function SettingsScreen() {
             <Pressable style={styles.addButton} onPress={add}>
               <Text style={styles.addButtonText}>종목 추가</Text>
             </Pressable>
+            <Pressable
+              style={[styles.seedButton, seeding && styles.disabled]}
+              disabled={seeding}
+              onPress={seed}>
+              <Text style={styles.seedButtonText}>
+                {seeding ? '불러오는 중…' : '기본 종목 불러오기 (벤치프레스, 스쿼트 등)'}
+              </Text>
+            </Pressable>
+            <Text style={styles.hint}>종목을 길게 누르면 삭제할 수 있어요.</Text>
           </View>
         }
         renderItem={({ item }) => (
@@ -137,6 +147,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   addButtonText: { color: '#fff', fontWeight: '700' },
+  seedButton: {
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    alignItems: 'center',
+  },
+  seedButtonText: { color: colors.accent, fontWeight: '600' },
+  disabled: { opacity: 0.6 },
+  hint: { color: colors.textDim, fontSize: 12 },
   row: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,
