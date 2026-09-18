@@ -1,12 +1,13 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { ExercisePicker } from '@/components/ExercisePicker';
 import { confirmAction, notify } from '@/lib/confirm';
 import {
   addRoutineExercise,
+  getRoutine,
   listExercises,
   listRoutineExercises,
-  listRoutines,
   removeRoutineExercise,
   updateRoutineExercise,
 } from '@/lib/db';
@@ -22,9 +23,9 @@ export default function RoutineScreen() {
 
   const load = useCallback(() => {
     if (!id) return;
-    Promise.all([listRoutines(), listRoutineExercises(id), listExercises()])
-      .then(([routines, re, ex]) => {
-        setRoutine(routines.find((r) => r.id === id) ?? null);
+    Promise.all([getRoutine(id), listRoutineExercises(id), listExercises()])
+      .then(([r, re, ex]) => {
+        setRoutine(r);
         setItems(re);
         setExercises(ex);
       })
@@ -104,31 +105,12 @@ export default function RoutineScreen() {
         </Pressable>
       </ScrollView>
 
-      <Modal visible={picking} animationType="slide" transparent>
-        <Pressable style={styles.modalBackdrop} onPress={() => setPicking(false)}>
-          <View style={styles.modalSheet}>
-            <Text style={styles.modalTitle}>종목 선택</Text>
-            <ScrollView>
-              {exercises.length === 0 ? (
-                <Text style={styles.empty}>설정 탭에서 종목을 먼저 추가해 주세요.</Text>
-              ) : (
-                exercises.map((e) => (
-                  <Pressable
-                    key={e.id}
-                    style={styles.modalRow}
-                    onPress={() => {
-                      setPicking(false);
-                      add(e.id);
-                    }}>
-                    <Text style={styles.modalRowText}>{e.name}</Text>
-                    <Text style={styles.rowSub}>{e.muscle_group}</Text>
-                  </Pressable>
-                ))
-              )}
-            </ScrollView>
-          </View>
-        </Pressable>
-      </Modal>
+      <ExercisePicker
+        visible={picking}
+        exercises={exercises}
+        onSelect={(e) => add(e.id)}
+        onClose={() => setPicking(false)}
+      />
     </View>
   );
 }
@@ -193,24 +175,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   secondaryText: { color: colors.accent, fontWeight: '700' },
-  modalBackdrop: { flex: 1, backgroundColor: '#000A', justifyContent: 'flex-end' },
-  modalSheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
-    padding: spacing.lg,
-    maxHeight: '70%',
-  },
-  modalTitle: {
-    color: colors.text,
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: spacing.md,
-  },
-  modalRow: {
-    paddingVertical: spacing.md,
-    borderBottomColor: colors.border,
-    borderBottomWidth: 1,
-  },
-  modalRowText: { color: colors.text, fontSize: 15 },
 });

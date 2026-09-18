@@ -3,7 +3,7 @@ import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-na
 import { useFocusEffect } from 'expo-router';
 import { seedDefaultExercises } from '@/lib/catalog';
 import { confirmAction, notify } from '@/lib/confirm';
-import { createExercise, deleteExercise, listExercises } from '@/lib/db';
+import { countExerciseSets, createExercise, deleteExercise, listExercises } from '@/lib/db';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { MUSCLE_GROUPS, type Exercise } from '@/lib/types';
@@ -49,8 +49,18 @@ export default function SettingsScreen() {
     }
   }
 
-  function confirmDelete(exercise: Exercise) {
-    confirmAction('종목 삭제', `"${exercise.name}"을 삭제할까요?`, async () => {
+  async function confirmDelete(exercise: Exercise) {
+    let setCount = 0;
+    try {
+      setCount = await countExerciseSets(exercise.id);
+    } catch (e: any) {
+      notify('확인 실패', e.message);
+      return;
+    }
+    const warning = setCount
+      ? `\n\n이 종목으로 기록한 ${setCount}개 세트도 함께 지워지고 되돌릴 수 없어요.`
+      : '';
+    confirmAction('종목 삭제', `"${exercise.name}"을 삭제할까요?${warning}`, async () => {
       try {
         await deleteExercise(exercise.id);
         load();

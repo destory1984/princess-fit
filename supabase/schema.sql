@@ -1,4 +1,4 @@
--- Refit schema. Run this in the Supabase SQL editor.
+-- Refit schema. Safe to run repeatedly in the Supabase SQL editor.
 
 create table if not exists exercises (
   id uuid primary key default gen_random_uuid(),
@@ -38,13 +38,17 @@ create table if not exists workout_sets (
   id uuid primary key default gen_random_uuid(),
   workout_id uuid not null references workouts on delete cascade,
   exercise_id uuid not null references exercises on delete cascade,
+  position int not null default 0,
   set_no int not null,
   weight_kg numeric(6, 2) not null default 0,
   reps int not null default 0,
   done boolean not null default false
 );
 
+alter table workout_sets add column if not exists position int not null default 0;
+
 create index if not exists workout_sets_workout_idx on workout_sets (workout_id);
+create index if not exists workout_sets_exercise_idx on workout_sets (exercise_id);
 create index if not exists workouts_user_started_idx on workouts (user_id, started_at desc);
 create index if not exists routine_exercises_routine_idx on routine_exercises (routine_id, position);
 
@@ -54,15 +58,19 @@ alter table routine_exercises enable row level security;
 alter table workouts enable row level security;
 alter table workout_sets enable row level security;
 
+drop policy if exists "own exercises" on exercises;
 create policy "own exercises" on exercises
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
+drop policy if exists "own routines" on routines;
 create policy "own routines" on routines
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
+drop policy if exists "own workouts" on workouts;
 create policy "own workouts" on workouts
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
+drop policy if exists "own routine exercises" on routine_exercises;
 create policy "own routine exercises" on routine_exercises
   for all using (
     exists (select 1 from routines r where r.id = routine_id and r.user_id = auth.uid())
@@ -70,6 +78,7 @@ create policy "own routine exercises" on routine_exercises
     exists (select 1 from routines r where r.id = routine_id and r.user_id = auth.uid())
   );
 
+drop policy if exists "own workout sets" on workout_sets;
 create policy "own workout sets" on workout_sets
   for all using (
     exists (select 1 from workouts w where w.id = workout_id and w.user_id = auth.uid())

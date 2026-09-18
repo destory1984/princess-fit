@@ -1,10 +1,11 @@
 import { supabase } from './supabase';
 import type { Exercise, Routine, RoutineExercise, Workout, WorkoutSet } from './types';
+import { localDayKey } from './format';
 
 async function requireUserId() {
-  const { data } = await supabase.auth.getUser();
-  if (!data.user) throw new Error('로그인이 필요합니다.');
-  return data.user.id;
+  const { data } = await supabase.auth.getSession();
+  if (!data.session) throw new Error('로그인이 필요합니다.');
+  return data.session.user.id;
 }
 
 export async function listExercises() {
@@ -24,6 +25,15 @@ export async function createExercise(name: string, muscleGroup: string) {
   return data as Exercise;
 }
 
+export async function countExerciseSets(exerciseId: string) {
+  const { count, error } = await supabase
+    .from('workout_sets')
+    .select('id', { count: 'exact', head: true })
+    .eq('exercise_id', exerciseId);
+  if (error) throw error;
+  return count ?? 0;
+}
+
 export async function deleteExercise(id: string) {
   const { error } = await supabase.from('exercises').delete().eq('id', id);
   if (error) throw error;
@@ -36,6 +46,12 @@ export async function listRoutines() {
     .order('created_at', { ascending: false });
   if (error) throw error;
   return data as Routine[];
+}
+
+export async function getRoutine(id: string) {
+  const { data, error } = await supabase.from('routines').select('*').eq('id', id).single();
+  if (error) throw error;
+  return data as Routine;
 }
 
 export async function createRoutine(name: string) {
@@ -110,18 +126,11 @@ export async function getWeeklyStats(): Promise<WeeklyStats> {
     .filter((s) => s.done)
     .reduce((sum, s) => sum + s.weight_kg * s.reps, 0);
 
-  const days = new Set(rows.map((w) => w.started_at.slice(0, 10)));
-  let streakDays = 0;
+  const days = new Set(rows.map((w) => localDayKey(new Date(w.started_at))));
   const cursor = new Date();
-  for (;;) {
-    const key = cursor.toISOString().slice(0, 10);
-    if (!days.has(key)) {
-      if (streakDays === 0) {
-        cursor.setDate(cursor.getDate() - 1);
-        if (days.has(cursor.toISOString().slice(0, 10))) continue;
-      }
-      break;
-    }
+  if (!days.has(localDayKey(cursor))) cursor.setDate(cursor.getDate() - 1);
+  let streakDays = 0;
+  while (days.has(localDayKey(cursor))) {
     streakDays += 1;
     cursor.setDate(cursor.getDate() - 1);
   }
@@ -168,10 +177,11 @@ export async function startWorkout(title: string, routineId: string | null) {
 
   if (routineId) {
     const routineExercises = await listRoutineExercises(routineId);
-    const sets = routineExercises.flatMap((re) =>
+    const sets = routineExercises.flatMap((re, position) =>
       Array.from({ length: re.target_sets }, (_, i) => ({
         workout_id: workout.id,
         exercise_id: re.exercise_id,
+        position,
         set_no: i + 1,
         reps: re.target_reps,
         weight_kg: 0,
@@ -204,27 +214,29 @@ export async function listWorkoutSets(workoutId: string) {
     .from('workout_sets')
     .select('*')
     .eq('workout_id', workoutId)
-    .order('exercise_id')
+    .order('position')
     .order('set_no');
   if (error) throw error;
   return data as WorkoutSet[];
 }
 
-export async function addWorkoutSet(
-  workoutId: string,
-  exerciseId: string,
-  setNo: number,
-  weight: number,
-  reps: number
-) {
+export async function addWorkoutSet(input: {
+  workoutId: string;
+  exerciseId: string;
+  position: number;
+  setNo: number;
+  weight: number;
+  reps: number;
+}) {
   const { data, error } = await supabase
     .from('workout_sets')
     .insert({
-      workout_id: workoutId,
-      exercise_id: exerciseId,
-      set_no: setNo,
-      weight_kg: weight,
-      reps,
+      workout_id: input.workoutId,
+      exercise_id: input.exerciseId,
+      position: input.position,
+      set_no: input.setNo,
+      weight_kg: input.weight,
+      reps: input.reps,
     })
     .select()
     .single();
@@ -232,7 +244,10 @@ export async function addWorkoutSet(
   return data as WorkoutSet;
 }
 
-export async function updateWorkoutSet(id: string, patch: Partial<WorkoutSet>) {
+export async function updateWorkoutSet(
+  id: string,
+  patch: Partial<Pick<WorkoutSet, 'weight_kg' | 'reps' | 'done'>>
+) {
   const { error } = await supabase.from('workout_sets').update(patch).eq('id', id);
   if (error) throw error;
 }
@@ -250,21 +265,21 @@ export type ExerciseHistoryPoint = {
   sets: { set_no: number; weight_kg: number; reps: number }[];
 };
 
-export async function getExerciseHistory(exerciseId: string, limit = 30) {
-  const { data, error } = await supabase
-    .from('workout_sets')
-    .select('workout_id, set_no, weight_kg, reps, workouts!inner(started_at, ended_at)')
-    .eq('exercise_id', exerciseId)
-    .eq('done', true)
-    .not('workouts.ended_at', 'is', null)
-    .order('set_no');
-  if (error) throw error;
+type HistoryRow = {
+  workout_id: string;
+  exercise_id: string;
+  set_no: number;
+  weight_kg: number;
+  reps: number;
+  workouts: { started_at: string };
+};
 
+function groupHistory(rows: HistoryRow[]) {
   const byWorkout = new Map<string, ExerciseHistoryPoint>();
-  for (const row of data as any[]) {
+  for (const row of rows) {
     const point: ExerciseHistoryPoint = byWorkout.get(row.workout_id) ?? {
       workout_id: row.workout_id,
-      date: row.workouts.started_at as string,
+      date: row.workouts.started_at,
       max_weight: 0,
       volume: 0,
       sets: [],
@@ -274,20 +289,55 @@ export async function getExerciseHistory(exerciseId: string, limit = 30) {
     point.volume += row.weight_kg * row.reps;
     byWorkout.set(row.workout_id, point);
   }
-
-  return [...byWorkout.values()]
-    .sort((a, b) => a.date.localeCompare(b.date))
-    .slice(-limit);
+  return [...byWorkout.values()].sort((a, b) => a.date.localeCompare(b.date));
 }
 
-export async function getLastPerformance(exerciseIds: string[]) {
-  if (exerciseIds.length === 0) return new Map<string, ExerciseHistoryPoint>();
+export async function getExerciseHistory(exerciseId: string, limit = 30) {
+  const { data, error } = await supabase
+    .from('workout_sets')
+    .select('workout_id, exercise_id, set_no, weight_kg, reps, workouts!inner(started_at, ended_at)')
+    .eq('exercise_id', exerciseId)
+    .eq('done', true)
+    .not('workouts.ended_at', 'is', null)
+    .order('set_no');
+  if (error) throw error;
+  return groupHistory(data as unknown as HistoryRow[]).slice(-limit);
+}
+
+export async function getLastPerformance(exerciseIds: string[], excludeWorkoutId?: string) {
   const result = new Map<string, ExerciseHistoryPoint>();
-  await Promise.all(
-    exerciseIds.map(async (id) => {
-      const history = await getExerciseHistory(id, 1);
-      if (history[0]) result.set(id, history[0]);
-    })
-  );
+  if (exerciseIds.length === 0) return result;
+
+  let recentQuery = supabase
+    .from('workouts')
+    .select('id')
+    .not('ended_at', 'is', null)
+    .order('started_at', { ascending: false })
+    .limit(30);
+  if (excludeWorkoutId) recentQuery = recentQuery.neq('id', excludeWorkoutId);
+  const { data: recent, error: recentError } = await recentQuery;
+  if (recentError) throw recentError;
+  const recentIds = (recent as { id: string }[]).map((w) => w.id);
+  if (recentIds.length === 0) return result;
+
+  const { data, error } = await supabase
+    .from('workout_sets')
+    .select('workout_id, exercise_id, set_no, weight_kg, reps, workouts!inner(started_at)')
+    .in('exercise_id', exerciseIds)
+    .in('workout_id', recentIds)
+    .eq('done', true)
+    .order('set_no');
+  if (error) throw error;
+
+  const byExercise = new Map<string, HistoryRow[]>();
+  for (const row of data as unknown as HistoryRow[]) {
+    const list = byExercise.get(row.exercise_id) ?? [];
+    list.push(row);
+    byExercise.set(row.exercise_id, list);
+  }
+  for (const [exerciseId, rows] of byExercise) {
+    const latest = groupHistory(rows).at(-1);
+    if (latest) result.set(exerciseId, latest);
+  }
   return result;
 }

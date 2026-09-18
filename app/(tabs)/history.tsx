@@ -3,15 +3,9 @@ import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { confirmAction, notify } from '@/lib/confirm';
 import { deleteWorkout, listWorkouts } from '@/lib/db';
+import { formatDate } from '@/lib/format';
 import type { Workout } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
-
-function formatDate(iso: string) {
-  const d = new Date(iso);
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(
-    d.getDate()
-  ).padStart(2, '0')}`;
-}
 
 function duration(workout: Workout) {
   if (!workout.ended_at) return '진행 중';
