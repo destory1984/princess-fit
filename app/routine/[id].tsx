@@ -1,14 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
-import {
-  Alert,
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { confirmAction, notify } from '@/lib/confirm';
 import {
   addRoutineExercise,
   listExercises,
@@ -34,7 +27,7 @@ export default function RoutineScreen() {
         setItems(re);
         setExercises(ex);
       })
-      .catch((e) => Alert.alert('불러오기 실패', e.message));
+      .catch((e) => notify('불러오기 실패', e.message));
   }, [id]);
 
   useFocusEffect(load);
@@ -50,17 +43,19 @@ export default function RoutineScreen() {
       const created = await addRoutineExercise(id, exerciseId, items.length);
       setItems((prev) => [...prev, created]);
     } catch (e: any) {
-      Alert.alert('추가 실패', e.message);
+      notify('추가 실패', e.message);
     }
   }
 
-  async function remove(item: RoutineExercise) {
-    try {
-      await removeRoutineExercise(item.id);
-      setItems((prev) => prev.filter((x) => x.id !== item.id));
-    } catch (e: any) {
-      Alert.alert('삭제 실패', e.message);
-    }
+  function remove(item: RoutineExercise) {
+    confirmAction('종목 제거', `"${exerciseName(item.exercise_id)}"을 루틴에서 뺄까요?`, async () => {
+      try {
+        await removeRoutineExercise(item.id);
+        setItems((prev) => prev.filter((x) => x.id !== item.id));
+      } catch (e: any) {
+        notify('삭제 실패', e.message);
+      }
+    });
   }
 
   return (

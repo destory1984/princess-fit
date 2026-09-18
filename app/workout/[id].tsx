@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
 import {
-  Alert,
   Modal,
   Pressable,
   ScrollView,
@@ -10,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { notify } from '@/lib/confirm';
 import {
   addWorkoutSet,
   deleteWorkoutSet,
@@ -38,7 +38,7 @@ export default function WorkoutScreen() {
         setSets(s);
         setExercises(e);
       })
-      .catch((e) => Alert.alert('불러오기 실패', e.message));
+      .catch((e) => notify('불러오기 실패', e.message));
   }, [id]);
 
   useFocusEffect(load);
@@ -74,7 +74,7 @@ export default function WorkoutScreen() {
     try {
       await updateWorkoutSet(setId, patch);
     } catch (e: any) {
-      Alert.alert('저장 실패', e.message);
+      notify('저장 실패', e.message);
       load();
     }
   }
@@ -93,7 +93,7 @@ export default function WorkoutScreen() {
       );
       setSets((prev) => [...prev, created]);
     } catch (e: any) {
-      Alert.alert('세트 추가 실패', e.message);
+      notify('세트 추가 실패', e.message);
     }
   }
 
@@ -102,7 +102,7 @@ export default function WorkoutScreen() {
       await deleteWorkoutSet(setId);
       setSets((prev) => prev.filter((s) => s.id !== setId));
     } catch (e: any) {
-      Alert.alert('삭제 실패', e.message);
+      notify('삭제 실패', e.message);
     }
   }
 
@@ -112,7 +112,7 @@ export default function WorkoutScreen() {
       await finishWorkout(id);
       router.back();
     } catch (e: any) {
-      Alert.alert('종료 실패', e.message);
+      notify('종료 실패', e.message);
     }
   }
 

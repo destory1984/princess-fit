@@ -1,7 +1,8 @@
 import { useCallback, useState } from 'react';
-import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { listWorkouts } from '@/lib/db';
+import { confirmAction, notify } from '@/lib/confirm';
+import { deleteWorkout, listWorkouts } from '@/lib/db';
 import type { Workout } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
 
@@ -26,10 +27,21 @@ export default function HistoryScreen() {
   const load = useCallback(() => {
     listWorkouts()
       .then(setWorkouts)
-      .catch((e) => Alert.alert('불러오기 실패', e.message));
+      .catch((e) => notify('불러오기 실패', e.message));
   }, []);
 
   useFocusEffect(load);
+
+  function confirmDelete(workout: Workout) {
+    confirmAction('기록 삭제', `${formatDate(workout.started_at)} "${workout.title}" 기록을 삭제할까요?`, async () => {
+      try {
+        await deleteWorkout(workout.id);
+        load();
+      } catch (e: any) {
+        notify('삭제 실패', e.message);
+      }
+    });
+  }
 
   return (
     <View style={styles.screen}>
@@ -39,7 +51,10 @@ export default function HistoryScreen() {
         contentContainerStyle={styles.list}
         ListEmptyComponent={<Text style={styles.empty}>아직 기록이 없어요.</Text>}
         renderItem={({ item }) => (
-          <Pressable style={styles.row} onPress={() => router.push(`/workout/${item.id}`)}>
+          <Pressable
+            style={styles.row}
+            onPress={() => router.push(`/workout/${item.id}`)}
+            onLongPress={() => confirmDelete(item)}>
             <View>
               <Text style={styles.rowTitle}>{item.title}</Text>
               <Text style={styles.rowSub}>{formatDate(item.started_at)}</Text>

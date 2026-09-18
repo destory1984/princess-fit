@@ -1,15 +1,14 @@
 import { useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
   StyleSheet,
   Text,
   TextInput,
-  View,
 } from 'react-native';
+import { notify } from '@/lib/confirm';
 import { supabase } from '@/lib/supabase';
 import { colors, radius, spacing } from '@/lib/theme';
 
@@ -20,17 +19,18 @@ export default function LoginScreen() {
 
   async function submit(mode: 'signIn' | 'signUp') {
     if (!email.trim() || !password) {
-      Alert.alert('이메일과 비밀번호를 입력해 주세요.');
+      notify('이메일과 비밀번호를 입력해 주세요.');
       return;
     }
     setBusy(true);
-    const { error } =
+    const { data, error } =
       mode === 'signIn'
         ? await supabase.auth.signInWithPassword({ email: email.trim(), password })
         : await supabase.auth.signUp({ email: email.trim(), password });
     setBusy(false);
-    if (error) Alert.alert('로그인 실패', error.message);
-    else if (mode === 'signUp') Alert.alert('가입 완료', '이제 로그인해 주세요.');
+    if (error) notify(mode === 'signIn' ? '로그인 실패' : '가입 실패', error.message);
+    else if (mode === 'signUp' && !data.session)
+      notify('가입 완료', '이메일로 온 인증 링크를 누른 뒤 로그인해 주세요.');
   }
 
   return (

@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
+import { notify } from '@/lib/confirm';
 import { getActiveWorkout, listRoutines, listWorkouts, startWorkout } from '@/lib/db';
 import type { Routine, Workout } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
@@ -18,7 +19,7 @@ export default function TodayScreen() {
         setRoutines(r);
         setRecent(w.filter((x) => x.ended_at));
       })
-      .catch((e) => Alert.alert('불러오기 실패', e.message));
+      .catch((e) => notify('불러오기 실패', e.message));
   }, []);
 
   useFocusEffect(load);
@@ -28,7 +29,7 @@ export default function TodayScreen() {
       const w = await startWorkout(routine?.name ?? '오늘의 운동', routine?.id ?? null);
       router.push(`/workout/${w.id}`);
     } catch (e: any) {
-      Alert.alert('시작 실패', e.message);
+      notify('시작 실패', e.message);
     }
   }
 
