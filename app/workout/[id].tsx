@@ -2,16 +2,18 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { ExercisePicker } from '@/components/ExercisePicker';
-import { notify } from '@/lib/confirm';
+import { confirmAction, notify } from '@/lib/confirm';
 import { formatDate } from '@/lib/format';
 import {
   addWorkoutSet,
+  deleteWorkout,
   deleteWorkoutSet,
   finishWorkout,
   getLastPerformance,
   getWorkout,
   listExercises,
   listWorkoutSets,
+  updateWorkout,
   updateWorkoutSet,
   type ExerciseHistoryPoint,
 } from '@/lib/db';
@@ -133,11 +135,37 @@ export default function WorkoutScreen() {
 
   async function finish() {
     if (!id) return;
+    if (doneSets.length === 0) {
+      confirmAction('완료한 세트가 없어요', '이 운동을 기록 없이 삭제할까요?', discard);
+      return;
+    }
     try {
       await finishWorkout(id);
       router.back();
     } catch (e: any) {
       notify('종료 실패', e.message);
+    }
+  }
+
+  async function discard() {
+    if (!id) return;
+    try {
+      await deleteWorkout(id);
+      router.back();
+    } catch (e: any) {
+      notify('삭제 실패', e.message);
+    }
+  }
+
+  async function saveMemo(memo: string) {
+    if (!id || !workout) return;
+    const next = memo.trim() || null;
+    if (next === workout.memo) return;
+    setWorkout({ ...workout, memo: next });
+    try {
+      await updateWorkout(id, { memo: next });
+    } catch (e: any) {
+      notify('메모 저장 실패', e.message);
     }
   }
 
@@ -209,6 +237,21 @@ export default function WorkoutScreen() {
         )}
         {!done && sets.length > 0 && (
           <Text style={styles.hint}>세트 체크를 길게 누르면 삭제돼요.</Text>
+        )}
+
+        {(!done || workout.memo) && (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>메모</Text>
+            <MemoField value={workout.memo ?? ''} editable={!done} onCommit={saveMemo} />
+          </View>
+        )}
+
+        {!done && (
+          <Pressable
+            style={styles.discard}
+            onPress={() => confirmAction('운동 삭제', '이 운동 기록을 삭제할까요?', discard)}>
+            <Text style={styles.discardText}>이 운동 삭제</Text>
+          </Pressable>
         )}
       </ScrollView>
 
@@ -287,9 +330,49 @@ function NumberField({
   );
 }
 
+function MemoField({
+  value,
+  editable,
+  onCommit,
+}: {
+  value: string;
+  editable: boolean;
+  onCommit: (value: string) => void;
+}) {
+  const [text, setText] = useState(value);
+
+  useEffect(() => {
+    setText(value);
+  }, [value]);
+
+  return (
+    <TextInput
+      style={styles.memo}
+      placeholder="컨디션, 통증, 다음에 올릴 무게…"
+      placeholderTextColor={colors.textDim}
+      value={text}
+      editable={editable}
+      multiline
+      onChangeText={setText}
+      onBlur={() => onCommit(text)}
+    />
+  );
+}
+
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: 160 },
+  memo: {
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: radius.sm,
+    color: colors.text,
+    padding: spacing.md,
+    minHeight: 72,
+    textAlignVertical: 'top',
+    marginTop: spacing.sm,
+  },
+  discard: { alignItems: 'center', paddingVertical: spacing.sm },
+  discardText: { color: colors.danger, fontWeight: '600' },
   summary: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.lg },
   summaryTitle: { color: colors.text, fontSize: 20, fontWeight: '800' },
   summarySub: { color: colors.textDim, marginTop: spacing.xs },
