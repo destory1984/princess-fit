@@ -179,24 +179,17 @@ export default function WorkoutScreen() {
               {exerciseSets.map((s) => (
                 <View key={s.id} style={styles.setRow}>
                   <Text style={styles.setNo}>{s.set_no}</Text>
-                  <TextInput
-                    style={styles.setInput}
-                    keyboardType="decimal-pad"
-                    defaultValue={String(s.weight_kg)}
+                  <NumberField
+                    value={s.weight_kg}
+                    decimal
                     editable={!done}
-                    selectTextOnFocus
-                    onEndEditing={(e) =>
-                      persist(s.id, { weight_kg: Number(e.nativeEvent.text) || 0 })
-                    }
+                    onCommit={(v) => persist(s.id, { weight_kg: v })}
                   />
                   <Text style={styles.unit}>kg</Text>
-                  <TextInput
-                    style={styles.setInput}
-                    keyboardType="number-pad"
-                    defaultValue={String(s.reps)}
+                  <NumberField
+                    value={s.reps}
                     editable={!done}
-                    selectTextOnFocus
-                    onEndEditing={(e) => persist(s.id, { reps: Number(e.nativeEvent.text) || 0 })}
+                    onCommit={(v) => persist(s.id, { reps: v })}
                   />
                   <Text style={styles.unit}>회</Text>
                   <Pressable
@@ -281,6 +274,44 @@ export default function WorkoutScreen() {
         </Pressable>
       </Modal>
     </View>
+  );
+}
+
+function NumberField({
+  value,
+  decimal,
+  editable,
+  onCommit,
+}: {
+  value: number;
+  decimal?: boolean;
+  editable: boolean;
+  onCommit: (value: number) => void;
+}) {
+  const [text, setText] = useState(String(value));
+
+  useEffect(() => {
+    setText(String(value));
+  }, [value]);
+
+  function commit() {
+    const parsed = decimal ? parseFloat(text) : parseInt(text, 10);
+    const next = Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+    setText(String(next));
+    if (next !== value) onCommit(next);
+  }
+
+  return (
+    <TextInput
+      style={styles.setInput}
+      keyboardType={decimal ? 'decimal-pad' : 'number-pad'}
+      value={text}
+      editable={editable}
+      selectTextOnFocus
+      onChangeText={setText}
+      onBlur={commit}
+      onSubmitEditing={commit}
+    />
   );
 }
 
