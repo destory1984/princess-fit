@@ -4,7 +4,7 @@
 
 ## 처음 한 번만
 
-1. Supabase 프로젝트를 만들고 **SQL Editor**에서 `supabase/schema.sql`을 실행한다.
+1. Supabase 프로젝트를 만들고 **SQL Editor**에서 `supabase/schema.sql`을 실행한다. 이 파일은 여러 번 실행해도 안전하므로, 스키마가 바뀌면 그냥 다시 실행하면 된다.
 2. 프로젝트 루트에 `.env`를 만들고 값을 채운다 (`.env.example` 참고). `.env`는 git에 올라가지 않는다.
    - `EXPO_PUBLIC_SUPABASE_URL` — Project Settings → Data API의 URL (`/rest/v1/` 제외)
    - `EXPO_PUBLIC_SUPABASE_ANON_KEY` — Project Settings → API Keys의 anon/publishable 키
