@@ -2,7 +2,13 @@ import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { notify } from '@/lib/confirm';
-import { getActiveWorkout, listRoutines, listWorkouts, startWorkout } from '@/lib/db';
+import {
+  getActiveWorkout,
+  getWeeklyStats,
+  listRoutines,
+  startWorkout,
+  type WeeklyStats,
+} from '@/lib/db';
 import type { Routine, Workout } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
 
@@ -10,14 +16,14 @@ export default function TodayScreen() {
   const router = useRouter();
   const [active, setActive] = useState<Workout | null>(null);
   const [routines, setRoutines] = useState<Routine[]>([]);
-  const [recent, setRecent] = useState<Workout[]>([]);
+  const [weekly, setWeekly] = useState<WeeklyStats>({ workouts: 0, volume: 0, streakDays: 0 });
 
   const load = useCallback(() => {
-    Promise.all([getActiveWorkout(), listRoutines(), listWorkouts(5)])
+    Promise.all([getActiveWorkout(), listRoutines(), getWeeklyStats()])
       .then(([a, r, w]) => {
         setActive(a);
         setRoutines(r);
-        setRecent(w.filter((x) => x.ended_at));
+        setWeekly(w);
       })
       .catch((e) => notify('불러오기 실패', e.message));
   }, []);
@@ -33,21 +39,24 @@ export default function TodayScreen() {
     }
   }
 
-  const thisWeek = recent.filter((w) => {
-    const d = new Date(w.started_at);
-    return Date.now() - d.getTime() < 7 * 24 * 60 * 60 * 1000;
-  }).length;
-
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <View style={styles.statRow}>
         <View style={styles.statCard}>
-          <Text style={styles.statValue}>{thisWeek}</Text>
+          <Text style={styles.statValue}>{weekly.workouts}</Text>
           <Text style={styles.statLabel}>이번 주 운동</Text>
         </View>
         <View style={styles.statCard}>
-          <Text style={styles.statValue}>{recent.length}</Text>
-          <Text style={styles.statLabel}>최근 완료</Text>
+          <Text style={styles.statValue}>
+            {weekly.volume >= 10000
+              ? `${(weekly.volume / 1000).toFixed(1)}t`
+              : weekly.volume.toLocaleString()}
+          </Text>
+          <Text style={styles.statLabel}>주간 볼륨(kg)</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Text style={styles.statValue}>{weekly.streakDays}</Text>
+          <Text style={styles.statLabel}>연속 일</Text>
         </View>
       </View>
 
@@ -88,8 +97,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     padding: spacing.lg,
   },
-  statValue: { color: colors.text, fontSize: 28, fontWeight: '800' },
-  statLabel: { color: colors.textDim, marginTop: spacing.xs },
+  statValue: { color: colors.text, fontSize: 24, fontWeight: '800' },
+  statLabel: { color: colors.textDim, marginTop: spacing.xs, fontSize: 12 },
   primary: {
     backgroundColor: colors.accent,
     borderRadius: radius.lg,
