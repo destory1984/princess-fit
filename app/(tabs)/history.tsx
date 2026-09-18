@@ -1,0 +1,73 @@
+import { useCallback, useState } from 'react';
+import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { listWorkouts } from '@/lib/db';
+import type { Workout } from '@/lib/types';
+import { colors, radius, spacing } from '@/lib/theme';
+
+function formatDate(iso: string) {
+  const d = new Date(iso);
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(
+    d.getDate()
+  ).padStart(2, '0')}`;
+}
+
+function duration(workout: Workout) {
+  if (!workout.ended_at) return '진행 중';
+  const ms = new Date(workout.ended_at).getTime() - new Date(workout.started_at).getTime();
+  const minutes = Math.max(1, Math.round(ms / 60000));
+  return `${minutes}분`;
+}
+
+export default function HistoryScreen() {
+  const router = useRouter();
+  const [workouts, setWorkouts] = useState<Workout[]>([]);
+
+  const load = useCallback(() => {
+    listWorkouts()
+      .then(setWorkouts)
+      .catch((e) => Alert.alert('불러오기 실패', e.message));
+  }, []);
+
+  useFocusEffect(load);
+
+  return (
+    <View style={styles.screen}>
+      <FlatList
+        data={workouts}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.list}
+        ListEmptyComponent={<Text style={styles.empty}>아직 기록이 없어요.</Text>}
+        renderItem={({ item }) => (
+          <Pressable style={styles.row} onPress={() => router.push(`/workout/${item.id}`)}>
+            <View>
+              <Text style={styles.rowTitle}>{item.title}</Text>
+              <Text style={styles.rowSub}>{formatDate(item.started_at)}</Text>
+            </View>
+            <Text style={[styles.badge, !item.ended_at && styles.badgeActive]}>
+              {duration(item)}
+            </Text>
+          </Pressable>
+        )}
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: colors.bg },
+  list: { padding: spacing.lg, gap: spacing.sm },
+  empty: { color: colors.textDim, textAlign: 'center', marginTop: spacing.xl },
+  row: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    padding: spacing.lg,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  rowTitle: { color: colors.text, fontSize: 16, fontWeight: '600' },
+  rowSub: { color: colors.textDim, marginTop: spacing.xs },
+  badge: { color: colors.textDim },
+  badgeActive: { color: colors.success, fontWeight: '700' },
+});
