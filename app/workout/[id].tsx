@@ -1,15 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { ExercisePicker } from '@/components/ExercisePicker';
 import { notify } from '@/lib/confirm';
+import { formatDate } from '@/lib/format';
 import {
   addWorkoutSet,
   deleteWorkoutSet,
@@ -32,11 +26,6 @@ function formatClock(totalSeconds: number) {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
-function formatShortDate(iso: string) {
-  const d = new Date(iso);
-  return `${d.getMonth() + 1}/${d.getDate()}`;
-}
-
 export default function WorkoutScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -56,7 +45,7 @@ export default function WorkoutScreen() {
         setSets(s);
         setExercises(e);
         const ids = [...new Set(s.map((x) => x.exercise_id))];
-        setLast(await getLastPerformance(ids));
+        setLast(await getLastPerformance(ids, id));
       })
       .catch((e) => notify('불러오기 실패', e.message));
   }, [id]);
@@ -113,17 +102,19 @@ export default function WorkoutScreen() {
     const previous = existing[existing.length - 1];
     const lastTime = last.get(exerciseId)?.sets;
     const template = previous ?? lastTime?.[Math.min(existing.length, lastTime.length - 1)];
+    const position = previous?.position ?? sets.reduce((m, s) => Math.max(m, s.position), -1) + 1;
     try {
-      const created = await addWorkoutSet(
-        id,
+      const created = await addWorkoutSet({
+        workoutId: id,
         exerciseId,
-        existing.length + 1,
-        template?.weight_kg ?? 0,
-        template?.reps ?? 10
-      );
+        position,
+        setNo: existing.length + 1,
+        weight: template?.weight_kg ?? 0,
+        reps: template?.reps ?? 10,
+      });
       setSets((prev) => [...prev, created]);
       if (!last.has(exerciseId)) {
-        const fetched = await getLastPerformance([exerciseId]);
+        const fetched = await getLastPerformance([exerciseId], id);
         if (fetched.size) setLast((prev) => new Map([...prev, ...fetched]));
       }
     } catch (e: any) {
@@ -171,7 +162,7 @@ export default function WorkoutScreen() {
               <Text style={styles.cardTitle}>{exerciseName(exerciseId)}</Text>
               {previous && (
                 <Text style={styles.previous}>
-                  지난번 {formatShortDate(previous.date)} ·{' '}
+                  지난번 {formatDate(previous.date, 'short')} ·{' '}
                   {previous.sets.map((s) => `${s.weight_kg}×${s.reps}`).join('  ')}
                 </Text>
               )}
@@ -248,31 +239,12 @@ export default function WorkoutScreen() {
         </View>
       )}
 
-      <Modal visible={picking} animationType="slide" transparent>
-        <Pressable style={styles.modalBackdrop} onPress={() => setPicking(false)}>
-          <View style={styles.modalSheet}>
-            <Text style={styles.modalTitle}>종목 선택</Text>
-            <ScrollView>
-              {exercises.length === 0 ? (
-                <Text style={styles.empty}>설정 탭에서 종목을 먼저 추가해 주세요.</Text>
-              ) : (
-                exercises.map((e) => (
-                  <Pressable
-                    key={e.id}
-                    style={styles.modalRow}
-                    onPress={() => {
-                      setPicking(false);
-                      addSet(e.id);
-                    }}>
-                    <Text style={styles.modalRowText}>{e.name}</Text>
-                    <Text style={styles.rowSub}>{e.muscle_group}</Text>
-                  </Pressable>
-                ))
-              )}
-            </ScrollView>
-          </View>
-        </Pressable>
-      </Modal>
+      <ExercisePicker
+        visible={picking}
+        exercises={exercises}
+        onSelect={(e) => addSet(e.id)}
+        onClose={() => setPicking(false)}
+      />
     </View>
   );
 }
@@ -395,26 +367,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   finishText: { color: '#fff', fontWeight: '800', fontSize: 16 },
-  modalBackdrop: { flex: 1, backgroundColor: '#000A', justifyContent: 'flex-end' },
-  modalSheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
-    padding: spacing.lg,
-    maxHeight: '70%',
-  },
-  modalTitle: {
-    color: colors.text,
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: spacing.md,
-  },
-  modalRow: {
-    paddingVertical: spacing.md,
-    borderBottomColor: colors.border,
-    borderBottomWidth: 1,
-  },
-  modalRowText: { color: colors.text, fontSize: 15 },
-  rowSub: { color: colors.textDim, marginTop: 2 },
-  empty: { color: colors.textDim, paddingVertical: spacing.lg },
 });

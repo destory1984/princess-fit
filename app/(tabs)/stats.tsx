@@ -1,16 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
+import { ExercisePicker } from '@/components/ExercisePicker';
 import { LineChart } from '@/components/LineChart';
 import { notify } from '@/lib/confirm';
 import { getExerciseHistory, listExercises, type ExerciseHistoryPoint } from '@/lib/db';
+import { formatDate as formatDateStyled } from '@/lib/format';
 import type { Exercise } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
 
-function formatDate(iso: string) {
-  const d = new Date(iso);
-  return `${d.getMonth() + 1}/${d.getDate()}`;
-}
+const formatDate = (iso: string) => formatDateStyled(iso, 'short');
 
 export default function StatsScreen() {
   const [exercises, setExercises] = useState<Exercise[]>([]);
@@ -106,27 +105,12 @@ export default function StatsScreen() {
         )}
       </ScrollView>
 
-      <Modal visible={picking} animationType="slide" transparent>
-        <Pressable style={styles.modalBackdrop} onPress={() => setPicking(false)}>
-          <View style={styles.modalSheet}>
-            <Text style={styles.modalTitle}>종목 선택</Text>
-            <ScrollView>
-              {exercises.map((e) => (
-                <Pressable
-                  key={e.id}
-                  style={styles.modalRow}
-                  onPress={() => {
-                    setSelected(e);
-                    setPicking(false);
-                  }}>
-                  <Text style={styles.modalRowText}>{e.name}</Text>
-                  <Text style={styles.rowSub}>{e.muscle_group}</Text>
-                </Pressable>
-              ))}
-            </ScrollView>
-          </View>
-        </Pressable>
-      </Modal>
+      <ExercisePicker
+        visible={picking}
+        exercises={exercises}
+        onSelect={setSelected}
+        onClose={() => setPicking(false)}
+      />
     </View>
   );
 }
@@ -166,16 +150,4 @@ const styles = StyleSheet.create({
   tableDate: { color: colors.textDim, width: 40 },
   tableSets: { color: colors.text, flex: 1 },
   tableValue: { color: colors.text, fontWeight: '700' },
-  modalBackdrop: { flex: 1, backgroundColor: '#000A', justifyContent: 'flex-end' },
-  modalSheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
-    padding: spacing.lg,
-    maxHeight: '70%',
-  },
-  modalTitle: { color: colors.text, fontSize: 16, fontWeight: '700', marginBottom: spacing.md },
-  modalRow: { paddingVertical: spacing.md, borderBottomColor: colors.border, borderBottomWidth: 1 },
-  modalRowText: { color: colors.text, fontSize: 15 },
-  rowSub: { color: colors.textDim, marginTop: 2 },
 });

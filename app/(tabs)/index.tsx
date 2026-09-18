@@ -31,6 +31,11 @@ export default function TodayScreen() {
   useFocusEffect(load);
 
   async function begin(routine: Routine | null) {
+    if (active) {
+      notify('진행 중인 운동이 있어요', '먼저 마무리하거나 이어서 해주세요.');
+      router.push(`/workout/${active.id}`);
+      return;
+    }
     try {
       const w = await startWorkout(routine?.name ?? '오늘의 운동', routine?.id ?? null);
       router.push(`/workout/${w.id}`);
