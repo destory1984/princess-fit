@@ -1,6 +1,15 @@
 import { supabase } from './supabase';
 import type { Exercise, Routine, RoutineExercise, Workout, WorkoutSet } from './types';
 import { localDayKey } from './format';
+import {
+  groupHistory,
+  streakDays,
+  volumeOf,
+  type ExerciseHistoryPoint,
+  type HistoryRow,
+} from './stats';
+
+export type { ExerciseHistoryPoint } from './stats';
 
 async function requireUserId() {
   const { data } = await supabase.auth.getSession();
@@ -121,21 +130,10 @@ export async function getWeeklyStats(): Promise<WeeklyStats> {
 
   const rows = data as { id: string; started_at: string; workout_sets: WorkoutSet[] }[];
   const recent = rows.filter((w) => w.started_at >= since);
-  const volume = recent
-    .flatMap((w) => w.workout_sets)
-    .filter((s) => s.done)
-    .reduce((sum, s) => sum + s.weight_kg * s.reps, 0);
+  const volume = volumeOf(recent.flatMap((w) => w.workout_sets).filter((s) => s.done));
+  const days = rows.map((w) => localDayKey(new Date(w.started_at)));
 
-  const days = new Set(rows.map((w) => localDayKey(new Date(w.started_at))));
-  const cursor = new Date();
-  if (!days.has(localDayKey(cursor))) cursor.setDate(cursor.getDate() - 1);
-  let streakDays = 0;
-  while (days.has(localDayKey(cursor))) {
-    streakDays += 1;
-    cursor.setDate(cursor.getDate() - 1);
-  }
-
-  return { workouts: recent.length, volume, streakDays };
+  return { workouts: recent.length, volume, streakDays: streakDays(days) };
 }
 
 export type WorkoutSummary = Workout & { setCount: number; volume: number };
@@ -150,11 +148,7 @@ export async function listWorkouts(limit = 50): Promise<WorkoutSummary[]> {
   return (data as (Workout & { workout_sets: Pick<WorkoutSet, 'weight_kg' | 'reps' | 'done'>[] })[]).map(
     ({ workout_sets, ...workout }) => {
       const done = workout_sets.filter((s) => s.done);
-      return {
-        ...workout,
-        setCount: done.length,
-        volume: done.reduce((sum, s) => sum + s.weight_kg * s.reps, 0),
-      };
+      return { ...workout, setCount: done.length, volume: volumeOf(done) };
     }
   );
 }
@@ -271,41 +265,6 @@ export async function updateWorkoutSet(
 export async function deleteWorkoutSet(id: string) {
   const { error } = await supabase.from('workout_sets').delete().eq('id', id);
   if (error) throw error;
-}
-
-export type ExerciseHistoryPoint = {
-  workout_id: string;
-  date: string;
-  max_weight: number;
-  volume: number;
-  sets: { set_no: number; weight_kg: number; reps: number }[];
-};
-
-type HistoryRow = {
-  workout_id: string;
-  exercise_id: string;
-  set_no: number;
-  weight_kg: number;
-  reps: number;
-  workouts: { started_at: string };
-};
-
-function groupHistory(rows: HistoryRow[]) {
-  const byWorkout = new Map<string, ExerciseHistoryPoint>();
-  for (const row of rows) {
-    const point: ExerciseHistoryPoint = byWorkout.get(row.workout_id) ?? {
-      workout_id: row.workout_id,
-      date: row.workouts.started_at,
-      max_weight: 0,
-      volume: 0,
-      sets: [],
-    };
-    point.sets.push({ set_no: row.set_no, weight_kg: row.weight_kg, reps: row.reps });
-    point.max_weight = Math.max(point.max_weight, row.weight_kg);
-    point.volume += row.weight_kg * row.reps;
-    byWorkout.set(row.workout_id, point);
-  }
-  return [...byWorkout.values()].sort((a, b) => a.date.localeCompare(b.date));
 }
 
 export async function getExerciseHistory(exerciseId: string, limit = 30) {
