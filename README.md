@@ -35,5 +35,11 @@ npx expo start
 ## 검증
 
 ```bash
-npx tsc --noEmit
+npm run typecheck
 ```
+
+```bash
+npm test
+```
+
+`npm test`는 `lib/*.test.ts`를 Node 내장 테스트 러너로 돌린다 (연속일 계산, 종목별 기록 집계, 볼륨, 날짜 포맷).
