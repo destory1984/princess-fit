@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   bestWeeklyCoverage,
+  weeklyGoalRun,
   evaluateBadges,
   levelAt,
   longestStreak,
@@ -87,4 +88,33 @@ test('an empty history earns nothing and stays at level 1', () => {
   assert.equal(s.level, 1);
   assert.equal(s.streak, 0);
   assert.equal(s.earnedCount, 0);
+});
+
+test('weekly goal run counts consecutive qualifying weeks', () => {
+  // Mondays: 2026-08-31, 09-07, 09-14. Today falls in the 09-14 week.
+  const today = new Date(2026, 8, 17);
+  const on = (y: number, m: number, d: number) => fact({ started_at: `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}T10:00:00` });
+  const workouts = [
+    on(2026, 8, 31), on(2026, 9, 1), on(2026, 9, 2),
+    on(2026, 9, 7), on(2026, 9, 8), on(2026, 9, 9),
+    on(2026, 9, 14), on(2026, 9, 15), on(2026, 9, 16),
+  ];
+  assert.equal(weeklyGoalRun(workouts, 3, today), 3);
+});
+
+test('a week still in progress does not break the run', () => {
+  const today = new Date(2026, 8, 15); // Tuesday, only one session so far
+  const on = (m: number, d: number) => fact({ started_at: `2026-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}T10:00:00` });
+  const workouts = [on(9, 7), on(9, 8), on(9, 9), on(9, 14)];
+  assert.equal(weeklyGoalRun(workouts, 3, today), 1);
+});
+
+test('two sessions in one day count once toward the weekly goal', () => {
+  const today = new Date(2026, 8, 17);
+  const twice = [
+    fact({ id: 'a', started_at: '2026-09-14T09:00:00' }),
+    fact({ id: 'b', started_at: '2026-09-14T19:00:00' }),
+    fact({ id: 'c', started_at: '2026-09-15T09:00:00' }),
+  ];
+  assert.equal(weeklyGoalRun(twice, 3, today), 0);
 });

@@ -107,6 +107,36 @@ export function longestStreak(workouts: WorkoutFact[]) {
   return best;
 }
 
+/** The longest run of weeks, ending at the given week, that met a session goal. */
+export function weeklyGoalRun(workouts: WorkoutFact[], goal: number, today = new Date()) {
+  const weekStart = (d: Date) => {
+    const w = new Date(d);
+    w.setDate(w.getDate() - ((w.getDay() + 6) % 7));
+    w.setHours(0, 0, 0, 0);
+    return w.getTime();
+  };
+
+  const perWeek = new Map<number, Set<string>>();
+  for (const w of workouts) {
+    const when = new Date(w.started_at);
+    const key = weekStart(when);
+    const days = perWeek.get(key) ?? new Set<string>();
+    days.add(localDayKey(when));
+    perWeek.set(key, days);
+  }
+
+  let run = 0;
+  const cursor = new Date(today);
+  // A week still in progress should not break the run, so start from last week
+  // unless this one already qualifies.
+  if ((perWeek.get(weekStart(cursor))?.size ?? 0) < goal) cursor.setDate(cursor.getDate() - 7);
+  while ((perWeek.get(weekStart(cursor))?.size ?? 0) >= goal) {
+    run += 1;
+    cursor.setDate(cursor.getDate() - 7);
+  }
+  return run;
+}
+
 /** Most distinct muscle groups trained within any 7-day window. */
 export function bestWeeklyCoverage(workouts: WorkoutFact[]) {
   const sorted = [...workouts].sort((a, b) => a.started_at.localeCompare(b.started_at));
@@ -133,6 +163,7 @@ export function evaluateBadges(workouts: WorkoutFact[], today = new Date()): Bad
   const coverage = bestWeeklyCoverage(workouts);
   const hours24 = workouts.map((w) => new Date(w.started_at).getHours());
   const dawn = hours24.filter((h) => h < 6).length;
+  const goalRun = weeklyGoalRun(workouts, 3, today);
   const night = hours24.filter((h) => h >= 22).length;
 
   const make = (
@@ -167,6 +198,8 @@ export function evaluateBadges(workouts: WorkoutFact[], today = new Date()): Bad
     make('tenhours', '열 시간의 인내', '유산소 누적 10시간', 'time', hours, 10),
     make('dawn', '새벽형 인간', '오전 6시 이전에 운동', 'partly-sunny', dawn, 1),
     make('night', '야행성', '밤 10시 이후에 운동', 'moon', night, 1),
+    make('weeks4', '넉 주의 약속', '주 3회를 4주 내리 지키기', 'calendar', goalRun, 4),
+    make('weeks12', '한 계절', '주 3회를 12주 내리 지키기', 'leaf', goalRun, 12),
   ];
 }
 
