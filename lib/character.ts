@@ -95,6 +95,18 @@ export function masterSays(stats: Stats, workouts: WorkoutFact[], today = new Da
   return advice[weakest];
 }
 
+/** A short plain-words condition line, in the spirit of "어쨌든 튼튼하게". */
+export function conditionOf(stats: Stats, streak: number) {
+  const values = STAT_ORDER.map((k) => stats[k]);
+  const average = values.reduce((a, b) => a + b, 0) / values.length;
+  if (average === 0) return '아직 시작 전';
+  if (streak >= 7) return '기세가 올랐다';
+  if (streak === 0) return '몸이 식었다';
+  if (average >= 70) return '어쨌든 튼튼하게';
+  if (average >= 40) return '제법 단단해짐';
+  return '이제 막 다지는 중';
+}
+
 export type WeeklyPlan = {
   goal: number;
   done: number;
