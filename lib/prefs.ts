@@ -17,6 +17,30 @@ export async function setWeeklyGoal(goal: number) {
   await AsyncStorage.setItem(WEEKLY_GOAL, String(Math.max(1, Math.min(7, goal))));
 }
 
+const DAILY_ID = 'refit.dailyNotificationId';
+
+/**
+ * The identifier of the standing daily message, so re-arming it can cancel
+ * just that one. Cancelling everything would also throw away the lesson trips
+ * she is already booked on.
+ */
+export async function getDailyMessageId() {
+  try {
+    return await AsyncStorage.getItem(DAILY_ID);
+  } catch {
+    return null;
+  }
+}
+
+export async function setDailyMessageId(id: string | null) {
+  try {
+    if (id === null) await AsyncStorage.removeItem(DAILY_ID);
+    else await AsyncStorage.setItem(DAILY_ID, id);
+  } catch {
+    // Worst case the old message stays until it is replaced.
+  }
+}
+
 const NUDGE = 'refit.nudge';
 /** Evening, when there is still time to go. */
 export const DEFAULT_NUDGE_HOUR = 20;
