@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect } from 'expo-router';
 import { BodyMap, workedParts } from '@/components/BodyMap';
@@ -15,6 +15,7 @@ import {
   STAT_ORDER,
 } from '@/lib/character';
 import { listWorkoutFacts } from '@/lib/db';
+import { getWeeklyGoal, setWeeklyGoal } from '@/lib/prefs';
 import {
   LEVEL_TITLES,
   summarise,
@@ -25,12 +26,23 @@ import { colors, paper, radius, spacing } from '@/lib/theme';
 
 export default function TrainingLedgerScreen() {
   const [facts, setFacts] = useState<WorkoutFact[] | null>(null);
+  const [goal, setGoal] = useState(3);
 
   const load = useCallback(() => {
-    listWorkoutFacts()
-      .then(setFacts)
+    Promise.all([listWorkoutFacts(), getWeeklyGoal()])
+      .then(([list, savedGoal]) => {
+        setFacts(list);
+        setGoal(savedGoal);
+      })
       .catch((e) => notify('불러오기 실패', e.message));
   }, []);
+
+  async function changeGoal(delta: number) {
+    const next = Math.max(1, Math.min(7, goal + delta));
+    if (next === goal) return;
+    setGoal(next);
+    await setWeeklyGoal(next);
+  }
 
   useFocusEffect(load);
 
@@ -39,7 +51,7 @@ export default function TrainingLedgerScreen() {
   const summary = summarise(facts);
   const stats = computeStats(facts);
   const archetype = archetypeOf(stats);
-  const plan = weeklyPlan(facts);
+  const plan = weeklyPlan(facts, goal);
   const saying = masterSays(stats, facts);
   const trained = workedParts(
     facts.flatMap((f) => f.groups.map((g) => ({ muscle_group: g, secondary_group: null })))
@@ -86,6 +98,17 @@ export default function TrainingLedgerScreen() {
       </Scroll>
 
       <Scroll title="이번 주 수련">
+        <View style={styles.goalRow}>
+          <Text style={styles.goalLabel}>주간 목표</Text>
+          <Pressable hitSlop={8} onPress={() => changeGoal(-1)}>
+            <Text style={styles.goalStep}>−</Text>
+          </Pressable>
+          <Text style={styles.goalValue}>{goal}회</Text>
+          <Pressable hitSlop={8} onPress={() => changeGoal(1)}>
+            <Text style={styles.goalStep}>+</Text>
+          </Pressable>
+        </View>
+
         <View style={styles.weekRow}>
           {Array.from({ length: plan.goal }, (_, i) => (
             <View key={i} style={[styles.weekDot, i < plan.done && styles.weekDotOn]}>
@@ -215,7 +238,11 @@ const styles = StyleSheet.create({
   speakerText: { color: paper.bg, fontSize: 11, fontWeight: '800', letterSpacing: 1 },
   speechText: { color: paper.ink, fontSize: 14, lineHeight: 21 },
 
-  weekRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  goalRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  goalLabel: { color: paper.inkDim, fontSize: 12, fontWeight: '700', flex: 1 },
+  goalStep: { color: paper.accent, fontSize: 20, fontWeight: '800', width: 20, textAlign: 'center' },
+  goalValue: { color: paper.ink, fontSize: 15, fontWeight: '800', minWidth: 34, textAlign: 'center' },
+  weekRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm },
   weekDot: {
     width: 28,
     height: 28,
