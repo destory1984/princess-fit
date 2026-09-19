@@ -4,11 +4,13 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { captureRef } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
+import { AdviceCard } from '@/components/AdviceCard';
 import { BodyMap, workedParts } from '@/components/BodyMap';
 import { OrnateFrame } from '@/components/OrnateFrame';
 import { notify } from '@/lib/confirm';
 import { getWorkoutDetail, listWorkoutFacts, type WorkoutDetailExercise } from '@/lib/db';
 import { formatDate, formatDuration } from '@/lib/format';
+import { computeStats } from '@/lib/character';
 import { summarise, workoutXp, type WorkoutFact } from '@/lib/gamification';
 import type { Workout } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
@@ -23,6 +25,7 @@ export default function SummaryScreen() {
   const [items, setItems] = useState<WorkoutDetailExercise[]>([]);
   const [fact, setFact] = useState<WorkoutFact | null>(null);
   const [summary, setSummary] = useState<ReturnType<typeof summarise> | null>(null);
+  const [facts, setFacts] = useState<WorkoutFact[]>([]);
 
   const load = useCallback(() => {
     if (!id) return;
@@ -31,6 +34,7 @@ export default function SummaryScreen() {
         setWorkout(detail.workout);
         setItems(detail.items);
         setFact(facts.find((f) => f.id === id) ?? null);
+        setFacts(facts);
         setSummary(summarise(facts));
       })
       .catch((e) => notify('불러오기 실패', e.message));
@@ -112,6 +116,10 @@ export default function SummaryScreen() {
           <Text style={styles.brand}>Refit</Text>
         </OrnateFrame>
       </View>
+
+      <AdviceCard
+        context={{ today: fact, history: facts, stats: computeStats(facts), streak: summary.streak }}
+      />
 
       <Pressable style={styles.share} onPress={share}>
         <Ionicons name={Platform.OS === 'web' ? 'download-outline' : 'share-outline'} size={18} color="#fff" />
