@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { BigStepper } from '@/components/BigStepper';
+import { nextWeight } from '@/lib/weight';
 import { successFeedback, tapFeedback } from '@/lib/feedback';
 import type { TrackType, WorkoutSet } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
@@ -66,8 +67,9 @@ export function SetCard({
             <BigStepper
               value={set.weight_kg}
               unit="kg"
-              // Plates come in 1.25kg pairs, so a bar changes by 2.5 at a time.
-              step={2.5}
+              // Whole kilos on dumbbells, 2.5 once there is a bar to load.
+              step={1}
+              nextAt={nextWeight}
               bigStep={10}
               decimals={set.weight_kg % 1 === 0 ? 0 : 1}
               onChange={(v) => change({ weight_kg: v })}
