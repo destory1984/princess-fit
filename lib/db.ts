@@ -795,31 +795,37 @@ export async function deleteBodyLog(id: string) {
  * Counted over finished workouts only: sets abandoned mid-session say nothing
  * about what you actually train.
  */
-export async function getExerciseUsage(limit = 800): Promise<UsageMap> {
+export async function getExerciseUsage(sessions = 200): Promise<UsageMap> {
+  // Queried from the workouts side: the sets table has no date of its own, and
+  // PostgREST cannot order parent rows by an embedded column, so asking for
+  // the most recent finished sessions is the only way the limit means
+  // "recent" rather than "whichever rows came back".
   const { data, error } = await supabase
-    .from('workout_sets')
-    .select('exercise_id, workouts!inner(started_at, ended_at)')
-    .not('workouts.ended_at', 'is', null)
-    .order('created_at', { ascending: false })
-    .limit(limit);
+    .from('workouts')
+    .select('started_at, workout_sets(exercise_id)')
+    .not('ended_at', 'is', null)
+    .order('started_at', { ascending: false })
+    .limit(sessions);
   if (error) throw error;
 
-  // PostgREST types an embedded row as an array even when it is one-to-one.
   const rows = data as unknown as {
-    exercise_id: string;
-    workouts: { started_at: string } | { started_at: string }[];
+    started_at: string;
+    workout_sets: { exercise_id: string }[] | null;
   }[];
+
   const usage: UsageMap = new Map();
   for (const row of rows) {
-    const workout = Array.isArray(row.workouts) ? row.workouts[0] : row.workouts;
-    if (!workout) continue;
-    const day = localDayKey(new Date(workout.started_at));
-    const seen = usage.get(row.exercise_id);
-    if (seen) {
-      seen.count += 1;
-      if (day > seen.lastOn) seen.lastOn = day;
-    } else {
-      usage.set(row.exercise_id, { count: 1, lastOn: day });
+    const day = localDayKey(new Date(row.started_at));
+    // Once per session, not once per set: five sets of squats is one day of
+    // squats, and counting sets would rank by how many you happen to do.
+    for (const id of new Set((row.workout_sets ?? []).map((s) => s.exercise_id))) {
+      const seen = usage.get(id);
+      if (seen) {
+        seen.count += 1;
+        if (day > seen.lastOn) seen.lastOn = day;
+      } else {
+        usage.set(id, { count: 1, lastOn: day });
+      }
     }
   }
   return usage;
