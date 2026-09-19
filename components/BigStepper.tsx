@@ -7,6 +7,14 @@ type Props = {
   step: number;
   /** Second, coarser step shown as an extra pair of buttons. */
   bigStep?: number;
+  /**
+   * Replaces `step` when the fine step depends on the value — weight moves by
+   * whole kilos on dumbbells and by 2.5 on a loaded bar. It returns the next
+   * value rather than a step size, so it can also refuse to overshoot: coming
+   * down from 21kg lands on 20, not on 18.5. The buttons take their labels
+   * from what it actually returns, so the rule is visible on screen.
+   */
+  nextAt?: (value: number, direction: 1 | -1) => number;
   decimals?: number;
   onChange: (next: number) => void;
 };
@@ -14,15 +22,26 @@ type Props = {
 /** Trim a trailing .0 so the buttons read −2.5 and +10, never +10.0. */
 function label(amount: number) {
   const sign = amount < 0 ? '−' : '+';
-  return `${sign}${Math.abs(amount)}`;
+  return `${sign}${Number(Math.abs(amount).toFixed(2))}`;
 }
 
-export function BigStepper({ value, unit, step, bigStep, decimals = 0, onChange }: Props) {
+export function BigStepper({
+  value,
+  unit,
+  step,
+  bigStep,
+  nextAt,
+  decimals = 0,
+  onChange,
+}: Props) {
   const set = (next: number) => onChange(Math.max(0, Number(next.toFixed(decimals))));
+
+  const fineDown = nextAt ? nextAt(value, -1) - value : -step;
+  const fineUp = nextAt ? nextAt(value, 1) - value : step;
 
   // Coarse outside, fine inside, so the two sizes never sit next to each other
   // and the row reads outward from the middle in both directions.
-  const amounts = bigStep ? [-bigStep, -step, step, bigStep] : [-step, step];
+  const amounts = bigStep ? [-bigStep, fineDown, fineUp, bigStep] : [fineDown, fineUp];
 
   return (
     <View style={styles.wrap}>
@@ -31,9 +50,9 @@ export function BigStepper({ value, unit, step, bigStep, decimals = 0, onChange 
         <Text style={styles.unit}>{unit}</Text>
       </View>
       <View style={styles.buttons}>
-        {amounts.map((amount) => (
+        {amounts.map((amount, i) => (
           <Pressable
-            key={amount}
+            key={i}
             style={styles.button}
             hitSlop={4}
             onPress={() => set(value + amount)}>

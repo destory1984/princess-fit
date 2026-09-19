@@ -2,6 +2,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Redirect } from 'expo-router';
 import { Advisor } from '@/components/Advisor';
 import { BigStepper } from '@/components/BigStepper';
+import { nextWeight } from '@/lib/weight';
 import { Greeting } from '@/components/Greeting';
 import { PaperDoll } from '@/components/PaperDoll';
 import { ShopShelves } from '@/components/ShopShelves';
@@ -69,7 +70,11 @@ export default function PreviewScreen() {
 
       <Text style={styles.heading}>세트 입력</Text>
       <View style={styles.steppers}>
-        <BigStepper value={62.5} unit="kg" step={2.5} bigStep={10} decimals={1} onChange={() => {}} />
+        <BigStepper value={12} unit="kg" step={1} nextAt={nextWeight} bigStep={10} onChange={() => {}} />
+        <BigStepper value={20} unit="kg" step={1} nextAt={nextWeight} bigStep={10} onChange={() => {}} />
+      </View>
+      <View style={styles.steppers}>
+        <BigStepper value={62.5} unit="kg" step={1} nextAt={nextWeight} bigStep={10} decimals={1} onChange={() => {}} />
         <BigStepper value={10} unit="회" step={1} bigStep={5} onChange={() => {}} />
       </View>
 
