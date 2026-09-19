@@ -31,6 +31,7 @@ import {
   payForWorkout,
   getLastPerformance,
   getPersonalBests,
+  getExerciseUsage,
   getWorkout,
   listExercises,
   listWorkoutFacts,
@@ -45,6 +46,7 @@ import {
 } from "@/lib/db";
 import type { Exercise, Workout, WorkoutSet } from "@/lib/types";
 import { followOn, planFor } from "@/lib/setPlan";
+import type { UsageMap } from "@/lib/exerciseUsage";
 import { colors, muscleColor, radius, spacing } from "@/lib/theme";
 
 export default function WorkoutScreen() {
@@ -68,6 +70,7 @@ export default function WorkoutScreen() {
   // Lazy, so the clock is read once on mount rather than on every render.
   const [now, setNow] = useState(() => Date.now());
   const [error, setError] = useState<string | null>(null);
+  const [usage, setUsage] = useState<UsageMap>(new Map());
 
   const load = useCallback(() => {
     if (!id) return;
@@ -93,6 +96,10 @@ export default function WorkoutScreen() {
   // Give the model a long head start on loading; advice is asked for at the end.
   useEffect(() => {
     warmUpAdvice();
+    // Only used to order the picker, so a failure costs nothing but the order.
+    getExerciseUsage()
+      .then(setUsage)
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -734,6 +741,7 @@ export default function WorkoutScreen() {
       )}
 
       <ExercisePicker
+        usage={usage}
         visible={picking}
         exercises={exercises}
         onSelect={(e) => addExercise(e)}

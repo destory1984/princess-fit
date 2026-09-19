@@ -13,19 +13,30 @@ import { ExerciseThumb } from '@/components/ExerciseThumb';
 import { MuscleTag } from '@/components/MuscleTag';
 import { seedDefaultExercises } from '@/lib/catalog';
 import { notify } from '@/lib/confirm';
+import { sortByUsage, SORT_NAME, type Sort, type UsageMap } from '@/lib/exerciseUsage';
 import { EQUIPMENT, MUSCLE_GROUPS, type Exercise } from '@/lib/types';
 import { colors, muscleColor, radius, spacing } from '@/lib/theme';
 
 type Props = {
   visible: boolean;
   exercises: Exercise[];
+  /** How often and how recently each has been used, for the 최근/자주 tabs. */
+  usage?: UsageMap;
   onSelect: (exercise: Exercise) => void;
   onClose: () => void;
   onSeeded?: () => void;
 };
 
-export function ExercisePicker({ visible, exercises, onSelect, onClose, onSeeded }: Props) {
+export function ExercisePicker({
+  visible,
+  exercises,
+  usage,
+  onSelect,
+  onClose,
+  onSeeded,
+}: Props) {
   const [query, setQuery] = useState('');
+  const [sort, setSort] = useState<Sort>('all');
   const [group, setGroup] = useState<string | null>(null);
   const [gear, setGear] = useState<string | null>(null);
   const [seeding, setSeeding] = useState(false);
@@ -43,8 +54,16 @@ export function ExercisePicker({ visible, exercises, onSelect, onClose, onSeeded
     );
   }, [exercises, query, group, gear]);
 
+  // Sixty-seven movements sorted by name asks you to remember what yours are
+  // called. Most sessions reuse a handful; put those within reach.
+  const shown = useMemo(
+    () => sortByUsage(filtered, usage ?? new Map(), sort),
+    [filtered, usage, sort]
+  );
+
   function close() {
     setQuery('');
+    setSort('all');
     setGroup(null);
     setGear(null);
     onClose();
@@ -97,6 +116,16 @@ export function ExercisePicker({ visible, exercises, onSelect, onClose, onSeeded
                 onChangeText={setQuery}
                 autoCorrect={false}
               />
+              <View style={styles.chipRow}>
+                {(['all', 'recent', 'often'] as Sort[]).map((s) => (
+                  <Chip
+                    key={s}
+                    label={SORT_NAME[s]}
+                    active={sort === s}
+                    onPress={() => setSort(s)}
+                  />
+                ))}
+              </View>
               <Text style={styles.filterLabel}>부위</Text>
               <View style={styles.chipRow}>
                 <Chip label="전체" active={group === null} onPress={() => setGroup(null)} />
@@ -119,12 +148,18 @@ export function ExercisePicker({ visible, exercises, onSelect, onClose, onSeeded
               </View>
               <FlatList
                 style={styles.results}
-                data={filtered}
+                data={shown}
                 keyExtractor={(e) => e.id}
                 keyboardShouldPersistTaps="handled"
                 initialNumToRender={8}
                 windowSize={5}
-                ListEmptyComponent={<Text style={styles.emptyText}>검색 결과가 없어요.</Text>}
+                ListEmptyComponent={
+                  <Text style={styles.emptyText}>
+                    {sort === 'all'
+                      ? '검색 결과가 없어요.'
+                      : `${SORT_NAME[sort]}에 넣을 기록이 아직 없어요. 한 번 해보면 여기 쌓여요.`}
+                  </Text>
+                }
                 renderItem={({ item: e }) => (
                   <Pressable
                     style={styles.row}
