@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
-import { getDailyMessageId, setDailyMessageId } from './prefs';
+import { getDailyMessageId, getQuietHours, setDailyMessageId } from './prefs';
+import { nextAudibleHour, whenAudible } from './quiet';
 import type { Trip } from './lessons';
 
 /**
@@ -78,6 +79,11 @@ export async function scheduleDailyMessage(
   if (!supported) return false;
   if (!(await ensureNotificationPermission())) return false;
 
+  // Her own messages keep quiet hours; an hour inside the window is pushed to
+  // when it ends rather than dropped, so she still says it, just at breakfast.
+  const quiet = await getQuietHours();
+  const when = quiet ? nextAudibleHour(hour, quiet[0], quiet[1]) : hour;
+
   const previous = await getDailyMessageId();
   if (previous) await Notifications.cancelScheduledNotificationAsync(previous);
 
@@ -85,8 +91,8 @@ export async function scheduleDailyMessage(
     content: { title: speaker, body, data: { line: body } },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DAILY,
-      hour,
-      minute,
+      hour: when,
+      minute: when === hour ? minute : 0,
       channelId: CHANNEL,
     },
   });
@@ -114,11 +120,14 @@ export async function scheduleLessonTrip(speaker: string, lesson: string, trip: 
   if (!supported) return false;
   if (!(await ensureNotificationPermission())) return false;
 
+  const quiet = await getQuietHours();
+  const at = (moment: Date) => (quiet ? whenAudible(moment, quiet[0], quiet[1]) : moment);
+
   await Notifications.scheduleNotificationAsync({
     content: goodbye(speaker, lesson),
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DATE,
-      date: trip.leaves,
+      date: at(trip.leaves),
       channelId: CHANNEL,
     },
   });
@@ -126,7 +135,7 @@ export async function scheduleLessonTrip(speaker: string, lesson: string, trip: 
     content: welcome(speaker, lesson),
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DATE,
-      date: trip.returns,
+      date: at(trip.returns),
       channelId: CHANNEL,
     },
   });

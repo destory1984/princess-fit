@@ -4,20 +4,39 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect } from 'expo-router';
 import { notify } from '@/lib/confirm';
 import { cancelDailyMessage } from '@/lib/notify';
-import { DEFAULT_NUDGE_HOUR, getNudgeHour, setNudgeHour } from '@/lib/prefs';
+import {
+  DEFAULT_NUDGE_HOUR,
+  getNudgeHour,
+  getQuietHours,
+  setNudgeHour,
+  setQuietHours,
+} from '@/lib/prefs';
+import { DEFAULT_QUIET_FROM, DEFAULT_QUIET_TO, isQuiet } from '@/lib/quiet';
 import { colors, radius, spacing } from '@/lib/theme';
 
 /** Hours worth offering. A nudge at 3am helps nobody. */
 const HOURS = [8, 12, 18, 20, 22];
 
+/** Windows people actually sleep in, rather than two more hour pickers. */
+const QUIET_WINDOWS: [number, number][] = [
+  [22, 7],
+  [23, 8],
+  [0, 9],
+];
+
 /** Whether she sends her one message a day, and when. */
 export function NudgeSetting() {
   const [hour, setHour] = useState<number | null>(DEFAULT_NUDGE_HOUR);
+  const [quiet, setQuiet] = useState<[number, number] | null>([
+    DEFAULT_QUIET_FROM,
+    DEFAULT_QUIET_TO,
+  ]);
 
   useFocusEffect(
     useCallback(() => {
       let alive = true;
       getNudgeHour().then((h) => alive && setHour(h));
+      getQuietHours().then((q) => alive && setQuiet(q));
       return () => {
         alive = false;
       };
@@ -37,6 +56,19 @@ export function NudgeSetting() {
       setHour(previous);
     }
   }
+
+  async function changeQuiet(next: [number, number] | null) {
+    const previous = quiet;
+    setQuiet(next);
+    try {
+      await setQuietHours(next);
+    } catch (e: any) {
+      notify('저장 실패', e.message);
+      setQuiet(previous);
+    }
+  }
+
+  const silenced = hour !== null && quiet !== null && isQuiet(hour, quiet[0], quiet[1]);
 
   return (
     <View style={styles.wrap}>
@@ -71,6 +103,55 @@ export function NudgeSetting() {
           ))}
         </View>
       )}
+
+      {/*
+        Quiet hours cover the messages she starts. The rest timer is left out
+        on purpose: that bell was set a minute earlier by someone standing in
+        a gym, and silencing an alarm you just asked for is the app deciding
+        it knows better.
+      */}
+      <View style={styles.quiet}>
+        <View style={styles.quietHead}>
+          <Ionicons name="moon-outline" size={16} color={colors.textDim} />
+          <Text style={styles.quietTitle}>방해 금지</Text>
+          <Switch
+            value={quiet !== null}
+            onValueChange={(on) =>
+              changeQuiet(on ? [DEFAULT_QUIET_FROM, DEFAULT_QUIET_TO] : null)
+            }
+            trackColor={{ true: colors.accent, false: colors.faint }}
+          />
+        </View>
+
+        {quiet && (
+          <>
+            <Text style={styles.quietSub}>
+              {quiet[0]}시부터 {quiet[1]}시까지는 리나가 말을 걸지 않아요.
+            </Text>
+            <View style={styles.row}>
+              {QUIET_WINDOWS.map(([from, to]) => {
+                const on = quiet[0] === from && quiet[1] === to;
+                return (
+                  <Pressable
+                    key={`${from}-${to}`}
+                    style={[styles.chip, on && styles.chipOn]}
+                    onPress={() => changeQuiet([from, to])}>
+                    <Text style={[styles.chipText, on && styles.chipTextOn]}>
+                      {from}–{to}시
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </>
+        )}
+
+        {silenced && (
+          <Text style={styles.warn}>
+            {hour}시는 방해 금지 시간이라, 안부는 {quiet![1]}시에 와요.
+          </Text>
+        )}
+      </View>
 
       {Platform.OS === 'web' && (
         <Text style={styles.note}>알림은 폰에서만 와요.</Text>
@@ -110,5 +191,15 @@ const styles = StyleSheet.create({
   chipOn: { backgroundColor: colors.accentSoft, borderColor: colors.accent },
   chipText: { color: colors.textDim },
   chipTextOn: { color: colors.accent, fontWeight: '700' },
+  quiet: {
+    borderTopColor: colors.faint,
+    borderTopWidth: 1,
+    paddingTop: spacing.sm,
+    gap: spacing.sm,
+  },
+  quietHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  quietTitle: { color: colors.text, fontSize: 14, fontWeight: '700', flex: 1 },
+  quietSub: { color: colors.textDim, fontSize: 12, lineHeight: 18 },
+  warn: { color: colors.accent, fontSize: 12, lineHeight: 18 },
   note: { color: colors.textDim, fontSize: 11 },
 });

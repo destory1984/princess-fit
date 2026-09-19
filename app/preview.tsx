@@ -4,6 +4,7 @@ import { Advisor } from '@/components/Advisor';
 import { BigStepper } from '@/components/BigStepper';
 import { BragCard } from '@/components/BragCard';
 import { Cheer } from '@/components/Cheer';
+import { NudgeSetting } from '@/components/NudgeSetting';
 import { nextWeight } from '@/lib/weight';
 import { Greeting } from '@/components/Greeting';
 import { PaperDoll } from '@/components/PaperDoll';
@@ -96,6 +97,9 @@ export default function PreviewScreen() {
         }}
         summary={summarise([])}
       />
+
+      <Text style={styles.heading}>알림 설정</Text>
+      <NudgeSetting />
 
       <Text style={styles.heading}>리나의 응원</Text>
       <Cheer doneSets={0} totalSets={12} />
