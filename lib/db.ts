@@ -2,6 +2,7 @@ import { supabase } from './supabase';
 import type { Exercise, Routine, RoutineExercise, Workout, WorkoutSet } from './types';
 import { localDayKey } from './format';
 import type { WorkoutFact } from './gamification';
+import { afterWorkout, newHousehold, settle, workoutGold, type Household } from './economy';
 import {
   groupHistory,
   streakDays,
@@ -543,4 +544,54 @@ export async function getLastPerformance(exerciseIds: string[], excludeWorkoutId
     if (latest) result.set(exerciseId, latest);
   }
   return result;
+}
+
+/**
+ * Her purse and how she is faring, brought up to today. The row is created on
+ * first read so no separate sign-up step is needed, and settling is written
+ * back only when a day has actually turned — otherwise every app open would
+ * cost a round trip.
+ */
+export async function getHousehold(today = new Date()): Promise<Household> {
+  const userId = await requireUserId();
+  const { data, error } = await supabase
+    .from('household')
+    .select('gold, satiety, attire, settled_on')
+    .eq('user_id', userId)
+    .maybeSingle();
+  if (error) throw error;
+
+  const stored: Household = data
+    ? {
+        gold: data.gold,
+        satiety: data.satiety,
+        attire: data.attire,
+        settledOn: data.settled_on,
+      }
+    : newHousehold(today);
+
+  const settled = settle(stored, today);
+  if (!data || settled !== stored) await saveHousehold(settled);
+  return settled;
+}
+
+export async function saveHousehold(house: Household) {
+  const userId = await requireUserId();
+  const { error } = await supabase.from('household').upsert({
+    user_id: userId,
+    gold: house.gold,
+    satiety: house.satiety,
+    attire: house.attire,
+    settled_on: house.settledOn,
+    updated_at: new Date().toISOString(),
+  });
+  if (error) throw error;
+}
+
+/** Pay out a finished workout. Returns the new ledger and what it earned. */
+export async function payForWorkout(fact: WorkoutFact, today = new Date()) {
+  const before = await getHousehold(today);
+  const after = afterWorkout(before, fact);
+  await saveHousehold(after);
+  return { house: after, gold: workoutGold(fact) };
 }

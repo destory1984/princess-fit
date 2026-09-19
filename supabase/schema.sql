@@ -96,3 +96,21 @@ create policy "own workout sets" on workout_sets
   ) with check (
     exists (select 1 from workouts w where w.id = workout_id and w.user_id = auth.uid())
   );
+
+-- The household ledger: her purse and how she is faring. One row per user; the
+-- app settles it forward on open, so the stored row is only ever as fresh as
+-- the last visit.
+create table if not exists household (
+  user_id uuid primary key references auth.users on delete cascade,
+  gold integer not null default 0,
+  satiety integer not null default 100,
+  attire integer not null default 100,
+  settled_on date not null default current_date,
+  updated_at timestamptz not null default now()
+);
+
+alter table household enable row level security;
+
+drop policy if exists "own household" on household;
+create policy "own household" on household
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);

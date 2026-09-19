@@ -5,16 +5,19 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { notify } from '@/lib/confirm';
 import { Advisor } from '@/components/Advisor';
 import { LevelCard } from '@/components/LevelCard';
+import { Purse } from '@/components/Purse';
 import { TrainingHall } from '@/components/TrainingHall';
 import { archetypeOf, computeStats, conditionOf, masterSays } from '@/lib/character';
 import { useAdvisor } from '@/lib/useAdvisor';
 import { portraitOf } from '@/lib/portraits';
+import { messageFor, moodOf, type Household } from '@/lib/economy';
 import {
   getActiveWorkout,
   getWeeklyStats,
   listExercises,
   listRoutineExercises,
   listRoutines,
+  getHousehold,
   listWorkoutFacts,
   startWorkout,
   type WeeklyStats,
@@ -33,6 +36,7 @@ export default function TodayScreen() {
   const [summary, setSummary] = useState<ReturnType<typeof summarise> | null>(null);
   const [stats, setStats] = useState<ReturnType<typeof computeStats> | null>(null);
   const [facts, setFacts] = useState<WorkoutFact[]>([]);
+  const [house, setHouse] = useState<Household | null>(null);
   const advisor = useAdvisor();
 
   const load = useCallback(() => {
@@ -49,6 +53,7 @@ export default function TodayScreen() {
         setWeekly(w);
         setExerciseCount(ex.length);
         setFacts(facts);
+        getHousehold().then(setHouse).catch(() => setHouse(null));
         setSummary(summarise(facts));
         setStats(computeStats(facts));
         const sizes = await Promise.all(
@@ -114,8 +119,9 @@ export default function TodayScreen() {
             stats={stats}
             streak={summary.streak}
           />
+          {house && <Purse house={house} />}
           <Advisor name={advisor.name} portrait={portraitOf(advisor.id)}>
-            {masterSays(stats, facts)}
+            {house ? messageFor(moodOf(house, facts), new Date()) : masterSays(stats, facts)}
           </Advisor>
           <LevelCard
             level={summary.level}
