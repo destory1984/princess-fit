@@ -12,6 +12,7 @@ import {
 } from './economy';
 import { buy, type Item } from './shop';
 import { resolvePreset, type RoutinePreset } from './routinePresets';
+import type { BodyLog } from './body';
 import { wearing, type Garment } from './outfit';
 import { attend, EMPTY_CULTURE, type Culture, type Lesson } from './lessons';
 import type { Furniture } from './room';
@@ -750,4 +751,39 @@ export async function createRoutineFromPreset(preset: RoutinePreset) {
   if (error) throw error;
 
   return { routine, missing };
+}
+
+export async function listBodyLogs(limit = 400): Promise<BodyLog[]> {
+  const userId = await requireUserId();
+  const { data, error } = await supabase
+    .from('body_logs')
+    .select('id, measured_on, weight_kg, body_fat_pct, muscle_kg')
+    .eq('user_id', userId)
+    .order('measured_on', { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data as BodyLog[];
+}
+
+/**
+ * Record today's measurements. One row per day: a second weigh-in replaces
+ * the first rather than adding noise to the trend.
+ */
+export async function saveBodyLog(
+  measurements: Partial<Pick<BodyLog, 'weight_kg' | 'body_fat_pct' | 'muscle_kg'>>,
+  day = localDayKey(new Date())
+) {
+  const userId = await requireUserId();
+  const { error } = await supabase
+    .from('body_logs')
+    .upsert(
+      { user_id: userId, measured_on: day, ...measurements },
+      { onConflict: 'user_id,measured_on' }
+    );
+  if (error) throw error;
+}
+
+export async function deleteBodyLog(id: string) {
+  const { error } = await supabase.from('body_logs').delete().eq('id', id);
+  if (error) throw error;
 }
