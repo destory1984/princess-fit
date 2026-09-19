@@ -6,6 +6,7 @@ export type Exercise = {
   secondary_group: string | null;
   equipment: string;
   muscle_detail: string;
+  body_parts: string;
   created_at: string;
 };
 

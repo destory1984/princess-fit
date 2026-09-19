@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { BodyMap, regionsOf } from '@/components/BodyMap';
+import { BodyMap, workedParts } from '@/components/BodyMap';
 import { ExercisePicker } from '@/components/ExercisePicker';
 import { MuscleTag } from '@/components/MuscleTag';
 import { confirmAction, notify } from '@/lib/confirm';
@@ -39,9 +39,14 @@ export default function RoutineScreen() {
   const byId = useMemo(() => new Map(exercises.map((e) => [e.id, e])), [exercises]);
   const exerciseName = (exerciseId: string) => byId.get(exerciseId)?.name ?? '삭제된 종목';
 
-  const worked = useMemo(
-    () => regionsOf(items.flatMap((i) => byId.get(i.exercise_id) ?? [])),
+  const routineExercises = useMemo(
+    () => items.flatMap((i) => byId.get(i.exercise_id) ?? []),
     [items, byId]
+  );
+  const worked = useMemo(() => workedParts(routineExercises), [routineExercises]);
+  const groups = useMemo(
+    () => [...new Set(routineExercises.map((e) => e.muscle_group))],
+    [routineExercises]
   );
 
   async function add(exerciseId: string) {
@@ -83,11 +88,11 @@ export default function RoutineScreen() {
         <Text style={styles.title}>{routine?.name ?? ''}</Text>
 
         <View style={styles.bodyCard}>
-          <BodyMap primary={worked.primary} secondary={worked.secondary} height={240} />
+          <BodyMap data={worked} />
           <Text style={styles.bodyCaption}>
-            {worked.primary.size === 0
+            {groups.length === 0
               ? '종목을 담으면 어느 부위를 쓰는지 표시돼요.'
-              : `이 루틴이 쓰는 부위 · ${[...worked.primary].join(', ')}`}
+              : `이 루틴이 쓰는 부위 · ${groups.join(', ')}`}
           </Text>
         </View>
 
