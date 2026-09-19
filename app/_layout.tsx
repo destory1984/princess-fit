@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -35,6 +36,13 @@ function RootNavigator() {
         headerTitleStyle: { fontWeight: '800' },
         headerShadowVisible: false,
         contentStyle: { backgroundColor: colors.bg },
+        // The web header has no back affordance of its own.
+        headerLeft: () =>
+          router.canGoBack() ? (
+            <Pressable hitSlop={10} style={{ paddingRight: 12 }} onPress={() => router.back()}>
+              <Ionicons name="chevron-back" size={24} color={colors.chromeText} />
+            </Pressable>
+          ) : null,
       }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="login" options={{ headerShown: false }} />
