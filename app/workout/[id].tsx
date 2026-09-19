@@ -630,10 +630,18 @@ export default function WorkoutScreen() {
           <Pressable
             style={styles.discard}
             onPress={() =>
-              confirmAction("운동 삭제", "이 운동 기록을 삭제할까요?", discard)
+              // "운동" means a session here and an exercise two buttons above,
+              // so this says which one, and what is actually lost.
+              confirmAction(
+                "오늘 기록 삭제",
+                doneSets.length
+                  ? `기록한 ${doneSets.length}세트가 모두 지워지고 되돌릴 수 없어요.`
+                  : "이 기록을 지우고 나갈까요?",
+                discard,
+              )
             }
           >
-            <Text style={styles.discardText}>이 운동 삭제</Text>
+            <Text style={styles.discardText}>오늘 기록 삭제</Text>
           </Pressable>
         )}
       </ScrollView>
