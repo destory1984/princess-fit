@@ -2,10 +2,18 @@ import { useCallback, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
+import { Insights } from '@/components/Insights';
 import { MonthCalendar } from '@/components/MonthCalendar';
 import { confirmAction, notify } from '@/lib/confirm';
-import { deleteWorkout, listWorkoutDays, listWorkouts, type WorkoutSummary } from '@/lib/db';
+import {
+  deleteWorkout,
+  listWorkoutDays,
+  listWorkoutFacts,
+  listWorkouts,
+  type WorkoutSummary,
+} from '@/lib/db';
 import { formatDate, localDayKey } from '@/lib/format';
+import type { WorkoutFact } from '@/lib/gamification';
 import type { Workout } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
 
@@ -21,8 +29,14 @@ export default function HistoryScreen() {
   const [days, setDays] = useState<Set<string>>(new Set());
   const [month, setMonth] = useState(() => new Date());
   const [selected, setSelected] = useState<string | null>(null);
+  const [facts, setFacts] = useState<WorkoutFact[]>([]);
 
   const load = useCallback(() => {
+    listWorkoutFacts()
+      .then(setFacts)
+      .catch(() => {
+        // The list below still works; only the reading is lost.
+      });
     Promise.all([listWorkouts(), listWorkoutDays()])
       .then(([list, marked]) => {
         setWorkouts(list);
@@ -67,6 +81,8 @@ export default function HistoryScreen() {
           setMonth((m) => new Date(m.getFullYear(), m.getMonth() + delta, 1))
         }
       />
+
+      <Insights workouts={facts} limit={2} />
 
       <View style={styles.listHeader}>
         <Text style={styles.listTitle}>
