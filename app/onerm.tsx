@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { BigStepper } from '@/components/BigStepper';
 import { OneRmChart } from '@/components/OneRmChart';
 import { estimates, MAX_REPS, spread } from '@/lib/oneRm';
@@ -21,7 +21,9 @@ export default function OneRmScreen() {
   const all = estimates(weight, reps);
 
   return (
-    <View style={styles.screen}>
+    // Taller than a small phone once the chart and the five values are in, so
+    // it scrolls rather than hiding the list and the caution below the fold.
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <Text style={styles.lead}>
         정확한 자세로 딱 한 번 들 수 있는 무게예요. 실제로 해본 세트를 넣으면 계산해 드려요.
       </Text>
@@ -76,12 +78,13 @@ export default function OneRmScreen() {
       <Text style={styles.caution}>
         계산일 뿐이에요. 실제로 1회를 시도할 때는 보조자를 두세요.
       </Text>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg, padding: spacing.lg, gap: spacing.md },
+  screen: { flex: 1, backgroundColor: colors.bg },
+  content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xl },
   lead: { color: colors.textDim, fontSize: 13, lineHeight: 19 },
   inputs: {
     flexDirection: 'row',
