@@ -2,9 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { ACCESSORIES, buy, effectiveCulture, FOOD, refusalFor, SPECIALS, wornCharm } from './shop.ts';
 import { GARMENTS, OUTFIT_TOTAL } from './outfit.ts';
-import { EMPTY_CULTURE } from './lessons.ts';
+import { EMPTY_CULTURE, LESSONS } from './lessons.ts';
 import { DAILY_UPKEEP, workoutGold, type Household } from './economy.ts';
-import { LESSONS } from './lessons.ts';
 import type { WorkoutFact } from './gamification.ts';
 
 const rich: Household = { gold: 10_000, satiety: 50, attire: 10, settledOn: '2026-09-20' };
