@@ -5,18 +5,34 @@ import { useFocusEffect } from 'expo-router';
 import { Purse } from '@/components/Purse';
 import { ScreenState } from '@/components/ScreenState';
 import { notify } from '@/lib/confirm';
-import { buyFurniture, buyItem, getLedger, takeLesson, type Ledger } from '@/lib/db';
+import {
+  buyFurniture,
+  buyGarment,
+  buyItem,
+  getLedger,
+  setWorn,
+  takeLesson,
+  type Ledger,
+} from '@/lib/db';
 import { CULTURE_META, CULTURE_ORDER, LESSONS, previewOf, type Lesson } from '@/lib/lessons';
 import { FURNITURE, replaces, roomProgress, SLOT_NAME, type Furniture } from '@/lib/room';
+import { PaperDoll } from '@/components/PaperDoll';
+import {
+  GARMENTS,
+  layersOf,
+  OUTFIT_SLOT_NAME,
+  outfitProgress,
+  takingOff,
+  wearing,
+  type Garment,
+} from '@/lib/outfit';
 import {
   ACCESSORIES,
-  CLOTHES,
   FOOD,
   REFUSAL_TEXT,
   refusalFor,
   SPECIALS,
   effectiveCulture,
-  wardrobeProgress,
   wornCharm,
   type Item,
 } from '@/lib/shop';
@@ -46,7 +62,7 @@ export default function ShopScreen() {
     setBusy(id);
     try {
       setLedger(await run());
-      notify(`${label} · −${price.toLocaleString()} G`);
+      notify(price ? `${label} · −${price.toLocaleString()} G` : label);
     } catch (e: any) {
       notify('사지 못했어요', e.message);
     } finally {
@@ -56,9 +72,9 @@ export default function ShopScreen() {
 
   if (!ledger) return <ScreenState error={error} onRetry={load} />;
 
-  const { house, wardrobe, furniture, culture } = ledger;
+  const { house, wardrobe, worn, furniture, culture } = ledger;
   // What the bars show: lessons plus whatever she has on.
-  const worn = effectiveCulture(culture, wardrobe);
+  const standing = effectiveCulture(culture, wardrobe);
 
   function Row({
     id,
@@ -149,6 +165,37 @@ export default function ShopScreen() {
     );
   }
 
+  function GarmentRow({ garment }: { garment: Garment }) {
+    const owned = wardrobe.includes(garment.id);
+    const on = layersOf(worn).some((g) => g.id === garment.id);
+    const covered = owned && worn.includes(garment.id) && !on;
+    return (
+      <Row
+        id={garment.id}
+        icon={on ? 'checkmark' : 'shirt-outline'}
+        name={garment.name}
+        detail={garment.detail}
+        price={garment.price}
+        note={
+          covered
+            ? '드레스에 가려져 있어요'
+            : owned
+              ? `${OUTFIT_SLOT_NAME[garment.slot]} · ${on ? '입는 중' : '눌러서 입기'}`
+              : `${OUTFIT_SLOT_NAME[garment.slot]} · 매력 +${garment.charm}`
+        }
+        disabled={!owned && house.gold < garment.price}
+        owned={on}
+        onPress={() =>
+          owned
+            ? spend(garment.id, garment.name, 0, () =>
+                setWorn(on ? takingOff(worn, garment.id) : wearing(worn, garment))
+              )
+            : spend(garment.id, garment.name, garment.price, () => buyGarment(garment))
+        }
+      />
+    );
+  }
+
   function FurnitureRow({ piece }: { piece: Furniture }) {
     const owned = furniture.includes(piece.id);
     const swaps = owned ? null : replaces(piece, furniture);
@@ -178,7 +225,7 @@ export default function ShopScreen() {
     );
   }
 
-  const clothes = wardrobeProgress(wardrobe);
+  const clothes = outfitProgress(wardrobe);
   const room = roomProgress(furniture);
 
   return (
@@ -200,14 +247,19 @@ export default function ShopScreen() {
 
       {shelf === '옷장' && (
         <>
-          <Bar ratio={clothes.ratio} label={`${clothes.count}/${clothes.total}벌`} />
-          <Text style={styles.hint}>
-            {clothes.complete
-              ? '옷장이 가득 찼어요. 일 년을 걸어온 값이에요.'
-              : '새 옷을 입으면 차림새가 다시 단정해져요.'}
-          </Text>
-          {CLOTHES.map((item) => (
-            <ItemRow key={item.id} item={item} />
+          <View style={styles.dollRow}>
+            <PaperDoll worn={worn} style={styles.doll} />
+            <View style={styles.dollBody}>
+              <Bar ratio={clothes.ratio} label={`${clothes.count}/${clothes.total}벌`} />
+              <Text style={styles.hint}>
+                {clothes.complete
+                  ? '옷장이 가득 찼어요. 일 년을 걸어온 값이에요.'
+                  : '사면 바로 입어요. 가진 옷은 눌러서 갈아입을 수 있어요.'}
+              </Text>
+            </View>
+          </View>
+          {GARMENTS.map((garment) => (
+            <GarmentRow key={garment.id} garment={garment} />
           ))}
         </>
       )}
@@ -229,9 +281,9 @@ export default function ShopScreen() {
                 <Ionicons name={CULTURE_META[k].icon as any} size={14} color={colors.gold} />
                 <Text style={styles.cultureName}>{CULTURE_META[k].name}</Text>
                 <View style={styles.track}>
-                  <View style={[styles.fill, { width: `${worn[k]}%` }]} />
+                  <View style={[styles.fill, { width: `${standing[k]}%` }]} />
                 </View>
-                <Text style={styles.cultureValue}>{worn[k]}</Text>
+                <Text style={styles.cultureValue}>{standing[k]}</Text>
               </View>
             ))}
           </View>
@@ -288,6 +340,9 @@ const styles = StyleSheet.create({
   tabOn: { backgroundColor: colors.accentSoft, borderColor: colors.accent },
   tabText: { color: colors.textDim, fontSize: 13, lineHeight: 18 },
   tabTextOn: { color: colors.accent, fontWeight: '800' },
+  dollRow: { flexDirection: 'row', gap: spacing.md, alignItems: 'center', marginTop: spacing.sm },
+  doll: { width: 96 },
+  dollBody: { flex: 1 },
   barWrap: { gap: 4, marginTop: spacing.sm },
   track: {
     flex: 1,

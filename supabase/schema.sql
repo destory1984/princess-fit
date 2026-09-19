@@ -125,3 +125,7 @@ alter table household add column if not exists furniture text[] not null default
 alter table household add column if not exists grace integer not null default 0;
 alter table household add column if not exists learning integer not null default 0;
 alter table household add column if not exists charm integer not null default 0;
+
+-- What she has on, as opposed to what she owns. Garments she has bought live
+-- in `wardrobe`; the subset she is currently wearing lives here.
+alter table household add column if not exists worn text[] not null default '{}';
