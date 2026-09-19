@@ -4,6 +4,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { BodyMap, workedParts } from '@/components/BodyMap';
 import { LineChart } from '@/components/LineChart';
+import { Advisor } from '@/components/Advisor';
 import { MuscleTag } from '@/components/MuscleTag';
 import { OrnateFrame } from '@/components/OrnateFrame';
 import { confirmAction, notify } from '@/lib/confirm';
@@ -15,6 +16,7 @@ import {
   listExercises,
   type ExerciseHistoryPoint,
 } from '@/lib/db';
+import { coachTipOf, introOf } from '@/lib/exerciseCopy';
 import { formatDate, formatDuration } from '@/lib/format';
 import { TRACK_TYPE_LABEL, type Exercise } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
@@ -91,7 +93,11 @@ export default function ExerciseScreen() {
         <View style={styles.body}>
           <BodyMap data={workedParts([exercise])} scale={0.5} labels={false} />
         </View>
+
+        <Text style={styles.intro}>{introOf(exercise)}</Text>
       </OrnateFrame>
+
+      <Advisor name="사부">{coachTipOf(exercise)}</Advisor>
 
       {steps.length > 0 && (
         <View style={styles.card}>
@@ -102,9 +108,7 @@ export default function ExerciseScreen() {
               <Text style={styles.stepText}>{step}</Text>
             </View>
           ))}
-          <Text style={styles.caution}>
-            아프면 멈추세요. 무거운 복합 운동은 처음에 전문가에게 자세를 봐 달라고 하는 게 좋아요.
-          </Text>
+          <Text style={styles.caution}>아프면 멈추세요.</Text>
         </View>
       )}
 
@@ -175,6 +179,7 @@ const styles = StyleSheet.create({
   name: { color: colors.text, fontSize: 22, fontWeight: '800' },
   sub: { color: colors.textDim, fontSize: 12 },
   body: { marginTop: spacing.md },
+  intro: { color: colors.text, fontSize: 14, lineHeight: 22, marginTop: spacing.md },
   card: {
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
