@@ -36,8 +36,9 @@ export function ExercisePicker({ visible, exercises, onSelect, onClose, onSeeded
         (group === null || e.muscle_group === group) &&
         (gear === null || e.equipment === gear) &&
         (q === '' ||
-          e.name.toLowerCase().includes(q) ||
-          e.muscle_detail.toLowerCase().includes(q))
+          [e.name, e.muscle_detail, e.muscle_group, e.secondary_group ?? '', e.equipment].some(
+            (field) => field.toLowerCase().includes(q)
+          ))
     );
   }, [exercises, query, group, gear]);
 
@@ -89,7 +90,7 @@ export function ExercisePicker({ visible, exercises, onSelect, onClose, onSeeded
             <>
               <TextInput
                 style={styles.search}
-                placeholder="종목 이름이나 근육으로 검색"
+                placeholder="이름 · 부위 · 근육 · 기구로 검색"
                 placeholderTextColor={colors.textDim}
                 value={query}
                 onChangeText={setQuery}
