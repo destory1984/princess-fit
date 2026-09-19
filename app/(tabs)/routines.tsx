@@ -1,19 +1,35 @@
 import { useCallback, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { confirmAction, notify } from '@/lib/confirm';
-import { createRoutine, deleteRoutine, listRoutines } from '@/lib/db';
+import {
+  createRoutine,
+  deleteRoutine,
+  getActiveWorkout,
+  listRoutineExercises,
+  listRoutines,
+  startWorkout,
+} from '@/lib/db';
 import type { Routine } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
 
 export default function RoutinesScreen() {
   const router = useRouter();
   const [routines, setRoutines] = useState<Routine[]>([]);
+  const [sizes, setSizes] = useState<Record<string, number>>({});
   const [name, setName] = useState('');
+  const [adding, setAdding] = useState(false);
 
   const load = useCallback(() => {
     listRoutines()
-      .then(setRoutines)
+      .then(async (list) => {
+        setRoutines(list);
+        const counted = await Promise.all(
+          list.map(async (r) => [r.id, (await listRoutineExercises(r.id)).length] as const)
+        );
+        setSizes(Object.fromEntries(counted));
+      })
       .catch((e) => notify('불러오기 실패', e.message));
   }, []);
 
@@ -23,11 +39,26 @@ export default function RoutinesScreen() {
     const trimmed = name.trim();
     if (!trimmed) return;
     try {
-      await createRoutine(trimmed);
+      const created = await createRoutine(trimmed);
       setName('');
-      load();
+      setAdding(false);
+      router.push(`/routine/${created.id}`);
     } catch (e: any) {
       notify('추가 실패', e.message);
+    }
+  }
+
+  async function freeWorkout() {
+    try {
+      const active = await getActiveWorkout();
+      if (active) {
+        router.push(`/workout/${active.id}`);
+        return;
+      }
+      const created = await startWorkout('자유 운동', null);
+      router.push(`/workout/${created.id}`);
+    } catch (e: any) {
+      notify('시작 실패', e.message);
     }
   }
 
@@ -44,43 +75,73 @@ export default function RoutinesScreen() {
 
   return (
     <View style={styles.screen}>
-      <View style={styles.addRow}>
-        <TextInput
-          style={styles.input}
-          placeholder="새 루틴 이름 (예: 등/이두)"
-          placeholderTextColor={colors.textDim}
-          value={name}
-          onChangeText={setName}
-          onSubmitEditing={add}
-          returnKeyType="done"
-        />
-        <Pressable style={styles.addButton} onPress={add}>
-          <Text style={styles.addButtonText}>추가</Text>
-        </Pressable>
-      </View>
-
       <FlatList
         data={routines}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
-        ListEmptyComponent={<Text style={styles.empty}>루틴을 만들어 운동을 시작해 보세요.</Text>}
+        ListHeaderComponent={
+          adding ? (
+            <View style={styles.addRow}>
+              <TextInput
+                style={styles.input}
+                placeholder="루틴 이름 (예: 가슴/삼두)"
+                placeholderTextColor={colors.textDim}
+                value={name}
+                onChangeText={setName}
+                onSubmitEditing={add}
+                returnKeyType="done"
+                autoFocus
+              />
+              <Pressable style={styles.addButton} onPress={add}>
+                <Text style={styles.addButtonText}>만들기</Text>
+              </Pressable>
+            </View>
+          ) : null
+        }
+        ListEmptyComponent={
+          <View style={styles.empty}>
+            <Ionicons name="list-outline" size={28} color={colors.textDim} />
+            <Text style={styles.emptyTitle}>루틴이 아직 없어요</Text>
+            <Text style={styles.emptyText}>
+              자주 하는 운동을 묶어 두면{'\n'}다음부터 한 번에 시작할 수 있어요.
+            </Text>
+          </View>
+        }
         renderItem={({ item }) => (
           <Pressable
             style={styles.row}
             onPress={() => router.push(`/routine/${item.id}`)}
             onLongPress={() => confirmDelete(item)}>
-            <Text style={styles.rowTitle}>{item.name}</Text>
-            <Text style={styles.rowHint}>편집</Text>
+            <Ionicons name="flash" size={18} color={colors.accent} />
+            <View style={styles.rowBody}>
+              <Text style={styles.rowTitle}>{item.name}</Text>
+              <Text style={styles.rowSub}>
+                {sizes[item.id] ? `종목 ${sizes[item.id]}개` : '아직 종목이 없어요'}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.textDim} />
           </Pressable>
         )}
       />
+
+      <View style={styles.bottomBar}>
+        <Pressable style={styles.free} onPress={freeWorkout}>
+          <Ionicons name="flash" size={18} color="#fff" />
+          <Text style={styles.freeText}>자유 운동</Text>
+        </Pressable>
+        <Pressable style={styles.new} onPress={() => setAdding((v) => !v)}>
+          <Ionicons name={adding ? 'close' : 'add'} size={18} color={colors.accent} />
+          <Text style={styles.newText}>{adding ? '취소' : '루틴 추가'}</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
-  addRow: { flexDirection: 'row', gap: spacing.sm, padding: spacing.lg },
+  list: { padding: spacing.lg, gap: spacing.sm, paddingBottom: 110 },
+  addRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
   input: {
     flex: 1,
     backgroundColor: colors.surface,
@@ -95,16 +156,50 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   addButtonText: { color: '#fff', fontWeight: '700' },
-  list: { paddingHorizontal: spacing.lg, gap: spacing.sm },
-  empty: { color: colors.textDim, textAlign: 'center', marginTop: spacing.xl },
+  empty: { alignItems: 'center', gap: spacing.xs, marginTop: spacing.xl },
+  emptyTitle: { color: colors.text, fontWeight: '700', marginTop: spacing.sm },
+  emptyText: { color: colors.textDim, textAlign: 'center', lineHeight: 19 },
   row: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,
     padding: spacing.lg,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: spacing.md,
   },
+  rowBody: { flex: 1 },
   rowTitle: { color: colors.text, fontSize: 16, fontWeight: '600' },
-  rowHint: { color: colors.textDim },
+  rowSub: { color: colors.textDim, fontSize: 12, marginTop: 2 },
+  bottomBar: {
+    position: 'absolute',
+    left: spacing.lg,
+    right: spacing.lg,
+    bottom: spacing.lg,
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  free: {
+    flex: 1,
+    backgroundColor: colors.accent,
+    borderRadius: radius.lg,
+    paddingVertical: spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+  },
+  freeText: { color: '#fff', fontWeight: '800' },
+  new: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    borderColor: colors.accent,
+    borderWidth: 1,
+    borderRadius: radius.lg,
+    paddingVertical: spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+  },
+  newText: { color: colors.accent, fontWeight: '800' },
 });
