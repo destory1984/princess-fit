@@ -96,29 +96,25 @@ export function ExercisePicker({ visible, exercises, onSelect, onClose, onSeeded
                 autoCorrect={false}
               />
               <Text style={styles.filterLabel}>부위</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chips}>
-                <View style={styles.chipRow}>
-                  <Chip label="전체" active={group === null} onPress={() => setGroup(null)} />
-                  {MUSCLE_GROUPS.map((g) => (
-                    <Chip
-                      key={g}
-                      label={g}
-                      color={muscleColor(g)}
-                      active={group === g}
-                      onPress={() => setGroup(g)}
-                    />
-                  ))}
-                </View>
-              </ScrollView>
+              <View style={styles.chipRow}>
+                <Chip label="전체" active={group === null} onPress={() => setGroup(null)} />
+                {MUSCLE_GROUPS.map((g) => (
+                  <Chip
+                    key={g}
+                    label={g}
+                    color={muscleColor(g)}
+                    active={group === g}
+                    onPress={() => setGroup(g)}
+                  />
+                ))}
+              </View>
               <Text style={styles.filterLabel}>기구</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chips}>
-                <View style={styles.chipRow}>
-                  <Chip label="전체" active={gear === null} onPress={() => setGear(null)} />
-                  {EQUIPMENT.map((g) => (
-                    <Chip key={g} label={g} active={gear === g} onPress={() => setGear(g)} />
-                  ))}
-                </View>
-              </ScrollView>
+              <View style={styles.chipRow}>
+                <Chip label="전체" active={gear === null} onPress={() => setGear(null)} />
+                {EQUIPMENT.map((g) => (
+                  <Chip key={g} label={g} active={gear === g} onPress={() => setGear(g)} />
+                ))}
+              </View>
               <ScrollView keyboardShouldPersistTaps="handled">
                 {filtered.length === 0 ? (
                   <Text style={styles.emptyText}>검색 결과가 없어요.</Text>
@@ -201,8 +197,12 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     marginBottom: spacing.sm,
   },
-  chips: { flexGrow: 0, marginBottom: spacing.sm },
-  chipRow: { flexDirection: 'row', gap: spacing.sm, paddingVertical: 2 },
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
   chip: {
     backgroundColor: colors.surfaceAlt,
     borderRadius: radius.sm,
@@ -211,12 +211,13 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
   },
-  chipText: { color: colors.textDim },
+  chipText: { color: colors.textDim, fontSize: 13, lineHeight: 18 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
     paddingVertical: spacing.md,
+    paddingRight: spacing.md,
     borderBottomColor: colors.border,
     borderBottomWidth: 1,
   },
