@@ -49,6 +49,8 @@ alter table workout_sets add column if not exists position int not null default 
 alter table exercises add column if not exists equipment text not null default '기타';
 alter table exercises add column if not exists secondary_group text;
 alter table exercises add column if not exists muscle_detail text not null default '';
+-- Comma-separated react-native-body-highlighter slugs, e.g. 'chest,triceps'.
+alter table exercises add column if not exists body_parts text not null default '';
 
 create index if not exists workout_sets_workout_idx on workout_sets (workout_id);
 create index if not exists workout_sets_exercise_idx on workout_sets (exercise_id);
