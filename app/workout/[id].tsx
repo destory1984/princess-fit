@@ -661,6 +661,10 @@ export default function WorkoutScreen() {
                   )
             }
             onSkip={() => setRestEnd(null)}
+            onStart={() => {
+              setRestFor(restExercise?.id ?? null);
+              setRestEnd(Date.now() + restLength * 1000);
+            }}
           />
 
           <View style={styles.actions}>
