@@ -180,6 +180,7 @@ export default function WorkoutScreen() {
   );
 
   const doneSets = sets.filter((s) => s.done);
+  const pendingSets = sets.length - doneSets.length;
   const totalVolume = doneSets.reduce(
     (sum, s) => sum + s.weight_kg * s.reps,
     0,
@@ -693,14 +694,23 @@ export default function WorkoutScreen() {
           </View>
 
           <View style={styles.actions}>
-            <Pressable style={styles.actionGhost} onPress={completeAll}>
-              <Ionicons
-                name="checkmark-done"
-                size={18}
-                color={colors.success}
-              />
-              <Text style={styles.actionGhostText}>모든 세트 완료</Text>
-            </Pressable>
+            {/*
+              Only worth offering while something is still unticked — beside
+              운동 완료 it read as a second way to end the workout, and with
+              nothing left to tick it did nothing at all.
+            */}
+            {pendingSets > 0 && (
+              <Pressable style={styles.actionGhost} onPress={completeAll}>
+                <Ionicons
+                  name="checkmark-done"
+                  size={18}
+                  color={colors.success}
+                />
+                <Text style={styles.actionGhostText}>
+                  남은 {pendingSets}세트 체크
+                </Text>
+              </Pressable>
+            )}
             <Pressable style={styles.finish} onPress={finish}>
               <Text style={styles.finishText}>운동 완료</Text>
             </Pressable>
