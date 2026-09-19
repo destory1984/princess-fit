@@ -21,6 +21,10 @@ type Props = {
   furniture?: string[];
   /** Why the numbers are lower than they were, when they are. */
   penalty?: string | null;
+  /** The girl herself, standing in the room. */
+  advisorArt?: number | null;
+  /** A line about how furnished the room is, shown beneath it. */
+  caption?: string;
 };
 
 /** The main hall: a room you stand in, with plaques pinned to its corners. */
@@ -34,6 +38,8 @@ export function TrainingHall({
   streak,
   furniture = [],
   penalty,
+  advisorArt,
+  caption,
 }: Props) {
   return (
     <View style={styles.frameOuter}>
@@ -63,6 +69,10 @@ export function TrainingHall({
               );
             })}
 
+          {advisorArt ? (
+            <Image source={advisorArt} style={styles.girl} resizeMode="contain" />
+          ) : null}
+
           <OrnateFrame compact style={styles.datePlaque}>
             <Text style={styles.dateMonth}>
               {today.getFullYear()}년 {today.getMonth() + 1}월
@@ -89,13 +99,32 @@ export function TrainingHall({
             {penalty ? <Text style={styles.statusPenalty}>{penalty}</Text> : null}
           </OrnateFrame>
         </View>
+
+        {caption ? <Text style={styles.caption}>{caption}</Text> : null}
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  caption: {
+    color: paper.inkDim,
+    fontSize: 11,
+    lineHeight: 16,
+    textAlign: 'center',
+    paddingVertical: 5,
+    backgroundColor: paper.bgAlt,
+  },
   piece: { position: 'absolute', height: undefined, aspectRatio: 1 },
+  // Anchored to the floor and placed right of the window, clear of the plaques
+  // above and of the bed on the left.
+  girl: {
+    position: 'absolute',
+    bottom: '2%',
+    left: '52%',
+    width: '40%',
+    height: '58%',
+  },
   plaque: {
     position: 'absolute',
     backgroundColor: paper.bgAlt,

@@ -17,6 +17,7 @@ import {
 } from '@/lib/character';
 import { useAdvisor } from '@/lib/useAdvisor';
 import { portraitOf } from '@/lib/portraits';
+import { roomMood } from '@/lib/room';
 import {
   conditionFactor,
   messageFor,
@@ -162,6 +163,8 @@ export default function TodayScreen() {
             streak={summary.streak}
             furniture={furniture}
             penalty={penalty}
+            advisorArt={portraitOf(advisor.id)}
+            caption={roomMood(furniture)}
           />
           {house && (
             <Pressable onPress={() => router.push('/shop')}>
