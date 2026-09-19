@@ -3,12 +3,17 @@ import {
   Animated,
   Easing,
   Image,
+  Platform,
   StyleSheet,
   type StyleProp,
   type ViewStyle,
 } from "react-native";
 import { BASE_GIRL, garmentArt } from "@/lib/outfitArt";
 import { layersOf } from "@/lib/outfit";
+
+// react-native-web has no native animation driver, so asking for one there
+// only produces a warning and the same JS-driven animation.
+const NATIVE_DRIVER = Platform.OS !== 'web';
 
 type Props = {
   /** Ids of the garments she has on. */
@@ -47,15 +52,15 @@ export function PaperDoll({ worn, style, idle }: Props) {
           toValue: 1,
           duration: 1800,
           easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
+          useNativeDriver: NATIVE_DRIVER,
         }),
         Animated.timing(breath, {
           toValue: 0,
           duration: 1800,
           easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
+          useNativeDriver: NATIVE_DRIVER,
         }),
-      ])
+      ]),
     );
     cycle.start();
     return () => cycle.stop();
@@ -64,14 +69,18 @@ export function PaperDoll({ worn, style, idle }: Props) {
   // Whole-doll drift, so her clothes move with her rather than sliding off.
   const drift = {
     transform: [
-      { translateY: breath.interpolate({ inputRange: [0, 1], outputRange: [0, -5] }) },
+      {
+        translateY: breath.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, -5],
+        }),
+      },
     ],
   };
 
   return (
     <Animated.View
       style={[styles.doll, style, idle ? drift : null]}
-      pointerEvents="none"
       onLayout={(e) => setBox(e.nativeEvent.layout)}
     >
       <Image
@@ -106,7 +115,7 @@ export function PaperDoll({ worn, style, idle }: Props) {
 }
 
 const styles = StyleSheet.create({
-  doll: { aspectRatio: 1086 / 1448, overflow: "hidden" },
+  doll: { pointerEvents: "none", aspectRatio: 1086 / 1448, overflow: "hidden" },
   base: {
     position: "absolute",
     top: 0,

@@ -1,11 +1,15 @@
 import { useEffect, useMemo } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { BigStepper } from '@/components/BigStepper';
 import { nextWeight } from '@/lib/weight';
 import { successFeedback, tapFeedback } from '@/lib/feedback';
 import type { TrackType, WorkoutSet } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
+
+// react-native-web has no native animation driver, so asking for one there
+// only produces a warning and the same JS-driven animation.
+const NATIVE_DRIVER = Platform.OS !== 'web';
 
 type Props = {
   set: WorkoutSet;
@@ -33,7 +37,7 @@ export function SetCard({
 
   useEffect(() => {
     scale.setValue(0.96);
-    Animated.spring(scale, { toValue: 1, useNativeDriver: true, friction: 6 }).start();
+    Animated.spring(scale, { toValue: 1, useNativeDriver: NATIVE_DRIVER, friction: 6 }).start();
   }, [set.id, scale]);
 
   function change(patch: Partial<WorkoutSet>) {
@@ -44,8 +48,8 @@ export function SetCard({
   function complete() {
     successFeedback();
     Animated.sequence([
-      Animated.timing(scale, { toValue: 1.04, duration: 90, useNativeDriver: true }),
-      Animated.spring(scale, { toValue: 1, useNativeDriver: true, friction: 5 }),
+      Animated.timing(scale, { toValue: 1.04, duration: 90, useNativeDriver: NATIVE_DRIVER }),
+      Animated.spring(scale, { toValue: 1, useNativeDriver: NATIVE_DRIVER, friction: 5 }),
     ]).start();
     onComplete();
   }

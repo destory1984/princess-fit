@@ -1,12 +1,12 @@
-import type { ReactNode } from 'react';
-import { StyleSheet, View, type ViewStyle } from 'react-native';
-import Svg, { Circle, Path } from 'react-native-svg';
-import { colors, spacing } from '@/lib/theme';
+import type { ReactNode } from "react";
+import { StyleSheet, View, type ViewStyle } from "react-native";
+import Svg, { Circle, Path } from "react-native-svg";
+import { colors, spacing } from "@/lib/theme";
 
 /** A small floral flourish, mirrored into each corner of the frame. */
 function Corner({ style }: { style: ViewStyle }) {
   return (
-    <View style={[styles.corner, style]} pointerEvents="none">
+    <View style={[styles.corner, style]}>
       <Svg viewBox="0 0 24 24" width={22} height={22}>
         <Path
           d="M2 12 Q2 2 12 2"
@@ -39,7 +39,9 @@ type Props = {
 export function OrnateFrame({ children, style, compact }: Props) {
   return (
     <View style={[styles.outer, style]}>
-      <View style={[styles.inner, compact ? styles.innerCompact : null]}>{children}</View>
+      <View style={[styles.inner, compact ? styles.innerCompact : null]}>
+        {children}
+      </View>
       <Corner style={styles.tl} />
       <Corner style={styles.tr} />
       <Corner style={styles.bl} />
@@ -63,7 +65,12 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   innerCompact: { padding: spacing.sm },
-  corner: { position: 'absolute', width: 22, height: 22 },
+  corner: {
+    pointerEvents: "none",
+    position: "absolute",
+    width: 22,
+    height: 22,
+  },
   tl: { top: 1, left: 1 },
   tr: { top: 1, right: 1, transform: [{ scaleX: -1 }] },
   bl: { bottom: 1, left: 1, transform: [{ scaleY: -1 }] },
