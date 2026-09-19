@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import Svg, { Circle, Line, Path, Text as SvgText } from 'react-native-svg';
-import { colors, spacing } from '@/lib/theme';
+import { useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import Svg, { Circle, Line, Path, Text as SvgText } from "react-native-svg";
+import { colors, spacing } from "@/lib/theme";
 
 export type ChartPoint = { label: string; value: number };
 
@@ -13,14 +13,16 @@ type Props = {
 
 const PAD = { top: 16, right: 16, bottom: 28, left: 40 };
 
-export function LineChart({ points, unit = '', height = 200 }: Props) {
+export function LineChart({ points, unit = "", height = 200 }: Props) {
   const [width, setWidth] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
 
   if (points.length === 0) {
     return (
       <View style={[styles.empty, { height }]}>
-        <Text style={styles.emptyText}>완료한 기록이 쌓이면 그래프가 그려져요.</Text>
+        <Text style={styles.emptyText}>
+          완료한 기록이 쌓이면 그래프가 그려져요.
+        </Text>
       </View>
     );
   }
@@ -34,15 +36,25 @@ export function LineChart({ points, unit = '', height = 200 }: Props) {
   const max = rawMax + span * 0.15;
   const min = Math.max(0, rawMin - span * 0.15);
 
-  const x = (i: number) => PAD.left + (points.length === 1 ? plotW / 2 : (i / (points.length - 1)) * plotW);
+  const x = (i: number) =>
+    PAD.left +
+    (points.length === 1 ? plotW / 2 : (i / (points.length - 1)) * plotW);
   const y = (v: number) => PAD.top + (1 - (v - min) / (max - min || 1)) * plotH;
 
-  const path = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${x(i).toFixed(1)},${y(p.value).toFixed(1)}`).join(' ');
+  const path = points
+    .map(
+      (p, i) =>
+        `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(p.value).toFixed(1)}`,
+    )
+    .join(" ");
   const gridValues = [min, (min + max) / 2, max];
   const sel = selected !== null ? points[selected] : null;
 
   return (
-    <View onLayout={(e) => setWidth(e.nativeEvent.layout.width)} style={{ height }}>
+    <View
+      onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
+      style={{ height }}
+    >
       {width > 0 && (
         <>
           <Svg width={width} height={height}>
@@ -64,11 +76,18 @@ export function LineChart({ points, unit = '', height = 200 }: Props) {
                 y={y(g) + 4}
                 fill={colors.textDim}
                 fontSize={11}
-                textAnchor="end">
+                textAnchor="end"
+              >
                 {Math.round(g)}
               </SvgText>
             ))}
-            <SvgText x={x(0)} y={height - 8} fill={colors.textDim} fontSize={11} textAnchor="start">
+            <SvgText
+              x={x(0)}
+              y={height - 8}
+              fill={colors.textDim}
+              fontSize={11}
+              textAnchor="start"
+            >
               {points[0].label}
             </SvgText>
             {points.length > 1 && (
@@ -77,11 +96,18 @@ export function LineChart({ points, unit = '', height = 200 }: Props) {
                 y={height - 8}
                 fill={colors.textDim}
                 fontSize={11}
-                textAnchor="end">
+                textAnchor="end"
+              >
                 {points[points.length - 1].label}
               </SvgText>
             )}
-            <Path d={path} stroke={colors.accent} strokeWidth={2} fill="none" strokeLinejoin="round" />
+            <Path
+              d={path}
+              stroke={colors.accent}
+              strokeWidth={2}
+              fill="none"
+              strokeLinejoin="round"
+            />
             {points.map((p, i) => (
               <Circle
                 key={i}
@@ -106,15 +132,16 @@ export function LineChart({ points, unit = '', height = 200 }: Props) {
             )}
           </Svg>
 
-          <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+          <View style={[StyleSheet.absoluteFill, { pointerEvents: 'box-none' }]}>
             {points.map((_, i) => {
-              const hitW = points.length === 1 ? plotW : plotW / (points.length - 1);
+              const hitW =
+                points.length === 1 ? plotW : plotW / (points.length - 1);
               return (
                 <Pressable
                   key={i}
                   onPress={() => setSelected((cur) => (cur === i ? null : i))}
                   style={{
-                    position: 'absolute',
+                    position: "absolute",
                     left: x(i) - hitW / 2,
                     width: hitW,
                     top: PAD.top,
@@ -127,11 +154,12 @@ export function LineChart({ points, unit = '', height = 200 }: Props) {
 
           {sel && selected !== null && (
             <View
-              pointerEvents="none"
               style={[
+                { pointerEvents: "none" as const },
                 styles.tooltip,
                 { left: Math.min(Math.max(x(selected) - 50, 0), width - 100) },
-              ]}>
+              ]}
+            >
               <Text style={styles.tooltipLabel}>{sel.label}</Text>
               <Text style={styles.tooltipValue}>
                 {sel.value}
@@ -146,18 +174,18 @@ export function LineChart({ points, unit = '', height = 200 }: Props) {
 }
 
 const styles = StyleSheet.create({
-  empty: { alignItems: 'center', justifyContent: 'center' },
+  empty: { alignItems: "center", justifyContent: "center" },
   emptyText: { color: colors.textDim },
   tooltip: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     width: 100,
     backgroundColor: colors.surfaceAlt,
     borderRadius: 8,
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.sm,
-    alignItems: 'center',
+    alignItems: "center",
   },
   tooltipLabel: { color: colors.textDim, fontSize: 11 },
-  tooltipValue: { color: colors.text, fontWeight: '700' },
+  tooltipValue: { color: colors.text, fontWeight: "700" },
 });

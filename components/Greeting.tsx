@@ -1,12 +1,12 @@
-import { useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
-import { Advisor } from '@/components/Advisor';
-import { PaperDoll } from '@/components/PaperDoll';
-import { GIRL_NAME } from '@/lib/girl';
-import { BASE_GIRL } from '@/lib/outfitArt';
-import { colors, paper, radius, spacing } from '@/lib/theme';
+import { useState } from "react";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Advisor } from "@/components/Advisor";
+import { PaperDoll } from "@/components/PaperDoll";
+import { GIRL_NAME } from "@/lib/girl";
+import { BASE_GIRL } from "@/lib/outfitArt";
+import { colors, paper, radius, spacing } from "@/lib/theme";
 
-const ROOM = require('../assets/room.png');
+const ROOM = require("../assets/room.png");
 
 type Props = {
   /** What she has on. */
@@ -29,9 +29,12 @@ export function Greeting({ worn, line, onDone }: Props) {
 
   return (
     <View style={styles.screen}>
-      <View style={styles.stage} onLayout={(e) => setStage(e.nativeEvent.layout)}>
+      <View
+        style={styles.stage}
+        onLayout={(e) => setStage(e.nativeEvent.layout)}
+      >
         <Image source={ROOM} style={styles.room} resizeMode="cover" />
-        <View style={styles.wash} pointerEvents="none" />
+        <View style={styles.wash} />
 
         {stage.height > 0 && (
           <PaperDoll
@@ -54,20 +57,32 @@ export function Greeting({ worn, line, onDone }: Props) {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg, padding: spacing.lg, gap: spacing.md },
+  screen: {
+    flex: 1,
+    backgroundColor: colors.bg,
+    padding: spacing.lg,
+    gap: spacing.md,
+  },
   stage: {
     flex: 1,
     backgroundColor: paper.bgAlt,
     borderColor: colors.gold,
     borderWidth: 1.5,
     borderRadius: radius.md,
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    overflow: 'hidden',
+    alignItems: "center",
+    justifyContent: "flex-end",
+    overflow: "hidden",
   },
-  room: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' },
+  room: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+  },
   wash: {
-    position: 'absolute',
+    pointerEvents: "none",
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
@@ -79,7 +94,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent,
     borderRadius: radius.md,
     padding: spacing.lg,
-    alignItems: 'center',
+    alignItems: "center",
   },
-  buttonText: { color: '#fff', fontWeight: '800', fontSize: 15 },
+  buttonText: { color: "#fff", fontWeight: "800", fontSize: 15 },
 });

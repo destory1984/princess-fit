@@ -71,7 +71,7 @@ export function TrainingHall({
             disappears into it. A warm wash pushes the room back a step —
             placed here, so everything drawn after it stays at full strength.
           */}
-          <View style={styles.wash} pointerEvents="none" />
+          <View style={styles.wash} />
 
           {scene.width > 0 &&
             drawn.map((piece) => {
@@ -102,7 +102,7 @@ export function TrainingHall({
             unreadable label is worse than an honest list.
           */}
           {unpictured.length > 0 && (
-            <View style={styles.missingRow} pointerEvents="none">
+            <View style={styles.missingRow}>
               {unpictured.map((piece) => (
                 <View key={piece.id} style={styles.plaque}>
                   <Text style={styles.plaqueText} numberOfLines={1}>
@@ -114,7 +114,7 @@ export function TrainingHall({
           )}
 
           {/* Without the shadow she floats a little above the floorboards. */}
-          <View style={styles.girlShadow} pointerEvents="none" />
+          <View style={styles.girlShadow} />
           {scene.height > 0 && (
             <PaperDoll
               worn={worn}
@@ -182,6 +182,7 @@ const styles = StyleSheet.create({
   // Width comes from the room data; aspectRatio from the art itself.
   piece: { position: "absolute" },
   wash: {
+    pointerEvents: "none",
     position: "absolute",
     top: 0,
     left: 0,
@@ -191,6 +192,7 @@ const styles = StyleSheet.create({
     opacity: 0.25,
   },
   girlShadow: {
+    pointerEvents: "none",
     position: "absolute",
     bottom: "3%",
     left: "34%",
@@ -201,6 +203,7 @@ const styles = StyleSheet.create({
     opacity: 0.18,
   },
   missingRow: {
+    pointerEvents: "none",
     position: "absolute",
     left: 6,
     right: 6,
