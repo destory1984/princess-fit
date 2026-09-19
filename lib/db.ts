@@ -632,7 +632,7 @@ export type Ledger = {
 export async function buyGarment(garment: Garment, today = new Date()): Promise<Ledger> {
   const ledger = await getLedger(today);
   if (ledger.wardrobe.includes(garment.id)) throw new Error('이미 가지고 있어요');
-  if (ledger.house.gold < garment.price) throw new Error('금화가 모자라요');
+  if (ledger.house.gold < garment.price) throw new Error('골드가 모자라요');
 
   const house = { ...ledger.house, gold: ledger.house.gold - garment.price, attire: FULL };
   const wardrobe = [...ledger.wardrobe, garment.id];
@@ -660,7 +660,7 @@ export async function buyItem(item: Item, today = new Date()): Promise<Ledger> {
 export async function buyFurniture(piece: Furniture, today = new Date()): Promise<Ledger> {
   const ledger = await getLedger(today);
   if (ledger.furniture.includes(piece.id)) throw new Error('이미 가지고 있어요');
-  if (ledger.house.gold < piece.price) throw new Error('금화가 모자라요');
+  if (ledger.house.gold < piece.price) throw new Error('골드가 모자라요');
 
   const house = { ...ledger.house, gold: ledger.house.gold - piece.price };
   const furniture = [...ledger.furniture, piece.id];
@@ -671,7 +671,7 @@ export async function buyFurniture(piece: Furniture, today = new Date()): Promis
 /** Pay for a lesson. What it teaches depends on how much she already knows. */
 export async function takeLesson(lesson: Lesson, today = new Date()): Promise<Ledger> {
   const ledger = await getLedger(today);
-  if (ledger.house.gold < lesson.price) throw new Error('금화가 모자라요');
+  if (ledger.house.gold < lesson.price) throw new Error('골드가 모자라요');
 
   const house = { ...ledger.house, gold: ledger.house.gold - lesson.price };
   const culture = attend(lesson, ledger.culture);

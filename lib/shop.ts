@@ -80,7 +80,7 @@ export function refusalFor(item: Item, house: Household, wardrobe: string[]): Re
 }
 
 export const REFUSAL_TEXT: Record<Exclude<Refusal, null>, string> = {
-  poor: '금화가 모자라요',
+  poor: '골드가 모자라요',
   owned: '이미 가지고 있어요',
   full: '지금은 배가 불러요',
   locked: '보석으로만 살 수 있어요 (준비 중)',
