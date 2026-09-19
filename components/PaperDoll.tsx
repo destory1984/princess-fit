@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
+  Animated,
+  Easing,
   Image,
   StyleSheet,
   View,
@@ -13,6 +15,11 @@ type Props = {
   /** Ids of the garments she has on. */
   worn: string[];
   style?: StyleProp<ViewStyle>;
+  /**
+   * Breathe. A standing sprite reads as a cardboard cut-out; a couple of
+   * pixels of drift is enough to make her look alive, and costs no new art.
+   */
+  idle?: boolean;
 };
 
 /**
@@ -25,14 +32,44 @@ type Props = {
  *
  * Give the box a width, or both dimensions.
  */
-export function PaperDoll({ worn, style }: Props) {
+export function PaperDoll({ worn, style, idle }: Props) {
   // Percentages and aspectRatio both lose to an image's intrinsic size here,
   // so the box is measured and every garment placed in real pixels.
   const [box, setBox] = useState({ width: 0, height: 0 });
+  const breath = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (!idle) return;
+    const cycle = Animated.loop(
+      Animated.sequence([
+        Animated.timing(breath, {
+          toValue: 1,
+          duration: 1800,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+        Animated.timing(breath, {
+          toValue: 0,
+          duration: 1800,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    cycle.start();
+    return () => cycle.stop();
+  }, [idle, breath]);
+
+  // Whole-doll drift, so her clothes move with her rather than sliding off.
+  const drift = {
+    transform: [
+      { translateY: breath.interpolate({ inputRange: [0, 1], outputRange: [0, -5] }) },
+    ],
+  };
 
   return (
-    <View
-      style={[styles.doll, style]}
+    <Animated.View
+      style={[styles.doll, style, idle ? drift : null]}
       pointerEvents="none"
       onLayout={(e) => setBox(e.nativeEvent.layout)}
     >
@@ -63,7 +100,7 @@ export function PaperDoll({ worn, style }: Props) {
             />
           );
         })}
-    </View>
+    </Animated.View>
   );
 }
 
