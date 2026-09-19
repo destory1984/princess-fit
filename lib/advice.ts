@@ -1,3 +1,4 @@
+import { withParticle } from './exerciseCopy.ts';
 import { formatDuration } from './format.ts';
 import type { WorkoutFact } from './gamification.ts';
 import type { Stats } from './character.ts';
@@ -82,7 +83,8 @@ export function localRuleAdvice(c: AdviceContext): string {
     return `${praise} 오늘은 평소보다 짧게 끝났네요. 시간이 없는 날엔 한 부위만 제대로 해도 충분합니다.`;
   }
   if (untouched.length >= 3) {
-    return `${praise} 요즘 ${untouched.slice(0, 2).join(', ')}를 쓰지 않았어요. 다음 운동에 하나 끼워 넣어 보세요.`;
+    const missing = untouched.slice(0, 2);
+    return `${praise} 요즘 ${withParticle(missing.join(', '), '을/를')} 쓰지 않았어요. 다음 운동에 하나 끼워 넣어 보세요.`;
   }
   if (c.stats.stamina < 30 && c.today.durationSec === 0) {
     return `${praise} 유산소가 적은 편이에요. 운동 끝에 10분만 걸어도 지구력이 달라집니다.`;
@@ -105,15 +107,38 @@ function configuredProvider(): Provider {
   };
 }
 
+// A large model can take minutes to load from cold, so the UI must not wait on it.
+const REQUEST_TIMEOUT_MS = 25_000;
+
+/**
+ * Loads the model into memory so it is ready later. Call this when a workout
+ * starts; by the time it ends the request below answers in about a second.
+ * Failures are ignored — the server is often deliberately off.
+ */
+export function warmUpAdvice() {
+  const provider = configuredProvider();
+  fetch(provider.url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: provider.model, prompt: '.', stream: false, think: false, keep_alive: '30m' }),
+  }).catch(() => {});
+}
+
 /**
  * Asks the configured model, falling back to the rule-based advice when none is
- * set up or the call fails. Swapping providers means changing this one function.
+ * set up, the call fails, or it takes too long. Swapping providers means
+ * changing this one function.
  */
 export async function requestAdvice(
   c: AdviceContext,
   signal?: AbortSignal
 ): Promise<{ text: string; source: 'model' | 'rules' }> {
   const provider = configuredProvider();
+  // AbortSignal.any/timeout are not on every runtime this ships to.
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const onAbort = () => controller.abort();
+  signal?.addEventListener('abort', onAbort);
 
   try {
     // Ollama's /api/generate shape; other local servers accept the same fields.
@@ -128,7 +153,7 @@ export async function requestAdvice(
         keep_alive: '10m',
         options: { temperature: 0.4 },
       }),
-      signal,
+      signal: controller.signal,
     });
     if (!res.ok) throw new Error(`${res.status}`);
     const body = (await res.json()) as { response?: string };
@@ -137,5 +162,8 @@ export async function requestAdvice(
     return { text, source: 'model' };
   } catch {
     return { text: localRuleAdvice(c), source: 'rules' };
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener('abort', onAbort);
   }
 }

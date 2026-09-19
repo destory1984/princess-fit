@@ -68,14 +68,16 @@ test('rule advice flags an unusually heavy day', () => {
   assert.match(advice, /많이 들었어요/);
 });
 
-test('rule advice flags neglected body parts', () => {
+test('rule advice flags neglected body parts with the right particle', () => {
   const advice = localRuleAdvice(
     ctx({
       today: fact({ id: 'a', groups: ['가슴'] }),
       history: [fact({ id: 'b', groups: ['가슴'] }), fact({ id: 'c', groups: ['가슴'] })],
     })
   );
-  assert.match(advice, /쓰지 않았어요/);
+  // The particle follows the last word in the list, not the first.
+  assert.match(advice, /등, 어깨를 쓰지 않았어요/);
+  assert.doesNotMatch(advice, /어깨을/);
 });
 
 test('rule advice greets a first-ever workout without comparing', () => {

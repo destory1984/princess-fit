@@ -9,6 +9,7 @@ import { confirmAction, notify } from '@/lib/confirm';
 import { celebrateFeedback, successFeedback } from '@/lib/feedback';
 
 import { formatDate, formatDuration } from '@/lib/format';
+import { warmUpAdvice } from '@/lib/advice';
 import { summarise } from '@/lib/gamification';
 import {
   addWorkoutSet,
@@ -59,6 +60,11 @@ export default function WorkoutScreen() {
   }, [id]);
 
   useFocusEffect(load);
+
+  // Give the model a long head start on loading; advice is asked for at the end.
+  useEffect(() => {
+    warmUpAdvice();
+  }, []);
 
   useEffect(() => {
     if (restEnd === null) return;
