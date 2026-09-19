@@ -1,6 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { colors, radius, spacing } from '@/lib/theme';
+import { colors, spacing } from '@/lib/theme';
 
 type Props = {
   value: number;
@@ -12,8 +11,18 @@ type Props = {
   onChange: (next: number) => void;
 };
 
+/** Trim a trailing .0 so the buttons read −2.5 and +10, never +10.0. */
+function label(amount: number) {
+  const sign = amount < 0 ? '−' : '+';
+  return `${sign}${Math.abs(amount)}`;
+}
+
 export function BigStepper({ value, unit, step, bigStep, decimals = 0, onChange }: Props) {
   const set = (next: number) => onChange(Math.max(0, Number(next.toFixed(decimals))));
+
+  // Coarse outside, fine inside, so the two sizes never sit next to each other
+  // and the row reads outward from the middle in both directions.
+  const amounts = bigStep ? [-bigStep, -step, step, bigStep] : [-step, step];
 
   return (
     <View style={styles.wrap}>
@@ -22,22 +31,15 @@ export function BigStepper({ value, unit, step, bigStep, decimals = 0, onChange 
         <Text style={styles.unit}>{unit}</Text>
       </View>
       <View style={styles.buttons}>
-        <Pressable style={styles.button} onPress={() => set(value - step)}>
-          <Ionicons name="remove" size={20} color={colors.text} />
-        </Pressable>
-        {bigStep ? (
-          <>
-            <Pressable style={styles.chip} onPress={() => set(value - bigStep)}>
-              <Text style={styles.chipText}>-{bigStep}</Text>
-            </Pressable>
-            <Pressable style={styles.chip} onPress={() => set(value + bigStep)}>
-              <Text style={styles.chipText}>+{bigStep}</Text>
-            </Pressable>
-          </>
-        ) : null}
-        <Pressable style={styles.button} onPress={() => set(value + step)}>
-          <Ionicons name="add" size={20} color={colors.text} />
-        </Pressable>
+        {amounts.map((amount) => (
+          <Pressable
+            key={amount}
+            style={styles.button}
+            hitSlop={4}
+            onPress={() => set(value + amount)}>
+            <Text style={styles.buttonText}>{label(amount)}</Text>
+          </Pressable>
+        ))}
       </View>
     </View>
   );
@@ -49,21 +51,16 @@ const styles = StyleSheet.create({
   value: { color: colors.text, fontSize: 44, fontWeight: '800', letterSpacing: -1 },
   unit: { color: colors.textDim, fontSize: 14, fontWeight: '600' },
   buttons: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  // Every button the same size and the same type: an icon beside a text chip
+  // made one look like a control and the other like a note.
   button: {
-    width: 38,
+    minWidth: 44,
     height: 38,
+    paddingHorizontal: spacing.sm,
     borderRadius: 19,
     backgroundColor: colors.surfaceAlt,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  chip: {
-    height: 38,
-    paddingHorizontal: spacing.md,
-    borderRadius: 19,
-    backgroundColor: colors.surfaceAlt,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  chipText: { color: colors.textDim, fontWeight: '700', fontSize: 13 },
+  buttonText: { color: colors.text, fontWeight: '700', fontSize: 15, lineHeight: 20 },
 });
