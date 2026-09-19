@@ -13,8 +13,8 @@ import {
   type BodyLog,
   type BodyMetric,
 } from '@/lib/body';
-import { notify } from '@/lib/confirm';
-import { listBodyLogs, saveBodyLog } from '@/lib/db';
+import { confirmAction, notify } from '@/lib/confirm';
+import { deleteBodyLog, listBodyLogs, saveBodyLog } from '@/lib/db';
 import { colors, paper, radius, spacing } from '@/lib/theme';
 
 /**
@@ -56,6 +56,23 @@ export default function BodyScreen() {
     } finally {
       setSaving(false);
     }
+  }
+
+  function removeLog(log: BodyLog) {
+    confirmAction(
+      '기록 삭제',
+      `${log.measured_on} 기록을 지울까요?
+
+되돌릴 수 없어요.`,
+      async () => {
+        try {
+          await deleteBodyLog(log.id);
+          load();
+        } catch (e: any) {
+          notify('삭제 실패', e.message);
+        }
+      }
+    );
   }
 
   if (!logs) return <ScreenState error={error} onRetry={load} />;
@@ -138,8 +155,13 @@ export default function BodyScreen() {
                   .map((k) => `${BODY_METRICS[k].name} ${log[k]}${BODY_METRICS[k].unit}`)
                   .join(' · ') || '—'}
               </Text>
+              {/* A mistyped 179 would otherwise be permanent. */}
+              <Pressable hitSlop={8} onPress={() => removeLog(log)}>
+                <Ionicons name="close" size={16} color={colors.textDim} />
+              </Pressable>
             </View>
           ))}
+          <Text style={styles.note}>잘못 적었으면 ✕로 지우고 다시 재세요.</Text>
         </View>
       )}
 

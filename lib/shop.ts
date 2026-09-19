@@ -61,8 +61,6 @@ export const SPECIALS: Item[] = [
   { id: 'crown_jewel', kind: 'special', name: '왕관의 보석', detail: '단 하나뿐인', price: 80, icon: 'diamond-outline' },
 ];
 
-export const CATALOG: Item[] = [...FOOD, ...ACCESSORIES, ...SPECIALS];
-
 export type Purchase = { house: Household; wardrobe: string[] };
 
 export type Refusal = 'poor' | 'owned' | 'full' | 'locked' | null;

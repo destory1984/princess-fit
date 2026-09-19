@@ -33,6 +33,3 @@ export const ADVISORS: Advisor[] = [
 
 export const DEFAULT_ADVISOR_ID = ADVISORS[0].id;
 
-export function advisorById(id: string | null | undefined): Advisor {
-  return ADVISORS.find((a) => a.id === id) ?? ADVISORS[0];
-}
