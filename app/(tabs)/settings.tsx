@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
+import { AdvisorPicker } from '@/components/AdvisorPicker';
 import { MuscleTag } from '@/components/MuscleTag';
 import { seedDefaultExercises } from '@/lib/catalog';
 import { confirmAction, notify } from '@/lib/confirm';
@@ -93,6 +94,7 @@ export default function SettingsScreen() {
         contentContainerStyle={styles.list}
         ListHeaderComponent={
           <View style={styles.header}>
+            <AdvisorPicker />
             <Text style={styles.sectionTitle}>운동 종목</Text>
             <TextInput
               style={styles.input}

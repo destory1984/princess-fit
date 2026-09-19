@@ -5,6 +5,7 @@ import { useFocusEffect } from 'expo-router';
 import { BodyMap, workedParts } from '@/components/BodyMap';
 import { Scroll } from '@/components/Scroll';
 import { StatBar } from '@/components/StatBar';
+import { ScreenState } from '@/components/ScreenState';
 import { notify } from '@/lib/confirm';
 import {
   archetypeOf,
@@ -27,14 +28,16 @@ import { colors, paper, radius, spacing } from '@/lib/theme';
 export default function TrainingLedgerScreen() {
   const [facts, setFacts] = useState<WorkoutFact[] | null>(null);
   const [goal, setGoal] = useState(3);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(() => {
+    setError(null);
     Promise.all([listWorkoutFacts(), getWeeklyGoal()])
       .then(([list, savedGoal]) => {
         setFacts(list);
         setGoal(savedGoal);
       })
-      .catch((e) => notify('불러오기 실패', e.message));
+      .catch((e) => setError(e.message));
   }, []);
 
   async function changeGoal(delta: number) {
@@ -51,7 +54,7 @@ export default function TrainingLedgerScreen() {
 
   useFocusEffect(load);
 
-  if (!facts) return <View style={styles.screen} />;
+  if (!facts) return <ScreenState error={error} onRetry={load} />;
 
   const summary = summarise(facts);
   const stats = computeStats(facts);
