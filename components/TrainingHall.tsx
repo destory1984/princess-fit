@@ -31,8 +31,7 @@ export function TrainingHall({
     <View style={styles.frameOuter}>
       <View style={styles.frameInner}>
         <View style={styles.scene}>
-          {/* Capped and contained, so the whole room fits on screen at once. */}
-          <Image source={ROOM} style={styles.room} resizeMode="contain" />
+          <Image source={ROOM} style={styles.room} resizeMode="cover" />
 
           <OrnateFrame compact style={styles.datePlaque}>
             <Text style={styles.dateMonth}>
@@ -73,7 +72,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   scene: { backgroundColor: paper.bgAlt },
-  room: { width: '100%', aspectRatio: 3 / 4, maxHeight: 360 },
+  // The asset is cropped to this ratio, so covering never bites into the room.
+  room: { width: '100%', aspectRatio: 4 / 3 },
 
   datePlaque: { position: 'absolute', top: 10, left: 10, minWidth: 92 },
   dateMonth: { textAlign: 'center', color: paper.inkDim, fontSize: 10, fontWeight: '700' },
