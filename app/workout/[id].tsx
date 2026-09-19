@@ -18,6 +18,7 @@ import {
   deleteWorkoutSet,
   estimateOneRm,
   finishWorkout,
+  payForWorkout,
   getLastPerformance,
   getPersonalBests,
   getWorkout,
@@ -210,7 +211,18 @@ export default function WorkoutScreen() {
     try {
       const before = summarise(await listWorkoutFacts());
       await finishWorkout(id);
-      const after = summarise(await listWorkoutFacts());
+      const facts = await listWorkoutFacts();
+      const after = summarise(facts);
+
+      // Pay her for the session. A failure here must not swallow the workout,
+      // which is already safely saved.
+      let earned = 0;
+      try {
+        const fact = facts.find((f) => f.id === id);
+        if (fact) earned = (await payForWorkout(fact)).gold;
+      } catch {
+        // The purse can catch up on the next settle.
+      }
 
       const gained = after.xp - before.xp;
       const earnedBefore = new Set(before.badges.filter((b) => b.earned).map((b) => b.id));
@@ -220,9 +232,11 @@ export default function WorkoutScreen() {
         fresh.length ? `새 업적 · ${fresh.map((b) => b.name).join(', ')}` : '',
         after.streak > 1 ? `${after.streak}일 연속 운동 중` : '',
       ].filter(Boolean);
+      const title = earned ? `+${gained} XP · +${earned} G` : `+${gained} XP`;
 
       celebrateFeedback();
-      if (lines.length) notify(`+${gained} XP`, lines.join('\n'));
+      if (lines.length) notify(title, lines.join('\n'));
+      else if (earned) notify(title);
       router.replace({ pathname: '/summary/[id]', params: { id } });
     } catch (e: any) {
       notify('종료 실패', e.message);
