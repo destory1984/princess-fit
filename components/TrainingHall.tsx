@@ -47,6 +47,13 @@ export function TrainingHall({
         <View style={styles.scene}>
           <Image source={ROOM} style={styles.room} resizeMode="cover" />
 
+          {/*
+            The room art is as crisp as she is, so the two compete and she
+            disappears into it. A warm wash pushes the room back a step —
+            placed here, so everything drawn after it stays at full strength.
+          */}
+          <View style={styles.wash} pointerEvents="none" />
+
           {roomContents(furniture)
             .filter((piece) => !piece.paintedIn)
             .map((piece) => {
@@ -70,7 +77,11 @@ export function TrainingHall({
             })}
 
           {advisorArt ? (
-            <Image source={advisorArt} style={styles.girl} resizeMode="contain" />
+            <>
+              {/* Without this she floats a little above the floorboards. */}
+              <View style={styles.girlShadow} pointerEvents="none" />
+              <Image source={advisorArt} style={styles.girl} resizeMode="contain" />
+            </>
           ) : null}
 
           <OrnateFrame compact style={styles.datePlaque}>
@@ -116,6 +127,25 @@ const styles = StyleSheet.create({
     backgroundColor: paper.bgAlt,
   },
   piece: { position: 'absolute', height: undefined, aspectRatio: 1 },
+  wash: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: paper.bg,
+    opacity: 0.25,
+  },
+  girlShadow: {
+    position: 'absolute',
+    bottom: '3%',
+    left: '34%',
+    width: '16%',
+    height: 10,
+    borderRadius: 999,
+    backgroundColor: paper.ink,
+    opacity: 0.18,
+  },
   // Standing at the foot of the bed, mid-room: clear of both plaques above,
   // and not hiding the window. The box is wider than she is — `contain`
   // centres her in it, so height alone decides how big she is.
