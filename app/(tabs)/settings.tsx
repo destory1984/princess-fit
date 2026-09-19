@@ -8,6 +8,7 @@ import { listExercises } from '@/lib/db';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { useAdvisor } from '@/lib/useAdvisor';
+import { portraitOf } from '@/lib/portraits';
 import { colors, radius, spacing } from '@/lib/theme';
 
 export default function SettingsScreen() {
@@ -27,7 +28,7 @@ export default function SettingsScreen() {
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <Pressable style={styles.row} onPress={() => router.push('/settings/advisor')}>
-        <Portrait source={advisor.portrait} size={48} />
+        <Portrait source={portraitOf(advisor.id)} size={48} />
         <View style={styles.body}>
           <Text style={styles.title}>함께할 사람</Text>
           <Text style={styles.sub}>

@@ -9,6 +9,7 @@ import { MuscleTag } from '@/components/MuscleTag';
 import { OrnateFrame } from '@/components/OrnateFrame';
 import { ScreenState } from '@/components/ScreenState';
 import { useAdvisor } from '@/lib/useAdvisor';
+import { portraitOf } from '@/lib/portraits';
 import { confirmAction, notify } from '@/lib/confirm';
 import {
   countExerciseSets,
@@ -102,7 +103,7 @@ export default function ExerciseScreen() {
         <Text style={styles.intro}>{introOf(exercise)}</Text>
       </OrnateFrame>
 
-      <Advisor name={advisor.name} portrait={advisor.portrait}>{coachTipOf(exercise)}</Advisor>
+      <Advisor name={advisor.name} portrait={portraitOf(advisor.id)}>{coachTipOf(exercise)}</Advisor>
 
       {steps.length > 0 && (
         <View style={styles.card}>

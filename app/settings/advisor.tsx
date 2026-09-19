@@ -5,6 +5,7 @@ import { useFocusEffect } from 'expo-router';
 import { Portrait } from '@/components/Portrait';
 import { ADVISORS, DEFAULT_ADVISOR_ID } from '@/lib/advisors';
 import { notify } from '@/lib/confirm';
+import { portraitOf } from '@/lib/portraits';
 import { getAdvisorId, setAdvisorId } from '@/lib/prefs';
 import { colors, radius, spacing } from '@/lib/theme';
 
@@ -44,7 +45,7 @@ export default function AdvisorScreen() {
             key={a.id}
             style={[styles.card, on && styles.cardOn]}
             onPress={() => choose(a.id)}>
-            <Portrait source={a.portrait} size={72} active={on} />
+            <Portrait source={portraitOf(a.id)} size={72} active={on} />
             <View style={styles.body}>
               <Text style={[styles.name, on && styles.nameOn]}>{a.name}</Text>
               <Text style={styles.title}>{a.title}</Text>

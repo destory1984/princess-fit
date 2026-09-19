@@ -8,6 +8,7 @@ import { LevelCard } from '@/components/LevelCard';
 import { TrainingHall } from '@/components/TrainingHall';
 import { archetypeOf, computeStats, conditionOf, masterSays } from '@/lib/character';
 import { useAdvisor } from '@/lib/useAdvisor';
+import { portraitOf } from '@/lib/portraits';
 import {
   getActiveWorkout,
   getWeeklyStats,
@@ -113,7 +114,7 @@ export default function TodayScreen() {
             stats={stats}
             streak={summary.streak}
           />
-          <Advisor name={advisor.name} portrait={advisor.portrait}>
+          <Advisor name={advisor.name} portrait={portraitOf(advisor.id)}>
             {masterSays(stats, facts)}
           </Advisor>
           <LevelCard
