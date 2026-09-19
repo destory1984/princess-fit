@@ -251,6 +251,7 @@ export default function WorkoutScreen() {
                     <Text style={styles.th}>KG</Text>
                     <Text style={styles.th}>횟수</Text>
                     <Text style={[styles.th, styles.thDone]}>완료</Text>
+                    <View style={styles.thRemove} />
                   </View>
                   {exerciseSets.map((s) => (
                     <View key={s.id} style={styles.setRow}>
@@ -263,13 +264,15 @@ export default function WorkoutScreen() {
                       <NumberField value={s.reps} onCommit={(v) => persist(s.id, { reps: v })} />
                       <Pressable
                         style={[styles.check, s.done && { backgroundColor: colors.success }]}
-                        onPress={() => persist(s.id, { done: !s.done })}
-                        onLongPress={() => removeSet(s.id)}>
+                        onPress={() => persist(s.id, { done: !s.done })}>
                         <Ionicons
                           name="checkmark"
                           size={18}
                           color={s.done ? '#0E1116' : colors.textDim}
                         />
+                      </Pressable>
+                      <Pressable hitSlop={6} onPress={() => removeSet(s.id)}>
+                        <Ionicons name="close" size={18} color={colors.textDim} />
                       </Pressable>
                     </View>
                   ))}
@@ -287,9 +290,6 @@ export default function WorkoutScreen() {
             <Ionicons name="add" size={18} color={colors.accent} />
             <Text style={styles.secondaryText}>운동 종목 추가</Text>
           </Pressable>
-        )}
-        {!done && sets.length > 0 && (
-          <Text style={styles.hint}>완료 표시를 길게 누르면 그 세트가 삭제돼요.</Text>
         )}
 
         {(!done || workout.memo) && (
@@ -451,6 +451,7 @@ const styles = StyleSheet.create({
   th: { color: colors.textDim, fontSize: 11, flex: 1, textAlign: 'center' },
   thNo: { flex: 0, width: 28, textAlign: 'left' },
   thDone: { flex: 0, width: 40 },
+  thRemove: { width: 18 },
   setRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm },
   setNo: { color: colors.textDim, width: 28 },
   setInput: {
