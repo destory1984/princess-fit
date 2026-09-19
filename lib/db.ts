@@ -13,6 +13,7 @@ import {
 import { buy, type Item } from './shop';
 import { resolvePreset, type RoutinePreset } from './routinePresets';
 import type { BodyLog } from './body';
+import type { UsageMap } from './exerciseUsage';
 import { wearing, type Garment } from './outfit';
 import { attend, EMPTY_CULTURE, type Culture, type Lesson } from './lessons';
 import type { Furniture } from './room';
@@ -786,4 +787,40 @@ export async function saveBodyLog(
 export async function deleteBodyLog(id: string) {
   const { error } = await supabase.from('body_logs').delete().eq('id', id);
   if (error) throw error;
+}
+
+/**
+ * How often and how recently each exercise has been used.
+ *
+ * Counted over finished workouts only: sets abandoned mid-session say nothing
+ * about what you actually train.
+ */
+export async function getExerciseUsage(limit = 800): Promise<UsageMap> {
+  const { data, error } = await supabase
+    .from('workout_sets')
+    .select('exercise_id, workouts!inner(started_at, ended_at)')
+    .not('workouts.ended_at', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+
+  // PostgREST types an embedded row as an array even when it is one-to-one.
+  const rows = data as unknown as {
+    exercise_id: string;
+    workouts: { started_at: string } | { started_at: string }[];
+  }[];
+  const usage: UsageMap = new Map();
+  for (const row of rows) {
+    const workout = Array.isArray(row.workouts) ? row.workouts[0] : row.workouts;
+    if (!workout) continue;
+    const day = localDayKey(new Date(workout.started_at));
+    const seen = usage.get(row.exercise_id);
+    if (seen) {
+      seen.count += 1;
+      if (day > seen.lastOn) seen.lastOn = day;
+    } else {
+      usage.set(row.exercise_id, { count: 1, lastOn: day });
+    }
+  }
+  return usage;
 }

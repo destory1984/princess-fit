@@ -10,6 +10,7 @@ import { OrnateFrame } from '@/components/OrnateFrame';
 import { notify } from '@/lib/confirm';
 import {
   getExerciseHistory,
+  getExerciseUsage,
   getGroupTotals,
   listExercises,
   listWorkoutFacts,
@@ -17,6 +18,7 @@ import {
   type GroupTotal,
 } from '@/lib/db';
 import { formatDate, formatDuration } from '@/lib/format';
+import type { UsageMap } from '@/lib/exerciseUsage';
 import type { WorkoutFact } from '@/lib/gamification';
 import type { Exercise } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
@@ -30,8 +32,14 @@ export default function StatsScreen() {
   const [metric, setMetric] = useState<'max_weight' | 'volume'>('max_weight');
   const [picking, setPicking] = useState(false);
   const [facts, setFacts] = useState<WorkoutFact[]>([]);
+  const [usage, setUsage] = useState<UsageMap>(new Map());
 
   const load = useCallback(() => {
+    getExerciseUsage()
+      .then(setUsage)
+      .catch(() => {
+        // Only orders the picker.
+      });
     listWorkoutFacts()
       .then(setFacts)
       .catch(() => {
@@ -153,6 +161,7 @@ export default function StatsScreen() {
       </ScrollView>
 
       <ExercisePicker
+        usage={usage}
         visible={picking}
         exercises={exercises}
         onSelect={setSelected}
