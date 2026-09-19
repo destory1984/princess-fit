@@ -26,3 +26,21 @@ export function planFor(track: TrackType, past: PastSet[] | undefined): PlannedS
   }
   return Array.from({ length: PRESET_SETS }, () => ({ weight: 0, reps: PRESET_REPS }));
 }
+
+/**
+ * Sets of the same exercise that should follow the one just finished.
+ *
+ * Nobody loads the bar for set two and then starts set three from nothing, but
+ * sets laid out in advance have no way to know what weight the day turned out
+ * to be. A later set that has never been given a weight adopts the one just
+ * finished; a set that was deliberately set to something is left alone, which
+ * is why zero is the test rather than "not yet edited".
+ */
+export function followOn<T extends { id: string; set_no: number; done: boolean; weight_kg: number }>(
+  sameExercise: T[],
+  completed: T
+) {
+  return sameExercise.filter(
+    (s) => !s.done && s.set_no > completed.set_no && s.weight_kg === 0
+  );
+}
