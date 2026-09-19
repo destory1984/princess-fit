@@ -23,5 +23,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
   },
   dot: { width: 6, height: 6, borderRadius: 3 },
-  label: { fontSize: 12, fontWeight: '700' },
+  label: { fontSize: 12, lineHeight: 17, fontWeight: '700' },
 });
