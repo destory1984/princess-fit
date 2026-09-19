@@ -3,14 +3,7 @@ import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-na
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { confirmAction, notify } from '@/lib/confirm';
-import {
-  createRoutine,
-  deleteRoutine,
-  getActiveWorkout,
-  listRoutineExercises,
-  listRoutines,
-  startWorkout,
-} from '@/lib/db';
+import { createRoutine, deleteRoutine, listRoutineExercises, listRoutines } from '@/lib/db';
 import type { Routine } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
 
@@ -45,20 +38,6 @@ export default function RoutinesScreen() {
       router.push(`/routine/${created.id}`);
     } catch (e: any) {
       notify('추가 실패', e.message);
-    }
-  }
-
-  async function freeWorkout() {
-    try {
-      const active = await getActiveWorkout();
-      if (active) {
-        router.push(`/workout/${active.id}`);
-        return;
-      }
-      const created = await startWorkout('자유 운동', null);
-      router.push(`/workout/${created.id}`);
-    } catch (e: any) {
-      notify('시작 실패', e.message);
     }
   }
 
@@ -128,12 +107,8 @@ export default function RoutinesScreen() {
       />
 
       <View style={styles.bottomBar}>
-        <Pressable style={styles.free} onPress={freeWorkout}>
-          <Ionicons name="flash" size={18} color="#fff" />
-          <Text style={styles.freeText}>자유 운동</Text>
-        </Pressable>
         <Pressable style={styles.new} onPress={() => setAdding((v) => !v)}>
-          <Ionicons name={adding ? 'close' : 'add'} size={18} color={colors.accent} />
+          <Ionicons name={adding ? 'close' : 'add'} size={18} color="#fff" />
           <Text style={styles.newText}>{adding ? '취소' : '루틴 추가'}</Text>
         </Pressable>
       </View>
@@ -181,7 +156,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.sm,
   },
-  free: {
+  new: {
     flex: 1,
     backgroundColor: colors.accent,
     borderRadius: radius.lg,
@@ -191,18 +166,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.xs,
   },
-  freeText: { color: '#fff', fontWeight: '800' },
-  new: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderColor: colors.accent,
-    borderWidth: 1,
-    borderRadius: radius.lg,
-    paddingVertical: spacing.lg,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xs,
-  },
-  newText: { color: colors.accent, fontWeight: '800' },
+  newText: { color: '#fff', fontWeight: '800' },
 });
