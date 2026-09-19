@@ -1,7 +1,9 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { BodyMap, regionsOf } from '@/components/BodyMap';
 import { ExercisePicker } from '@/components/ExercisePicker';
+import { MuscleTag } from '@/components/MuscleTag';
 import { confirmAction, notify } from '@/lib/confirm';
 import {
   addRoutineExercise,
@@ -34,10 +36,13 @@ export default function RoutineScreen() {
 
   useFocusEffect(load);
 
-  const exerciseName = useMemo(() => {
-    const map = new Map(exercises.map((e) => [e.id, e.name]));
-    return (exerciseId: string) => map.get(exerciseId) ?? '삭제된 종목';
-  }, [exercises]);
+  const byId = useMemo(() => new Map(exercises.map((e) => [e.id, e])), [exercises]);
+  const exerciseName = (exerciseId: string) => byId.get(exerciseId)?.name ?? '삭제된 종목';
+
+  const worked = useMemo(
+    () => regionsOf(items.flatMap((i) => byId.get(i.exercise_id) ?? [])),
+    [items, byId]
+  );
 
   async function add(exerciseId: string) {
     if (!id) return;
@@ -76,14 +81,34 @@ export default function RoutineScreen() {
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.title}>{routine?.name ?? ''}</Text>
-        <Text style={styles.hint}>길게 눌러 종목을 삭제할 수 있어요.</Text>
+
+        <View style={styles.bodyCard}>
+          <BodyMap primary={worked.primary} secondary={worked.secondary} height={240} />
+          <Text style={styles.bodyCaption}>
+            {worked.primary.size === 0
+              ? '종목을 담으면 어느 부위를 쓰는지 표시돼요.'
+              : `이 루틴이 쓰는 부위 · ${[...worked.primary].join(', ')}`}
+          </Text>
+        </View>
+
+        <Text style={styles.hint}>종목을 길게 누르면 뺄 수 있어요.</Text>
 
         {items.length === 0 ? (
           <Text style={styles.empty}>아직 종목이 없어요.</Text>
         ) : (
           items.map((item) => (
             <Pressable key={item.id} style={styles.row} onLongPress={() => remove(item)}>
-              <Text style={styles.rowTitle}>{exerciseName(item.exercise_id)}</Text>
+              <View style={styles.rowHead}>
+                <Text style={styles.rowTitle}>{exerciseName(item.exercise_id)}</Text>
+                <MuscleTag group={byId.get(item.exercise_id)?.muscle_group ?? '기타'} />
+              </View>
+              {byId.get(item.exercise_id)?.muscle_detail ? (
+                <Text style={styles.rowSub}>
+                  {byId.get(item.exercise_id)!.muscle_detail}
+                  {' · '}
+                  {byId.get(item.exercise_id)!.equipment}
+                </Text>
+              ) : null}
               <View style={styles.stepperRow}>
                 <Stepper
                   label="세트"
@@ -145,7 +170,20 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.lg, gap: spacing.sm },
   title: { color: colors.text, fontSize: 22, fontWeight: '800' },
-  hint: { color: colors.textDim, marginBottom: spacing.md },
+  bodyCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    alignItems: 'center',
+  },
+  bodyCaption: {
+    color: colors.textDim,
+    fontSize: 13,
+    marginTop: spacing.sm,
+    textAlign: 'center',
+  },
+  hint: { color: colors.textDim, fontSize: 12, marginTop: spacing.md },
+  rowHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   empty: { color: colors.textDim, paddingVertical: spacing.lg },
   row: {
     backgroundColor: colors.surface,

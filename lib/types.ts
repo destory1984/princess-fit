@@ -3,6 +3,9 @@ export type Exercise = {
   user_id: string;
   name: string;
   muscle_group: string;
+  secondary_group: string | null;
+  equipment: string;
+  muscle_detail: string;
   created_at: string;
 };
 
@@ -53,3 +56,9 @@ export const MUSCLE_GROUPS = [
   '유산소',
   '기타',
 ] as const;
+
+export const EQUIPMENT = ['바벨', '덤벨', '머신', '케이블', '맨몸', '기타'] as const;
+
+// Regions the body diagram can shade. 유산소/기타 have no single region.
+export const BODY_REGIONS = ['가슴', '등', '어깨', '하체', '팔', '복근'] as const;
+export type BodyRegion = (typeof BODY_REGIONS)[number];

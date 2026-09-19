@@ -23,11 +23,11 @@ export async function listExercises() {
   return data as Exercise[];
 }
 
-export async function createExercise(name: string, muscleGroup: string) {
+export async function createExercise(name: string, muscleGroup: string, equipment: string) {
   const user_id = await requireUserId();
   const { data, error } = await supabase
     .from('exercises')
-    .insert({ user_id, name, muscle_group: muscleGroup })
+    .insert({ user_id, name, muscle_group: muscleGroup, equipment })
     .select()
     .single();
   if (error) throw error;

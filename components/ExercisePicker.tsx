@@ -12,7 +12,7 @@ import {
 import { MuscleTag } from '@/components/MuscleTag';
 import { seedDefaultExercises } from '@/lib/catalog';
 import { notify } from '@/lib/confirm';
-import { MUSCLE_GROUPS, type Exercise } from '@/lib/types';
+import { EQUIPMENT, MUSCLE_GROUPS, type Exercise } from '@/lib/types';
 import { colors, muscleColor, radius, spacing } from '@/lib/theme';
 
 type Props = {
@@ -26,6 +26,7 @@ type Props = {
 export function ExercisePicker({ visible, exercises, onSelect, onClose, onSeeded }: Props) {
   const [query, setQuery] = useState('');
   const [group, setGroup] = useState<string | null>(null);
+  const [gear, setGear] = useState<string | null>(null);
   const [seeding, setSeeding] = useState(false);
 
   const filtered = useMemo(() => {
@@ -33,13 +34,17 @@ export function ExercisePicker({ visible, exercises, onSelect, onClose, onSeeded
     return exercises.filter(
       (e) =>
         (group === null || e.muscle_group === group) &&
-        (q === '' || e.name.toLowerCase().includes(q))
+        (gear === null || e.equipment === gear) &&
+        (q === '' ||
+          e.name.toLowerCase().includes(q) ||
+          e.muscle_detail.toLowerCase().includes(q))
     );
-  }, [exercises, query, group]);
+  }, [exercises, query, group, gear]);
 
   function close() {
     setQuery('');
     setGroup(null);
+    setGear(null);
     onClose();
   }
 
@@ -83,12 +88,13 @@ export function ExercisePicker({ visible, exercises, onSelect, onClose, onSeeded
             <>
               <TextInput
                 style={styles.search}
-                placeholder="종목 검색"
+                placeholder="종목 이름이나 근육으로 검색"
                 placeholderTextColor={colors.textDim}
                 value={query}
                 onChangeText={setQuery}
                 autoCorrect={false}
               />
+              <Text style={styles.filterLabel}>부위</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chips}>
                 <View style={styles.chipRow}>
                   <Chip label="전체" active={group === null} onPress={() => setGroup(null)} />
@@ -100,6 +106,15 @@ export function ExercisePicker({ visible, exercises, onSelect, onClose, onSeeded
                       active={group === g}
                       onPress={() => setGroup(g)}
                     />
+                  ))}
+                </View>
+              </ScrollView>
+              <Text style={styles.filterLabel}>기구</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chips}>
+                <View style={styles.chipRow}>
+                  <Chip label="전체" active={gear === null} onPress={() => setGear(null)} />
+                  {EQUIPMENT.map((g) => (
+                    <Chip key={g} label={g} active={gear === g} onPress={() => setGear(g)} />
                   ))}
                 </View>
               </ScrollView>
@@ -118,7 +133,14 @@ export function ExercisePicker({ visible, exercises, onSelect, onClose, onSeeded
                       <View
                         style={[styles.stripe, { backgroundColor: muscleColor(e.muscle_group) }]}
                       />
-                      <Text style={styles.rowText}>{e.name}</Text>
+                      <View style={styles.rowBody}>
+                        <Text style={styles.rowText}>{e.name}</Text>
+                        {!!e.muscle_detail && (
+                          <Text style={styles.rowSub}>
+                            {e.muscle_detail} · {e.equipment}
+                          </Text>
+                        )}
+                      </View>
                       <MuscleTag group={e.muscle_group} />
                     </Pressable>
                   ))
@@ -197,8 +219,11 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
     borderBottomWidth: 1,
   },
-  stripe: { width: 4, height: 24, borderRadius: 2 },
-  rowText: { color: colors.text, fontSize: 16, flex: 1 },
+  stripe: { width: 4, height: 30, borderRadius: 2 },
+  rowBody: { flex: 1 },
+  rowText: { color: colors.text, fontSize: 16 },
+  rowSub: { color: colors.textDim, fontSize: 12, marginTop: 2 },
+  filterLabel: { color: colors.textDim, fontSize: 11, marginBottom: 4 },
   emptyBox: { alignItems: 'center', paddingVertical: spacing.xl, gap: spacing.md },
   emptyTitle: { color: colors.text, fontSize: 16, fontWeight: '700' },
   emptyText: { color: colors.textDim, textAlign: 'center', lineHeight: 20 },
