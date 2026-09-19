@@ -6,6 +6,7 @@ import { BodyMap, workedParts } from '@/components/BodyMap';
 import { ExercisePicker } from '@/components/ExercisePicker';
 import { confirmAction, notify } from '@/lib/confirm';
 import { formatDate, formatDuration } from '@/lib/format';
+import { summarise } from '@/lib/gamification';
 import {
   addWorkoutSet,
   deleteWorkout,
@@ -15,6 +16,7 @@ import {
   getLastPerformance,
   getWorkout,
   listExercises,
+  listWorkoutFacts,
   listWorkoutSets,
   updateWorkout,
   updateWorkoutSet,
@@ -163,7 +165,20 @@ export default function WorkoutScreen() {
       return;
     }
     try {
+      const before = summarise(await listWorkoutFacts());
       await finishWorkout(id);
+      const after = summarise(await listWorkoutFacts());
+
+      const gained = after.xp - before.xp;
+      const earnedBefore = new Set(before.badges.filter((b) => b.earned).map((b) => b.id));
+      const fresh = after.badges.filter((b) => b.earned && !earnedBefore.has(b.id));
+      const lines = [
+        after.level > before.level ? `Lv.${after.level} ${after.title} 달성!` : '',
+        fresh.length ? `새 업적 · ${fresh.map((b) => b.name).join(', ')}` : '',
+        after.streak > 1 ? `${after.streak}일 연속 운동 중` : '',
+      ].filter(Boolean);
+
+      notify(`수고하셨어요 · +${gained} XP`, lines.join('\n') || undefined);
       router.back();
     } catch (e: any) {
       notify('종료 실패', e.message);

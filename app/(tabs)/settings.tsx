@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { MuscleTag } from '@/components/MuscleTag';
 import { seedDefaultExercises } from '@/lib/catalog';
 import { confirmAction, notify } from '@/lib/confirm';
@@ -19,6 +19,7 @@ import { colors, muscleColor, radius, spacing } from '@/lib/theme';
 
 export default function SettingsScreen() {
   const { session } = useAuth();
+  const router = useRouter();
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [name, setName] = useState('');
   const [group, setGroup] = useState<string>(MUSCLE_GROUPS[0]);
@@ -172,6 +173,10 @@ export default function SettingsScreen() {
         )}
         ListFooterComponent={
           <View style={styles.footer}>
+            <Pressable style={styles.link} onPress={() => router.push('/achievements')}>
+              <Ionicons name="trophy-outline" size={18} color={colors.accent} />
+              <Text style={styles.linkText}>성장 기록과 업적 보기</Text>
+            </Pressable>
             <Text style={styles.account}>{session?.user.email}</Text>
             <Pressable style={styles.logout} onPress={() => supabase.auth.signOut()}>
               <Text style={styles.logoutText}>로그아웃</Text>
@@ -235,6 +240,8 @@ const styles = StyleSheet.create({
   rowTitle: { color: colors.text, fontSize: 15, fontWeight: '600' },
   rowSub: { color: colors.textDim, fontSize: 12, marginTop: 2 },
   footer: { marginTop: spacing.xl, alignItems: 'center', gap: spacing.md },
+  link: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, padding: spacing.md },
+  linkText: { color: colors.accent, fontWeight: '600' },
   account: { color: colors.textDim },
   logout: { padding: spacing.md },
   logoutText: { color: colors.danger, fontWeight: '700' },

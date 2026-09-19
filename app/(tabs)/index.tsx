@@ -3,15 +3,18 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { notify } from '@/lib/confirm';
+import { LevelCard } from '@/components/LevelCard';
 import {
   getActiveWorkout,
   getWeeklyStats,
   listExercises,
   listRoutineExercises,
   listRoutines,
+  listWorkoutFacts,
   startWorkout,
   type WeeklyStats,
 } from '@/lib/db';
+import { summarise } from '@/lib/gamification';
 import type { Routine, Workout } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
 
@@ -22,14 +25,22 @@ export default function TodayScreen() {
   const [routineSizes, setRoutineSizes] = useState<Record<string, number>>({});
   const [exerciseCount, setExerciseCount] = useState(0);
   const [weekly, setWeekly] = useState<WeeklyStats>({ workouts: 0, volume: 0, streakDays: 0 });
+  const [summary, setSummary] = useState<ReturnType<typeof summarise> | null>(null);
 
   const load = useCallback(() => {
-    Promise.all([getActiveWorkout(), listRoutines(), getWeeklyStats(), listExercises()])
-      .then(async ([a, r, w, ex]) => {
+    Promise.all([
+      getActiveWorkout(),
+      listRoutines(),
+      getWeeklyStats(),
+      listExercises(),
+      listWorkoutFacts(),
+    ])
+      .then(async ([a, r, w, ex, facts]) => {
         setActive(a);
         setRoutines(r);
         setWeekly(w);
         setExerciseCount(ex.length);
+        setSummary(summarise(facts));
         const sizes = await Promise.all(
           r.map(async (routine) => [routine.id, (await listRoutineExercises(routine.id)).length] as const)
         );
@@ -80,6 +91,20 @@ export default function TodayScreen() {
             body="다 하셨으면 아래 '운동 완료'를 누르세요. 기록 탭과 통계 탭에 쌓입니다."
           />
         </View>
+      )}
+
+      {summary && (
+        <LevelCard
+          level={summary.level}
+          title={summary.title}
+          xp={summary.xp}
+          progress={summary.progress}
+          toNext={summary.toNext}
+          streak={summary.streak}
+          earnedCount={summary.earnedCount}
+          badgeCount={summary.badges.length}
+          onPress={() => router.push('/achievements')}
+        />
       )}
 
       <View style={styles.statRow}>
