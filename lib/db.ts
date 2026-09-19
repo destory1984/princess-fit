@@ -11,6 +11,7 @@ import {
   type Household,
 } from './economy';
 import { buy, type Item } from './shop';
+import { resolvePreset, type RoutinePreset } from './routinePresets';
 import { wearing, type Garment } from './outfit';
 import { attend, EMPTY_CULTURE, type Culture, type Lesson } from './lessons';
 import type { Furniture } from './room';
@@ -722,4 +723,31 @@ export async function setExerciseRest(exerciseId: string, seconds: number) {
     .update({ rest_sec: clampRest(seconds) })
     .eq('id', exerciseId);
   if (error) throw error;
+}
+
+/**
+ * Build a routine from a preset, keeping only the exercises this account has.
+ *
+ * Returns what was skipped so the caller can say so: a routine quietly two
+ * movements shorter than the card promised is worse than being told.
+ */
+export async function createRoutineFromPreset(preset: RoutinePreset) {
+  const catalogue = await listExercises();
+  const { found, missing } = resolvePreset(preset, catalogue);
+  if (found.length === 0) {
+    throw new Error('종목이 없어요. 설정에서 기본 종목을 먼저 불러오세요.');
+  }
+
+  const routine = await createRoutine(preset.name);
+  const rows = found.map((item, position) => ({
+    routine_id: routine.id,
+    exercise_id: item.exercise.id,
+    position,
+    target_sets: item.sets,
+    target_reps: item.reps,
+  }));
+  const { error } = await supabase.from('routine_exercises').insert(rows);
+  if (error) throw error;
+
+  return { routine, missing };
 }
