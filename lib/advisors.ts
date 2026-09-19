@@ -1,9 +1,8 @@
 /**
  * The six girls who can keep you company on the main screen.
  *
- * Each portrait is an optional asset: drop `assets/advisors/<id>.png` in and the
- * app picks it up. Until then the advisor falls back to the gold emblem, so a
- * missing file is a plain portrait, never a crash.
+ * Their portraits live in `./portraits`, kept apart so this file stays plain
+ * data that tests can import without a bundler.
  */
 
 export type Advisor = {
@@ -14,34 +13,9 @@ export type Advisor = {
   title: string;
   /** One line of flavour, shown beside her in 설정. */
   blurb: string;
-  portrait: number | null;
 };
 
-function portraitOf(id: string): number | null {
-  // Metro needs a literal path per asset, hence the switch rather than a loop.
-  try {
-    switch (id) {
-      case 'geumhwa':
-        return require('../assets/advisors/geumhwa.png');
-      case 'dana':
-        return require('../assets/advisors/dana.png');
-      case 'munhui':
-        return require('../assets/advisors/munhui.png');
-      case 'dohwa':
-        return require('../assets/advisors/dohwa.png');
-      case 'cheongram':
-        return require('../assets/advisors/cheongram.png');
-      case 'seora':
-        return require('../assets/advisors/seora.png');
-      default:
-        return null;
-    }
-  } catch {
-    return null;
-  }
-}
-
-const ROSTER: Omit<Advisor, 'portrait'>[] = [
+const ROSTER: Advisor[] = [
   {
     id: 'geumhwa',
     name: '금화',
@@ -80,7 +54,7 @@ const ROSTER: Omit<Advisor, 'portrait'>[] = [
   },
 ];
 
-export const ADVISORS: Advisor[] = ROSTER.map((a) => ({ ...a, portrait: portraitOf(a.id) }));
+export const ADVISORS: Advisor[] = ROSTER;
 
 export const DEFAULT_ADVISOR_ID = ADVISORS[0].id;
 

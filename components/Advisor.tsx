@@ -4,15 +4,14 @@ import { colors, paper, spacing } from '@/lib/theme';
 
 type Props = {
   name: string;
-  /** Her portrait, or null to fall back to the emblem. */
-  portrait?: number | null;
+  portrait: number;
   children: string;
 };
 
 export function Advisor({ name, portrait, children }: Props) {
   return (
     <View style={styles.wrap}>
-      <Portrait source={portrait ?? null} size={56} />
+      <Portrait source={portrait} size={56} />
 
       <View style={styles.bubble}>
         <View style={styles.tail} />
