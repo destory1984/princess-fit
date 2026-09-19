@@ -17,6 +17,8 @@ export type Exercise = {
   muscle_detail: string;
   body_parts: string;
   track_type: TrackType;
+  /** Seconds of rest after a set of this exercise. */
+  rest_sec: number;
   how_to: string;
   created_at: string;
 };

@@ -50,6 +50,9 @@ export async function getNudgeHour(): Promise<number | null> {
   try {
     const raw = await AsyncStorage.getItem(NUDGE);
     if (raw === 'off') return null;
+    // Nothing stored has to be checked before parsing: Number(null) is 0, and
+    // midnight is a real hour, so an unset preference read as 0시.
+    if (raw === null) return DEFAULT_NUDGE_HOUR;
     const parsed = Number(raw);
     return Number.isInteger(parsed) && parsed >= 0 && parsed <= 23
       ? parsed

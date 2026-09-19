@@ -129,3 +129,7 @@ alter table household add column if not exists charm integer not null default 0;
 -- What she has on, as opposed to what she owns. Garments she has bought live
 -- in `wardrobe`; the subset she is currently wearing lives here.
 alter table household add column if not exists worn text[] not null default '{}';
+
+-- How long she rests after a set of this exercise. A minute suits most things;
+-- a heavy squat wants longer and a curl wants less, so it lives per exercise.
+alter table exercises add column if not exists rest_sec integer not null default 60;

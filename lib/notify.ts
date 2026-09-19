@@ -17,15 +17,21 @@ import type { Trip } from './lessons';
  */
 
 const CHANNEL = 'daily';
+const ALARM_CHANNEL = 'rest';
 const supported = Platform.OS === 'ios' || Platform.OS === 'android';
 
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldPlaySound: false,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
+  // Her daily line should arrive quietly; the rest timer has to be heard even
+  // with the app open, so the sound is decided per message rather than once.
+  handleNotification: async (notification) => {
+    const alarm = notification.request.content.data?.alarm === true;
+    return {
+      shouldPlaySound: alarm,
+      shouldSetBadge: false,
+      shouldShowBanner: true,
+      shouldShowList: !alarm,
+    };
+  },
 });
 
 /** Ask once. Returns whether we may post at all. */
@@ -35,9 +41,16 @@ export async function ensureNotificationPermission() {
   if (Platform.OS === 'android') {
     // Android 13+ wants the channel to exist before the prompt.
     await Notifications.setNotificationChannelAsync(CHANNEL, {
-      name: '하루 한 마디',
+      name: '리나의 안부',
       importance: Notifications.AndroidImportance.DEFAULT,
       vibrationPattern: [0, 200],
+    });
+    // Its own channel so the rest bell can be loud while her daily line stays
+    // quiet, and so either can be silenced without the other.
+    await Notifications.setNotificationChannelAsync(ALARM_CHANNEL, {
+      name: '쉬는 시간 알람',
+      importance: Notifications.AndroidImportance.HIGH,
+      vibrationPattern: [0, 250, 150, 250],
     });
   }
 
@@ -126,4 +139,37 @@ export async function cancelDailyMessage() {
   const id = await getDailyMessageId();
   if (id) await Notifications.cancelScheduledNotificationAsync(id);
   await setDailyMessageId(null);
+}
+
+/**
+ * The end of a rest, booked for the moment it runs out.
+ *
+ * Scheduling it up front rather than ringing a bell when the countdown hits
+ * zero is what makes it work with the phone in a pocket: the app may be
+ * backgrounded or killed by then, and a timer in a screen that is no longer
+ * running never fires.
+ */
+export async function scheduleRestAlarm(when: Date) {
+  if (!supported) return null;
+  if (!(await ensureNotificationPermission())) return null;
+
+  const seconds = Math.max(1, Math.round((when.getTime() - Date.now()) / 1000));
+  return Notifications.scheduleNotificationAsync({
+    content: {
+      title: '쉬는 시간 끝',
+      body: '다음 세트 가요.',
+      sound: true,
+      data: { alarm: true },
+    },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+      seconds,
+      channelId: ALARM_CHANNEL,
+    },
+  });
+}
+
+export async function cancelRestAlarm(id: string | null) {
+  if (!supported || !id) return;
+  await Notifications.cancelScheduledNotificationAsync(id);
 }
