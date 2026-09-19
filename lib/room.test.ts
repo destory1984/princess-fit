@@ -54,3 +54,16 @@ test('progress counts by price and finishes only when the room is full', () => {
   assert.equal(done.ratio, 1);
   assert.match(roomMood(FURNITURE.map((f) => f.id)), /더 들일 것이 없는/);
 });
+
+// The cot is painted into the room art, so a replacement that does not fully
+// cover it leaves two beds overlapping on screen.
+test('anything filling the bed slot covers the painted-in cot', () => {
+  for (const piece of FURNITURE.filter((f) => f.slot === STARTER.slot)) {
+    assert.ok(piece.place.x <= STARTER.place.x, `${piece.id} starts left of the cot`);
+    assert.ok(
+      piece.place.x + piece.place.w >= STARTER.place.x + STARTER.place.w,
+      `${piece.id} reaches past the cot`
+    );
+    assert.ok(piece.place.y <= STARTER.place.y, `${piece.id} starts above the cot`);
+  }
+});

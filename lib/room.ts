@@ -40,6 +40,8 @@ export type Furniture = {
   detail: string;
   price: number;
   icon: string;
+  /** True when the piece is part of the room painting, not a separate sprite. */
+  paintedIn?: boolean;
   /**
    * Where the art sits in the room, as fractions of the room's width and
    * height: left/top of the piece, and its width. Height follows the art.
@@ -47,7 +49,12 @@ export type Furniture = {
   place: { x: number; y: number; w: number };
 };
 
-/** What she already has on day one. Free, and not for sale. */
+/**
+ * What she already has on day one. Free, not for sale, and painted into the
+ * room art rather than drawn as a sprite — which is why anything that fills
+ * the bed slot must be wide and tall enough to cover this box completely, or
+ * the old cot will peek out from behind the new bed.
+ */
 export const STARTER: Furniture = {
   id: 'cot',
   slot: 'bed',
@@ -55,7 +62,8 @@ export const STARTER: Furniture = {
   detail: '삐걱거리지만, 잠은 와요',
   price: 0,
   icon: 'bed-outline',
-  place: { x: 0.02, y: 0.42, w: 0.38 },
+  paintedIn: true,
+  place: { x: 0.0, y: 0.5, w: 0.44 },
 };
 
 export const FURNITURE: Furniture[] = [
@@ -65,7 +73,7 @@ export const FURNITURE: Furniture[] = [
   { id: 'bench', slot: 'seat', name: '창가 벤치', detail: '앉아서 밖을 볼 자리', price: 550, icon: 'tablet-landscape-outline', place: { x: 0.06, y: 0.68, w: 0.3 } },
   { id: 'pictures', slot: 'picture', name: '액자 셋', detail: '벽이 허전하지 않게', price: 600, icon: 'image-outline', place: { x: 0.2, y: 0.1, w: 0.18 } },
   { id: 'dresser', slot: 'dresser', name: '거울 달린 화장대', detail: '차림새를 보고 나설 수 있어요', price: 800, icon: 'browsers-outline', place: { x: 0.36, y: 0.38, w: 0.22 } },
-  { id: 'bed', slot: 'bed', name: '천개 달린 침대', detail: '이제 잘 자겠네요', price: 900, icon: 'bed-outline', place: { x: 0.0, y: 0.3, w: 0.42 } },
+  { id: 'bed', slot: 'bed', name: '천개 달린 침대', detail: '이제 잘 자겠네요', price: 900, icon: 'bed-outline', place: { x: 0.0, y: 0.28, w: 0.46 } },
   { id: 'shelf', slot: 'shelf', name: '책장', detail: '배운 것을 쌓아둘 곳', price: 1_000, icon: 'library-outline', place: { x: 0.78, y: 0.14, w: 0.22 } },
   { id: 'chandelier', slot: 'light', name: '샹들리에', detail: '밤에도 방이 환해요', price: 1_400, icon: 'bulb-outline', place: { x: 0.44, y: 0.0, w: 0.16 } },
 ];

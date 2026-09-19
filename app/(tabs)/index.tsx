@@ -20,7 +20,7 @@ import {
   listExercises,
   listRoutineExercises,
   listRoutines,
-  getHousehold,
+  getLedger,
   listWorkoutFacts,
   startWorkout,
   type WeeklyStats,
@@ -52,6 +52,7 @@ export default function TodayScreen() {
   const [stats, setStats] = useState<ReturnType<typeof computeStats> | null>(null);
   const [facts, setFacts] = useState<WorkoutFact[]>([]);
   const [house, setHouse] = useState<Household | null>(null);
+  const [furniture, setFurniture] = useState<string[]>([]);
   const advisor = useAdvisor();
 
   const load = useCallback(() => {
@@ -68,9 +69,10 @@ export default function TodayScreen() {
         setWeekly(w);
         setExerciseCount(ex.length);
         setFacts(facts);
-        getHousehold()
-          .then((h) => {
+        getLedger()
+          .then(({ house: h, furniture: mine }) => {
             setHouse(h);
+            setFurniture(mine);
             // Re-arm her daily message with the mood she will be in by then.
             // A failure here is never worth interrupting the screen for.
             void armDailyMessage(h, facts);
@@ -140,6 +142,7 @@ export default function TodayScreen() {
             condition={conditionOf(stats, summary.streak)}
             stats={stats}
             streak={summary.streak}
+            furniture={furniture}
           />
           {house && (
             <Pressable onPress={() => router.push('/shop')}>
