@@ -185,8 +185,8 @@ export default function WorkoutScreen() {
       ].filter(Boolean);
 
       celebrateFeedback();
-      notify(`수고하셨어요 💪 +${gained} XP`, lines.join('\n') || undefined);
-      router.back();
+      if (lines.length) notify(`+${gained} XP`, lines.join('\n'));
+      router.replace({ pathname: '/summary/[id]', params: { id } });
     } catch (e: any) {
       notify('종료 실패', e.message);
     }
