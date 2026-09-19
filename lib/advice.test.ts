@@ -38,7 +38,7 @@ test('the context block states today, the recent average and the streak', () => 
   );
   assert.match(text, /오늘 세트 10개/);
   assert.match(text, /최근 1회 평균: 세트 20개/);
-  assert.match(text, /연속 운동 3일/);
+  assert.match(text, /쉬지 않고 운동한 날: 3일/);
 });
 
 test('the context block says so when there is no history to compare', () => {

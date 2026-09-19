@@ -38,7 +38,9 @@ export function describeContext(c: AdviceContext) {
   } else {
     lines.push('이전 기록 없음 (첫 운동)');
   }
-  lines.push(`연속 운동 ${c.streak}일`);
+  // "연속 운동 4일" alone was read as four days of the same body part. Say
+  // what it counts, and say what it does not.
+  lines.push(`쉬지 않고 운동한 날: ${c.streak}일 (부위는 날마다 다를 수 있음)`);
   lines.push(
     `능력치 — 근력 ${c.stats.strength}, 지구력 ${c.stats.stamina}, 활력 ${c.stats.vitality}, ` +
       `균형 ${c.stats.balance}, 꾸준함 ${c.stats.discipline}`
@@ -51,6 +53,7 @@ export function buildPrompt(c: AdviceContext) {
     '당신은 한국어로 말하는 침착한 운동 코치입니다.',
     '아래 기록을 보고 세 문장 이내로 조언하세요.',
     '규칙: 칭찬 한 줄, 다음에 바꿀 점 한 줄. 진단이나 치료 이야기는 하지 마세요.',
+    '아래 적힌 사실만 쓰세요. 적히지 않은 것은 추측하지 마세요.',
     '통증이나 부상 이야기가 있으면 병원에 가보라고만 하세요.',
     '',
     describeContext(c),
