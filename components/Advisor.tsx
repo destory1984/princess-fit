@@ -1,20 +1,6 @@
-import { Image, StyleSheet, Text, View } from 'react-native';
-import Svg, { Circle, Path } from 'react-native-svg';
+import { StyleSheet, Text, View } from 'react-native';
+import { Portrait } from '@/components/Portrait';
 import { colors, paper, spacing } from '@/lib/theme';
-
-/** A framed emblem, used until there is a portrait to show. */
-function Emblem() {
-  return (
-    <Svg viewBox="0 0 40 40" width={44} height={44}>
-      <Circle cx={20} cy={20} r={18} fill={paper.bgAlt} stroke={colors.gold} strokeWidth={1.5} />
-      <Path
-        d="M20 9 L23 17 L31 17 L25 22 L27 30 L20 25 L13 30 L15 22 L9 17 L17 17 Z"
-        fill={colors.accent}
-        opacity={0.8}
-      />
-    </Svg>
-  );
-}
 
 type Props = {
   name: string;
@@ -26,13 +12,7 @@ type Props = {
 export function Advisor({ name, portrait, children }: Props) {
   return (
     <View style={styles.wrap}>
-      <View style={styles.portrait}>
-        {portrait ? (
-          <Image source={portrait} style={styles.portraitImage} resizeMode="contain" />
-        ) : (
-          <Emblem />
-        )}
-      </View>
+      <Portrait source={portrait ?? null} size={56} />
 
       <View style={styles.bubble}>
         <View style={styles.tail} />
@@ -45,18 +25,6 @@ export function Advisor({ name, portrait, children }: Props) {
 
 const styles = StyleSheet.create({
   wrap: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
-  portrait: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: paper.bgAlt,
-    borderColor: colors.gold,
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  portraitImage: { width: '100%', height: '100%' },
   bubble: {
     flex: 1,
     backgroundColor: paper.bgAlt,
