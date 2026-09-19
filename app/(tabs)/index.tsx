@@ -166,7 +166,7 @@ export default function TodayScreen() {
             {active ? active.title : '종목은 시작한 뒤 골라도 돼요'}
           </Text>
         </View>
-        <Ionicons name="chevron-forward" size={20} color="#DCE8FF" />
+        <Ionicons name="chevron-forward" size={20} color={colors.accentSoft} />
       </Pressable>
 
       <View style={styles.sectionHeader}>
@@ -233,7 +233,7 @@ function Step({ n, done, title, body }: { n: number; done: boolean; title: strin
     <View style={styles.step}>
       <View style={[styles.stepNum, done && styles.stepNumDone]}>
         {done ? (
-          <Ionicons name="checkmark" size={14} color="#0E1116" />
+          <Ionicons name="checkmark" size={14} color={colors.surface} />
         ) : (
           <Text style={styles.stepNumText}>{n}</Text>
         )}
@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
   },
   primaryBody: { flex: 1 },
   primaryText: { color: '#fff', fontSize: 17, fontWeight: '800' },
-  primarySub: { color: '#DCE8FF', marginTop: 2, fontSize: 13 },
+  primarySub: { color: colors.accentSoft, marginTop: 2, fontSize: 13 },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',

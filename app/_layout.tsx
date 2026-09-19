@@ -23,14 +23,17 @@ function RootNavigator() {
       <View style={{ flex: 1, backgroundColor: colors.bg, justifyContent: 'center' }}>
         <ActivityIndicator color={colors.accent} />
       </View>
+
     );
   }
 
   return (
     <Stack
       screenOptions={{
-        headerStyle: { backgroundColor: colors.bg },
-        headerTintColor: colors.text,
+        headerStyle: { backgroundColor: colors.chrome },
+        headerTintColor: colors.chromeText,
+        headerTitleStyle: { fontWeight: '800' },
+        headerShadowVisible: false,
         contentStyle: { backgroundColor: colors.bg },
       }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

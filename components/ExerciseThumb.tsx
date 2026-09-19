@@ -3,7 +3,7 @@ import Body, { type Slug } from 'react-native-body-highlighter';
 import { slugsOf, type WorkedExercise } from '@/components/BodyMap';
 import { colors, radius } from '@/lib/theme';
 
-const SKIN = '#4A5160';
+const SKIN = '#C9B89A';
 const POSTERIOR: Slug[] = [
   'upper-back',
   'lower-back',
