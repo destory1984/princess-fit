@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { DEFAULT_ADVISOR_ID } from './advisors';
 
 const WEEKLY_GOAL = 'refit.weeklyGoal';
 export const DEFAULT_WEEKLY_GOAL = 3;
@@ -15,6 +16,20 @@ export async function getWeeklyGoal() {
 
 export async function setWeeklyGoal(goal: number) {
   await AsyncStorage.setItem(WEEKLY_GOAL, String(Math.max(1, Math.min(7, goal))));
+}
+
+const ADVISOR = 'refit.advisor';
+
+export async function getAdvisorId() {
+  try {
+    return (await AsyncStorage.getItem(ADVISOR)) ?? DEFAULT_ADVISOR_ID;
+  } catch {
+    return DEFAULT_ADVISOR_ID;
+  }
+}
+
+export async function setAdvisorId(id: string) {
+  await AsyncStorage.setItem(ADVISOR, id);
 }
 
 /**

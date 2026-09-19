@@ -7,6 +7,8 @@ import { LineChart } from '@/components/LineChart';
 import { Advisor } from '@/components/Advisor';
 import { MuscleTag } from '@/components/MuscleTag';
 import { OrnateFrame } from '@/components/OrnateFrame';
+import { ScreenState } from '@/components/ScreenState';
+import { useAdvisor } from '@/lib/useAdvisor';
 import { confirmAction, notify } from '@/lib/confirm';
 import {
   countExerciseSets,
@@ -26,15 +28,18 @@ export default function ExerciseScreen() {
   const router = useRouter();
   const [exercise, setExercise] = useState<Exercise | null>(null);
   const [history, setHistory] = useState<ExerciseHistoryPoint[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const advisor = useAdvisor();
 
   const load = useCallback(() => {
     if (!id) return;
+    setError(null);
     Promise.all([listExercises(), getExerciseHistory(id)])
       .then(([list, points]) => {
         setExercise(list.find((e) => e.id === id) ?? null);
         setHistory(points);
       })
-      .catch((e) => notify('불러오기 실패', e.message));
+      .catch((e) => setError(e.message));
   }, [id]);
 
   useFocusEffect(load);
@@ -61,7 +66,7 @@ export default function ExerciseScreen() {
     });
   }
 
-  if (!exercise) return <View style={styles.screen} />;
+  if (!exercise) return <ScreenState error={error} onRetry={load} />;
 
   const isCardio = exercise.track_type !== 'weight_reps';
   const best = Math.max(0, ...history.map((h) => h.max_weight));
@@ -97,7 +102,7 @@ export default function ExerciseScreen() {
         <Text style={styles.intro}>{introOf(exercise)}</Text>
       </OrnateFrame>
 
-      <Advisor name="사부">{coachTipOf(exercise)}</Advisor>
+      <Advisor name={advisor.name} portrait={advisor.portrait}>{coachTipOf(exercise)}</Advisor>
 
       {steps.length > 0 && (
         <View style={styles.card}>

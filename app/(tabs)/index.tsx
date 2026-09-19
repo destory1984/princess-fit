@@ -3,9 +3,11 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { notify } from '@/lib/confirm';
+import { Advisor } from '@/components/Advisor';
 import { LevelCard } from '@/components/LevelCard';
 import { TrainingHall } from '@/components/TrainingHall';
-import { archetypeOf, computeStats, conditionOf } from '@/lib/character';
+import { archetypeOf, computeStats, conditionOf, masterSays } from '@/lib/character';
+import { useAdvisor } from '@/lib/useAdvisor';
 import {
   getActiveWorkout,
   getWeeklyStats,
@@ -16,7 +18,7 @@ import {
   startWorkout,
   type WeeklyStats,
 } from '@/lib/db';
-import { summarise } from '@/lib/gamification';
+import { summarise, type WorkoutFact } from '@/lib/gamification';
 import type { Routine, Workout } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
 
@@ -29,6 +31,8 @@ export default function TodayScreen() {
   const [weekly, setWeekly] = useState<WeeklyStats>({ workouts: 0, volume: 0, streakDays: 0 });
   const [summary, setSummary] = useState<ReturnType<typeof summarise> | null>(null);
   const [stats, setStats] = useState<ReturnType<typeof computeStats> | null>(null);
+  const [facts, setFacts] = useState<WorkoutFact[]>([]);
+  const advisor = useAdvisor();
 
   const load = useCallback(() => {
     Promise.all([
@@ -43,6 +47,7 @@ export default function TodayScreen() {
         setRoutines(r);
         setWeekly(w);
         setExerciseCount(ex.length);
+        setFacts(facts);
         setSummary(summarise(facts));
         setStats(computeStats(facts));
         const sizes = await Promise.all(
@@ -108,6 +113,9 @@ export default function TodayScreen() {
             stats={stats}
             streak={summary.streak}
           />
+          <Advisor name={advisor.name} portrait={advisor.portrait}>
+            {masterSays(stats, facts)}
+          </Advisor>
           <LevelCard
             level={summary.level}
             title={summary.title}

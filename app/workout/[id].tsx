@@ -5,6 +5,7 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { BodyMap, workedParts } from '@/components/BodyMap';
 import { ExercisePicker } from '@/components/ExercisePicker';
 import { SetCard } from '@/components/SetCard';
+import { ScreenState } from '@/components/ScreenState';
 import { confirmAction, notify } from '@/lib/confirm';
 import { celebrateFeedback, successFeedback } from '@/lib/feedback';
 
@@ -48,9 +49,11 @@ export default function WorkoutScreen() {
   const [restLength, setRestLength] = useState(DEFAULT_REST);
   const [restEnd, setRestEnd] = useState<number | null>(null);
   const [now, setNow] = useState(Date.now());
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(() => {
     if (!id) return;
+    setError(null);
     Promise.all([getWorkout(id), listWorkoutSets(id), listExercises()])
       .then(async ([w, s, e]) => {
         setWorkout(w);
@@ -64,7 +67,7 @@ export default function WorkoutScreen() {
         setLast(lastSeen);
         setBests(personalBests);
       })
-      .catch((e) => notify('불러오기 실패', e.message));
+      .catch((e) => setError(e.message));
   }, [id]);
 
   useFocusEffect(load);
@@ -238,7 +241,7 @@ export default function WorkoutScreen() {
     }
   }
 
-  if (!workout) return <View style={styles.screen} />;
+  if (!workout) return <ScreenState error={error} onRetry={load} />;
 
   return (
     <View style={styles.screen}>

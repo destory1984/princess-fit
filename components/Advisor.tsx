@@ -2,14 +2,6 @@ import { Image, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { colors, paper, spacing } from '@/lib/theme';
 
-// Drop a transparent PNG here to give the advisor a face.
-let PORTRAIT: number | null = null;
-try {
-  PORTRAIT = require('../assets/advisor.png');
-} catch {
-  PORTRAIT = null;
-}
-
 /** A framed emblem, used until there is a portrait to show. */
 function Emblem() {
   return (
@@ -24,14 +16,19 @@ function Emblem() {
   );
 }
 
-type Props = { name: string; children: string };
+type Props = {
+  name: string;
+  /** Her portrait, or null to fall back to the emblem. */
+  portrait?: number | null;
+  children: string;
+};
 
-export function Advisor({ name, children }: Props) {
+export function Advisor({ name, portrait, children }: Props) {
   return (
     <View style={styles.wrap}>
       <View style={styles.portrait}>
-        {PORTRAIT ? (
-          <Image source={PORTRAIT} style={styles.portraitImage} resizeMode="contain" />
+        {portrait ? (
+          <Image source={portrait} style={styles.portraitImage} resizeMode="contain" />
         ) : (
           <Emblem />
         )}

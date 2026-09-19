@@ -7,6 +7,7 @@ import * as Sharing from 'expo-sharing';
 import { AdviceCard } from '@/components/AdviceCard';
 import { BodyMap, workedParts } from '@/components/BodyMap';
 import { OrnateFrame } from '@/components/OrnateFrame';
+import { ScreenState } from '@/components/ScreenState';
 import { notify } from '@/lib/confirm';
 import {
   getActiveWorkout,
@@ -32,9 +33,11 @@ export default function SummaryScreen() {
   const [fact, setFact] = useState<WorkoutFact | null>(null);
   const [summary, setSummary] = useState<ReturnType<typeof summarise> | null>(null);
   const [facts, setFacts] = useState<WorkoutFact[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(() => {
     if (!id) return;
+    setError(null);
     Promise.all([getWorkoutDetail(id), listWorkoutFacts()])
       .then(([detail, facts]) => {
         setWorkout(detail.workout);
@@ -43,7 +46,7 @@ export default function SummaryScreen() {
         setFacts(facts);
         setSummary(summarise(facts));
       })
-      .catch((e) => notify('불러오기 실패', e.message));
+      .catch((e) => setError(e.message));
   }, [id]);
 
   useFocusEffect(load);
@@ -91,7 +94,7 @@ export default function SummaryScreen() {
     }
   }
 
-  if (!workout || !fact || !summary) return <View style={styles.screen} />;
+  if (!workout || !fact || !summary) return <ScreenState error={error} onRetry={load} />;
 
   const worked = workedParts(items.flatMap((i) => i.exercise ?? []));
   const doneSets = items.reduce((sum, i) => sum + i.sets.filter((s) => s.done).length, 0);
