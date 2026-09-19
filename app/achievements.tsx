@@ -6,7 +6,7 @@ import { BodyMap, workedParts } from '@/components/BodyMap';
 import { Scroll } from '@/components/Scroll';
 import { StatBar } from '@/components/StatBar';
 import { ScreenState } from '@/components/ScreenState';
-import { useAdvisor } from '@/lib/useAdvisor';
+import { GIRL_NAME } from '@/lib/girl';
 import {
   CULTURE_META,
   CULTURE_ORDER,
@@ -40,7 +40,6 @@ export default function TrainingLedgerScreen() {
   const [facts, setFacts] = useState<WorkoutFact[] | null>(null);
   const [goal, setGoal] = useState(3);
   const [error, setError] = useState<string | null>(null);
-  const advisor = useAdvisor();
   const [culture, setCulture] = useState<Culture>(EMPTY_CULTURE);
   const [wardrobe, setWardrobe] = useState<string[]>([]);
   const [furniture, setFurniture] = useState<string[]>([]);
@@ -127,7 +126,7 @@ export default function TrainingLedgerScreen() {
 
         <View style={styles.speech}>
           <View style={styles.speaker}>
-            <Text style={styles.speakerText}>{advisor.name}</Text>
+            <Text style={styles.speakerText}>{GIRL_NAME}</Text>
           </View>
           <Text style={styles.speechText}>{saying}</Text>
         </View>

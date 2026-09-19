@@ -13,7 +13,7 @@ type Props = {
 const SCALE = 3.2;
 const FACE_FROM_TOP = 0.3;
 
-/** A round bust crop of an advisor's portrait. */
+/** A round bust crop of a full-body portrait. */
 export function Portrait({ source, size, active }: Props) {
   const height = size * SCALE;
   const width = height * 0.75;

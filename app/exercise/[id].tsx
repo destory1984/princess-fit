@@ -8,8 +8,8 @@ import { Advisor } from '@/components/Advisor';
 import { MuscleTag } from '@/components/MuscleTag';
 import { OrnateFrame } from '@/components/OrnateFrame';
 import { ScreenState } from '@/components/ScreenState';
-import { useAdvisor } from '@/lib/useAdvisor';
-import { portraitOf } from '@/lib/portraits';
+import { GIRL_NAME } from '@/lib/girl';
+import { BASE_GIRL } from '@/lib/outfitArt';
 import { confirmAction, notify } from '@/lib/confirm';
 import {
   countExerciseSets,
@@ -30,7 +30,6 @@ export default function ExerciseScreen() {
   const [exercise, setExercise] = useState<Exercise | null>(null);
   const [history, setHistory] = useState<ExerciseHistoryPoint[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const advisor = useAdvisor();
 
   const load = useCallback(() => {
     if (!id) return;
@@ -103,7 +102,7 @@ export default function ExerciseScreen() {
         <Text style={styles.intro}>{introOf(exercise)}</Text>
       </OrnateFrame>
 
-      <Advisor name={advisor.name} portrait={portraitOf(advisor.id)}>{coachTipOf(exercise)}</Advisor>
+      <Advisor name={GIRL_NAME} portrait={BASE_GIRL.source}>{coachTipOf(exercise)}</Advisor>
 
       {steps.length > 0 && (
         <View style={styles.card}>

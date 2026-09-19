@@ -74,7 +74,7 @@ export function archetypeOf(stats: Stats): Archetype {
   return names[topKey];
 }
 
-/** A nudge aimed at whatever is lagging most, in the advisor's voice. */
+/** A nudge aimed at whatever is lagging most, in her voice. */
 export function masterSays(stats: Stats, workouts: WorkoutFact[], today = new Date()) {
   if (workouts.length === 0) return '첫 기록을 남기는 것이 곧 첫 걸음이에요.';
 

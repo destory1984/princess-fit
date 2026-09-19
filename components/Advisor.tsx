@@ -3,6 +3,7 @@ import { Portrait } from '@/components/Portrait';
 import { colors, paper, spacing } from '@/lib/theme';
 
 type Props = {
+  /** Always her; passed in so the name lives in one place. */
   name: string;
   portrait: number;
   children: string;
