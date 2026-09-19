@@ -385,17 +385,34 @@ export async function startWorkout(title: string, routineId: string | null) {
       listExercises(),
     ]);
     const trackTypes = new Map(exercises.map((e) => [e.id, e.track_type]));
+
+    // Carry last time's weights forward. The routine says how many sets and
+    // how many reps to aim for; what you actually lifted last time is a far
+    // better starting point than zero, which has to be typed in every session.
+    let past = new Map<string, ExerciseHistoryPoint>();
+    try {
+      past = await getLastPerformance(routineExercises.map((re) => re.exercise_id));
+    } catch {
+      // Starting from zero is worse, not broken.
+    }
+
     const sets = routineExercises.flatMap((re, position) => {
       // Timed and cardio movements are one entry, not a stack of sets.
-      const count = trackTypes.get(re.exercise_id) === 'weight_reps' ? re.target_sets : 1;
-      return Array.from({ length: count }, (_, i) => ({
-        workout_id: workout.id,
-        exercise_id: re.exercise_id,
-        position,
-        set_no: i + 1,
-        reps: trackTypes.get(re.exercise_id) === 'weight_reps' ? re.target_reps : 0,
-        weight_kg: 0,
-      }));
+      const weighted = trackTypes.get(re.exercise_id) === 'weight_reps';
+      const count = weighted ? re.target_sets : 1;
+      const lastSets = past.get(re.exercise_id)?.sets ?? [];
+      return Array.from({ length: count }, (_, i) => {
+        // Past a shorter history, keep repeating its final set.
+        const before = lastSets[Math.min(i, lastSets.length - 1)];
+        return {
+          workout_id: workout.id,
+          exercise_id: re.exercise_id,
+          position,
+          set_no: i + 1,
+          reps: weighted ? (before?.reps ?? re.target_reps) : 0,
+          weight_kg: weighted ? (before?.weight_kg ?? 0) : 0,
+        };
+      });
     });
     if (sets.length) {
       const { error: setsError } = await supabase.from('workout_sets').insert(sets);

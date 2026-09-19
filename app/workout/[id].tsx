@@ -42,6 +42,7 @@ import {
   type ExerciseHistoryPoint,
 } from "@/lib/db";
 import type { Exercise, Workout, WorkoutSet } from "@/lib/types";
+import { planFor } from "@/lib/setPlan";
 import { colors, muscleColor, radius, spacing } from "@/lib/theme";
 
 function formatClock(seconds: number) {
@@ -250,6 +251,46 @@ export default function WorkoutScreen() {
       }
     } catch (e: any) {
       notify("세트 추가 실패", e.message);
+    }
+  }
+
+  /**
+   * Put an exercise on the board with the sets it is likely to need: the ones
+   * it ended on last time, or a plain preset if it has never been done. Adding
+   * a single empty set meant typing the whole thing out again every session.
+   */
+  async function addExercise(exercise: Exercise) {
+    if (!id) return;
+    let past = last.get(exercise.id)?.sets;
+    if (!last.has(exercise.id)) {
+      try {
+        const fetched = await getLastPerformance([exercise.id], id);
+        if (fetched.size) setLast((prev) => new Map([...prev, ...fetched]));
+        past = fetched.get(exercise.id)?.sets;
+      } catch {
+        // No history to read is the same as no history: fall back to the preset.
+      }
+    }
+
+    const plan = planFor(exercise.track_type, past);
+    const position = sets.reduce((m, x) => Math.max(m, x.position), -1) + 1;
+    try {
+      const created = await Promise.all(
+        plan.map((planned, i) =>
+          addWorkoutSet({
+            workoutId: id,
+            exerciseId: exercise.id,
+            position,
+            setNo: i + 1,
+            weight: planned.weight,
+            reps: planned.reps,
+          })
+        )
+      );
+      setSets((prev) => [...prev, ...created]);
+    } catch (e: any) {
+      notify('종목 추가 실패', e.message);
+      load();
     }
   }
 
@@ -646,7 +687,7 @@ export default function WorkoutScreen() {
       <ExercisePicker
         visible={picking}
         exercises={exercises}
-        onSelect={(e) => addSet(e.id)}
+        onSelect={(e) => addExercise(e)}
         onClose={() => setPicking(false)}
         onSeeded={load}
       />
