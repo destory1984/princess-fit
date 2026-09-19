@@ -566,11 +566,24 @@ export default function WorkoutScreen() {
 
       {!done && (
         <View style={styles.bottomBar}>
+          {restRemaining !== null && restLength > 0 && (
+            <View style={styles.restTrack}>
+              <View
+                style={[
+                  styles.restFill,
+                  { width: `${(restRemaining / restLength) * 100}%` },
+                ]}
+              />
+            </View>
+          )}
           <View style={styles.rest}>
             <Text style={styles.restLabel} numberOfLines={1}>
               휴식{restExercise ? ` · ${restExercise.name}` : ""}
             </Text>
-            <Text style={styles.restClock}>
+            {/* Running reads red and counting; idle is the length it will be. */}
+            <Text
+              style={[styles.restClock, restEnd !== null && styles.restClockOn]}
+            >
               {restRemaining === null
                 ? formatClock(restLength)
                 : formatClock(restRemaining)}
@@ -796,8 +809,17 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     gap: spacing.md,
   },
+  restTrack: {
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: colors.surfaceAlt,
+    overflow: "hidden",
+    marginBottom: spacing.sm,
+  },
+  restFill: { height: "100%", backgroundColor: colors.accent },
   rest: { flexDirection: "row", alignItems: "center", gap: spacing.md },
   restLabel: { color: colors.textDim, fontSize: 13, maxWidth: 120 },
+  restClockOn: { color: colors.accent },
   restClock: {
     color: colors.text,
     fontSize: 22,
