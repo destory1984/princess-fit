@@ -8,6 +8,7 @@ import {
   moodOf,
   newHousehold,
   settle,
+  tomorrowsMessage,
   workoutGold,
   type Household,
 } from './economy.ts';
@@ -91,4 +92,13 @@ test('a workout pays into the purse and feeds her a little', () => {
   const after = afterWorkout(house, fact({ doneSets: 10 }));
   assert.equal(after.gold, 90);
   assert.equal(after.satiety, 54);
+});
+
+test('the scheduled line speaks for tomorrow, not for today', () => {
+  // Settled tonight at 44, hungry tomorrow at 30 once the day is charged.
+  const house: Household = { gold: 100, satiety: 44, attire: 100, settledOn: '2026-09-20' };
+  const today = new Date(2026, 8, 20);
+  const fresh = [fact({ started_at: '2026-09-20T10:00:00' })];
+  assert.equal(moodOf(house, fresh, today), 'fine');
+  assert.equal(tomorrowsMessage(house, fresh, today), messageFor('hungry', new Date(2026, 8, 21)));
 });

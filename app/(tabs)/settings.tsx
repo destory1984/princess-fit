@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
+import { NudgeSetting } from '@/components/NudgeSetting';
 import { Portrait } from '@/components/Portrait';
 import { notify } from '@/lib/confirm';
 import { listExercises } from '@/lib/db';
@@ -50,6 +51,8 @@ export default function SettingsScreen() {
         </View>
         <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
       </Pressable>
+
+      <NudgeSetting />
 
       <Pressable style={styles.row} onPress={() => router.push('/achievements')}>
         <View style={styles.icon}>

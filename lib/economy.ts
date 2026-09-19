@@ -137,3 +137,16 @@ export function messageFor(mood: Mood, today = new Date()) {
 export function rewardsFor(w: WorkoutFact) {
   return { xp: workoutXp(w), gold: workoutGold(w) };
 }
+
+/**
+ * The line she will have tomorrow, used to schedule the daily message today.
+ * Projecting rather than reusing today's mood matters most at the boundary: a
+ * girl who is fine this evening and hungry by tomorrow night should say the
+ * hungry line, not the cheerful one.
+ */
+export function tomorrowsMessage(house: Household, workouts: WorkoutFact[], today = new Date()) {
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const projected = settle(house, tomorrow);
+  return messageFor(moodOf(projected, workouts, tomorrow), tomorrow);
+}
