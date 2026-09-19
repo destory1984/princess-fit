@@ -21,7 +21,7 @@ export default function TabLayout() {
           height: 64,
         },
         tabBarActiveTintColor: colors.gold,
-        tabBarInactiveTintColor: '#9A8873',
+        tabBarInactiveTintColor: colors.chromeDim,
         tabBarLabelStyle: { fontSize: 11, lineHeight: 15 },
         tabBarAllowFontScaling: false,
       }}>

@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
   },
   dayWrapOn: { backgroundColor: colors.accentSoft },
   day: { color: colors.text, fontSize: 14 },
-  outside: { color: '#3A4150' },
+  outside: { color: colors.faint },
   today: { fontWeight: '800' },
   sun: { color: colors.danger },
   sat: { color: colors.accent },

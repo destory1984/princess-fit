@@ -15,6 +15,10 @@ export const colors = {
   chromeText: '#EFE2CB',
   gold: '#C9A66B',
   goldSoft: '#E3D3B3',
+  /** Text that is present but out of play: other months, unreached ranks. */
+  faint: '#C4B49A',
+  /** Inactive chrome text, on the dark walnut bar. */
+  chromeDim: '#9A8873',
 };
 
 export const spacing = {
