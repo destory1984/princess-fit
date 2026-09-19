@@ -24,6 +24,8 @@ export type HistoryRow = {
   set_no: number;
   weight_kg: number;
   reps: number;
+  duration_sec?: number;
+  distance_km?: number;
   workouts: { started_at: string };
 };
 
@@ -32,6 +34,8 @@ export type ExerciseHistoryPoint = {
   date: string;
   max_weight: number;
   volume: number;
+  durationSec: number;
+  distanceKm: number;
   sets: { set_no: number; weight_kg: number; reps: number }[];
 };
 
@@ -43,11 +47,15 @@ export function groupHistory(rows: HistoryRow[]) {
       date: row.workouts.started_at,
       max_weight: 0,
       volume: 0,
+      durationSec: 0,
+      distanceKm: 0,
       sets: [],
     };
     point.sets.push({ set_no: row.set_no, weight_kg: row.weight_kg, reps: row.reps });
     point.max_weight = Math.max(point.max_weight, row.weight_kg);
     point.volume += row.weight_kg * row.reps;
+    point.durationSec += row.duration_sec ?? 0;
+    point.distanceKm += row.distance_km ?? 0;
     byWorkout.set(row.workout_id, point);
   }
   return [...byWorkout.values()].sort((a, b) => a.date.localeCompare(b.date));
