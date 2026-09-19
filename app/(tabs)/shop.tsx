@@ -33,7 +33,6 @@ import {
   refusalFor,
   SPECIALS,
   effectiveCulture,
-  wornCharm,
   type Item,
 } from '@/lib/shop';
 import { thanksFor, type GiftKind } from '@/lib/economy';
@@ -81,7 +80,7 @@ export default function ShopScreen() {
 
   const { house, wardrobe, worn, furniture, culture } = ledger;
   // What the bars show: lessons plus whatever she has on.
-  const standing = effectiveCulture(culture, wardrobe);
+  const standing = effectiveCulture(culture, wardrobe, worn);
 
   function Row({
     id,
@@ -301,7 +300,9 @@ export default function ShopScreen() {
           </View>
           <Text style={styles.hint}>
             운동으로는 오르지 않는 것들이에요.
-            {wornCharm(wardrobe) ? ` 장신구로 매력 +${wornCharm(wardrobe)}.` : ''}
+            {standing.charm > culture.charm
+              ? ` 지금 차림으로 매력 +${standing.charm - culture.charm}.`
+              : ''}
           </Text>
           {LESSONS.map((lesson) => (
             <LessonRow key={lesson.id} lesson={lesson} />

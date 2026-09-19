@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { ACCESSORIES, buy, effectiveCulture, FOOD, refusalFor, SPECIALS, wornCharm } from './shop.ts';
-import { OUTFIT_TOTAL } from './outfit.ts';
+import { GARMENTS, OUTFIT_TOTAL } from './outfit.ts';
 import { DAILY_UPKEEP, workoutGold, type Household } from './economy.ts';
 import { LESSONS } from './lessons.ts';
 import type { WorkoutFact } from './gamification.ts';
@@ -80,4 +80,17 @@ test('the charm an accessory promises actually shows up', () => {
 test('what she wears cannot push her past the cap', () => {
   const nearly = { grace: 0, learning: 0, charm: 98 };
   assert.equal(effectiveCulture(nearly, ['tiara']).charm, 100);
+});
+
+test('the charm a garment promises counts only while she is wearing it', () => {
+  const taught = { grace: 0, learning: 0, charm: 10 };
+  const blouse = GARMENTS.find((g) => g.id === 'blouse')!;
+  assert.equal(effectiveCulture(taught, ['blouse'], []).charm, 10, 'owned but not on');
+  assert.equal(effectiveCulture(taught, ['blouse'], ['blouse']).charm, 10 + blouse.charm);
+});
+
+test('a garment hidden under the gown stops counting', () => {
+  const taught = { grace: 0, learning: 0, charm: 0 };
+  const gown = GARMENTS.find((g) => g.id === 'gown')!;
+  assert.equal(effectiveCulture(taught, [], ['blouse', 'gown']).charm, gown.charm);
 });
