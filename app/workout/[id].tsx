@@ -42,7 +42,7 @@ import {
   type ExerciseHistoryPoint,
 } from "@/lib/db";
 import type { Exercise, Workout, WorkoutSet } from "@/lib/types";
-import { planFor } from "@/lib/setPlan";
+import { followOn, planFor } from "@/lib/setPlan";
 import { colors, muscleColor, radius, spacing } from "@/lib/theme";
 
 function formatClock(seconds: number) {
@@ -197,11 +197,31 @@ export default function WorkoutScreen() {
       prev.map((s) => (s.id === setId ? { ...s, ...patch } : s)),
     );
     if (patch.done === true) {
-      const forExercise = sets.find((x) => x.id === setId)?.exercise_id ?? null;
+      const finished = sets.find((x) => x.id === setId);
+      const forExercise = finished?.exercise_id ?? null;
       const seconds = byId.get(forExercise ?? "")?.rest_sec ?? DEFAULT_REST_SEC;
       setRestFor(forExercise);
       setRestEnd(Date.now() + seconds * 1000);
       successFeedback();
+
+      // Carry the weight onto the sets still waiting, so a set laid out in
+      // advance does not send you back to zero halfway through the exercise.
+      if (finished) {
+        const merged = { ...finished, ...patch };
+        const waiting = followOn(
+          sets.filter((x) => x.exercise_id === finished.exercise_id),
+          merged
+        );
+        if (waiting.length) {
+          const carry = { weight_kg: merged.weight_kg, reps: merged.reps };
+          setSets((prev) =>
+            prev.map((x) => (waiting.some((w) => w.id === x.id) ? { ...x, ...carry } : x))
+          );
+          Promise.all(waiting.map((w) => updateWorkoutSet(w.id, carry))).catch(() => {
+            // The numbers on screen are right; a failed save shows up on reload.
+          });
+        }
+      }
     }
     try {
       await updateWorkoutSet(setId, patch);
@@ -230,8 +250,11 @@ export default function WorkoutScreen() {
     const existing = sets.filter((s) => s.exercise_id === exerciseId);
     const previous = existing[existing.length - 1];
     const lastTime = last.get(exerciseId)?.sets;
+    // Prefer the last set actually finished today: the one at the end of the
+    // list may be a planned set still sitting at zero.
+    const lastDone = [...existing].reverse().find((s) => s.done);
     const template =
-      previous ?? lastTime?.[Math.min(existing.length, lastTime.length - 1)];
+      lastDone ?? previous ?? lastTime?.[Math.min(existing.length, lastTime.length - 1)];
     const position =
       previous?.position ??
       sets.reduce((m, s) => Math.max(m, s.position), -1) + 1;
@@ -566,7 +589,8 @@ export default function WorkoutScreen() {
                       style={styles.addSet}
                       onPress={() => addSet(exerciseId)}
                     >
-                      <Text style={styles.addSetText}>+ 세트 추가</Text>
+                      <Ionicons name="add" size={18} color={colors.accent} />
+                      <Text style={styles.addSetText}>세트 추가</Text>
                     </Pressable>
                   )}
                 </>
@@ -815,7 +839,20 @@ const styles = StyleSheet.create({
     textAlign: "center",
     paddingVertical: spacing.lg,
   },
-  addSet: { paddingTop: spacing.md },
+  // The same shape as 운동 종목 추가 below it: both add something, and one
+  // reading as a link while the other was a framed button made them look like
+  // different kinds of action.
+  addSet: {
+    marginTop: spacing.md,
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: radius.md,
+    padding: spacing.lg,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.xs,
+  },
   addSetText: { color: colors.accent, fontWeight: "600" },
   secondary: {
     borderColor: colors.border,

@@ -50,15 +50,21 @@ export function BigStepper({
         <Text style={styles.unit}>{unit}</Text>
       </View>
       <View style={styles.buttons}>
-        {amounts.map((amount, i) => (
-          <Pressable
-            key={i}
-            style={styles.button}
-            hitSlop={4}
-            onPress={() => set(value + amount)}>
-            <Text style={styles.buttonText}>{label(amount)}</Text>
-          </Pressable>
-        ))}
+        {amounts.map((amount, i) => {
+          // At zero there is nothing below to offer: the button would read
+          // "+0" and do nothing, which looks like a bug because it is one.
+          const dead = amount === 0;
+          return (
+            <Pressable
+              key={i}
+              style={[styles.button, dead && styles.buttonOff]}
+              disabled={dead}
+              hitSlop={4}
+              onPress={() => set(value + amount)}>
+              <Text style={styles.buttonText}>{dead ? '−' : label(amount)}</Text>
+            </Pressable>
+          );
+        })}
       </View>
     </View>
   );
@@ -81,5 +87,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  buttonOff: { opacity: 0.35 },
   buttonText: { color: colors.text, fontWeight: '700', fontSize: 15, lineHeight: 20 },
 });

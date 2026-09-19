@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { planFor, PRESET_REPS, PRESET_SETS } from './setPlan.ts';
+import { followOn, planFor, PRESET_REPS, PRESET_SETS } from './setPlan.ts';
 
 test('an exercise never done before gets a plain preset', () => {
   const plan = planFor('weight_reps', undefined);
@@ -31,4 +31,33 @@ test('an empty history is treated as no history', () => {
 test('cardio and timed work get one entry, not a list of sets', () => {
   assert.equal(planFor('cardio', undefined).length, 1);
   assert.equal(planFor('duration', [{ weight_kg: 0, reps: 0 }]).length, 1);
+});
+
+const s = (set_no: number, weight_kg: number, done = false) => ({
+  id: `s${set_no}`,
+  set_no,
+  weight_kg,
+  done,
+});
+
+test('later sets with no weight yet follow the one just finished', () => {
+  const sets = [s(1, 10, true), s(2, 10, true), s(3, 0), s(4, 0)];
+  const following = followOn(sets, sets[1]);
+  assert.deepEqual(
+    following.map((x) => x.id),
+    ['s3', 's4']
+  );
+});
+
+test('a set deliberately given a weight is left alone', () => {
+  const sets = [s(1, 10, true), s(2, 0), s(3, 12)];
+  assert.deepEqual(
+    followOn(sets, sets[0]).map((x) => x.id),
+    ['s2']
+  );
+});
+
+test('earlier and finished sets are never touched', () => {
+  const sets = [s(1, 0), s(2, 10, true), s(3, 0, true)];
+  assert.deepEqual(followOn(sets, sets[1]), []);
 });
