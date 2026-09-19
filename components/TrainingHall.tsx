@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Ellipse, G, Line, Path, Rect } from 'react-native-svg';
 import { BodyMap } from '@/components/BodyMap';
+import { OrnateFrame } from '@/components/OrnateFrame';
 import { STAT_META, STAT_ORDER, type Stats } from '@/lib/character';
 import { paper, spacing } from '@/lib/theme';
 import type { Slug } from 'react-native-body-highlighter';
@@ -114,15 +115,15 @@ export function TrainingHall({
             <BodyMap data={trained} scale={0.42} labels={false} fill="#C9BDA8" />
           </View>
 
-          <View style={styles.datePlaque}>
+          <OrnateFrame compact style={styles.datePlaque}>
             <Text style={styles.dateMonth}>
               {today.getFullYear()}년 {today.getMonth() + 1}월
             </Text>
             <Text style={styles.dateDay}>{today.getDate()}</Text>
             <Text style={styles.dateWeekday}>{WEEKDAYS[today.getDay()]}요일</Text>
-          </View>
+          </OrnateFrame>
 
-          <View style={styles.statusPanel}>
+          <OrnateFrame compact style={styles.statusPanel}>
             <Text style={styles.statusName}>{archetype}</Text>
             <Text style={styles.statusRank}>
               제 {level} 품 · {rank}
@@ -137,7 +138,7 @@ export function TrainingHall({
               ))}
             </View>
             {streak > 0 && <Text style={styles.statusStreak}>연속 {streak}일</Text>}
-          </View>
+          </OrnateFrame>
         </View>
       </View>
     </View>
@@ -165,35 +166,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  datePlaque: {
-    position: 'absolute',
-    top: 8,
-    left: 8,
-    backgroundColor: paper.bg,
-    borderColor: paper.line,
-    borderWidth: 2,
-    borderRadius: 3,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    alignItems: 'center',
-    minWidth: 76,
-  },
-  dateMonth: { color: paper.inkDim, fontSize: 10, fontWeight: '700' },
-  dateDay: { color: paper.ink, fontSize: 26, fontWeight: '800', lineHeight: 30 },
-  dateWeekday: { color: paper.accent, fontSize: 10, fontWeight: '700' },
+  datePlaque: { position: 'absolute', top: 8, left: 8, minWidth: 92 },
+  dateMonth: { textAlign: 'center', color: paper.inkDim, fontSize: 10, fontWeight: '700' },
+  dateDay: { textAlign: 'center', color: paper.ink, fontSize: 26, fontWeight: '800', lineHeight: 30 },
+  dateWeekday: { textAlign: 'center', color: paper.accent, fontSize: 10, fontWeight: '700' },
 
-  statusPanel: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: paper.bg,
-    borderColor: paper.line,
-    borderWidth: 2,
-    borderRadius: 3,
-    padding: spacing.sm,
-    minWidth: 132,
-    gap: 1,
-  },
+  statusPanel: { position: 'absolute', top: 8, right: 8, minWidth: 146 },
   statusName: { color: paper.ink, fontSize: 14, fontWeight: '800' },
   statusRank: { color: paper.inkDim, fontSize: 10, fontWeight: '700' },
   statusCondition: { color: paper.accent, fontSize: 11, fontWeight: '700', marginTop: 2 },

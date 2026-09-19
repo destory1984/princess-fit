@@ -107,7 +107,7 @@ export function SetCard({
       </View>
 
       <Pressable style={[styles.done, { backgroundColor: tint }]} onPress={complete}>
-        <Ionicons name="checkmark" size={20} color="#0E1116" />
+        <Ionicons name="checkmark" size={20} color={colors.surface} />
         <Text style={styles.doneText}>
           {track === 'weight_reps' ? '세트 완료' : '기록 완료'}
         </Text>
@@ -136,5 +136,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.xs,
   },
-  doneText: { color: '#0E1116', fontWeight: '800', fontSize: 15 },
+  doneText: { color: colors.surface, fontWeight: '800', fontSize: 15 },
 });

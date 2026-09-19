@@ -143,7 +143,7 @@ function BadgeRow({ badge }: { badge: Badge }) {
         <Ionicons
           name={badge.icon as any}
           size={20}
-          color={badge.earned ? '#0E1116' : colors.textDim}
+          color={badge.earned ? colors.surface : colors.textDim}
         />
       </View>
       <View style={styles.badgeBody}>
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   rankNow: { backgroundColor: paper.fill, borderColor: paper.line },
-  rankCellText: { color: paper.lineSoft, fontSize: 12, lineHeight: 17 },
+  rankCellText: { color: '#CBB899', fontSize: 12, lineHeight: 17 },
   rankReached: { color: paper.inkDim },
   rankNowText: { color: paper.bg, fontWeight: '800' },
 

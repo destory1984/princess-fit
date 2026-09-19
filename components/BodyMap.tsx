@@ -2,7 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import Body, { type Slug } from 'react-native-body-highlighter';
 import { colors, intensityRamp, spacing } from '@/lib/theme';
 
-const SKIN = '#D9D4CC';
+const SKIN = '#C9B89A';
 
 /** Fallback when an exercise has no explicit slugs stored. */
 const GROUP_SLUGS: Record<string, Slug[]> = {

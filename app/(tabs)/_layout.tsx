@@ -6,16 +6,19 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerStyle: { backgroundColor: colors.bg },
-        headerTintColor: colors.text,
+        headerStyle: { backgroundColor: colors.chrome },
+        headerTintColor: colors.chromeText,
+        headerTitleStyle: { fontWeight: '800' },
+        headerShadowVisible: false,
         sceneStyle: { backgroundColor: colors.bg },
         tabBarStyle: {
-          backgroundColor: colors.surface,
-          borderTopColor: colors.border,
+          backgroundColor: colors.chrome,
+          borderTopColor: colors.gold,
+          borderTopWidth: 2,
           paddingTop: 6,
         },
-        tabBarActiveTintColor: colors.accent,
-        tabBarInactiveTintColor: colors.textDim,
+        tabBarActiveTintColor: colors.gold,
+        tabBarInactiveTintColor: '#9A8873',
         // Korean labels lose their bottom stroke without room for descenders.
         tabBarLabelStyle: { fontSize: 11, lineHeight: 16, paddingBottom: 2 },
         tabBarAllowFontScaling: false,
