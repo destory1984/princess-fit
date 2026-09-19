@@ -6,3 +6,4 @@ alter table household add column if not exists furniture text[] not null default
 alter table household add column if not exists grace     integer not null default 0;
 alter table household add column if not exists learning  integer not null default 0;
 alter table household add column if not exists charm     integer not null default 0;
+alter table exercises add column if not exists rest_sec integer not null default 60;

@@ -45,9 +45,11 @@ export function NudgeSetting() {
           <Ionicons name="chatbubble-outline" size={22} color={colors.accent} />
         </View>
         <View style={styles.body}>
-          <Text style={styles.title}>하루 한 마디</Text>
+          <Text style={styles.title}>리나의 안부</Text>
           <Text style={styles.sub}>
-            {hour === null ? '받지 않음' : `매일 ${hour}시에 소식이 와요`}
+            {hour === null
+              ? '받지 않음'
+              : `매일 ${hour}시, 리나가 한 마디 보내요`}
           </Text>
         </View>
         <Switch

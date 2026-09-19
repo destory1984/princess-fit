@@ -686,3 +686,23 @@ export async function payForWorkout(fact: WorkoutFact, today = new Date()) {
   await saveHousehold(after);
   return { house: after, gold: workoutGold(fact) };
 }
+
+export const DEFAULT_REST_SEC = 60;
+export const REST_GRAIN = 10;
+const REST_MIN = 10;
+const REST_MAX = 600;
+
+/** Ten-second grain, and never so short that the bell rings mid-set. */
+export function clampRest(seconds: number) {
+  const snapped = Math.round(seconds / REST_GRAIN) * REST_GRAIN;
+  return Math.max(REST_MIN, Math.min(REST_MAX, snapped));
+}
+
+/** Change how long this exercise rests. Applies to every workout from now on. */
+export async function setExerciseRest(exerciseId: string, seconds: number) {
+  const { error } = await supabase
+    .from('exercises')
+    .update({ rest_sec: clampRest(seconds) })
+    .eq('id', exerciseId);
+  if (error) throw error;
+}
