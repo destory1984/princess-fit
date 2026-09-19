@@ -61,6 +61,9 @@ export default function WorkoutScreen() {
   // Which exercise the rest bar is speaking for: the one whose set just
   // finished, or the one coming up before anything has been done.
   const [restFor, setRestFor] = useState<string | null>(null);
+  // Which exercise card is open. Null means "whichever is next", so the board
+  // follows the workout on its own until you say otherwise.
+  const [opened, setOpened] = useState<string | null>(null);
   const [restEnd, setRestEnd] = useState<number | null>(null);
   // Lazy, so the clock is read once on mount rather than on every render.
   const [now, setNow] = useState(() => Date.now());
@@ -187,6 +190,13 @@ export default function WorkoutScreen() {
   const done = Boolean(workout?.ended_at);
   const progress = sets.length ? doneSets.length / sets.length : 0;
   const upNext = grouped.find((g) => g.sets.some((s) => !s.done));
+  // A long workout is mostly finished exercises; those collapse to one line so
+  // the set you are actually on is never three screens down.
+  const expandedId =
+    opened ??
+    upNext?.exerciseId ??
+    grouped[grouped.length - 1]?.exerciseId ??
+    null;
   // While resting, the exercise just finished — that is whose rest is running.
   // Once it ends, the one coming up, because that is what the buttons would
   // change and what the next set will use.
@@ -215,16 +225,20 @@ export default function WorkoutScreen() {
         const merged = { ...finished, ...patch };
         const waiting = followOn(
           sets.filter((x) => x.exercise_id === finished.exercise_id),
-          merged
+          merged,
         );
         if (waiting.length) {
           const carry = { weight_kg: merged.weight_kg, reps: merged.reps };
           setSets((prev) =>
-            prev.map((x) => (waiting.some((w) => w.id === x.id) ? { ...x, ...carry } : x))
+            prev.map((x) =>
+              waiting.some((w) => w.id === x.id) ? { ...x, ...carry } : x,
+            ),
           );
-          Promise.all(waiting.map((w) => updateWorkoutSet(w.id, carry))).catch(() => {
-            // The numbers on screen are right; a failed save shows up on reload.
-          });
+          Promise.all(waiting.map((w) => updateWorkoutSet(w.id, carry))).catch(
+            () => {
+              // The numbers on screen are right; a failed save shows up on reload.
+            },
+          );
         }
       }
     }
@@ -259,7 +273,9 @@ export default function WorkoutScreen() {
     // list may be a planned set still sitting at zero.
     const lastDone = [...existing].reverse().find((s) => s.done);
     const template =
-      lastDone ?? previous ?? lastTime?.[Math.min(existing.length, lastTime.length - 1)];
+      lastDone ??
+      previous ??
+      lastTime?.[Math.min(existing.length, lastTime.length - 1)];
     const position =
       previous?.position ??
       sets.reduce((m, s) => Math.max(m, s.position), -1) + 1;
@@ -312,40 +328,37 @@ export default function WorkoutScreen() {
             setNo: i + 1,
             weight: planned.weight,
             reps: planned.reps,
-          })
-        )
+          }),
+        ),
       );
       setSets((prev) => [...prev, ...created]);
     } catch (e: any) {
-      notify('종목 추가 실패', e.message);
+      notify("종목 추가 실패", e.message);
       load();
     }
   }
 
-  function removeExercise(exerciseId: string, name: string) {
-    confirmAction("종목 빼기", `"${name}"을 이 운동에서 뺄까요?`, async () => {
-      // Read the sets when the answer comes back, not when the dialog opened:
-      // a native Alert leaves time for another set to land.
-      let removed: WorkoutSet[] = [];
-      setSets((prev) => {
-        removed = prev.filter((s) => s.exercise_id === exerciseId);
-        return prev.filter((s) => s.exercise_id !== exerciseId);
-      });
-      try {
-        await Promise.all(removed.map((s) => deleteWorkoutSet(s.id)));
-      } catch (e: any) {
-        notify("삭제 실패", e.message);
-        load();
-      }
-    });
-  }
-
+  /**
+   * Take one set off the board. The exercise is a grouping of its sets, so
+   * removing the last one removes the exercise too — which is the only way to
+   * drop an exercise now, and needs no separate button or confirmation.
+   */
   async function removeSet(setId: string) {
     try {
       await deleteWorkoutSet(setId);
-      setSets((prev) => prev.filter((s) => s.id !== setId));
+      setSets((prev) => {
+        const next = prev.filter((s) => s.id !== setId);
+        // Renumber what is left, or the remaining sets read 1, 3, 4.
+        const gone = prev.find((s) => s.id === setId);
+        if (!gone) return next;
+        let n = 0;
+        return next.map((s) =>
+          s.exercise_id === gone.exercise_id ? { ...s, set_no: ++n } : s,
+        );
+      });
     } catch (e: any) {
       notify("삭제 실패", e.message);
+      load();
     }
   }
 
@@ -482,131 +495,154 @@ export default function WorkoutScreen() {
           const previousBest = bests.get(exerciseId) ?? 0;
           const isRecord =
             track === "weight_reps" && previousBest > 0 && top > previousBest;
+          const expanded = exerciseId === expandedId;
 
           return (
             <View key={exerciseId} style={styles.card}>
-              <View style={styles.cardHead}>
+              <Pressable
+                style={styles.cardHead}
+                onPress={() => setOpened(expanded ? null : exerciseId)}
+              >
                 <View style={[styles.stripe, { backgroundColor: tint }]} />
                 <View style={styles.cardHeadBody}>
                   <Text style={styles.cardTitle}>
                     {exercise?.name ?? "삭제된 종목"}
                   </Text>
-                  {!!exercise?.muscle_detail && (
+                  {expanded && !!exercise?.muscle_detail && (
                     <Text style={styles.cardSub}>
                       {exercise.muscle_detail} · {exercise.equipment}
                     </Text>
                   )}
+                  {!expanded && (
+                    <Text style={styles.cardSub}>
+                      {exDone.length}/{exerciseSets.length}세트
+                      {track === "weight_reps" && top > 0 && ` · 최고 ${top}kg`}
+                    </Text>
+                  )}
                 </View>
-                {!done && (
-                  <Pressable
-                    hitSlop={8}
-                    onPress={() =>
-                      removeExercise(exerciseId, exercise?.name ?? "이 종목")
-                    }
-                  >
-                    <Ionicons name="close" size={18} color={colors.textDim} />
-                  </Pressable>
-                )}
-              </View>
+                <Ionicons
+                  name={expanded ? "chevron-up" : "chevron-down"}
+                  size={18}
+                  color={colors.textDim}
+                />
+              </Pressable>
 
-              {track === "weight_reps" && top > 0 && (
-                <Text style={styles.metrics}>
-                  최고 무게 {top}kg · 예상 1RM {oneRm}kg
-                </Text>
-              )}
-              {isRecord && (
-                <View style={styles.record}>
-                  <Ionicons name="trophy" size={13} color={colors.accent} />
-                  <Text style={styles.recordText}>
-                    신기록! 이전 최고 {previousBest}kg
-                  </Text>
-                </View>
-              )}
-              {track !== "weight_reps" && totalSec > 0 && (
-                <Text style={styles.metrics}>
-                  {formatDuration(totalSec)}
-                  {totalKm > 0 && ` · ${totalKm}km`}
-                </Text>
-              )}
-              {previous && track === "weight_reps" && (
-                <Text style={styles.previous}>
-                  지난번 {formatDate(previous.date, "short")} ·{" "}
-                  {previous.sets
-                    .map((s) => `${s.weight_kg}×${s.reps}`)
-                    .join("  ")}
-                </Text>
-              )}
-
-              {done ? (
-                <View style={styles.circleRow}>
-                  {exDone.map((s) => (
-                    <View key={s.id} style={styles.circleItem}>
-                      <View style={[styles.circle, { backgroundColor: tint }]}>
-                        <Text style={styles.circleValue}>
-                          {track === "weight_reps"
-                            ? s.weight_kg
-                            : Math.round(s.duration_sec / 60)}
-                        </Text>
-                      </View>
-                      <Text style={styles.circleReps}>
-                        {track === "weight_reps"
-                          ? `${s.reps}회`
-                          : track === "cardio" && s.distance_km > 0
-                            ? `분 · ${s.distance_km}km`
-                            : "분"}
+              {!expanded ? null : (
+                <>
+                  {track === "weight_reps" && top > 0 && (
+                    <Text style={styles.metrics}>
+                      최고 무게 {top}kg · 예상 1RM {oneRm}kg
+                    </Text>
+                  )}
+                  {isRecord && (
+                    <View style={styles.record}>
+                      <Ionicons name="trophy" size={13} color={colors.accent} />
+                      <Text style={styles.recordText}>
+                        신기록! 이전 최고 {previousBest}kg
                       </Text>
                     </View>
-                  ))}
-                </View>
-              ) : (
-                <>
-                  {exDone.length > 0 && (
-                    <View style={styles.chipRow}>
+                  )}
+                  {track !== "weight_reps" && totalSec > 0 && (
+                    <Text style={styles.metrics}>
+                      {formatDuration(totalSec)}
+                      {totalKm > 0 && ` · ${totalKm}km`}
+                    </Text>
+                  )}
+                  {previous && track === "weight_reps" && (
+                    <Text style={styles.previous}>
+                      지난번 {formatDate(previous.date, "short")} ·{" "}
+                      {previous.sets
+                        .map((s) => `${s.weight_kg}×${s.reps}`)
+                        .join("  ")}
+                    </Text>
+                  )}
+
+                  {done ? (
+                    <View style={styles.circleRow}>
                       {exDone.map((s) => (
-                        <Pressable
-                          key={s.id}
-                          style={[styles.doneChip, { borderColor: tint }]}
-                          onPress={() => persist(s.id, { done: false })}
-                        >
-                          <Ionicons name="checkmark" size={12} color={tint} />
-                          <Text style={[styles.doneChipText, { color: tint }]}>
+                        <View key={s.id} style={styles.circleItem}>
+                          <View
+                            style={[styles.circle, { backgroundColor: tint }]}
+                          >
+                            <Text style={styles.circleValue}>
+                              {track === "weight_reps"
+                                ? s.weight_kg
+                                : Math.round(s.duration_sec / 60)}
+                            </Text>
+                          </View>
+                          <Text style={styles.circleReps}>
                             {track === "weight_reps"
-                              ? `${s.weight_kg}×${s.reps}`
-                              : `${Math.round(s.duration_sec / 60)}분`}
+                              ? `${s.reps}회`
+                              : track === "cardio" && s.distance_km > 0
+                                ? `분 · ${s.distance_km}km`
+                                : "분"}
                           </Text>
-                        </Pressable>
+                        </View>
                       ))}
                     </View>
-                  )}
-
-                  {current ? (
-                    <SetCard
-                      set={current}
-                      track={track}
-                      index={current.set_no}
-                      total={exerciseSets.length}
-                      tint={tint}
-                      onChange={(patch) => persist(current.id, patch)}
-                      onComplete={() => persist(current.id, { done: true })}
-                      onRemove={() => removeSet(current.id)}
-                    />
                   ) : (
-                    <Text style={styles.allDone}>이 종목은 다 하셨어요 🎉</Text>
-                  )}
+                    <>
+                      {exDone.length > 0 && (
+                        <View style={styles.chipRow}>
+                          {exDone.map((s) => (
+                            <Pressable
+                              key={s.id}
+                              style={[styles.doneChip, { borderColor: tint }]}
+                              onPress={() => persist(s.id, { done: false })}
+                            >
+                              <Ionicons
+                                name="checkmark"
+                                size={12}
+                                color={tint}
+                              />
+                              <Text
+                                style={[styles.doneChipText, { color: tint }]}
+                              >
+                                {track === "weight_reps"
+                                  ? `${s.weight_kg}×${s.reps}`
+                                  : `${Math.round(s.duration_sec / 60)}분`}
+                              </Text>
+                            </Pressable>
+                          ))}
+                        </View>
+                      )}
 
-                  {/*
+                      {current ? (
+                        <SetCard
+                          set={current}
+                          track={track}
+                          index={current.set_no}
+                          total={exerciseSets.length}
+                          tint={tint}
+                          onChange={(patch) => persist(current.id, patch)}
+                          onComplete={() => persist(current.id, { done: true })}
+                          onRemove={() => removeSet(current.id)}
+                        />
+                      ) : (
+                        <Text style={styles.allDone}>
+                          이 종목은 다 하셨어요 🎉
+                        </Text>
+                      )}
+
+                      {/*
                     Only once the exercise is finished. With a set still in
                     front of you the thing to do is finish it, and two large
                     buttons side by side made that a choice rather than a step.
                   */}
-                  {track === "weight_reps" && !current && (
-                    <Pressable
-                      style={styles.addSet}
-                      onPress={() => addSet(exerciseId)}
-                    >
-                      <Ionicons name="add" size={18} color={colors.accent} />
-                      <Text style={styles.addSetText}>세트 추가</Text>
-                    </Pressable>
+                      {track === "weight_reps" && !current && (
+                        <Pressable
+                          style={styles.addSet}
+                          onPress={() => addSet(exerciseId)}
+                        >
+                          <Ionicons
+                            name="add"
+                            size={18}
+                            color={colors.accent}
+                          />
+                          <Text style={styles.addSetText}>세트 추가</Text>
+                        </Pressable>
+                      )}
+                    </>
                   )}
                 </>
               )}
