@@ -128,8 +128,10 @@ export default function SummaryScreen() {
         </Text>
       </Pressable>
 
-      <Pressable style={styles.secondary} onPress={() => router.replace('/')}>
-        <Text style={styles.secondaryText}>홈으로</Text>
+      <Pressable
+        style={styles.secondary}
+        onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}>
+        <Text style={styles.secondaryText}>닫기</Text>
       </Pressable>
     </ScrollView>
   );
