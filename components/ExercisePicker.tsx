@@ -115,7 +115,7 @@ export function ExercisePicker({ visible, exercises, onSelect, onClose, onSeeded
                   <Chip key={g} label={g} active={gear === g} onPress={() => setGear(g)} />
                 ))}
               </View>
-              <ScrollView keyboardShouldPersistTaps="handled">
+              <ScrollView style={styles.results} keyboardShouldPersistTaps="handled">
                 {filtered.length === 0 ? (
                   <Text style={styles.emptyText}>검색 결과가 없어요.</Text>
                 ) : (
@@ -179,8 +179,10 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: spacing.lg,
-    maxHeight: '82%',
+    // Fixed, not max: a shrinking result list must not move the search box.
+    height: '82%',
   },
+  results: { flex: 1 },
   handle: {
     width: 36,
     height: 4,
