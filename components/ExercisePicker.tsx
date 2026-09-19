@@ -1,14 +1,15 @@
 import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  FlatList,
   Modal,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
+import { ExerciseThumb } from '@/components/ExerciseThumb';
 import { MuscleTag } from '@/components/MuscleTag';
 import { seedDefaultExercises } from '@/lib/catalog';
 import { notify } from '@/lib/confirm';
@@ -116,34 +117,37 @@ export function ExercisePicker({ visible, exercises, onSelect, onClose, onSeeded
                   <Chip key={g} label={g} active={gear === g} onPress={() => setGear(g)} />
                 ))}
               </View>
-              <ScrollView style={styles.results} keyboardShouldPersistTaps="handled">
-                {filtered.length === 0 ? (
-                  <Text style={styles.emptyText}>검색 결과가 없어요.</Text>
-                ) : (
-                  filtered.map((e) => (
-                    <Pressable
-                      key={e.id}
-                      style={styles.row}
-                      onPress={() => {
-                        close();
-                        onSelect(e);
-                      }}>
-                      <View
-                        style={[styles.stripe, { backgroundColor: muscleColor(e.muscle_group) }]}
-                      />
-                      <View style={styles.rowBody}>
-                        <Text style={styles.rowText}>{e.name}</Text>
-                        {!!e.muscle_detail && (
-                          <Text style={styles.rowSub}>
-                            {e.muscle_detail} · {e.equipment}
-                          </Text>
-                        )}
-                      </View>
-                      <MuscleTag group={e.muscle_group} />
-                    </Pressable>
-                  ))
+              <FlatList
+                style={styles.results}
+                data={filtered}
+                keyExtractor={(e) => e.id}
+                keyboardShouldPersistTaps="handled"
+                initialNumToRender={8}
+                windowSize={5}
+                ListEmptyComponent={<Text style={styles.emptyText}>검색 결과가 없어요.</Text>}
+                renderItem={({ item: e }) => (
+                  <Pressable
+                    style={styles.row}
+                    onPress={() => {
+                      close();
+                      onSelect(e);
+                    }}>
+                    <View
+                      style={[styles.stripe, { backgroundColor: muscleColor(e.muscle_group) }]}
+                    />
+                    <ExerciseThumb exercise={e} />
+                    <View style={styles.rowBody}>
+                      <Text style={styles.rowText}>{e.name}</Text>
+                      {!!e.muscle_detail && (
+                        <Text style={styles.rowSub}>
+                          {e.muscle_detail} · {e.equipment}
+                        </Text>
+                      )}
+                    </View>
+                    <MuscleTag group={e.muscle_group} />
+                  </Pressable>
                 )}
-              </ScrollView>
+              />
             </>
           )}
         </Pressable>
@@ -224,7 +228,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
     borderBottomWidth: 1,
   },
-  stripe: { width: 4, height: 30, borderRadius: 2 },
+  stripe: { width: 4, height: 44, borderRadius: 2 },
   rowBody: { flex: 1 },
   rowText: { color: colors.text, fontSize: 16 },
   rowSub: { color: colors.textDim, fontSize: 12, marginTop: 2 },
