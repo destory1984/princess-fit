@@ -94,7 +94,16 @@ export default function WorkoutScreen() {
 
   useEffect(() => {
     if (restEnd === null) return;
-    const timer = setInterval(() => setNow(Date.now()), 500);
+    const timer = setInterval(() => {
+      const at = Date.now();
+      setNow(at);
+      // Stop at zero rather than counting on forever: the bar goes back to
+      // showing this exercise's rest length, ready for the next set.
+      if (at >= restEnd) {
+        setRestEnd(null);
+        celebrateFeedback();
+      }
+    }, 500);
     return () => clearInterval(timer);
   }, [restEnd]);
 
@@ -104,21 +113,24 @@ export default function WorkoutScreen() {
    * on top; the phone is usually in a pocket by then.
    */
   useEffect(() => {
+    if (restEnd === null) return;
+
     let cancelled = false;
     let booked: string | null = null;
 
-    if (restEnd !== null) {
-      scheduleRestAlarm(new Date(restEnd))
-        .then((id) => {
-          booked = id;
-          if (cancelled) void cancelRestAlarm(id);
-        })
-        .catch(() => {});
-    }
+    scheduleRestAlarm(new Date(restEnd))
+      .then((id) => {
+        booked = id;
+        if (cancelled) void cancelRestAlarm(id);
+      })
+      .catch(() => {});
 
     return () => {
       cancelled = true;
-      void cancelRestAlarm(booked);
+      // Only call it off if the rest is being cut short or moved. A rest that
+      // simply ran out clears itself, and cancelling then would silence the
+      // very bell it was booked for, at the moment it is due.
+      if (Date.now() < restEnd) void cancelRestAlarm(booked);
     };
   }, [restEnd]);
 
