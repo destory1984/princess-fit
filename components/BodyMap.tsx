@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 import Body, { type Slug } from 'react-native-body-highlighter';
-import { colors, spacing } from '@/lib/theme';
+import { colors, intensityRamp, spacing } from '@/lib/theme';
 
 const SKIN = '#D9D4CC';
 
@@ -34,16 +34,15 @@ export function slugsOf(exercise: WorkedExercise): Slug[] {
   ];
 }
 
-/** Counts how often each slug is worked, so heavier-used muscles shade darker. */
+/** Counts how often each slug is worked; more exercises hitting it read stronger. */
 export function workedParts(exercises: WorkedExercise[]) {
   const counts = new Map<Slug, number>();
   for (const e of exercises) {
     for (const slug of slugsOf(e)) counts.set(slug, (counts.get(slug) ?? 0) + 1);
   }
-  const max = Math.max(1, ...counts.values());
   return [...counts.entries()].map(([slug, n]) => ({
     slug,
-    intensity: n >= max && max > 1 ? 2 : 1,
+    intensity: Math.min(n, intensityRamp.length),
   }));
 }
 
@@ -65,7 +64,7 @@ export function BodyMap({ data, onPartPress, scale = 0.75, labels = true }: Prop
     data,
     gender: 'male',
     scale,
-    colors: [colors.accent, '#E0476A'],
+    colors: intensityRamp,
     defaultFill: SKIN,
     border: 'none',
     onBodyPartPress: press,
@@ -83,6 +82,15 @@ export function BodyMap({ data, onPartPress, scale = 0.75, labels = true }: Prop
           <Text style={styles.label}>뒤</Text>
         </View>
       )}
+      {labels && data.length > 0 && (
+        <View style={styles.legend}>
+          <Text style={styles.label}>적게</Text>
+          {intensityRamp.map((c) => (
+            <View key={c} style={[styles.swatch, { backgroundColor: c }]} />
+          ))}
+          <Text style={styles.label}>많이 씀</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -90,4 +98,12 @@ export function BodyMap({ data, onPartPress, scale = 0.75, labels = true }: Prop
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'flex-start' },
   label: { color: colors.textDim, fontSize: 12, marginTop: spacing.xs },
+  legend: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    marginTop: spacing.sm,
+  },
+  swatch: { width: 16, height: 8, borderRadius: 2, marginTop: spacing.xs },
 });

@@ -40,3 +40,6 @@ export const muscleColors: Record<string, string> = {
 export function muscleColor(group: string) {
   return muscleColors[group] ?? muscleColors['기타'];
 }
+
+/** One hue, rising steadily: the more a muscle is worked, the stronger it reads. */
+export const intensityRamp = ['#3B82F6', '#639FFF', '#8FBCFF', '#BFD9FF'];
