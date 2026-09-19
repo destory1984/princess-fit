@@ -152,7 +152,11 @@ const styles = StyleSheet.create({
   // Standing at the foot of the bed, mid-room: clear of both plaques above,
   // and not hiding the window. The box is wider than she is — `contain`
   // centres her in it, so height alone decides how big she is.
-  girl: { position: 'absolute', bottom: '2%', left: '24%', height: '70%' },
+  // Both dimensions, explicitly. Given height alone the doll's aspectRatio
+  // cannot resolve a percentage against the room and the layers blow up.
+  // Room is 3:2, so 70% of its height is 46.7% of its width; at the doll's
+  // 1086:1448 that is 35% across.
+  girl: { position: 'absolute', bottom: '2%', left: '24%', width: '35%', height: '70%' },
   plaque: {
     position: 'absolute',
     backgroundColor: paper.bgAlt,
