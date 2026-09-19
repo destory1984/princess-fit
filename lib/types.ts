@@ -19,6 +19,8 @@ export type Exercise = {
   track_type: TrackType;
   /** Seconds of rest after a set of this exercise. */
   rest_sec: number;
+  /** Starred, so it sorts to the top of the picker. */
+  favourite: boolean;
   how_to: string;
   created_at: string;
 };

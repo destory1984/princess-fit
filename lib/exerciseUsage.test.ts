@@ -39,3 +39,23 @@ test('no history at all means those lists are simply empty', () => {
   assert.deepEqual(sortByUsage(items, new Map(), 'recent'), []);
   assert.deepEqual(ids(sortByUsage(items, new Map(), 'all')), ['a', 'b', 'c', 'd']);
 });
+
+const starred = [
+  { id: 'a', name: '벤치프레스', favourite: true },
+  { id: 'b', name: '스쿼트', favourite: false },
+  { id: 'c', name: '데드리프트', favourite: true },
+];
+
+test('즐겨찾기 shows only starred, in the order they were given', () => {
+  // Not ranked: a list you curated should stay the list you curated.
+  assert.deepEqual(ids(sortByUsage(starred, usage, 'favourite')), ['a', 'c']);
+});
+
+test('starring nothing leaves that list empty rather than showing everything', () => {
+  const none = starred.map((e) => ({ ...e, favourite: false }));
+  assert.deepEqual(sortByUsage(none, usage, 'favourite'), []);
+});
+
+test('starring does not change the other lists', () => {
+  assert.deepEqual(ids(sortByUsage(starred, usage, 'recent')), ['b', 'a', 'c']);
+});
