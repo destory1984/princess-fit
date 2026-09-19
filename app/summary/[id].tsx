@@ -8,7 +8,13 @@ import { AdviceCard } from '@/components/AdviceCard';
 import { BodyMap, workedParts } from '@/components/BodyMap';
 import { OrnateFrame } from '@/components/OrnateFrame';
 import { notify } from '@/lib/confirm';
-import { getWorkoutDetail, listWorkoutFacts, type WorkoutDetailExercise } from '@/lib/db';
+import {
+  getActiveWorkout,
+  getWorkoutDetail,
+  listWorkoutFacts,
+  repeatWorkout,
+  type WorkoutDetailExercise,
+} from '@/lib/db';
 import { formatDate, formatDuration } from '@/lib/format';
 import { computeStats } from '@/lib/character';
 import { summarise, workoutXp, type WorkoutFact } from '@/lib/gamification';
@@ -50,6 +56,22 @@ export default function SummaryScreen() {
         : null,
     [fact, facts, summary]
   );
+
+  async function repeat() {
+    if (!id) return;
+    try {
+      const active = await getActiveWorkout();
+      if (active) {
+        notify('진행 중인 운동이 있어요', '먼저 마무리해 주세요.');
+        router.push({ pathname: '/workout/[id]', params: { id: active.id } });
+        return;
+      }
+      const created = await repeatWorkout(id);
+      router.replace({ pathname: '/workout/[id]', params: { id: created.id } });
+    } catch (e: any) {
+      notify('다시 하기 실패', e.message);
+    }
+  }
 
   async function share() {
     try {
@@ -128,6 +150,11 @@ export default function SummaryScreen() {
 
       {adviceContext && <AdviceCard context={adviceContext} />}
 
+      <Pressable style={styles.repeat} onPress={repeat}>
+        <Ionicons name="repeat" size={18} color={colors.accent} />
+        <Text style={styles.repeatText}>이 운동 그대로 다시 하기</Text>
+      </Pressable>
+
       <Pressable style={styles.share} onPress={share}>
         <Ionicons name={Platform.OS === 'web' ? 'download-outline' : 'share-outline'} size={18} color="#fff" />
         <Text style={styles.shareText}>
@@ -199,6 +226,17 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   hint: { color: colors.textDim, textAlign: 'center' },
+  repeat: {
+    borderColor: colors.accent,
+    borderWidth: 1,
+    borderRadius: radius.lg,
+    paddingVertical: spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+  },
+  repeatText: { color: colors.accent, fontWeight: '800', fontSize: 15 },
   share: {
     backgroundColor: colors.accent,
     borderRadius: radius.lg,

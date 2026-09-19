@@ -360,6 +360,42 @@ export async function startWorkout(title: string, routineId: string | null) {
   return workout;
 }
 
+/**
+ * Starts a new session with the same exercises and set structure as an earlier
+ * one, carrying its weights forward as the starting point.
+ */
+export async function repeatWorkout(sourceId: string) {
+  const [source, sourceSets] = await Promise.all([
+    getWorkout(sourceId),
+    listWorkoutSets(sourceId),
+  ]);
+  const user_id = await requireUserId();
+
+  const { data, error } = await supabase
+    .from('workouts')
+    .insert({ user_id, title: source.title, routine_id: source.routine_id })
+    .select()
+    .single();
+  if (error) throw error;
+  const workout = data as Workout;
+
+  const rows = sourceSets.map((s) => ({
+    workout_id: workout.id,
+    exercise_id: s.exercise_id,
+    position: s.position,
+    set_no: s.set_no,
+    weight_kg: s.weight_kg,
+    reps: s.reps,
+    duration_sec: s.duration_sec,
+    distance_km: s.distance_km,
+  }));
+  if (rows.length) {
+    const { error: setsError } = await supabase.from('workout_sets').insert(rows);
+    if (setsError) throw setsError;
+  }
+  return workout;
+}
+
 export async function finishWorkout(id: string) {
   const { error } = await supabase
     .from('workouts')
