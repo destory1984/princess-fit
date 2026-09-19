@@ -5,7 +5,7 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { BodyMap, workedParts } from '@/components/BodyMap';
 import { ExercisePicker } from '@/components/ExercisePicker';
 import { confirmAction, notify } from '@/lib/confirm';
-import { formatDate } from '@/lib/format';
+import { formatDate, formatDuration } from '@/lib/format';
 import {
   addWorkoutSet,
   deleteWorkout,
@@ -203,8 +203,11 @@ export default function WorkoutScreen() {
         {grouped.map(({ exerciseId, exercise, sets: exerciseSets }) => {
           const previous = last.get(exerciseId);
           const exDone = exerciseSets.filter((s) => s.done);
+          const track = exercise?.track_type ?? 'weight_reps';
           const top = Math.max(0, ...exDone.map((s) => s.weight_kg));
           const oneRm = Math.max(0, ...exDone.map((s) => estimateOneRm(s.weight_kg, s.reps)));
+          const totalSec = exDone.reduce((sum, s) => sum + s.duration_sec, 0);
+          const totalKm = exDone.reduce((sum, s) => sum + s.distance_km, 0);
           const tint = muscleColor(exercise?.muscle_group ?? '기타');
 
           return (
@@ -221,12 +224,18 @@ export default function WorkoutScreen() {
                 </View>
               </View>
 
-              {top > 0 && (
+              {track === 'weight_reps' && top > 0 && (
                 <Text style={styles.metrics}>
                   최고 무게 {top}kg · 예상 1RM {oneRm}kg
                 </Text>
               )}
-              {previous && (
+              {track !== 'weight_reps' && totalSec > 0 && (
+                <Text style={styles.metrics}>
+                  {formatDuration(totalSec)}
+                  {totalKm > 0 && ` · ${totalKm}km`}
+                </Text>
+              )}
+              {previous && track === 'weight_reps' && (
                 <Text style={styles.previous}>
                   지난번 {formatDate(previous.date, 'short')} ·{' '}
                   {previous.sets.map((s) => `${s.weight_kg}×${s.reps}`).join('  ')}
@@ -238,30 +247,67 @@ export default function WorkoutScreen() {
                   {exDone.map((s) => (
                     <View key={s.id} style={styles.circleItem}>
                       <View style={[styles.circle, { backgroundColor: tint }]}>
-                        <Text style={styles.circleValue}>{s.weight_kg}</Text>
+                        <Text style={styles.circleValue}>
+                          {track === 'weight_reps'
+                            ? s.weight_kg
+                            : Math.round(s.duration_sec / 60)}
+                        </Text>
                       </View>
-                      <Text style={styles.circleReps}>{s.reps}회</Text>
+                      <Text style={styles.circleReps}>
+                        {track === 'weight_reps'
+                          ? `${s.reps}회`
+                          : track === 'cardio' && s.distance_km > 0
+                            ? `분 · ${s.distance_km}km`
+                            : '분'}
+                      </Text>
                     </View>
                   ))}
                 </View>
               ) : (
                 <>
                   <View style={styles.tableHead}>
-                    <Text style={[styles.th, styles.thNo]}>세트</Text>
-                    <Text style={styles.th}>KG</Text>
-                    <Text style={styles.th}>횟수</Text>
+                    <Text style={[styles.th, styles.thNo]}>
+                      {track === 'weight_reps' ? '세트' : ''}
+                    </Text>
+                    <Text style={styles.th}>{track === 'weight_reps' ? 'KG' : '시간(분)'}</Text>
+                    <Text style={styles.th}>
+                      {track === 'weight_reps' ? '횟수' : track === 'cardio' ? '거리(km)' : ''}
+                    </Text>
                     <Text style={[styles.th, styles.thDone]}>완료</Text>
                     <View style={styles.thRemove} />
                   </View>
                   {exerciseSets.map((s) => (
                     <View key={s.id} style={styles.setRow}>
-                      <Text style={styles.setNo}>{s.set_no}</Text>
-                      <NumberField
-                        value={s.weight_kg}
-                        decimal
-                        onCommit={(v) => persist(s.id, { weight_kg: v })}
-                      />
-                      <NumberField value={s.reps} onCommit={(v) => persist(s.id, { reps: v })} />
+                      <Text style={styles.setNo}>{track === 'weight_reps' ? s.set_no : ''}</Text>
+                      {track === 'weight_reps' ? (
+                        <>
+                          <NumberField
+                            value={s.weight_kg}
+                            decimal
+                            onCommit={(v) => persist(s.id, { weight_kg: v })}
+                          />
+                          <NumberField
+                            value={s.reps}
+                            onCommit={(v) => persist(s.id, { reps: v })}
+                          />
+                        </>
+                      ) : (
+                        <>
+                          <NumberField
+                            value={Math.round(s.duration_sec / 60)}
+                            onCommit={(v) => persist(s.id, { duration_sec: v * 60 })}
+                          />
+                          {track === 'cardio' ? (
+                            <NumberField
+                              value={s.distance_km}
+                              decimal
+                              onCommit={(v) => persist(s.id, { distance_km: v })}
+                            />
+                          ) : (
+                            <View style={styles.spacer} />
+                          )}
+                        </>
+                      )}
                       <Pressable
                         style={[styles.check, s.done && { backgroundColor: colors.success }]}
                         onPress={() => persist(s.id, { done: !s.done })}>
@@ -276,9 +322,11 @@ export default function WorkoutScreen() {
                       </Pressable>
                     </View>
                   ))}
-                  <Pressable style={styles.addSet} onPress={() => addSet(exerciseId)}>
-                    <Text style={styles.addSetText}>+ 세트 추가</Text>
-                  </Pressable>
+                  {track === 'weight_reps' && (
+                    <Pressable style={styles.addSet} onPress={() => addSet(exerciseId)}>
+                      <Text style={styles.addSetText}>+ 세트 추가</Text>
+                    </Pressable>
+                  )}
                 </>
               )}
             </View>
@@ -452,6 +500,7 @@ const styles = StyleSheet.create({
   thNo: { flex: 0, width: 28, textAlign: 'left' },
   thDone: { flex: 0, width: 40 },
   thRemove: { width: 18 },
+  spacer: { flex: 1 },
   setRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm },
   setNo: { color: colors.textDim, width: 28 },
   setInput: {

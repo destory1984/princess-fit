@@ -23,11 +23,16 @@ export async function listExercises() {
   return data as Exercise[];
 }
 
-export async function createExercise(name: string, muscleGroup: string, equipment: string) {
+export async function createExercise(
+  name: string,
+  muscleGroup: string,
+  equipment: string,
+  trackType: Exercise['track_type']
+) {
   const user_id = await requireUserId();
   const { data, error } = await supabase
     .from('exercises')
-    .insert({ user_id, name, muscle_group: muscleGroup, equipment })
+    .insert({ user_id, name, muscle_group: muscleGroup, equipment, track_type: trackType })
     .select()
     .single();
   if (error) throw error;
@@ -250,17 +255,23 @@ export async function startWorkout(title: string, routineId: string | null) {
   const workout = data as Workout;
 
   if (routineId) {
-    const routineExercises = await listRoutineExercises(routineId);
-    const sets = routineExercises.flatMap((re, position) =>
-      Array.from({ length: re.target_sets }, (_, i) => ({
+    const [routineExercises, exercises] = await Promise.all([
+      listRoutineExercises(routineId),
+      listExercises(),
+    ]);
+    const trackTypes = new Map(exercises.map((e) => [e.id, e.track_type]));
+    const sets = routineExercises.flatMap((re, position) => {
+      // Timed and cardio movements are one entry, not a stack of sets.
+      const count = trackTypes.get(re.exercise_id) === 'weight_reps' ? re.target_sets : 1;
+      return Array.from({ length: count }, (_, i) => ({
         workout_id: workout.id,
         exercise_id: re.exercise_id,
         position,
         set_no: i + 1,
-        reps: re.target_reps,
+        reps: trackTypes.get(re.exercise_id) === 'weight_reps' ? re.target_reps : 0,
         weight_kg: 0,
-      }))
-    );
+      }));
+    });
     if (sets.length) {
       const { error: setsError } = await supabase.from('workout_sets').insert(sets);
       if (setsError) throw setsError;
@@ -301,6 +312,8 @@ export async function addWorkoutSet(input: {
   setNo: number;
   weight: number;
   reps: number;
+  durationSec?: number;
+  distanceKm?: number;
 }) {
   const { data, error } = await supabase
     .from('workout_sets')
@@ -311,6 +324,8 @@ export async function addWorkoutSet(input: {
       set_no: input.setNo,
       weight_kg: input.weight,
       reps: input.reps,
+      duration_sec: input.durationSec ?? 0,
+      distance_km: input.distanceKm ?? 0,
     })
     .select()
     .single();
@@ -320,7 +335,7 @@ export async function addWorkoutSet(input: {
 
 export async function updateWorkoutSet(
   id: string,
-  patch: Partial<Pick<WorkoutSet, 'weight_kg' | 'reps' | 'done'>>
+  patch: Partial<Pick<WorkoutSet, 'weight_kg' | 'reps' | 'duration_sec' | 'distance_km' | 'done'>>
 ) {
   const { error } = await supabase.from('workout_sets').update(patch).eq('id', id);
   if (error) throw error;

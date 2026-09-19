@@ -51,6 +51,10 @@ alter table exercises add column if not exists secondary_group text;
 alter table exercises add column if not exists muscle_detail text not null default '';
 -- Comma-separated react-native-body-highlighter slugs, e.g. 'chest,triceps'.
 alter table exercises add column if not exists body_parts text not null default '';
+-- How a set is measured: weight_reps | duration | cardio (duration + distance).
+alter table exercises add column if not exists track_type text not null default 'weight_reps';
+alter table workout_sets add column if not exists duration_sec int not null default 0;
+alter table workout_sets add column if not exists distance_km numeric(6, 2) not null default 0;
 
 create index if not exists workout_sets_workout_idx on workout_sets (workout_id);
 create index if not exists workout_sets_exercise_idx on workout_sets (exercise_id);
