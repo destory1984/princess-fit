@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 import type { Exercise, Routine, RoutineExercise, Workout, WorkoutSet } from './types';
 import { localDayKey } from './format';
+import type { WorkoutFact } from './gamification';
 import {
   groupHistory,
   streakDays,
@@ -210,6 +211,45 @@ export async function getWorkoutDetail(workoutId: string) {
   });
 
   return { workout, items };
+}
+
+/** Every finished workout reduced to what the progress screens need. */
+export async function listWorkoutFacts(limit = 500): Promise<WorkoutFact[]> {
+  const [{ data, error }, exercises] = await Promise.all([
+    supabase
+      .from('workouts')
+      .select(
+        'id, started_at, workout_sets(exercise_id, weight_kg, reps, duration_sec, distance_km, done)'
+      )
+      .not('ended_at', 'is', null)
+      .order('started_at', { ascending: false })
+      .limit(limit),
+    listExercises(),
+  ]);
+  if (error) throw error;
+  const groupOf = new Map(exercises.map((e) => [e.id, e.muscle_group]));
+
+  return (
+    data as {
+      id: string;
+      started_at: string;
+      workout_sets: (Pick<
+        WorkoutSet,
+        'exercise_id' | 'weight_kg' | 'reps' | 'duration_sec' | 'distance_km' | 'done'
+      >)[];
+    }[]
+  ).map((w) => {
+    const done = w.workout_sets.filter((s) => s.done);
+    return {
+      id: w.id,
+      started_at: w.started_at,
+      groups: [...new Set(done.flatMap((s) => groupOf.get(s.exercise_id) ?? []))],
+      doneSets: done.length,
+      volume: done.reduce((sum, s) => sum + s.weight_kg * s.reps, 0),
+      durationSec: done.reduce((sum, s) => sum + s.duration_sec, 0),
+      distanceKm: done.reduce((sum, s) => sum + s.distance_km, 0),
+    };
+  });
 }
 
 /** Local-day keys (YYYY-MM-DD) of finished workouts, for the calendar. */
