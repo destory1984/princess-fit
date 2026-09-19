@@ -122,6 +122,11 @@ export async function updateRoutineExercise(
   if (error) throw error;
 }
 
+/** Rewrites positions to match the given order. */
+export async function reorderRoutineExercises(ids: string[]) {
+  await Promise.all(ids.map((id, position) => updateRoutineExercise(id, { position })));
+}
+
 export type WeeklyStats = { workouts: number; volume: number; streakDays: number };
 
 export async function getWeeklyStats(): Promise<WeeklyStats> {
