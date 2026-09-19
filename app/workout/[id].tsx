@@ -161,6 +161,19 @@ export default function WorkoutScreen() {
     }
   }
 
+  function removeExercise(exerciseId: string, name: string) {
+    const belonging = sets.filter((s) => s.exercise_id === exerciseId);
+    confirmAction('종목 빼기', `"${name}"을 이 운동에서 뺄까요?`, async () => {
+      setSets((prev) => prev.filter((s) => s.exercise_id !== exerciseId));
+      try {
+        await Promise.all(belonging.map((s) => deleteWorkoutSet(s.id)));
+      } catch (e: any) {
+        notify('삭제 실패', e.message);
+        load();
+      }
+    });
+  }
+
   async function removeSet(setId: string) {
     try {
       await deleteWorkoutSet(setId);
@@ -277,6 +290,13 @@ export default function WorkoutScreen() {
                     </Text>
                   )}
                 </View>
+                {!done && (
+                  <Pressable
+                    hitSlop={8}
+                    onPress={() => removeExercise(exerciseId, exercise?.name ?? '이 종목')}>
+                    <Ionicons name="close" size={18} color={colors.textDim} />
+                  </Pressable>
+                )}
               </View>
 
               {track === 'weight_reps' && top > 0 && (
