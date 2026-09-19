@@ -1,5 +1,6 @@
 import { FULL, type Household } from './economy.ts';
 import { CULTURE_CAP, type Culture } from './lessons.ts';
+import { outfitCharm } from './outfit.ts';
 
 /**
  * What gold buys. Four kinds, and they behave differently on purpose:
@@ -118,13 +119,18 @@ export function wornCharm(wardrobe: string[]) {
 
 
 /**
- * Her standing as it actually reads: what lessons taught, plus what she is
- * wearing. Accessories promise charm on the shelf, so that charm has to show
- * up somewhere or the price tag is a lie.
+ * Her standing as it actually reads: what lessons taught, plus what she has on.
+ *
+ * Both accessories and garments promise charm on the shelf, so both have to
+ * show up here or the price tag is a lie. Accessories count from the moment
+ * they are owned; a garment counts only while she is actually wearing it, and
+ * not at all when a gown covers it.
  */
-export function effectiveCulture(culture: Culture, wardrobe: string[]): Culture {
-  return {
-    ...culture,
-    charm: Math.min(CULTURE_CAP, culture.charm + wornCharm(wardrobe)),
-  };
+export function effectiveCulture(
+  culture: Culture,
+  wardrobe: string[],
+  worn: string[] = []
+): Culture {
+  const extra = wornCharm(wardrobe) + outfitCharm(worn);
+  return { ...culture, charm: Math.min(CULTURE_CAP, culture.charm + extra) };
 }

@@ -42,6 +42,7 @@ export default function TrainingLedgerScreen() {
   const [error, setError] = useState<string | null>(null);
   const [culture, setCulture] = useState<Culture>(EMPTY_CULTURE);
   const [wardrobe, setWardrobe] = useState<string[]>([]);
+  const [wearing, setWearing] = useState<string[]>([]);
   const [furniture, setFurniture] = useState<string[]>([]);
 
   const load = useCallback(() => {
@@ -56,6 +57,7 @@ export default function TrainingLedgerScreen() {
           .then((l) => {
             setCulture(l.culture);
             setWardrobe(l.wardrobe);
+            setWearing(l.worn);
             setFurniture(l.furniture);
           })
           .catch(() => {});
@@ -81,7 +83,7 @@ export default function TrainingLedgerScreen() {
 
   const summary = summarise(facts);
   // Lessons plus what she is wearing, so this never disagrees with the shop.
-  const worn = effectiveCulture(culture, wardrobe);
+  const standing = effectiveCulture(culture, wardrobe, wearing);
   const clothes = outfitProgress(wardrobe);
   const room = roomProgress(furniture);
   const stats = computeStats(facts);
@@ -184,15 +186,15 @@ export default function TrainingLedgerScreen() {
       </Scroll>
 
       <Scroll title="배운 것">
-        <Text style={styles.refineTitle}>{refinementTitle(worn)}</Text>
+        <Text style={styles.refineTitle}>{refinementTitle(standing)}</Text>
         {CULTURE_ORDER.map((key) => (
           <View key={key} style={styles.cultureRow}>
             <Ionicons name={CULTURE_META[key].icon as any} size={15} color={paper.line} />
             <Text style={styles.cultureName}>{CULTURE_META[key].name}</Text>
             <View style={styles.cultureTrack}>
-              <View style={[styles.cultureFill, { width: `${worn[key]}%` }]} />
+              <View style={[styles.cultureFill, { width: `${standing[key]}%` }]} />
             </View>
-            <Text style={styles.cultureValue}>{worn[key]}</Text>
+            <Text style={styles.cultureValue}>{standing[key]}</Text>
           </View>
         ))}
         <Text style={styles.cultureHint}>
