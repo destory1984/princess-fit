@@ -5,6 +5,7 @@ import { BigStepper } from '@/components/BigStepper';
 import { BragCard } from '@/components/BragCard';
 import { Cheer } from '@/components/Cheer';
 import { Insights } from '@/components/Insights';
+import { MonthCalendar } from '@/components/MonthCalendar';
 import { OneRmChart } from '@/components/OneRmChart';
 import { NudgeSetting } from '@/components/NudgeSetting';
 import { nextWeight } from '@/lib/weight';
@@ -39,7 +40,7 @@ const benchFacts = [0, 2, 4, 7, 9, 12, 15, 18].map((daysAgo) => {
   return {
     id: `p${daysAgo}`,
     started_at: `${d.toISOString().slice(0, 10)}T10:00:00`,
-    groups: ['가슴', '팔'],
+    groups: daysAgo % 4 === 0 ? ['가슴', '팔'] : daysAgo % 3 === 0 ? ['등'] : ['하체'],
     doneSets: 12,
     volume: 3000,
     durationSec: 0,
@@ -113,6 +114,18 @@ export default function PreviewScreen() {
           distanceKm: 0,
         }}
         summary={summarise([])}
+      />
+
+      <Text style={styles.heading}>달력</Text>
+      <MonthCalendar
+        month={new Date()}
+        markedDays={new Set(benchFacts.map((f) => f.started_at.slice(0, 10)))}
+        dayGroups={
+          new Map(benchFacts.map((f) => [f.started_at.slice(0, 10), f.groups]))
+        }
+        selected={null}
+        onSelect={() => {}}
+        onShiftMonth={() => {}}
       />
 
       <Text style={styles.heading}>1RM 그래프</Text>
