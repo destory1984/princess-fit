@@ -1,9 +1,12 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Redirect } from 'expo-router';
 import { Advisor } from '@/components/Advisor';
 import { BigStepper } from '@/components/BigStepper';
 import { BragCard } from '@/components/BragCard';
 import { Cheer } from '@/components/Cheer';
+import { ExercisePicker } from '@/components/ExercisePicker';
+import { DEFAULT_EXERCISES } from '@/lib/exerciseCatalog';
 import { Insights } from '@/components/Insights';
 import { MonthCalendar } from '@/components/MonthCalendar';
 import GirlScreen from '@/app/settings/girl';
@@ -51,7 +54,22 @@ const benchFacts = [0, 2, 4, 7, 9, 12, 15, 18].map((daysAgo) => {
   };
 });
 
+const benchExercises = DEFAULT_EXERCISES.slice(0, 10).map((e, i) => ({
+  ...e,
+  id: `x${i}`,
+  user_id: 'u',
+  rest_sec: 60,
+  favourite: i % 4 === 0,
+  created_at: '2026-09-01T00:00:00',
+}));
+
+const benchUsage = new Map([
+  ['x1', { count: 9, lastOn: '2026-09-19' }],
+  ['x3', { count: 2, lastOn: '2026-09-12' }],
+]);
+
 export default function PreviewScreen() {
+  const [picking, setPicking] = useState(false);
   if (!__DEV__) return <Redirect href="/" />;
 
   const stats = { strength: 62, stamina: 40, vitality: 55, balance: 30, discipline: 48 };
@@ -137,6 +155,18 @@ export default function PreviewScreen() {
       <View style={styles.framedTall}>
         <GirlScreen />
       </View>
+
+      <Text style={styles.heading}>종목 고르기</Text>
+      <Pressable style={styles.openPicker} onPress={() => setPicking(true)}>
+        <Text style={styles.openPickerText}>고르기 창 열기</Text>
+      </Pressable>
+      <ExercisePicker
+        visible={picking}
+        exercises={benchExercises}
+        usage={benchUsage}
+        onSelect={() => setPicking(false)}
+        onClose={() => setPicking(false)}
+      />
 
       <Text style={styles.heading}>달력</Text>
       <MonthCalendar
@@ -275,6 +305,14 @@ const styles = StyleSheet.create({
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xl },
   heading: { color: colors.text, fontSize: 15, fontWeight: '800', marginTop: spacing.md },
   steppers: { flexDirection: 'row', gap: spacing.md },
+  openPicker: {
+    borderColor: colors.accent,
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: spacing.md,
+    alignItems: 'center',
+  },
+  openPickerText: { color: colors.accent, fontWeight: '700' },
   framed: { height: 640, borderWidth: 1, borderColor: colors.faint, borderRadius: 8 },
   framedTall: { height: 720, borderWidth: 1, borderColor: colors.faint, borderRadius: 8 },
   greeting: { height: 520 },
