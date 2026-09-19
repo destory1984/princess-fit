@@ -162,3 +162,25 @@ export function tomorrowsMessage(house: Household, workouts: WorkoutFact[], toda
   const projected = settle(house, tomorrow);
   return messageFor(moodOf(projected, workouts, tomorrow), tomorrow);
 }
+
+export type GiftKind = 'food' | 'clothes' | 'accessory' | 'furniture' | 'lesson';
+
+// Buying something for her and getting silence back makes the shop feel like a
+// vending machine. One line, in her own register — pleased, never gushing.
+const THANKS: Record<GiftKind, string[]> = {
+  food: ['잘 먹었어요. 한동안은 괜찮을 것 같아요.', '이런 건 아껴 먹어야 하는데 말이죠.'],
+  clothes: ['어때요? 이상하지 않죠?', '거울 앞에 좀 오래 서 있었어요.'],
+  accessory: ['작은 게 더 티가 나는 법이에요.', '오늘은 이걸 하고 있을게요.'],
+  furniture: ['방이 좀 달라 보여요.', '여기 있으니 딱 맞네요.'],
+  lesson: ['배운 건 어디 안 가니까요.', '생각보다 어렵진 않았어요.'],
+};
+
+/**
+ * Her word of thanks. Seeded by the thing bought rather than random, so buying
+ * the same item twice does not read as two different moods about it.
+ */
+export function thanksFor(kind: GiftKind, itemId: string) {
+  const lines = THANKS[kind];
+  const seed = [...itemId].reduce((n, c) => n + c.charCodeAt(0), 0);
+  return lines[seed % lines.length];
+}
