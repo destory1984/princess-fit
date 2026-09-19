@@ -10,6 +10,7 @@ import {
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { BodyMap, workedParts } from "@/components/BodyMap";
+import { Cheer } from "@/components/Cheer";
 import { ExercisePicker } from "@/components/ExercisePicker";
 import { RestBar } from "@/components/RestBar";
 import { SetCard } from "@/components/SetCard";
@@ -457,6 +458,11 @@ export default function WorkoutScreen() {
             <View style={styles.bodyWrap}>
               <BodyMap data={worked} scale={0.55} labels={false} />
             </View>
+          )}
+
+          {/* Otherwise this screen is a spreadsheet you sweat next to. */}
+          {!done && (
+            <Cheer doneSets={doneSets.length} totalSets={sets.length} />
           )}
         </View>
 
