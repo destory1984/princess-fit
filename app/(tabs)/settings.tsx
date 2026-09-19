@@ -1,13 +1,14 @@
 import { useCallback, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
+import { MuscleTag } from '@/components/MuscleTag';
 import { seedDefaultExercises } from '@/lib/catalog';
 import { confirmAction, notify } from '@/lib/confirm';
 import { countExerciseSets, createExercise, deleteExercise, listExercises } from '@/lib/db';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { MUSCLE_GROUPS, type Exercise } from '@/lib/types';
-import { colors, radius, spacing } from '@/lib/theme';
+import { colors, muscleColor, radius, spacing } from '@/lib/theme';
 
 export default function SettingsScreen() {
   const { session } = useAuth();
@@ -90,9 +91,18 @@ export default function SettingsScreen() {
               {MUSCLE_GROUPS.map((g) => (
                 <Pressable
                   key={g}
-                  style={[styles.chip, group === g && styles.chipActive]}
+                  style={[
+                    styles.chip,
+                    group === g && {
+                      backgroundColor: `${muscleColor(g)}26`,
+                      borderColor: muscleColor(g),
+                    },
+                  ]}
                   onPress={() => setGroup(g)}>
-                  <Text style={[styles.chipText, group === g && styles.chipTextActive]}>{g}</Text>
+                  <Text
+                    style={[styles.chipText, group === g && { color: muscleColor(g), fontWeight: '700' }]}>
+                    {g}
+                  </Text>
                 </Pressable>
               ))}
             </View>
@@ -113,7 +123,7 @@ export default function SettingsScreen() {
         renderItem={({ item }) => (
           <Pressable style={styles.row} onLongPress={() => confirmDelete(item)}>
             <Text style={styles.rowTitle}>{item.name}</Text>
-            <Text style={styles.rowSub}>{item.muscle_group}</Text>
+            <MuscleTag group={item.muscle_group} />
           </Pressable>
         )}
         ListFooterComponent={
@@ -144,12 +154,12 @@ const styles = StyleSheet.create({
   chip: {
     backgroundColor: colors.surface,
     borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: 'transparent',
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
   },
-  chipActive: { backgroundColor: colors.accentSoft },
   chipText: { color: colors.textDim },
-  chipTextActive: { color: colors.accent, fontWeight: '700' },
   addButton: {
     backgroundColor: colors.accent,
     borderRadius: radius.md,

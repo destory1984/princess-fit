@@ -110,6 +110,7 @@ export default function RoutineScreen() {
         exercises={exercises}
         onSelect={(e) => add(e.id)}
         onClose={() => setPicking(false)}
+        onSeeded={load}
       />
     </View>
   );
