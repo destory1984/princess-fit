@@ -1,5 +1,7 @@
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
+import { getDailyMessageId, setDailyMessageId } from './prefs';
+import type { Trip } from './lessons';
 
 /**
  * Her one message a day.
@@ -50,8 +52,9 @@ export async function ensureNotificationPermission() {
 }
 
 /**
- * Replace the standing daily message. Cancelling first is deliberate: the
- * alternative is a pile of stale schedules, each one a line she no longer means.
+ * Replace the standing daily message. Only that one is cancelled, by its own
+ * identifier: cancelling everything would also throw away the lesson trips she
+ * is booked on.
  */
 export async function scheduleDailyMessage(
   speaker: string,
@@ -62,9 +65,11 @@ export async function scheduleDailyMessage(
   if (!supported) return false;
   if (!(await ensureNotificationPermission())) return false;
 
-  await Notifications.cancelAllScheduledNotificationsAsync();
-  await Notifications.scheduleNotificationAsync({
-    content: { title: speaker, body },
+  const previous = await getDailyMessageId();
+  if (previous) await Notifications.cancelScheduledNotificationAsync(previous);
+
+  const id = await Notifications.scheduleNotificationAsync({
+    content: { title: speaker, body, data: { line: body } },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DAILY,
       hour,
@@ -72,10 +77,53 @@ export async function scheduleDailyMessage(
       channelId: CHANNEL,
     },
   });
+  await setDailyMessageId(id);
   return true;
 }
 
+/** Tapping a message opens her greeting saying the very same line. */
+function said(speaker: string, body: string) {
+  return { title: speaker, body, data: { line: body } };
+}
+
+const goodbye = (speaker: string, lesson: string) =>
+  said(speaker, `${lesson} 배우러 다녀올게요.`);
+
+const welcome = (speaker: string, lesson: string) =>
+  said(speaker, `다녀왔어요. ${lesson}, 생각보다 재미있었어요.`);
+
+/**
+ * A lesson is a day out: she says goodbye in the morning and tells you how it
+ * went when she is back. Two one-off messages, booked when the lesson is paid
+ * for — nothing checks in later, so what she says on her return is written now.
+ */
+export async function scheduleLessonTrip(speaker: string, lesson: string, trip: Trip) {
+  if (!supported) return false;
+  if (!(await ensureNotificationPermission())) return false;
+
+  await Notifications.scheduleNotificationAsync({
+    content: goodbye(speaker, lesson),
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.DATE,
+      date: trip.leaves,
+      channelId: CHANNEL,
+    },
+  });
+  await Notifications.scheduleNotificationAsync({
+    content: welcome(speaker, lesson),
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.DATE,
+      date: trip.returns,
+      channelId: CHANNEL,
+    },
+  });
+  return true;
+}
+
+/** Stop the standing message. Lesson trips already booked still arrive. */
 export async function cancelDailyMessage() {
   if (!supported) return;
-  await Notifications.cancelAllScheduledNotificationsAsync();
+  const id = await getDailyMessageId();
+  if (id) await Notifications.cancelScheduledNotificationAsync(id);
+  await setDailyMessageId(null);
 }

@@ -149,7 +149,7 @@ export function TrainingHall({
               {STAT_ORDER.map((key) => (
                 <View key={key} style={styles.statusStat}>
                   <Text style={styles.statusStatLabel}>
-                    {STAT_META[key].name[0]}
+                    {STAT_META[key].short}
                   </Text>
                   <Text style={styles.statusStatValue}>{stats[key]}</Text>
                 </View>
@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     paddingTop: 3,
   },
-  statusStat: { alignItems: "center", minWidth: 20 },
+  statusStat: { alignItems: "center", minWidth: 26 },
   statusStatLabel: { color: paper.inkDim, fontSize: 9, fontWeight: "700" },
   statusStatValue: { color: paper.ink, fontSize: 12, fontWeight: "800" },
   statusStreak: { color: paper.inkDim, fontSize: 10, marginTop: 2 },

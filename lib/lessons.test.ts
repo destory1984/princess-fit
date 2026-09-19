@@ -9,6 +9,7 @@ import {
   LESSONS,
   previewOf,
   refinementTitle,
+  tripTimes,
 } from './lessons.ts';
 
 test('a lesson teaches what it says it teaches', () => {
@@ -58,4 +59,23 @@ test('every lesson has a price and teaches something', () => {
     assert.ok(l.price > 0, l.id);
     assert.ok(Object.keys(l.teaches).length > 0, l.id);
   }
+});
+
+test('a lesson bought in the small hours starts in the morning, not at once', () => {
+  const { leaves, returns } = tripTimes(new Date(2026, 8, 20, 1, 30));
+  assert.equal(leaves.getDate(), 20);
+  assert.equal(leaves.getHours(), 9);
+  assert.equal(returns.getHours(), 15);
+});
+
+test('a lesson bought after she would have left waits for tomorrow', () => {
+  const { leaves } = tripTimes(new Date(2026, 8, 20, 14, 0));
+  assert.equal(leaves.getDate(), 21);
+  assert.equal(leaves.getHours(), 9);
+});
+
+test('she always comes back the same day she sets off', () => {
+  const { leaves, returns } = tripTimes(new Date(2026, 8, 20, 9, 30));
+  assert.equal(returns.getDate(), leaves.getDate());
+  assert.ok(returns > leaves);
 });

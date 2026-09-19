@@ -143,3 +143,24 @@ export function refinementTitle(culture: Culture) {
   if (score >= 20) return '이제 막 배우기 시작한';
   return '아직 배운 것이 없는';
 }
+
+/** When she leaves for a lesson and when she is back. */
+export type Trip = { leaves: Date; returns: Date };
+
+const LEAVE_HOUR = 9;
+const LESSON_HOURS = 6;
+
+/**
+ * A lesson is a day out, not a purchase. She sets off the next morning that
+ * has not already gone — pay at eight and she leaves within the hour, pay at
+ * midnight and she goes when the sun is up, never at one in the morning.
+ */
+export function tripTimes(now = new Date()): Trip {
+  const leaves = new Date(now);
+  leaves.setHours(LEAVE_HOUR, 0, 0, 0);
+  if (leaves <= now) leaves.setDate(leaves.getDate() + 1);
+
+  const returns = new Date(leaves);
+  returns.setHours(returns.getHours() + LESSON_HOURS);
+  return { leaves, returns };
+}

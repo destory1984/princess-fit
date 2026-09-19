@@ -3,12 +3,20 @@ import { bestWeeklyCoverage, streakOf, type WorkoutFact } from './gamification.t
 
 export type StatKey = 'strength' | 'stamina' | 'vitality' | 'balance' | 'discipline';
 
-export const STAT_META: Record<StatKey, { name: string; hint: string; icon: string }> = {
-  strength: { name: '근력', hint: '한 번에 들어 올린 총량', icon: 'barbell' },
-  stamina: { name: '지구력', hint: '유산소에 들인 시간과 거리', icon: 'walk' },
-  vitality: { name: '활력', hint: '쌓아 올린 세트의 수', icon: 'pulse' },
-  balance: { name: '균형', hint: '한 주에 고루 쓴 부위', icon: 'body' },
-  discipline: { name: '꾸준함', hint: '거르지 않고 이어온 날', icon: 'flame' },
+/**
+ * `short` is for the status plaque, which has room for two syllables and not
+ * three. It is spelled out rather than sliced from `name`: one character each
+ * left 근/지/활/균/꾸 on screen, which reads as nothing at all.
+ */
+export const STAT_META: Record<
+  StatKey,
+  { name: string; short: string; hint: string; icon: string }
+> = {
+  strength: { name: '근력', short: '근력', hint: '한 번에 들어 올린 총량', icon: 'barbell' },
+  stamina: { name: '지구력', short: '지구', hint: '유산소에 들인 시간과 거리', icon: 'walk' },
+  vitality: { name: '활력', short: '활력', hint: '쌓아 올린 세트의 수', icon: 'pulse' },
+  balance: { name: '균형', short: '균형', hint: '한 주에 고루 쓴 부위', icon: 'body' },
+  discipline: { name: '꾸준함', short: '꾸준', hint: '거르지 않고 이어온 날', icon: 'flame' },
 };
 
 export const STAT_ORDER: StatKey[] = [

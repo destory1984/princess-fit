@@ -1,11 +1,12 @@
-import { useEffect } from 'react';
-import { ActivityIndicator, Pressable, View } from 'react-native';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { Stack, useRouter, useSegments } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { AuthProvider, useAuth } from '@/lib/auth';
-import { colors } from '@/lib/theme';
+import { useEffect } from "react";
+import { ActivityIndicator, Platform, Pressable, View } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { Stack, useRouter, useSegments } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { NotificationRouter } from "@/components/NotificationRouter";
+import { AuthProvider, useAuth } from "@/lib/auth";
+import { colors } from "@/lib/theme";
 
 function RootNavigator() {
   const { session, loading } = useAuth();
@@ -14,52 +15,76 @@ function RootNavigator() {
 
   useEffect(() => {
     if (loading) return;
-    const onLoginScreen = segments[0] === 'login';
+    const onLoginScreen = segments[0] === "login";
     // The development bench needs no account: it renders components against
     // made-up data, and sending it to the login screen would defeat it.
-    const onPreview = __DEV__ && segments[0] === 'preview';
-    if (!session && !onLoginScreen && !onPreview) router.replace('/login');
-    if (session && onLoginScreen) router.replace('/');
+    const onPreview = __DEV__ && segments[0] === "preview";
+    if (!session && !onLoginScreen && !onPreview) router.replace("/login");
+    if (session && onLoginScreen) router.replace("/");
   }, [session, loading, segments, router]);
 
   if (loading) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.bg, justifyContent: 'center' }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: colors.bg,
+          justifyContent: "center",
+        }}
+      >
         <ActivityIndicator color={colors.accent} />
       </View>
-
     );
   }
 
   return (
-    <Stack
-      screenOptions={{
-        headerStyle: { backgroundColor: colors.chrome },
-        headerTintColor: colors.chromeText,
-        headerTitleStyle: { fontWeight: '800' },
-        headerShadowVisible: false,
-        contentStyle: { backgroundColor: colors.bg },
-        // The web header has no back affordance of its own, and a screen opened
-        // straight from a URL has nothing to go back to — send those home.
-        headerLeft: () => (
-          <Pressable
-            hitSlop={10}
-            style={{ paddingRight: 12, flexDirection: 'row', alignItems: 'center' }}
-            onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}>
-            <Ionicons name="chevron-back" size={24} color={colors.chromeText} />
-          </Pressable>
-        ),
-      }}>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="login" options={{ headerShown: false }} />
-      <Stack.Screen name="workout/[id]" options={{ title: '운동 기록' }} />
-      <Stack.Screen name="routine/[id]" options={{ title: '루틴' }} />
-      <Stack.Screen name="achievements" options={{ title: '연대기' }} />
-      <Stack.Screen name="exercise/[id]" options={{ title: '운동 종목' }} />
-      <Stack.Screen name="summary/[id]" options={{ title: '오늘의 기록' }} />
-      <Stack.Screen name="preview" options={{ title: '미리보기' }} />
-      <Stack.Screen name="settings/exercises" options={{ title: '운동 종목' }} />
-    </Stack>
+    <>
+      {session && Platform.OS !== "web" && <NotificationRouter />}
+      <Stack
+        screenOptions={{
+          headerStyle: { backgroundColor: colors.chrome },
+          headerTintColor: colors.chromeText,
+          headerTitleStyle: { fontWeight: "800" },
+          headerShadowVisible: false,
+          contentStyle: { backgroundColor: colors.bg },
+          // The web header has no back affordance of its own, and a screen opened
+          // straight from a URL has nothing to go back to — send those home.
+          headerLeft: () => (
+            <Pressable
+              hitSlop={10}
+              style={{
+                paddingRight: 12,
+                flexDirection: "row",
+                alignItems: "center",
+              }}
+              onPress={() =>
+                router.canGoBack() ? router.back() : router.replace("/")
+              }
+            >
+              <Ionicons
+                name="chevron-back"
+                size={24}
+                color={colors.chromeText}
+              />
+            </Pressable>
+          ),
+        }}
+      >
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="login" options={{ headerShown: false }} />
+        <Stack.Screen name="workout/[id]" options={{ title: "운동 기록" }} />
+        <Stack.Screen name="routine/[id]" options={{ title: "루틴" }} />
+        <Stack.Screen name="achievements" options={{ title: "연대기" }} />
+        <Stack.Screen name="exercise/[id]" options={{ title: "운동 종목" }} />
+        <Stack.Screen name="summary/[id]" options={{ title: "오늘의 기록" }} />
+        <Stack.Screen name="greeting" options={{ title: "" }} />
+        <Stack.Screen name="preview" options={{ title: "미리보기" }} />
+        <Stack.Screen
+          name="settings/exercises"
+          options={{ title: "운동 종목" }}
+        />
+      </Stack>
+    </>
   );
 }
 
