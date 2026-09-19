@@ -588,7 +588,12 @@ export default function WorkoutScreen() {
                     <Text style={styles.allDone}>이 종목은 다 하셨어요 🎉</Text>
                   )}
 
-                  {track === "weight_reps" && (
+                  {/*
+                    Only once the exercise is finished. With a set still in
+                    front of you the thing to do is finish it, and two large
+                    buttons side by side made that a choice rather than a step.
+                  */}
+                  {track === "weight_reps" && !current && (
                     <Pressable
                       style={styles.addSet}
                       onPress={() => addSet(exerciseId)}
