@@ -35,7 +35,8 @@ export function TrainingHall({
     <View style={styles.frameOuter}>
       <View style={styles.frameInner}>
         <View style={styles.scene}>
-          <Image source={ROOM} style={StyleSheet.absoluteFill} resizeMode="cover" />
+          {/* The picture sets the height; the box must not crop it. */}
+          <Image source={ROOM} style={styles.room} resizeMode="cover" />
 
           <View style={styles.character} pointerEvents="none">
             <BodyMap data={trained} scale={0.52} labels={false} fill="#D8C7AB" />
@@ -79,7 +80,8 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     overflow: 'hidden',
   },
-  scene: { aspectRatio: 3 / 4, backgroundColor: paper.bgAlt },
+  scene: { backgroundColor: paper.bgAlt },
+  room: { width: '100%', aspectRatio: 3 / 4 },
   character: {
     position: 'absolute',
     left: 0,
