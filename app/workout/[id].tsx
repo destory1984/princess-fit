@@ -11,6 +11,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { BodyMap, workedParts } from "@/components/BodyMap";
 import { ExercisePicker } from "@/components/ExercisePicker";
+import { RestBar } from "@/components/RestBar";
 import { SetCard } from "@/components/SetCard";
 import { ScreenState } from "@/components/ScreenState";
 import { confirmAction, notify } from "@/lib/confirm";
@@ -44,10 +45,6 @@ import {
 import type { Exercise, Workout, WorkoutSet } from "@/lib/types";
 import { followOn, planFor } from "@/lib/setPlan";
 import { colors, muscleColor, radius, spacing } from "@/lib/theme";
-
-function formatClock(seconds: number) {
-  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
-}
 
 export default function WorkoutScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -632,66 +629,20 @@ export default function WorkoutScreen() {
 
       {!done && (
         <View style={styles.bottomBar}>
-          {restRemaining !== null && restLength > 0 && (
-            <View style={styles.restTrack}>
-              <View
-                style={[
-                  styles.restFill,
-                  { width: `${(restRemaining / restLength) * 100}%` },
-                ]}
-              />
-            </View>
-          )}
-          <View style={styles.rest}>
-            <Text style={styles.restLabel} numberOfLines={1}>
-              휴식{restExercise ? ` · ${restExercise.name}` : ""}
-            </Text>
-            {/* Running reads red and counting; idle is the length it will be. */}
-            <Text
-              style={[styles.restClock, restEnd !== null && styles.restClockOn]}
-            >
-              {restRemaining === null
-                ? formatClock(restLength)
-                : formatClock(restRemaining)}
-            </Text>
-            <View style={styles.restActions}>
-              <Pressable
-                style={styles.restButton}
-                onPress={() =>
-                  restEnd === null
-                    ? changeRest(REST_GRAIN)
-                    : setRestEnd(
-                        (end) => (end ?? Date.now()) + REST_GRAIN * 1000,
-                      )
-                }
-              >
-                <Text style={styles.restButtonText}>+10</Text>
-              </Pressable>
-              <Pressable
-                style={styles.restButton}
-                onPress={() =>
-                  restEnd === null
-                    ? changeRest(-REST_GRAIN)
-                    : setRestEnd((end) =>
-                        Math.max(
-                          Date.now(),
-                          (end ?? Date.now()) - REST_GRAIN * 1000,
-                        ),
-                      )
-                }
-              >
-                <Text style={styles.restButtonText}>−10</Text>
-              </Pressable>
-              <Pressable
-                style={styles.restButton}
-                onPress={() => {
-                  setRestEnd(null);
-                }}
-              >
-                <Text style={styles.restButtonText}>건너뛰기</Text>
-              </Pressable>
-            </View>
-          </View>
+          <RestBar
+            exerciseName={restExercise?.name ?? null}
+            length={restLength}
+            remaining={restRemaining}
+            grain={REST_GRAIN}
+            onAdjust={(delta) =>
+              restEnd === null
+                ? changeRest(delta)
+                : setRestEnd((end) =>
+                    Math.max(Date.now(), (end ?? Date.now()) + delta * 1000),
+                  )
+            }
+            onSkip={() => setRestEnd(null)}
+          />
 
           <View style={styles.actions}>
             {/*
@@ -897,31 +848,6 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     gap: spacing.md,
   },
-  restTrack: {
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: colors.surfaceAlt,
-    overflow: "hidden",
-    marginBottom: spacing.sm,
-  },
-  restFill: { height: "100%", backgroundColor: colors.accent },
-  rest: { flexDirection: "row", alignItems: "center", gap: spacing.md },
-  restLabel: { color: colors.textDim, fontSize: 13, maxWidth: 120 },
-  restClockOn: { color: colors.accent },
-  restClock: {
-    color: colors.text,
-    fontSize: 22,
-    fontWeight: "800",
-    minWidth: 62,
-  },
-  restActions: { flexDirection: "row", gap: spacing.sm, marginLeft: "auto" },
-  restButton: {
-    backgroundColor: colors.surfaceAlt,
-    borderRadius: radius.sm,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-  },
-  restButtonText: { color: colors.accent, fontWeight: "600", fontSize: 13 },
   actions: { flexDirection: "row", gap: spacing.sm },
   actionGhost: {
     flex: 1,
