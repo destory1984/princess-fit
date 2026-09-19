@@ -110,7 +110,6 @@ export default function PreviewScreen() {
         remaining={47}
         grain={10}
         onAdjust={() => {}}
-        onSkip={() => {}}
         onStart={() => {}}
       />
       <RestBar
@@ -119,7 +118,6 @@ export default function PreviewScreen() {
         remaining={null}
         grain={10}
         onAdjust={() => {}}
-        onSkip={() => {}}
         onStart={() => {}}
       />
 
