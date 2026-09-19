@@ -5,6 +5,7 @@ import { BigStepper } from '@/components/BigStepper';
 import { BragCard } from '@/components/BragCard';
 import { Cheer } from '@/components/Cheer';
 import { Insights } from '@/components/Insights';
+import { OneRmChart } from '@/components/OneRmChart';
 import { NudgeSetting } from '@/components/NudgeSetting';
 import { nextWeight } from '@/lib/weight';
 import { Greeting } from '@/components/Greeting';
@@ -113,6 +114,9 @@ export default function PreviewScreen() {
         }}
         summary={summarise([])}
       />
+
+      <Text style={styles.heading}>1RM 그래프</Text>
+      <OneRmChart weight={60} />
 
       <Text style={styles.heading}>통계가 짚어주는 것</Text>
       <Insights workouts={benchFacts} />
