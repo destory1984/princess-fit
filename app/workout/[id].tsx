@@ -763,9 +763,14 @@ function MemoField({
 }) {
   const [text, setText] = useState(value);
 
-  useEffect(() => {
+  // Adopt a memo that changed underneath us — reloaded, or saved elsewhere —
+  // during render rather than in an effect, which would paint the stale text
+  // first and then replace it.
+  const [seen, setSeen] = useState(value);
+  if (value !== seen) {
+    setSeen(value);
     setText(value);
-  }, [value]);
+  }
 
   return (
     <TextInput
