@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { OrnateFrame } from '@/components/OrnateFrame';
 import { colors, radius, spacing } from '@/lib/theme';
 
 type Props = {
@@ -26,7 +27,8 @@ export function LevelCard({
   onPress,
 }: Props) {
   return (
-    <Pressable style={styles.card} onPress={onPress}>
+    <OrnateFrame>
+      <Pressable style={styles.card} onPress={onPress}>
       <View style={styles.head}>
         <View style={styles.badge}>
           <Text style={styles.badgeLevel}>Lv.{level}</Text>
@@ -56,17 +58,13 @@ export function LevelCard({
           </Text>
         </View>
       </View>
-    </Pressable>
+      </Pressable>
+    </OrnateFrame>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    gap: spacing.md,
-  },
+  card: { gap: spacing.md },
   head: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   badge: {
     width: 52,
