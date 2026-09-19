@@ -12,11 +12,14 @@ import { GIRL_NAME } from '@/lib/girl';
 import { BASE_GIRL } from '@/lib/outfitArt';
 import { confirmAction, notify } from '@/lib/confirm';
 import {
+  clampRest,
   countExerciseSets,
   deleteExercise,
   estimateOneRm,
   getExerciseHistory,
   listExercises,
+  REST_GRAIN,
+  setExerciseRest,
   type ExerciseHistoryPoint,
 } from '@/lib/db';
 import { coachTipOf, introOf } from '@/lib/exerciseCopy';
@@ -43,6 +46,16 @@ export default function ExerciseScreen() {
   }, [id]);
 
   useFocusEffect(load);
+
+  function changeRest(delta: number) {
+    if (!exercise) return;
+    const next = clampRest(exercise.rest_sec + delta);
+    setExercise({ ...exercise, rest_sec: next });
+    setExerciseRest(exercise.id, next).catch((e: any) => {
+      notify('저장 실패', e.message);
+      load();
+    });
+  }
 
   async function remove() {
     if (!exercise) return;
@@ -117,6 +130,26 @@ export default function ExerciseScreen() {
         </View>
       )}
 
+      {/*
+        Rest length belongs to the exercise, so this is where it can be set
+        without being mid-workout and under a running clock.
+      */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>쉬는 시간</Text>
+        <View style={styles.restRow}>
+          <Text style={styles.restValue}>{exercise.rest_sec}초</Text>
+          <View style={styles.restButtons}>
+            <Pressable style={styles.restButton} onPress={() => changeRest(-REST_GRAIN)}>
+              <Text style={styles.restButtonText}>−{REST_GRAIN}</Text>
+            </Pressable>
+            <Pressable style={styles.restButton} onPress={() => changeRest(REST_GRAIN)}>
+              <Text style={styles.restButtonText}>+{REST_GRAIN}</Text>
+            </Pressable>
+          </View>
+        </View>
+        <Text style={styles.caution}>세트를 마치면 이만큼 세고 알려드려요.</Text>
+      </View>
+
       <View style={styles.card}>
         <Text style={styles.cardTitle}>내 기록</Text>
         {history.length === 0 ? (
@@ -177,6 +210,16 @@ function Stat({ value, label }: { value: string; label: string }) {
 }
 
 const styles = StyleSheet.create({
+  restRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  restValue: { color: colors.text, fontSize: 24, fontWeight: '800' },
+  restButtons: { flexDirection: 'row', gap: spacing.xs, marginLeft: 'auto' },
+  restButton: {
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: radius.sm,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
+  },
+  restButtonText: { color: colors.accent, fontWeight: '700', fontSize: 14 },
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xl },
   head: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
