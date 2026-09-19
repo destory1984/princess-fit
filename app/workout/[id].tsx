@@ -223,6 +223,9 @@ export default function WorkoutScreen() {
       const forExercise = finished?.exercise_id ?? null;
       const seconds = byId.get(forExercise ?? "")?.rest_sec ?? DEFAULT_REST_SEC;
       setRestFor(forExercise);
+      // persist runs from a press, never during render; the rule cannot tell
+      // the difference for a function declared in the component body.
+      // eslint-disable-next-line react-hooks/purity
       setRestEnd(Date.now() + seconds * 1000);
       successFeedback();
 
