@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { requestAdvice, type AdviceContext } from '@/lib/advice';
+import { cacheAdvice, getCachedAdvice } from '@/lib/prefs';
 import { colors, paper, radius, spacing } from '@/lib/theme';
 
 /** `context` must keep a stable identity — a new object each render refetches. */
@@ -18,6 +19,7 @@ export function AdviceCard({ context }: { context: AdviceContext }) {
           if (signal?.aborted) return;
           setText(next);
           setSource(from);
+          if (from === 'model') cacheAdvice(context.today.id, next);
         })
         .finally(() => {
           if (!signal?.aborted) setBusy(false);
@@ -28,9 +30,18 @@ export function AdviceCard({ context }: { context: AdviceContext }) {
 
   useEffect(() => {
     const controller = new AbortController();
-    ask(controller.signal);
+    getCachedAdvice(context.today.id).then((cached) => {
+      if (controller.signal.aborted) return;
+      if (cached) {
+        setText(cached);
+        setSource('model');
+        setBusy(false);
+        return;
+      }
+      ask(controller.signal);
+    });
     return () => controller.abort();
-  }, [ask]);
+  }, [ask, context.today.id]);
 
   return (
     <View style={styles.card}>
