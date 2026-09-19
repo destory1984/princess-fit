@@ -111,12 +111,14 @@ export function moodOf(house: Household, workouts: WorkoutFact[], today = new Da
   return 'fine';
 }
 
+// She hints rather than asks. A character who states her needs plainly reads
+// as a meter with a face; one who glances at the kitchen reads as a person.
 const LINES: Record<Mood, string[]> = {
-  happy: ['오늘도 와 주셨네요. 기분이 좋아요!', '이대로면 뭐든 될 것 같아요.'],
+  happy: ['오늘도 와 주셨네요. 기분이 좋아요.', '요즘은 뭐든 될 것 같은 기분이에요.'],
   fine: ['오늘은 뭘 하실 건가요?', '기다리고 있었어요.'],
-  hungry: ['배 고파요…', '뭔가 먹을 걸 사 주시면 안 될까요?'],
-  shabby: ['옷이 좀 해졌어요…', '이 옷으로 계속 다녀도 괜찮을까요?'],
-  lonely: ['빨리 오세요. 보고 싶어요.', '오늘은 오시려나 하고 기다렸어요.'],
+  hungry: ['오늘 저녁은 뭘까, 그 생각만 했어요.', '자꾸 부엌 쪽을 보게 되네요.'],
+  shabby: ['소매가 좀 해졌죠? 아직은 괜찮아요.', '오늘따라 거울을 오래 보게 되네요.'],
+  lonely: ['오늘은 오시려나 했어요.', '문 쪽을 몇 번이나 봤는지 몰라요.'],
 };
 
 /**

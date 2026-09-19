@@ -24,13 +24,20 @@ function Need({ icon, label, value }: { icon: any; label: string; value: number 
 }
 
 /** What she has, and what she needs. */
-export function Purse({ house }: { house: Household }) {
+export function Purse({ house, opensShop }: { house: Household; opensShop?: boolean }) {
   return (
     <View style={styles.wrap}>
       <View style={styles.goldRow}>
         <Ionicons name="ellipse" size={14} color={colors.gold} />
         <Text style={styles.gold}>{house.gold.toLocaleString()}</Text>
         <Text style={styles.goldUnit}>G</Text>
+        {opensShop && (
+          <>
+            <View style={styles.spacer} />
+            <Text style={styles.shop}>상점</Text>
+            <Ionicons name="chevron-forward" size={16} color={colors.textDim} />
+          </>
+        )}
       </View>
       <Need icon="restaurant-outline" label="포만감" value={house.satiety} />
       <Need icon="shirt-outline" label="차림새" value={house.attire} />
@@ -50,6 +57,8 @@ const styles = StyleSheet.create({
   goldRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   gold: { color: colors.text, fontSize: 20, fontWeight: '800', lineHeight: 26 },
   goldUnit: { color: colors.gold, fontSize: 13, fontWeight: '800' },
+  spacer: { flex: 1 },
+  shop: { color: colors.textDim, fontSize: 12 },
   need: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   needLabel: { color: colors.textDim, fontSize: 12, width: 44 },
   track: {

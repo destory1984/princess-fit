@@ -119,7 +119,11 @@ export default function TodayScreen() {
             stats={stats}
             streak={summary.streak}
           />
-          {house && <Purse house={house} />}
+          {house && (
+            <Pressable onPress={() => router.push('/shop')}>
+              <Purse house={house} opensShop />
+            </Pressable>
+          )}
           <Advisor name={advisor.name} portrait={portraitOf(advisor.id)}>
             {house ? messageFor(moodOf(house, facts), new Date()) : masterSays(stats, facts)}
           </Advisor>

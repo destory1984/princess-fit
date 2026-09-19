@@ -3,6 +3,7 @@ import type { Exercise, Routine, RoutineExercise, Workout, WorkoutSet } from './
 import { localDayKey } from './format';
 import type { WorkoutFact } from './gamification';
 import { afterWorkout, newHousehold, settle, workoutGold, type Household } from './economy';
+import { buy, type Item } from './shop';
 import {
   groupHistory,
   streakDays,
@@ -553,10 +554,15 @@ export async function getLastPerformance(exerciseIds: string[], excludeWorkoutId
  * cost a round trip.
  */
 export async function getHousehold(today = new Date()): Promise<Household> {
+  return (await getLedger(today)).house;
+}
+
+/** The purse and the wardrobe together, which is how the shop needs them. */
+export async function getLedger(today = new Date()): Promise<Ledger> {
   const userId = await requireUserId();
   const { data, error } = await supabase
     .from('household')
-    .select('gold, satiety, attire, settled_on')
+    .select('gold, satiety, attire, settled_on, wardrobe')
     .eq('user_id', userId)
     .maybeSingle();
   if (error) throw error;
@@ -570,12 +576,13 @@ export async function getHousehold(today = new Date()): Promise<Household> {
       }
     : newHousehold(today);
 
+  const wardrobe: string[] = data?.wardrobe ?? [];
   const settled = settle(stored, today);
   if (!data || settled !== stored) await saveHousehold(settled);
-  return settled;
+  return { house: settled, wardrobe };
 }
 
-export async function saveHousehold(house: Household) {
+export async function saveHousehold(house: Household, wardrobe?: string[]) {
   const userId = await requireUserId();
   const { error } = await supabase.from('household').upsert({
     user_id: userId,
@@ -583,9 +590,20 @@ export async function saveHousehold(house: Household) {
     satiety: house.satiety,
     attire: house.attire,
     settled_on: house.settledOn,
+    ...(wardrobe ? { wardrobe } : {}),
     updated_at: new Date().toISOString(),
   });
   if (error) throw error;
+}
+
+export type Ledger = { house: Household; wardrobe: string[] };
+
+/** Spend at the shop. Returns the ledger as it stands afterwards. */
+export async function buyItem(item: Item, today = new Date()): Promise<Ledger> {
+  const { house, wardrobe } = await getLedger(today);
+  const next = buy(item, house, wardrobe);
+  await saveHousehold(next.house, next.wardrobe);
+  return next;
 }
 
 /** Pay out a finished workout. Returns the new ledger and what it earned. */
