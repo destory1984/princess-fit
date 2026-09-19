@@ -1,6 +1,7 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Redirect } from 'expo-router';
 import { Advisor } from '@/components/Advisor';
+import { Greeting } from '@/components/Greeting';
 import { PaperDoll } from '@/components/PaperDoll';
 import { ShopShelves } from '@/components/ShopShelves';
 import { Purse } from '@/components/Purse';
@@ -65,6 +66,15 @@ export default function PreviewScreen() {
       <Text style={styles.heading}>지갑</Text>
       <Purse house={house} opensShop />
 
+      <Text style={styles.heading}>알림을 눌렀을 때</Text>
+      <View style={styles.greeting}>
+        <Greeting
+          worn={['blouse', 'skirt_orange']}
+          line="다녀왔어요. 무용, 생각보다 재미있었어요."
+          onDone={() => {}}
+        />
+      </View>
+
       <Text style={styles.heading}>상점</Text>
       <ShopShelves
         ledger={{
@@ -101,6 +111,7 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xl },
   heading: { color: colors.text, fontSize: 15, fontWeight: '800', marginTop: spacing.md },
+  greeting: { height: 520 },
   dolls: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   dollCell: { alignItems: 'center', gap: 4, width: 100 },
   doll: { width: 100 },
