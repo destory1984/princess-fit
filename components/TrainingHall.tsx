@@ -73,7 +73,8 @@ const styles = StyleSheet.create({
   },
   scene: { backgroundColor: paper.bgAlt },
   // A banner, not the whole screen: the rest of the page has to fit under it.
-  room: { width: '100%', aspectRatio: 4 / 3, maxHeight: 280 },
+  // 3:2, the artwork's own ratio — anything else crops the window out.
+  room: { width: '100%', aspectRatio: 3 / 2, maxHeight: 280 },
 
   datePlaque: { position: 'absolute', top: 10, left: 10, minWidth: 92 },
   dateMonth: { textAlign: 'center', color: paper.inkDim, fontSize: 10, fontWeight: '700' },
