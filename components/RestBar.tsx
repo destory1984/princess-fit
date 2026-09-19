@@ -12,6 +12,8 @@ type Props = {
    *  exercise's own length. */
   onAdjust: (delta: number) => void;
   onSkip: () => void;
+  /** Start the rest by hand, without finishing a set first. */
+  onStart: () => void;
   grain: number;
 };
 
@@ -26,7 +28,15 @@ function clock(seconds: number) {
  * left, or how long this exercise rests — so the running state has to be
  * visible at a glance, not inferred from whether the number is changing.
  */
-export function RestBar({ exerciseName, length, remaining, onAdjust, onSkip, grain }: Props) {
+export function RestBar({
+  exerciseName,
+  length,
+  remaining,
+  onAdjust,
+  onSkip,
+  onStart,
+  grain,
+}: Props) {
   const running = remaining !== null;
 
   return (
@@ -52,12 +62,19 @@ export function RestBar({ exerciseName, length, remaining, onAdjust, onSkip, gra
           <Pressable style={styles.button} onPress={() => onAdjust(grain)}>
             <Text style={styles.buttonText}>+{grain}</Text>
           </Pressable>
-          {/* Nothing to skip when nothing is running. */}
-          {running && (
-            <Pressable style={styles.button} onPress={onSkip}>
-              <Text style={styles.buttonText}>건너뛰기</Text>
-            </Pressable>
-          )}
+          {/*
+            One button in this slot either way: start a rest that is not
+            running, or cut short one that is. Both are about the clock, and
+            only one of them can apply at a time.
+          */}
+          <Pressable
+            style={[styles.button, styles.primary]}
+            onPress={running ? onSkip : onStart}
+          >
+            <Text style={[styles.buttonText, styles.primaryText]}>
+              {running ? '건너뛰기' : '시작'}
+            </Text>
+          </Pressable>
         </View>
       </View>
     </View>
@@ -85,4 +102,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   buttonText: { color: colors.accent, fontWeight: '600', fontSize: 13 },
+  primary: { backgroundColor: colors.accentSoft, borderColor: colors.accent, borderWidth: 1 },
+  primaryText: { fontWeight: '800' },
 });
