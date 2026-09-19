@@ -66,8 +66,9 @@ export function SetCard({
             <BigStepper
               value={set.weight_kg}
               unit="kg"
-              step={1}
-              bigStep={5}
+              // Plates come in 1.25kg pairs, so a bar changes by 2.5 at a time.
+              step={2.5}
+              bigStep={10}
               decimals={set.weight_kg % 1 === 0 ? 0 : 1}
               onChange={(v) => change({ weight_kg: v })}
             />
