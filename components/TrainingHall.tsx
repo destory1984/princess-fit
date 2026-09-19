@@ -116,14 +116,13 @@ const styles = StyleSheet.create({
     backgroundColor: paper.bgAlt,
   },
   piece: { position: 'absolute', height: undefined, aspectRatio: 1 },
-  // Anchored to the floor and placed right of the window, clear of the plaques
-  // above and of the bed on the left.
-  // The box is wider than she is: `contain` centres her inside it, so her
-  // centre stays at 72% across while height alone decides how big she is.
+  // Standing at the foot of the bed, mid-room: clear of both plaques above,
+  // and not hiding the window. The box is wider than she is — `contain`
+  // centres her in it, so height alone decides how big she is.
   girl: {
     position: 'absolute',
     bottom: '2%',
-    left: '48%',
+    left: '18%',
     width: '48%',
     height: '70%',
   },
