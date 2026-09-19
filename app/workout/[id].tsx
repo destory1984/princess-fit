@@ -185,9 +185,14 @@ export default function WorkoutScreen() {
   const done = Boolean(workout?.ended_at);
   const progress = sets.length ? doneSets.length / sets.length : 0;
   const upNext = grouped.find((g) => g.sets.some((s) => !s.done));
-  // While resting it is the exercise just finished; otherwise the one coming
-  // up, so the bar always names something the buttons can actually change.
-  const restExercise = byId.get(restFor ?? "") ?? upNext?.exercise ?? null;
+  // While resting, the exercise just finished — that is whose rest is running.
+  // Once it ends, the one coming up, because that is what the buttons would
+  // change and what the next set will use.
+  const restExercise =
+    (restEnd !== null ? byId.get(restFor ?? "") : upNext?.exercise) ??
+    byId.get(restFor ?? "") ??
+    upNext?.exercise ??
+    null;
   const restLength = restExercise?.rest_sec ?? DEFAULT_REST_SEC;
 
   async function persist(setId: string, patch: Partial<WorkoutSet>) {
