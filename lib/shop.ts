@@ -63,10 +63,6 @@ export const SPECIALS: Item[] = [
 
 export const CATALOG: Item[] = [...FOOD, ...ACCESSORIES, ...SPECIALS];
 
-export function itemById(id: string) {
-  return CATALOG.find((i) => i.id === id) ?? null;
-}
-
 export type Purchase = { house: Household; wardrobe: string[] };
 
 export type Refusal = 'poor' | 'owned' | 'full' | 'locked' | null;

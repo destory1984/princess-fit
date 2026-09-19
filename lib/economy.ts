@@ -145,10 +145,6 @@ export function messageFor(mood: Mood, today = new Date()) {
   return lines[seed % lines.length];
 }
 
-/** XP and gold move together; kept here so callers pay one visit. */
-export function rewardsFor(w: WorkoutFact) {
-  return { xp: workoutXp(w), gold: workoutGold(w) };
-}
 
 /**
  * The line she will have tomorrow, used to schedule the daily message today.
