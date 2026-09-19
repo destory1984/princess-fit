@@ -15,7 +15,7 @@ import {
 import { formatDate, localDayKey } from '@/lib/format';
 import type { WorkoutFact } from '@/lib/gamification';
 import type { Workout } from '@/lib/types';
-import { colors, radius, spacing } from '@/lib/theme';
+import { colors, muscleColor, radius, spacing } from '@/lib/theme';
 
 function duration(workout: Workout) {
   if (!workout.ended_at) return '진행 중';
@@ -30,6 +30,16 @@ export default function HistoryScreen() {
   const [month, setMonth] = useState(() => new Date());
   const [selected, setSelected] = useState<string | null>(null);
   const [facts, setFacts] = useState<WorkoutFact[]>([]);
+
+  // Which parts were trained each day, so the calendar reads as a pattern.
+  const dayGroups = useMemo(() => {
+    const map = new Map<string, string[]>();
+    for (const fact of facts) {
+      const key = localDayKey(new Date(fact.started_at));
+      map.set(key, [...new Set([...(map.get(key) ?? []), ...fact.groups])]);
+    }
+    return map;
+  }, [facts]);
 
   const load = useCallback(() => {
     listWorkoutFacts()
@@ -75,6 +85,7 @@ export default function HistoryScreen() {
       <MonthCalendar
         month={month}
         markedDays={days}
+        dayGroups={dayGroups}
         selected={selected}
         onSelect={(day) => setSelected((cur) => (cur === day ? null : day))}
         onShiftMonth={(delta) =>
@@ -90,6 +101,16 @@ export default function HistoryScreen() {
         </View>
         <Ionicons name="chevron-forward" size={18} color={colors.textDim} />
       </Pressable>
+
+      {/* Colour needs a key: six dots are never told apart by hue alone. */}
+      <View style={styles.legend}>
+        {[...new Set([...dayGroups.values()].flat())].slice(0, 6).map((group) => (
+          <View key={group} style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: muscleColor(group) }]} />
+            <Text style={styles.legendText}>{group}</Text>
+          </View>
+        ))}
+      </View>
 
       <Insights workouts={facts} limit={2} />
 
@@ -145,6 +166,10 @@ export default function HistoryScreen() {
 }
 
 const styles = StyleSheet.create({
+  legend: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
+  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  legendDot: { width: 8, height: 8, borderRadius: 4 },
+  legendText: { color: colors.textDim, fontSize: 11 },
   tool: {
     flexDirection: 'row',
     alignItems: 'center',
