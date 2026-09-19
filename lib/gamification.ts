@@ -46,12 +46,24 @@ export function levelAt(xp: number) {
   };
 }
 
+/** One rank per level so the title changes often enough to notice. */
+export const LEVEL_TITLES = [
+  '문하생',
+  '수련생',
+  '내문 제자',
+  '무사',
+  '검객',
+  '일류',
+  '고수',
+  '절정',
+  '초절정',
+  '화경',
+  '현경',
+  '생사경',
+];
+
 export function levelTitle(level: number) {
-  if (level >= 12) return '고수';
-  if (level >= 8) return '상급';
-  if (level >= 5) return '중급';
-  if (level >= 3) return '초급';
-  return '입문';
+  return LEVEL_TITLES[Math.min(Math.max(level, 1), LEVEL_TITLES.length) - 1];
 }
 
 export type Badge = {

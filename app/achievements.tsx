@@ -5,7 +5,7 @@ import { useFocusEffect } from 'expo-router';
 import { LevelCard } from '@/components/LevelCard';
 import { notify } from '@/lib/confirm';
 import { listWorkoutFacts } from '@/lib/db';
-import { summarise, type Badge } from '@/lib/gamification';
+import { LEVEL_TITLES, summarise, type Badge } from '@/lib/gamification';
 import { colors, radius, spacing } from '@/lib/theme';
 
 export default function AchievementsScreen() {
@@ -36,6 +36,26 @@ export default function AchievementsScreen() {
         earnedCount={summary.earnedCount}
         badgeCount={summary.badges.length}
       />
+
+      <View style={styles.ranks}>
+        <Text style={styles.ranksTitle}>품계</Text>
+        <View style={styles.rankRow}>
+          {LEVEL_TITLES.map((title, i) => (
+            <View
+              key={title}
+              style={[styles.rank, i + 1 === summary.level && styles.rankNow]}>
+              <Text
+                style={[
+                  styles.rankText,
+                  i + 1 <= summary.level && styles.rankReached,
+                  i + 1 === summary.level && styles.rankNowText,
+                ]}>
+                {title}
+              </Text>
+            </View>
+          ))}
+        </View>
+      </View>
 
       <Text style={styles.sectionTitle}>얻은 업적 {earned.length}</Text>
       {earned.length === 0 ? (
@@ -90,6 +110,27 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
   },
   empty: { color: colors.textDim },
+  ranks: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    gap: spacing.md,
+    marginTop: spacing.sm,
+  },
+  ranksTitle: { color: colors.text, fontSize: 15, fontWeight: '700' },
+  rankRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  rank: {
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: 'transparent',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+  },
+  rankNow: { backgroundColor: colors.accentSoft, borderColor: colors.accent },
+  rankText: { color: '#3A4150', fontSize: 13, lineHeight: 18 },
+  rankReached: { color: colors.textDim },
+  rankNowText: { color: colors.accent, fontWeight: '800' },
   row: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,
