@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { coachTipOf, introOf } from './exerciseCopy.ts';
+import { coachTipOf, introOf, withParticle } from './exerciseCopy.ts';
 import type { Exercise } from './types.ts';
 
 type Described = Parameters<typeof introOf>[0];
@@ -47,4 +47,17 @@ test('coaching lines match the kind of movement', () => {
   assert.match(coachTipOf(ex({ name: '레그 프레스', equipment: '머신' })), /패드 높이/);
   assert.match(coachTipOf(ex({ name: '크런치', muscle_group: '복근', equipment: '맨몸' })), /반동/);
   assert.match(coachTipOf(ex({ name: '덤벨 컬', equipment: '덤벨', muscle_group: '팔' })), /내릴 때/);
+});
+
+test('particles follow the final consonant of the preceding syllable', () => {
+  assert.equal(withParticle('가슴', '을/를'), '가슴을');
+  assert.equal(withParticle('어깨', '을/를'), '어깨를');
+  assert.equal(withParticle('하체', '을/를'), '하체를');
+  assert.equal(withParticle('덤벨 컬', '은/는'), '덤벨 컬은');
+  assert.equal(withParticle('스쿼트', '은/는'), '스쿼트는');
+});
+
+test('intro reads naturally for a vowel-ending group', () => {
+  assert.match(introOf(ex({ name: '덤벨 숄더 프레스', muscle_group: '어깨' })), /어깨를 쓰는/);
+  assert.doesNotMatch(introOf(ex({ name: '덤벨 숄더 프레스', muscle_group: '어깨' })), /어깨을/);
 });

@@ -4,6 +4,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { requestAdvice, type AdviceContext } from '@/lib/advice';
 import { colors, paper, radius, spacing } from '@/lib/theme';
 
+/** `context` must keep a stable identity — a new object each render refetches. */
 export function AdviceCard({ context }: { context: AdviceContext }) {
   const [text, setText] = useState('');
   const [source, setSource] = useState<'model' | 'rules'>('rules');
