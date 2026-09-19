@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { DEFAULT_QUIET_FROM, DEFAULT_QUIET_TO } from './quiet';
 
 const WEEKLY_GOAL = 'refit.weeklyGoal';
 export const DEFAULT_WEEKLY_GOAL = 3;
@@ -15,6 +16,26 @@ export async function getWeeklyGoal() {
 
 export async function setWeeklyGoal(goal: number) {
   await AsyncStorage.setItem(WEEKLY_GOAL, String(Math.max(1, Math.min(7, goal))));
+}
+
+const QUIET = 'refit.quietHours';
+
+/** When she should keep quiet, as [from, to] hours. Null means never. */
+export async function getQuietHours(): Promise<[number, number] | null> {
+  try {
+    const raw = await AsyncStorage.getItem(QUIET);
+    if (raw === 'off') return null;
+    if (raw === null) return [DEFAULT_QUIET_FROM, DEFAULT_QUIET_TO];
+    const [from, to] = raw.split(',').map(Number);
+    const ok = (h: number) => Number.isInteger(h) && h >= 0 && h <= 23;
+    return ok(from) && ok(to) ? [from, to] : [DEFAULT_QUIET_FROM, DEFAULT_QUIET_TO];
+  } catch {
+    return [DEFAULT_QUIET_FROM, DEFAULT_QUIET_TO];
+  }
+}
+
+export async function setQuietHours(hours: [number, number] | null) {
+  await AsyncStorage.setItem(QUIET, hours === null ? 'off' : hours.join(','));
 }
 
 const DAILY_ID = 'refit.dailyNotificationId';

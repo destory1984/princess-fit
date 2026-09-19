@@ -67,8 +67,8 @@ export default function ExerciseScreen() {
       return;
     }
     const warning = setCount
-      ? `\n\n이 종목으로 기록한 ${setCount}개 세트도 함께 지워지고 되돌릴 수 없어요.`
-      : '';
+      ? `\n\n되돌릴 수 없어요. 이 종목으로 기록한 ${setCount}개 세트도 함께 지워져요.`
+      : '\n\n되돌릴 수 없어요.';
     confirmAction('종목 삭제', `"${exercise.name}"을 삭제할까요?${warning}`, async () => {
       try {
         await deleteExercise(exercise.id);
