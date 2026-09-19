@@ -20,8 +20,7 @@ import { BASE_GIRL } from '@/lib/outfitArt';
 import { roomMood } from '@/lib/room';
 import {
   conditionFactor,
-  messageFor,
-  moodOf,
+  dailyLine,
   tomorrowsMessage,
   type Household,
 } from '@/lib/economy';
@@ -170,7 +169,7 @@ export default function TodayScreen() {
             </Pressable>
           )}
           <Advisor name={GIRL_NAME} portrait={BASE_GIRL.source}>
-            {house ? messageFor(moodOf(house, facts), new Date()) : masterSays(stats, facts)}
+            {house ? dailyLine(house, facts) : masterSays(stats, facts)}
           </Advisor>
           <LevelCard
             level={summary.level}

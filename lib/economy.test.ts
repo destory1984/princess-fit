@@ -10,6 +10,7 @@ import {
   settle,
   STARTING_GOLD,
   tomorrowsMessage,
+  dailyLine,
   thanksFor,
   workoutGold,
   type GiftKind,
@@ -123,4 +124,31 @@ test('she says something about every kind of thing bought for her', () => {
 
 test('the same purchase always draws the same line', () => {
   assert.equal(thanksFor('clothes', 'gown'), thanksFor('clothes', 'gown'));
+});
+
+test('she says what she needs before she says what your training needs', () => {
+  const hungry: Household = { gold: 0, satiety: 10, attire: 100, settledOn: '2026-09-20' };
+  const chestOnly = [0, 2, 4, 6, 8].map((d) => {
+    const when = new Date(2026, 8, 20 - d);
+    return fact({ id: `c${d}`, started_at: `${when.toISOString().slice(0, 10)}T10:00:00` });
+  });
+  const line = dailyLine(hungry, chestOnly, new Date(2026, 8, 20));
+  assert.equal(line, messageFor('hungry', new Date(2026, 8, 20)));
+});
+
+test('once she is comfortable she passes on what the numbers noticed', () => {
+  const settled: Household = { gold: 500, satiety: 90, attire: 90, settledOn: '2026-09-20' };
+  const chestOnly = [0, 2, 4, 6, 8].map((d) => {
+    const when = new Date(2026, 8, 20 - d);
+    return fact({ id: `c${d}`, started_at: `${when.toISOString().slice(0, 10)}T10:00:00` });
+  });
+  const line = dailyLine(settled, chestOnly, new Date(2026, 8, 20));
+  assert.match(line, /한 달째 안 했어요|유산소|몰려 있어요/);
+});
+
+test('with nothing to report she just says hello', () => {
+  const settled: Household = { gold: 500, satiety: 90, attire: 90, settledOn: '2026-09-20' };
+  const line = dailyLine(settled, [], new Date(2026, 8, 20));
+  assert.ok(line.length > 0);
+  assert.doesNotMatch(line, /한 달째/);
 });
