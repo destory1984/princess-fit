@@ -42,7 +42,3 @@ export function sortByUsage<T extends { id: string; name: string }>(
   });
 }
 
-/** Whether a sort has anything to show, so an empty tab can say why. */
-export function hasUsage(usage: UsageMap) {
-  return usage.size > 0;
-}

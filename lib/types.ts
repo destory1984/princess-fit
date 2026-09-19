@@ -75,5 +75,3 @@ export const MUSCLE_GROUPS = [
 
 export const EQUIPMENT = ['바벨', '덤벨', '머신', '케이블', '맨몸', '기타'] as const;
 
-// Regions the body diagram can shade. 유산소/기타 have no single region.
-export const BODY_REGIONS = ['가슴', '등', '어깨', '하체', '팔', '복근'] as const;
