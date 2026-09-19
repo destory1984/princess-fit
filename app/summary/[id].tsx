@@ -19,6 +19,7 @@ import {
 import { formatDate, formatDuration } from '@/lib/format';
 import { computeStats } from '@/lib/character';
 import { summarise, workoutXp, type WorkoutFact } from '@/lib/gamification';
+import { workoutGold } from '@/lib/economy';
 import type { Workout } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
 
@@ -128,6 +129,7 @@ export default function SummaryScreen() {
 
         <View style={styles.badgeRow}>
           <Pill icon="flash" text={`+${workoutXp(fact)} XP`} tint={colors.accent} />
+          <Pill icon="ellipse" text={`+${workoutGold(fact)} G`} tint={colors.gold} />
           <Pill icon="ribbon" text={`Lv.${summary.level} ${summary.title}`} tint={colors.success} />
           {summary.streak > 1 && (
             <Pill icon="flame" text={`${summary.streak}일 연속`} tint={colors.danger} />
