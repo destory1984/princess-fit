@@ -41,7 +41,12 @@ export default function TrainingLedgerScreen() {
     const next = Math.max(1, Math.min(7, goal + delta));
     if (next === goal) return;
     setGoal(next);
-    await setWeeklyGoal(next);
+    try {
+      await setWeeklyGoal(next);
+    } catch (e: any) {
+      notify('목표 저장 실패', e.message);
+      setGoal(goal);
+    }
   }
 
   useFocusEffect(load);

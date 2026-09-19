@@ -16,3 +16,23 @@ export async function getWeeklyGoal() {
 export async function setWeeklyGoal(goal: number) {
   await AsyncStorage.setItem(WEEKLY_GOAL, String(Math.max(1, Math.min(7, goal))));
 }
+
+/**
+ * Advice already given for a workout. Cached so revisiting a past session shows
+ * what it said at the time instead of paying for a fresh generation.
+ */
+export async function getCachedAdvice(workoutId: string) {
+  try {
+    return await AsyncStorage.getItem(`refit.advice.${workoutId}`);
+  } catch {
+    return null;
+  }
+}
+
+export async function cacheAdvice(workoutId: string, text: string) {
+  try {
+    await AsyncStorage.setItem(`refit.advice.${workoutId}`, text);
+  } catch {
+    // A missing cache only costs a regeneration.
+  }
+}

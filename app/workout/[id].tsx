@@ -162,11 +162,16 @@ export default function WorkoutScreen() {
   }
 
   function removeExercise(exerciseId: string, name: string) {
-    const belonging = sets.filter((s) => s.exercise_id === exerciseId);
     confirmAction('종목 빼기', `"${name}"을 이 운동에서 뺄까요?`, async () => {
-      setSets((prev) => prev.filter((s) => s.exercise_id !== exerciseId));
+      // Read the sets when the answer comes back, not when the dialog opened:
+      // a native Alert leaves time for another set to land.
+      let removed: WorkoutSet[] = [];
+      setSets((prev) => {
+        removed = prev.filter((s) => s.exercise_id === exerciseId);
+        return prev.filter((s) => s.exercise_id !== exerciseId);
+      });
       try {
-        await Promise.all(belonging.map((s) => deleteWorkoutSet(s.id)));
+        await Promise.all(removed.map((s) => deleteWorkoutSet(s.id)));
       } catch (e: any) {
         notify('삭제 실패', e.message);
         load();
