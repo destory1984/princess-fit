@@ -5,6 +5,7 @@ import { BigStepper } from '@/components/BigStepper';
 import { nextWeight } from '@/lib/weight';
 import { Greeting } from '@/components/Greeting';
 import { PaperDoll } from '@/components/PaperDoll';
+import { SetCard } from '@/components/SetCard';
 import { ShopShelves } from '@/components/ShopShelves';
 import { Purse } from '@/components/Purse';
 import { TrainingHall } from '@/components/TrainingHall';
@@ -67,6 +68,39 @@ export default function PreviewScreen() {
 
       <Text style={styles.heading}>지갑</Text>
       <Purse house={house} opensShop />
+
+      <Text style={styles.heading}>세트 카드</Text>
+      {(
+        [
+          ['weight_reps', { weight_kg: 62.5, reps: 8 }, 3, 4],
+          ['weight_reps', { weight_kg: 0, reps: 10 }, 1, 3],
+          ['cardio', { duration_sec: 1_800, distance_km: 5.2 }, 1, 1],
+        ] as const
+      ).map(([track, patch, index, total], i) => (
+        <SetCard
+          key={i}
+          track={track}
+          index={index}
+          total={total}
+          tint={colors.accent}
+          set={{
+            id: `preview-${i}`,
+            workout_id: 'w',
+            exercise_id: 'e',
+            position: 0,
+            set_no: index,
+            weight_kg: 0,
+            reps: 0,
+            duration_sec: 0,
+            distance_km: 0,
+            done: false,
+            ...patch,
+          }}
+          onChange={() => {}}
+          onComplete={() => {}}
+          onRemove={() => {}}
+        />
+      ))}
 
       <Text style={styles.heading}>세트 입력</Text>
       <View style={styles.steppers}>
