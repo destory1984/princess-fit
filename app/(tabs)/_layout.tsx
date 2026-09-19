@@ -9,10 +9,15 @@ export default function TabLayout() {
         headerStyle: { backgroundColor: colors.bg },
         headerTintColor: colors.text,
         sceneStyle: { backgroundColor: colors.bg },
-        tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
+        tabBarStyle: {
+          backgroundColor: colors.surface,
+          borderTopColor: colors.border,
+          paddingTop: 6,
+        },
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.textDim,
-        tabBarLabelStyle: { fontSize: 11, includeFontPadding: false },
+        // Korean labels lose their bottom stroke without room for descenders.
+        tabBarLabelStyle: { fontSize: 11, lineHeight: 16, paddingBottom: 2 },
         tabBarAllowFontScaling: false,
       }}>
       <Tabs.Screen
