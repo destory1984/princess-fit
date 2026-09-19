@@ -7,10 +7,23 @@ import { Advisor } from '@/components/Advisor';
 import { LevelCard } from '@/components/LevelCard';
 import { Purse } from '@/components/Purse';
 import { TrainingHall } from '@/components/TrainingHall';
-import { archetypeOf, computeStats, conditionOf, masterSays } from '@/lib/character';
+import {
+  archetypeOf,
+  computeStats,
+  conditionOf,
+  conditionPenalty,
+  masterSays,
+  scaleStats,
+} from '@/lib/character';
 import { useAdvisor } from '@/lib/useAdvisor';
 import { portraitOf } from '@/lib/portraits';
-import { messageFor, moodOf, tomorrowsMessage, type Household } from '@/lib/economy';
+import {
+  conditionFactor,
+  messageFor,
+  moodOf,
+  tomorrowsMessage,
+  type Household,
+} from '@/lib/economy';
 import { getAdvisorId, getNudgeHour } from '@/lib/prefs';
 import { advisorById } from '@/lib/advisors';
 import { scheduleDailyMessage } from '@/lib/notify';
@@ -105,6 +118,11 @@ export default function TodayScreen() {
 
   const isNew = weekly.workouts === 0 && routines.length === 0 && !active;
 
+  // What she can show today, not what she once managed. Neglect dims it.
+  const factor = house ? conditionFactor(house) : 1;
+  const shownStats = stats ? scaleStats(stats, factor) : null;
+  const penalty = conditionPenalty(factor);
+
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       {isNew && (
@@ -132,7 +150,7 @@ export default function TodayScreen() {
         </View>
       )}
 
-      {summary && stats && (
+      {summary && stats && shownStats && (
         <>
           <TrainingHall
             today={new Date()}
@@ -140,9 +158,10 @@ export default function TodayScreen() {
             level={summary.level}
             archetype={archetypeOf(stats).name}
             condition={conditionOf(stats, summary.streak)}
-            stats={stats}
+            stats={shownStats}
             streak={summary.streak}
             furniture={furniture}
+            penalty={penalty}
           />
           {house && (
             <Pressable onPress={() => router.push('/shop')}>

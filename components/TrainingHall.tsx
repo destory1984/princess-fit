@@ -19,6 +19,8 @@ type Props = {
   streak: number;
   /** Ids of the furniture she owns; the cot is always there underneath. */
   furniture?: string[];
+  /** Why the numbers are lower than they were, when they are. */
+  penalty?: string | null;
 };
 
 /** The main hall: a room you stand in, with plaques pinned to its corners. */
@@ -31,6 +33,7 @@ export function TrainingHall({
   stats,
   streak,
   furniture = [],
+  penalty,
 }: Props) {
   return (
     <View style={styles.frameOuter}>
@@ -83,6 +86,7 @@ export function TrainingHall({
               ))}
             </View>
             {streak > 0 && <Text style={styles.statusStreak}>연속 {streak}일</Text>}
+            {penalty ? <Text style={styles.statusPenalty}>{penalty}</Text> : null}
           </OrnateFrame>
         </View>
       </View>
@@ -102,6 +106,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   plaqueText: { color: colors.text, fontSize: 9, lineHeight: 13, textAlign: 'center' },
+  statusPenalty: { color: colors.accent, fontSize: 9, lineHeight: 13, marginTop: 2 },
   frameOuter: { backgroundColor: paper.line, borderRadius: 8, padding: 3 },
   frameInner: {
     borderColor: paper.bg,
