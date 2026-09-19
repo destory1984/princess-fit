@@ -15,8 +15,8 @@ import {
   masterSays,
   scaleStats,
 } from '@/lib/character';
-import { useAdvisor } from '@/lib/useAdvisor';
-import { portraitOf } from '@/lib/portraits';
+import { GIRL_NAME } from '@/lib/girl';
+import { BASE_GIRL } from '@/lib/outfitArt';
 import { roomMood } from '@/lib/room';
 import {
   conditionFactor,
@@ -25,8 +25,7 @@ import {
   tomorrowsMessage,
   type Household,
 } from '@/lib/economy';
-import { getAdvisorId, getNudgeHour } from '@/lib/prefs';
-import { advisorById } from '@/lib/advisors';
+import { getNudgeHour } from '@/lib/prefs';
 import { scheduleDailyMessage } from '@/lib/notify';
 import {
   getActiveWorkout,
@@ -47,9 +46,7 @@ async function armDailyMessage(house: Household, facts: WorkoutFact[]) {
   try {
     const hour = await getNudgeHour();
     if (hour === null) return;
-    const advisorId = await getAdvisorId();
-    const speaker = advisorById(advisorId).name;
-    await scheduleDailyMessage(speaker, tomorrowsMessage(house, facts), hour);
+    await scheduleDailyMessage(GIRL_NAME, tomorrowsMessage(house, facts), hour);
   } catch {
     // She will try again the next time the app is opened.
   }
@@ -68,7 +65,6 @@ export default function TodayScreen() {
   const [house, setHouse] = useState<Household | null>(null);
   const [furniture, setFurniture] = useState<string[]>([]);
   const [worn, setWorn] = useState<string[]>([]);
-  const advisor = useAdvisor();
 
   const load = useCallback(() => {
     Promise.all([
@@ -173,7 +169,7 @@ export default function TodayScreen() {
               <Purse house={house} opensShop />
             </Pressable>
           )}
-          <Advisor name={advisor.name} portrait={portraitOf(advisor.id)}>
+          <Advisor name={GIRL_NAME} portrait={BASE_GIRL.source}>
             {house ? messageFor(moodOf(house, facts), new Date()) : masterSays(stats, facts)}
           </Advisor>
           <LevelCard

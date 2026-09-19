@@ -1,10 +1,13 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Redirect } from 'expo-router';
+import { Advisor } from '@/components/Advisor';
 import { PaperDoll } from '@/components/PaperDoll';
 import { Purse } from '@/components/Purse';
 import { TrainingHall } from '@/components/TrainingHall';
 import { FURNITURE } from '@/lib/room';
 import { GARMENTS } from '@/lib/outfit';
+import { BASE_GIRL } from '@/lib/outfitArt';
+import { GIRL_NAME } from '@/lib/girl';
 import { colors, spacing } from '@/lib/theme';
 
 /**
@@ -52,6 +55,11 @@ export default function PreviewScreen() {
         penalty="돌봄이 부족해 능력이 12% 낮게 나와요"
         caption="더 들일 것이 없는 방이 되었어요."
       />
+
+      <Text style={styles.heading}>말풍선</Text>
+      <Advisor name={GIRL_NAME} portrait={BASE_GIRL.source}>
+        오늘은 오시려나 했어요.
+      </Advisor>
 
       <Text style={styles.heading}>지갑</Text>
       <Purse house={house} opensShop />
