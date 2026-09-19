@@ -5,6 +5,7 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { captureRef } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
 import { BodyMap, workedParts } from '@/components/BodyMap';
+import { OrnateFrame } from '@/components/OrnateFrame';
 import { notify } from '@/lib/confirm';
 import { getWorkoutDetail, listWorkoutFacts, type WorkoutDetailExercise } from '@/lib/db';
 import { formatDate, formatDuration } from '@/lib/format';
@@ -69,7 +70,8 @@ export default function SummaryScreen() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <View ref={card} collapsable={false} style={styles.card}>
+      <View ref={card} collapsable={false}>
+        <OrnateFrame style={styles.card}>
         <Text style={styles.date}>{formatDate(workout.started_at)}</Text>
         <Text style={styles.cheer}>💪 {cheer}</Text>
         <Text style={styles.title}>{workout.title}</Text>
@@ -107,7 +109,8 @@ export default function SummaryScreen() {
           </Text>
         )}
 
-        <Text style={styles.brand}>Refit</Text>
+          <Text style={styles.brand}>Refit</Text>
+        </OrnateFrame>
       </View>
 
       <Pressable style={styles.share} onPress={share}>
@@ -148,12 +151,7 @@ function Pill({ icon, text, tint }: { icon: string; text: string; tint: string }
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xl },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 20,
-    padding: spacing.xl,
-    gap: spacing.sm,
-  },
+  card: { gap: spacing.sm },
   date: { color: colors.textDim, fontSize: 13 },
   cheer: { color: colors.accent, fontSize: 15, fontWeight: '700' },
   title: { color: colors.text, fontSize: 26, fontWeight: '800', marginBottom: spacing.md },
