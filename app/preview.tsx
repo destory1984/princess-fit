@@ -2,6 +2,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Redirect } from 'expo-router';
 import { Advisor } from '@/components/Advisor';
 import { PaperDoll } from '@/components/PaperDoll';
+import { ShopShelves } from '@/components/ShopShelves';
 import { Purse } from '@/components/Purse';
 import { TrainingHall } from '@/components/TrainingHall';
 import { FURNITURE } from '@/lib/room';
@@ -63,6 +64,19 @@ export default function PreviewScreen() {
 
       <Text style={styles.heading}>지갑</Text>
       <Purse house={house} opensShop />
+
+      <Text style={styles.heading}>상점</Text>
+      <ShopShelves
+        ledger={{
+          house,
+          wardrobe: ['blouse', 'skirt_orange', 'ribbon'],
+          worn: ['blouse', 'skirt_orange'],
+          furniture: ['bed', 'curtain'],
+          culture: { grace: 24, learning: 41, charm: 12 },
+        }}
+        busy={null}
+        onSpend={() => {}}
+      />
 
       <Text style={styles.heading}>옷 한 벌씩</Text>
       <View style={styles.dolls}>
