@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { BigStepper } from '@/components/BigStepper';
@@ -28,7 +28,8 @@ export function SetCard({
   onComplete,
   onRemove,
 }: Props) {
-  const scale = useRef(new Animated.Value(1)).current;
+  // Created once, without reading a ref during render.
+  const scale = useMemo(() => new Animated.Value(1), []);
 
   useEffect(() => {
     scale.setValue(0.96);

@@ -1,5 +1,5 @@
 import { localDayKey } from './format.ts';
-import { workoutXp, type WorkoutFact } from './gamification.ts';
+import type { WorkoutFact } from './gamification.ts';
 
 /**
  * The household ledger: what a workout earns, and what a day away costs.

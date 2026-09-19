@@ -5,7 +5,7 @@ import { PaperDoll } from "@/components/PaperDoll";
 import { STAT_META, STAT_ORDER, type Stats } from "@/lib/character";
 import { artFor } from "@/lib/furnitureArt";
 import { roomContents } from "@/lib/room";
-import { colors, paper, spacing } from "@/lib/theme";
+import { colors, paper } from "@/lib/theme";
 
 const ROOM = require("../assets/room.png");
 

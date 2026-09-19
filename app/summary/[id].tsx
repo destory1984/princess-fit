@@ -5,7 +5,6 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { captureRef } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
 import { AdviceCard } from '@/components/AdviceCard';
-import { BodyMap, workedParts } from '@/components/BodyMap';
 import { BragCard } from '@/components/BragCard';
 import { ScreenState } from '@/components/ScreenState';
 import { notify } from '@/lib/confirm';
@@ -16,10 +15,9 @@ import {
   repeatWorkout,
   type WorkoutDetailExercise,
 } from '@/lib/db';
-import { formatDate, formatDuration } from '@/lib/format';
+import { formatDate } from '@/lib/format';
 import { computeStats } from '@/lib/character';
-import { summarise, workoutXp, type WorkoutFact } from '@/lib/gamification';
-import { workoutGold } from '@/lib/economy';
+import { summarise, type WorkoutFact } from '@/lib/gamification';
 import type { Workout } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
 
