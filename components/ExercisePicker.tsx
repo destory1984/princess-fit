@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import {
   ActivityIndicator,
   FlatList,
@@ -13,6 +14,7 @@ import { ExerciseThumb } from '@/components/ExerciseThumb';
 import { MuscleTag } from '@/components/MuscleTag';
 import { seedDefaultExercises } from '@/lib/catalog';
 import { notify } from '@/lib/confirm';
+import { setExerciseFavourite } from '@/lib/db';
 import { sortByUsage, SORT_NAME, type Sort, type UsageMap } from '@/lib/exerciseUsage';
 import { EQUIPMENT, MUSCLE_GROUPS, type Exercise } from '@/lib/types';
 import { colors, muscleColor, radius, spacing } from '@/lib/theme';
@@ -37,13 +39,23 @@ export function ExercisePicker({
 }: Props) {
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<Sort>('all');
+  // Stars changed in this sheet, before the parent reloads its exercises.
+  const [starred, setStarred] = useState<Map<string, boolean>>(new Map());
   const [group, setGroup] = useState<string | null>(null);
   const [gear, setGear] = useState<string | null>(null);
   const [seeding, setSeeding] = useState(false);
 
+  const withStars = useMemo(
+    () =>
+      exercises.map((e) =>
+        starred.has(e.id) ? { ...e, favourite: starred.get(e.id)! } : e
+      ),
+    [exercises, starred]
+  );
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return exercises.filter(
+    return withStars.filter(
       (e) =>
         (group === null || e.muscle_group === group) &&
         (gear === null || e.equipment === gear) &&
@@ -52,7 +64,7 @@ export function ExercisePicker({
             (field) => field.toLowerCase().includes(q)
           ))
     );
-  }, [exercises, query, group, gear]);
+  }, [withStars, query, group, gear]);
 
   // Sixty-seven movements sorted by name asks you to remember what yours are
   // called. Most sessions reuse a handful; put those within reach.
@@ -60,6 +72,23 @@ export function ExercisePicker({
     () => sortByUsage(filtered, usage ?? new Map(), sort),
     [filtered, usage, sort]
   );
+
+  /**
+   * Star an exercise. Updated on screen first: the list is the only feedback
+   * that the tap landed, and waiting on the server makes a heart feel broken.
+   */
+  function toggleFavourite(exercise: Exercise) {
+    const next = !exercise.favourite;
+    setStarred((prev) => new Map(prev).set(exercise.id, next));
+    setExerciseFavourite(exercise.id, next).catch((e: any) => {
+      notify('저장 실패', e.message);
+      setStarred((prev) => {
+        const back = new Map(prev);
+        back.delete(exercise.id);
+        return back;
+      });
+    });
+  }
 
   function close() {
     setQuery('');
@@ -117,7 +146,7 @@ export function ExercisePicker({
                 autoCorrect={false}
               />
               <View style={styles.chipRow}>
-                {(['all', 'recent', 'often'] as Sort[]).map((s) => (
+                {(['all', 'favourite', 'recent', 'often'] as Sort[]).map((s) => (
                   <Chip
                     key={s}
                     label={SORT_NAME[s]}
@@ -157,7 +186,9 @@ export function ExercisePicker({
                   <Text style={styles.emptyText}>
                     {sort === 'all'
                       ? '검색 결과가 없어요.'
-                      : `${SORT_NAME[sort]}에 넣을 기록이 아직 없어요. 한 번 해보면 여기 쌓여요.`}
+                      : sort === 'favourite'
+                        ? '♥를 눌러 자주 쓰는 종목을 모아두세요.'
+                        : `${SORT_NAME[sort]}에 넣을 기록이 아직 없어요. 한 번 해보면 여기 쌓여요.`}
                   </Text>
                 }
                 renderItem={({ item: e }) => (
@@ -180,6 +211,13 @@ export function ExercisePicker({
                       )}
                     </View>
                     <MuscleTag group={e.muscle_group} />
+                    <Pressable hitSlop={8} onPress={() => toggleFavourite(e)}>
+                      <Ionicons
+                        name={e.favourite ? 'heart' : 'heart-outline'}
+                        size={18}
+                        color={e.favourite ? colors.accent : colors.faint}
+                      />
+                    </Pressable>
                   </Pressable>
                 )}
               />

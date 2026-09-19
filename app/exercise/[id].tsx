@@ -19,6 +19,7 @@ import {
   getExerciseHistory,
   listExercises,
   REST_GRAIN,
+  setExerciseFavourite,
   setExerciseRest,
   type ExerciseHistoryPoint,
 } from '@/lib/db';
@@ -46,6 +47,16 @@ export default function ExerciseScreen() {
   }, [id]);
 
   useFocusEffect(load);
+
+  function toggleFavourite() {
+    if (!exercise) return;
+    const next = !exercise.favourite;
+    setExercise({ ...exercise, favourite: next });
+    setExerciseFavourite(exercise.id, next).catch((e: any) => {
+      notify('저장 실패', e.message);
+      load();
+    });
+  }
 
   function changeRest(delta: number) {
     if (!exercise) return;
@@ -106,6 +117,14 @@ export default function ExerciseScreen() {
             <Text style={styles.sub}>기록 방식 · {TRACK_TYPE_LABEL[exercise.track_type]}</Text>
           </View>
           <MuscleTag group={exercise.muscle_group} />
+          {/* Star it where you read about it, not only from the picker. */}
+          <Pressable hitSlop={8} onPress={toggleFavourite}>
+            <Ionicons
+              name={exercise.favourite ? 'heart' : 'heart-outline'}
+              size={22}
+              color={exercise.favourite ? colors.accent : colors.faint}
+            />
+          </Pressable>
         </View>
 
         <View style={styles.body}>

@@ -830,3 +830,12 @@ export async function getExerciseUsage(sessions = 200): Promise<UsageMap> {
   }
   return usage;
 }
+
+/** Star or unstar an exercise. Purely about finding it again quickly. */
+export async function setExerciseFavourite(exerciseId: string, favourite: boolean) {
+  const { error } = await supabase
+    .from('exercises')
+    .update({ favourite })
+    .eq('id', exerciseId);
+  if (error) throw error;
+}

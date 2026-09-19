@@ -154,3 +154,6 @@ alter table body_logs enable row level security;
 drop policy if exists "own body logs" on body_logs;
 create policy "own body logs" on body_logs
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- Starred exercises, which sort to the top of the picker.
+alter table exercises add column if not exists favourite boolean not null default false;

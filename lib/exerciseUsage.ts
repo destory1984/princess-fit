@@ -10,10 +10,11 @@ export type Usage = { count: number; lastOn: string };
 
 export type UsageMap = Map<string, Usage>;
 
-export type Sort = 'all' | 'recent' | 'often';
+export type Sort = 'all' | 'favourite' | 'recent' | 'often';
 
 export const SORT_NAME: Record<Sort, string> = {
   all: '전체',
+  favourite: '즐겨찾기',
   recent: '최근',
   often: '자주',
 };
@@ -22,12 +23,16 @@ export const SORT_NAME: Record<Sort, string> = {
  * Order a list for the chosen sort. 'all' keeps the caller's order — usually
  * alphabetical — because a list that reshuffles itself is hard to scan twice.
  */
-export function sortByUsage<T extends { id: string; name: string }>(
+export function sortByUsage<T extends { id: string; name: string; favourite?: boolean }>(
   items: T[],
   usage: UsageMap,
   sort: Sort
 ): T[] {
   if (sort === 'all') return items;
+
+  // Starred is a choice, not a measurement: it keeps the caller's order rather
+  // than ranking, so the list you curated stays the list you curated.
+  if (sort === 'favourite') return items.filter((e) => e.favourite);
 
   const used = items.filter((e) => usage.has(e.id));
   if (sort === 'recent') {
