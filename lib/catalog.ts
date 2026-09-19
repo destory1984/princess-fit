@@ -48,11 +48,46 @@ export const DEFAULT_EXERCISES: CatalogEntry[] = [
   { name: '딥스', muscle_group: '팔', secondary_group: '가슴', equipment: '맨몸', muscle_detail: '삼두, 대흉근 하부', body_parts: 'triceps,chest' },
 
   { name: '크런치', muscle_group: '복근', secondary_group: null, equipment: '맨몸', muscle_detail: '복직근', body_parts: 'abs' },
+  { name: '윗몸 일으키기', muscle_group: '복근', secondary_group: null, equipment: '맨몸', muscle_detail: '복직근', body_parts: 'abs' },
   { name: '레그 레이즈', muscle_group: '복근', secondary_group: null, equipment: '맨몸', muscle_detail: '하복부', body_parts: 'abs' },
+  { name: '행잉 레그 레이즈', muscle_group: '복근', secondary_group: null, equipment: '맨몸', muscle_detail: '하복부', body_parts: 'abs' },
+  { name: '바이시클 크런치', muscle_group: '복근', secondary_group: null, equipment: '맨몸', muscle_detail: '복직근, 복사근', body_parts: 'abs,obliques' },
+  { name: '러시안 트위스트', muscle_group: '복근', secondary_group: null, equipment: '맨몸', muscle_detail: '복사근', body_parts: 'obliques' },
+  { name: '마운틴 클라이머', muscle_group: '복근', secondary_group: '유산소', equipment: '맨몸', muscle_detail: '복직근, 심폐', body_parts: 'abs,quadriceps' },
   { name: '플랭크', muscle_group: '복근', secondary_group: null, equipment: '맨몸', muscle_detail: '복직근, 코어', body_parts: 'abs,obliques' },
 
+  { name: '인클라인 덤벨 프레스', muscle_group: '가슴', secondary_group: '어깨', equipment: '덤벨', muscle_detail: '대흉근 상부, 삼각근', body_parts: 'chest,deltoids' },
+  { name: '디클라인 벤치프레스', muscle_group: '가슴', secondary_group: '팔', equipment: '바벨', muscle_detail: '대흉근 하부, 삼두', body_parts: 'chest,triceps' },
+  { name: '펙덱 플라이', muscle_group: '가슴', secondary_group: null, equipment: '머신', muscle_detail: '대흉근', body_parts: 'chest' },
+
+  { name: '친업', muscle_group: '등', secondary_group: '팔', equipment: '맨몸', muscle_detail: '광배근, 이두', body_parts: 'upper-back,biceps' },
+  { name: '티바 로우', muscle_group: '등', secondary_group: '팔', equipment: '머신', muscle_detail: '광배근, 승모근', body_parts: 'upper-back,trapezius,biceps' },
+  { name: '백 익스텐션', muscle_group: '등', secondary_group: '하체', equipment: '맨몸', muscle_detail: '척추기립근, 둔근', body_parts: 'lower-back,gluteal' },
+  { name: '슈러그', muscle_group: '등', secondary_group: null, equipment: '덤벨', muscle_detail: '승모근', body_parts: 'trapezius' },
+
+  { name: '아놀드 프레스', muscle_group: '어깨', secondary_group: '팔', equipment: '덤벨', muscle_detail: '삼각근, 삼두', body_parts: 'deltoids,triceps' },
+  { name: '업라이트 로우', muscle_group: '어깨', secondary_group: '등', equipment: '바벨', muscle_detail: '삼각근, 승모근', body_parts: 'deltoids,trapezius' },
+  { name: '프론트 레이즈', muscle_group: '어깨', secondary_group: null, equipment: '덤벨', muscle_detail: '전면 삼각근', body_parts: 'deltoids' },
+
+  { name: '불가리안 스플릿 스쿼트', muscle_group: '하체', secondary_group: null, equipment: '덤벨', muscle_detail: '대퇴사두, 둔근', body_parts: 'quadriceps,gluteal' },
+  { name: '스텝업', muscle_group: '하체', secondary_group: null, equipment: '덤벨', muscle_detail: '대퇴사두, 둔근', body_parts: 'quadriceps,gluteal' },
+  { name: '점프 스쿼트', muscle_group: '하체', secondary_group: '유산소', equipment: '맨몸', muscle_detail: '대퇴사두, 둔근', body_parts: 'quadriceps,gluteal,calves' },
+  { name: '월 싯', muscle_group: '하체', secondary_group: null, equipment: '맨몸', muscle_detail: '대퇴사두', body_parts: 'quadriceps' },
+  { name: '케틀벨 스윙', muscle_group: '하체', secondary_group: '등', equipment: '기타', muscle_detail: '둔근, 햄스트링', body_parts: 'gluteal,hamstring,lower-back' },
+
+  { name: '프리처 컬', muscle_group: '팔', secondary_group: null, equipment: '바벨', muscle_detail: '이두', body_parts: 'biceps' },
+  { name: '케이블 컬', muscle_group: '팔', secondary_group: null, equipment: '케이블', muscle_detail: '이두', body_parts: 'biceps' },
+  { name: '트라이셉스 킥백', muscle_group: '팔', secondary_group: null, equipment: '덤벨', muscle_detail: '삼두', body_parts: 'triceps' },
+  { name: '리버스 컬', muscle_group: '팔', secondary_group: null, equipment: '바벨', muscle_detail: '전완, 이두', body_parts: 'forearm,biceps' },
+
   { name: '러닝', muscle_group: '유산소', secondary_group: '하체', equipment: '맨몸', muscle_detail: '심폐, 하체', body_parts: 'quadriceps,calves' },
+  { name: '걷기', muscle_group: '유산소', secondary_group: '하체', equipment: '맨몸', muscle_detail: '심폐, 하체', body_parts: 'quadriceps,calves' },
+  { name: '줄넘기', muscle_group: '유산소', secondary_group: '하체', equipment: '맨몸', muscle_detail: '심폐, 종아리', body_parts: 'calves,quadriceps' },
+  { name: '계단 오르기', muscle_group: '유산소', secondary_group: '하체', equipment: '맨몸', muscle_detail: '심폐, 둔근', body_parts: 'gluteal,quadriceps' },
+  { name: '버피', muscle_group: '유산소', secondary_group: '하체', equipment: '맨몸', muscle_detail: '전신, 심폐', body_parts: 'quadriceps,chest,abs' },
+  { name: '수영', muscle_group: '유산소', secondary_group: '등', equipment: '맨몸', muscle_detail: '전신, 심폐', body_parts: 'upper-back,deltoids' },
   { name: '사이클', muscle_group: '유산소', secondary_group: '하체', equipment: '머신', muscle_detail: '심폐, 대퇴사두', body_parts: 'quadriceps' },
+  { name: '일립티컬', muscle_group: '유산소', secondary_group: '하체', equipment: '머신', muscle_detail: '심폐, 하체', body_parts: 'quadriceps,gluteal' },
   { name: '로잉 머신', muscle_group: '유산소', secondary_group: '등', equipment: '머신', muscle_detail: '심폐, 광배근', body_parts: 'upper-back,quadriceps' },
 ];
 
