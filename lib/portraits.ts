@@ -5,10 +5,6 @@
  */
 const PORTRAITS: Record<string, number> = {
   geumhwa: require('../assets/advisors/geumhwa.png'),
-  dana: require('../assets/advisors/dana.png'),
-  munhui: require('../assets/advisors/munhui.png'),
-  dohwa: require('../assets/advisors/dohwa.png'),
-  cheongram: require('../assets/advisors/cheongram.png'),
   seora: require('../assets/advisors/seora.png'),
 };
 
