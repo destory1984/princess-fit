@@ -15,7 +15,9 @@ import {
   REFUSAL_TEXT,
   refusalFor,
   SPECIALS,
+  effectiveCulture,
   wardrobeProgress,
+  wornCharm,
   type Item,
 } from '@/lib/shop';
 import { colors, paper, radius, spacing } from '@/lib/theme';
@@ -55,6 +57,8 @@ export default function ShopScreen() {
   if (!ledger) return <ScreenState error={error} onRetry={load} />;
 
   const { house, wardrobe, furniture, culture } = ledger;
+  // What the bars show: lessons plus whatever she has on.
+  const worn = effectiveCulture(culture, wardrobe);
 
   function Row({
     id,
@@ -225,13 +229,16 @@ export default function ShopScreen() {
                 <Ionicons name={CULTURE_META[k].icon as any} size={14} color={colors.gold} />
                 <Text style={styles.cultureName}>{CULTURE_META[k].name}</Text>
                 <View style={styles.track}>
-                  <View style={[styles.fill, { width: `${culture[k]}%` }]} />
+                  <View style={[styles.fill, { width: `${worn[k]}%` }]} />
                 </View>
-                <Text style={styles.cultureValue}>{culture[k]}</Text>
+                <Text style={styles.cultureValue}>{worn[k]}</Text>
               </View>
             ))}
           </View>
-          <Text style={styles.hint}>운동으로는 오르지 않는 것들이에요.</Text>
+          <Text style={styles.hint}>
+            운동으로는 오르지 않는 것들이에요.
+            {wornCharm(wardrobe) ? ` 장신구로 매력 +${wornCharm(wardrobe)}.` : ''}
+          </Text>
           {LESSONS.map((lesson) => (
             <LessonRow key={lesson.id} lesson={lesson} />
           ))}

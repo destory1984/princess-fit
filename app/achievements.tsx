@@ -24,6 +24,8 @@ import {
   STAT_ORDER,
 } from '@/lib/character';
 import { getLedger, listWorkoutFacts } from '@/lib/db';
+import { effectiveCulture, wardrobeProgress } from '@/lib/shop';
+import { roomProgress } from '@/lib/room';
 import { getWeeklyGoal, setWeeklyGoal } from '@/lib/prefs';
 import {
   LEVEL_TITLES,
@@ -39,6 +41,8 @@ export default function TrainingLedgerScreen() {
   const [error, setError] = useState<string | null>(null);
   const advisor = useAdvisor();
   const [culture, setCulture] = useState<Culture>(EMPTY_CULTURE);
+  const [wardrobe, setWardrobe] = useState<string[]>([]);
+  const [furniture, setFurniture] = useState<string[]>([]);
 
   const load = useCallback(() => {
     setError(null);
@@ -49,7 +53,11 @@ export default function TrainingLedgerScreen() {
         // Her schooling is a side note here, so a failure to read it leaves
         // the bars at zero rather than blocking the whole chronicle.
         getLedger()
-          .then((l) => setCulture(l.culture))
+          .then((l) => {
+            setCulture(l.culture);
+            setWardrobe(l.wardrobe);
+            setFurniture(l.furniture);
+          })
           .catch(() => {});
       })
       .catch((e) => setError(e.message));
@@ -72,6 +80,10 @@ export default function TrainingLedgerScreen() {
   if (!facts) return <ScreenState error={error} onRetry={load} />;
 
   const summary = summarise(facts);
+  // Lessons plus what she is wearing, so this never disagrees with the shop.
+  const worn = effectiveCulture(culture, wardrobe);
+  const clothes = wardrobeProgress(wardrobe);
+  const room = roomProgress(furniture);
   const stats = computeStats(facts);
   const archetype = archetypeOf(stats);
   const plan = weeklyPlan(facts, goal);
@@ -150,16 +162,37 @@ export default function TrainingLedgerScreen() {
         </View>
       </Scroll>
 
+      <Scroll title="일 년의 길">
+        <Text style={styles.yearHint}>
+          꾸준히 일 년이면 옷장을 채울 수 있어요. 방은 그 다음이에요.
+        </Text>
+        {[
+          { label: '옷장', done: clothes.count, total: clothes.total, ratio: clothes.ratio, unit: '벌' },
+          { label: '방', done: room.count, total: room.total, ratio: room.ratio, unit: '개' },
+        ].map((line) => (
+          <View key={line.label} style={styles.cultureRow}>
+            <Text style={styles.yearLabel}>{line.label}</Text>
+            <View style={styles.cultureTrack}>
+              <View style={[styles.cultureFill, { width: `${line.ratio * 100}%` }]} />
+            </View>
+            <Text style={styles.yearValue}>
+              {line.done}/{line.total}
+              {line.unit}
+            </Text>
+          </View>
+        ))}
+      </Scroll>
+
       <Scroll title="배운 것">
-        <Text style={styles.refineTitle}>{refinementTitle(culture)}</Text>
+        <Text style={styles.refineTitle}>{refinementTitle(worn)}</Text>
         {CULTURE_ORDER.map((key) => (
           <View key={key} style={styles.cultureRow}>
             <Ionicons name={CULTURE_META[key].icon as any} size={15} color={paper.line} />
             <Text style={styles.cultureName}>{CULTURE_META[key].name}</Text>
             <View style={styles.cultureTrack}>
-              <View style={[styles.cultureFill, { width: `${culture[key]}%` }]} />
+              <View style={[styles.cultureFill, { width: `${worn[key]}%` }]} />
             </View>
-            <Text style={styles.cultureValue}>{culture[key]}</Text>
+            <Text style={styles.cultureValue}>{worn[key]}</Text>
           </View>
         ))}
         <Text style={styles.cultureHint}>
@@ -230,6 +263,9 @@ function BadgeRow({ badge }: { badge: Badge }) {
 }
 
 const styles = StyleSheet.create({
+  yearHint: { color: paper.inkDim, fontSize: 11, lineHeight: 16, marginBottom: spacing.sm },
+  yearLabel: { color: paper.inkDim, fontSize: 12, width: 32 },
+  yearValue: { color: paper.inkDim, fontSize: 11, width: 44, textAlign: 'right' },
   refineTitle: { color: paper.ink, fontSize: 14, fontWeight: '700', marginBottom: spacing.sm },
   cultureRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: 6 },
   cultureName: { color: paper.inkDim, fontSize: 12, width: 32 },
