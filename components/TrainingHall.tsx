@@ -67,7 +67,12 @@ export function TrainingHall({
               // Until a sprite exists, a plaque stands in so the purchase is
               // visibly in the room rather than only in the database.
               return art ? (
-                <Image key={piece.id} source={art} style={[styles.piece, box]} resizeMode="contain" />
+                <Image
+                  key={piece.id}
+                  source={art.source}
+                  resizeMode="contain"
+                  style={[styles.piece, box, { aspectRatio: art.aspect }]}
+                />
               ) : (
                 <View key={piece.id} style={[styles.plaque, box]}>
                   <Text style={styles.plaqueText} numberOfLines={1}>
@@ -123,7 +128,8 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     backgroundColor: paper.bgAlt,
   },
-  piece: { position: 'absolute', height: undefined, aspectRatio: 1 },
+  // Width comes from the room data; aspectRatio from the art itself.
+  piece: { position: 'absolute' },
   wash: {
     position: 'absolute',
     top: 0,

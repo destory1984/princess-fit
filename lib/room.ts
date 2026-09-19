@@ -68,14 +68,14 @@ export const STARTER: Furniture = {
 
 export const FURNITURE: Furniture[] = [
   { id: 'flowers', slot: 'plant', name: '들꽃 화병', detail: '방에 색이 하나 생겨요', price: 250, icon: 'flower-outline', place: { x: 0.86, y: 0.52, w: 0.14 } },
-  { id: 'curtain', slot: 'curtain', name: '분홍 커튼', detail: '아침볕이 부드러워져요', price: 450, icon: 'browsers-outline', place: { x: 0.4, y: 0.04, w: 0.36 } },
+  { id: 'curtain', slot: 'curtain', name: '분홍 커튼', detail: '아침볕이 부드러워져요', price: 450, icon: 'browsers-outline', place: { x: 0.4, y: 0.08, w: 0.42 } },
   { id: 'rug', slot: 'rug', name: '꽃무늬 양탄자', detail: '맨발로 내려서도 괜찮아요', price: 500, icon: 'square-outline', place: { x: 0.18, y: 0.72, w: 0.6 } },
   { id: 'bench', slot: 'seat', name: '창가 벤치', detail: '앉아서 밖을 볼 자리', price: 550, icon: 'tablet-landscape-outline', place: { x: 0.06, y: 0.68, w: 0.3 } },
   { id: 'pictures', slot: 'picture', name: '액자 셋', detail: '벽이 허전하지 않게', price: 600, icon: 'image-outline', place: { x: 0.2, y: 0.1, w: 0.18 } },
-  { id: 'dresser', slot: 'dresser', name: '거울 달린 화장대', detail: '차림새를 보고 나설 수 있어요', price: 800, icon: 'browsers-outline', place: { x: 0.36, y: 0.38, w: 0.22 } },
-  { id: 'bed', slot: 'bed', name: '천개 달린 침대', detail: '이제 잘 자겠네요', price: 900, icon: 'bed-outline', place: { x: 0.0, y: 0.28, w: 0.46 } },
-  { id: 'shelf', slot: 'shelf', name: '책장', detail: '배운 것을 쌓아둘 곳', price: 1_000, icon: 'library-outline', place: { x: 0.78, y: 0.14, w: 0.22 } },
-  { id: 'chandelier', slot: 'light', name: '샹들리에', detail: '밤에도 방이 환해요', price: 1_400, icon: 'bulb-outline', place: { x: 0.44, y: 0.0, w: 0.16 } },
+  { id: 'mirror', slot: 'dresser', name: '전신 거울', detail: '차림새를 보고 나설 수 있어요', price: 800, icon: 'browsers-outline', place: { x: 0.62, y: 0.3, w: 0.13 } },
+  { id: 'bed', slot: 'bed', name: '천개 달린 침대', detail: '이제 잘 자겠네요', price: 900, icon: 'bed-outline', place: { x: 0.0, y: 0.3, w: 0.48 } },
+  { id: 'shelf', slot: 'shelf', name: '책장', detail: '배운 것을 쌓아둘 곳', price: 1_000, icon: 'library-outline', place: { x: 0.82, y: 0.2, w: 0.16 } },
+  { id: 'chandelier', slot: 'light', name: '샹들리에', detail: '밤에도 방이 환해요', price: 1_400, icon: 'bulb-outline', place: { x: 0.42, y: 0.0, w: 0.2 } },
 ];
 
 export const ROOM_TOTAL = FURNITURE.reduce((sum, f) => sum + f.price, 0);
