@@ -133,3 +133,22 @@ export function weeklyPlan(workouts: WorkoutFact[], goal = 3, today = new Date()
     met: days.size >= goal,
   };
 }
+
+/**
+ * Stats as they actually show, dimmed by how she is faring. Letting her go
+ * hungry or ragged has to cost something visible, or the needs are decoration.
+ *
+ * The scaling is uniform, so it never reorders her strengths — a neglected
+ * lifter is still a lifter, just a diminished one.
+ */
+export function scaleStats(stats: Stats, factor: number): Stats {
+  const scaled = {} as Stats;
+  for (const key of STAT_ORDER) scaled[key] = Math.round(stats[key] * factor);
+  return scaled;
+}
+
+/** Why the numbers are lower than they were, or null when nothing is wrong. */
+export function conditionPenalty(factor: number) {
+  if (factor >= 0.99) return null;
+  return `돌봄이 부족해 능력이 ${Math.round((1 - factor) * 100)}% 낮게 나와요`;
+}

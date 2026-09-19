@@ -1,6 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { archetypeOf, computeStats, masterSays, weeklyPlan } from './character.ts';
+import {
+  STAT_ORDER,
+  archetypeOf,
+  computeStats,
+  conditionPenalty,
+  masterSays,
+  scaleStats,
+  weeklyPlan,
+} from './character.ts';
 import type { WorkoutFact } from './gamification.ts';
 
 function fact(partial: Partial<WorkoutFact> & { started_at: string }): WorkoutFact {
@@ -72,4 +80,19 @@ test('weekly plan counts distinct days since Monday', () => {
   assert.equal(plan.done, 2);
   assert.equal(plan.met, false);
   assert.equal(plan.daysLeft, 3);
+});
+
+test('neglect dims every stat without reordering her strengths', () => {
+  const stats = { strength: 80, stamina: 40, vitality: 60, balance: 20, discipline: 50 };
+  const dim = scaleStats(stats, 0.7);
+  assert.equal(dim.strength, 56);
+  assert.equal(dim.balance, 14);
+  const order = (s: typeof stats) =>
+    STAT_ORDER.map((k) => [k, s[k]] as const).sort((a, b) => b[1] - a[1]).map(([k]) => k);
+  assert.deepEqual(order(dim), order(stats));
+});
+
+test('a well-kept girl is told nothing; a neglected one is told why', () => {
+  assert.equal(conditionPenalty(1), null);
+  assert.match(conditionPenalty(0.7)!, /30% 낮게/);
 });

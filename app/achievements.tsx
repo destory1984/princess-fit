@@ -7,6 +7,13 @@ import { Scroll } from '@/components/Scroll';
 import { StatBar } from '@/components/StatBar';
 import { ScreenState } from '@/components/ScreenState';
 import { useAdvisor } from '@/lib/useAdvisor';
+import {
+  CULTURE_META,
+  CULTURE_ORDER,
+  EMPTY_CULTURE,
+  refinementTitle,
+  type Culture,
+} from '@/lib/lessons';
 import { notify } from '@/lib/confirm';
 import {
   archetypeOf,
@@ -16,7 +23,7 @@ import {
   STAT_META,
   STAT_ORDER,
 } from '@/lib/character';
-import { listWorkoutFacts } from '@/lib/db';
+import { getLedger, listWorkoutFacts } from '@/lib/db';
 import { getWeeklyGoal, setWeeklyGoal } from '@/lib/prefs';
 import {
   LEVEL_TITLES,
@@ -31,6 +38,7 @@ export default function TrainingLedgerScreen() {
   const [goal, setGoal] = useState(3);
   const [error, setError] = useState<string | null>(null);
   const advisor = useAdvisor();
+  const [culture, setCulture] = useState<Culture>(EMPTY_CULTURE);
 
   const load = useCallback(() => {
     setError(null);
@@ -38,6 +46,11 @@ export default function TrainingLedgerScreen() {
       .then(([list, savedGoal]) => {
         setFacts(list);
         setGoal(savedGoal);
+        // Her schooling is a side note here, so a failure to read it leaves
+        // the bars at zero rather than blocking the whole chronicle.
+        getLedger()
+          .then((l) => setCulture(l.culture))
+          .catch(() => {});
       })
       .catch((e) => setError(e.message));
   }, []);
@@ -137,6 +150,23 @@ export default function TrainingLedgerScreen() {
         </View>
       </Scroll>
 
+      <Scroll title="배운 것">
+        <Text style={styles.refineTitle}>{refinementTitle(culture)}</Text>
+        {CULTURE_ORDER.map((key) => (
+          <View key={key} style={styles.cultureRow}>
+            <Ionicons name={CULTURE_META[key].icon as any} size={15} color={paper.line} />
+            <Text style={styles.cultureName}>{CULTURE_META[key].name}</Text>
+            <View style={styles.cultureTrack}>
+              <View style={[styles.cultureFill, { width: `${culture[key]}%` }]} />
+            </View>
+            <Text style={styles.cultureValue}>{culture[key]}</Text>
+          </View>
+        ))}
+        <Text style={styles.cultureHint}>
+          운동으로는 오르지 않아요. 상점의 수업에서만 자라요.
+        </Text>
+      </Scroll>
+
       <Scroll title="품계">
         <View style={styles.rankRow}>
           {LEVEL_TITLES.map((title, i) => (
@@ -200,6 +230,21 @@ function BadgeRow({ badge }: { badge: Badge }) {
 }
 
 const styles = StyleSheet.create({
+  refineTitle: { color: paper.ink, fontSize: 14, fontWeight: '700', marginBottom: spacing.sm },
+  cultureRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: 6 },
+  cultureName: { color: paper.inkDim, fontSize: 12, width: 32 },
+  cultureTrack: {
+    flex: 1,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: paper.bg,
+    borderColor: paper.lineSoft,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  cultureFill: { height: '100%', backgroundColor: paper.line },
+  cultureValue: { color: paper.inkDim, fontSize: 11, width: 24, textAlign: 'right' },
+  cultureHint: { color: paper.inkDim, fontSize: 11, lineHeight: 16, marginTop: 4 },
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xl },
 
