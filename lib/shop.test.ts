@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { ACCESSORIES, buy, effectiveCulture, FOOD, refusalFor, SPECIALS, wornCharm } from './shop.ts';
 import { GARMENTS, OUTFIT_TOTAL } from './outfit.ts';
+import { EMPTY_CULTURE } from './lessons.ts';
 import { DAILY_UPKEEP, workoutGold, type Household } from './economy.ts';
 import { LESSONS } from './lessons.ts';
 import type { WorkoutFact } from './gamification.ts';
@@ -93,4 +94,33 @@ test('a garment hidden under the gown stops counting', () => {
   const taught = { grace: 0, learning: 0, charm: 0 };
   const gown = GARMENTS.find((g) => g.id === 'gown')!;
   assert.equal(effectiveCulture(taught, [], ['blouse', 'gown']).charm, gown.charm);
+});
+
+/**
+ * Three times a price tag has promised something the code never did: the
+ * condition factor, accessory charm, garment charm. This walks the whole
+ * catalogue and holds every advertised effect to actually landing, so the
+ * fourth one fails here rather than in someone's save file.
+ */
+test('every effect a shelf advertises actually happens', () => {
+  const start: Household = { gold: 100_000, satiety: 0, attire: 50, settledOn: '2026-09-20' };
+
+  for (const item of FOOD) {
+    const { house } = buy(item, start, []);
+    assert.equal(house.satiety, item.restores, `${item.id} restores what it says`);
+    assert.equal(house.gold, start.gold - item.price, `${item.id} costs what it says`);
+  }
+
+  for (const item of ACCESSORIES) {
+    const { house, wardrobe } = buy(item, start, []);
+    assert.equal(house.gold, start.gold - item.price, `${item.id} costs what it says`);
+    const before = effectiveCulture(EMPTY_CULTURE, [], []);
+    const after = effectiveCulture(EMPTY_CULTURE, wardrobe, []);
+    assert.equal(after.charm - before.charm, item.charm, `${item.id} adds the charm it says`);
+  }
+
+  for (const garment of GARMENTS) {
+    const worn = effectiveCulture(EMPTY_CULTURE, [], [garment.id]);
+    assert.equal(worn.charm, garment.charm, `${garment.id} adds the charm it says`);
+  }
 });

@@ -5,6 +5,7 @@ import { BigStepper } from '@/components/BigStepper';
 import { nextWeight } from '@/lib/weight';
 import { Greeting } from '@/components/Greeting';
 import { PaperDoll } from '@/components/PaperDoll';
+import { RestBar } from '@/components/RestBar';
 import { SetCard } from '@/components/SetCard';
 import { ShopShelves } from '@/components/ShopShelves';
 import { Purse } from '@/components/Purse';
@@ -68,6 +69,24 @@ export default function PreviewScreen() {
 
       <Text style={styles.heading}>지갑</Text>
       <Purse house={house} opensShop />
+
+      <Text style={styles.heading}>쉬는 시간 막대</Text>
+      <RestBar
+        exerciseName="바벨 스쿼트"
+        length={120}
+        remaining={47}
+        grain={10}
+        onAdjust={() => {}}
+        onSkip={() => {}}
+      />
+      <RestBar
+        exerciseName="덤벨 컬"
+        length={60}
+        remaining={null}
+        grain={10}
+        onAdjust={() => {}}
+        onSkip={() => {}}
+      />
 
       <Text style={styles.heading}>세트 카드</Text>
       {(
