@@ -46,9 +46,19 @@ export function AdviceCard({ context }: { context: AdviceContext }) {
   return (
     <View style={styles.card}>
       <View style={styles.head}>
-        <Ionicons name="sparkles" size={16} color={colors.accent} />
-        <Text style={styles.title}>AI 조언</Text>
-        <Text style={styles.badge}>{source === 'model' ? '모델' : '규칙 기반'}</Text>
+        {/*
+          Calling a canned sentence "AI 조언" and then admitting 규칙 기반 in
+          the corner is a joke at the app's expense. It is only AI when a model
+          actually answered; otherwise it is what it is — a short read of the
+          numbers, which is worth saying plainly.
+        */}
+        <Ionicons
+          name={source === 'model' ? 'sparkles' : 'reader-outline'}
+          size={16}
+          color={colors.accent}
+        />
+        <Text style={styles.title}>{source === 'model' ? 'AI 조언' : '오늘의 한 줄'}</Text>
+        {source === 'model' && <Text style={styles.badge}>모델</Text>}
         <Pressable hitSlop={8} disabled={busy} onPress={() => ask()}>
           <Ionicons
             name="refresh"

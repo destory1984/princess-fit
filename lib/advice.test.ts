@@ -80,7 +80,11 @@ test('rule advice flags neglected body parts with the right particle', () => {
   assert.doesNotMatch(advice, /어깨을/);
 });
 
-test('rule advice greets a first-ever workout without comparing', () => {
-  const advice = localRuleAdvice(ctx({ today: fact({ id: 'a' }) }));
-  assert.match(advice, /첫 기록/);
+
+test('a first workout is told what it was, not that there is nothing to say', () => {
+  const advice = localRuleAdvice(
+    ctx({ today: fact({ id: 'a', groups: ['가슴', '팔'], doneSets: 12 }) })
+  );
+  assert.match(advice, /가슴, 팔을 12세트/);
+  assert.doesNotMatch(advice, /비교할 것이 없어요/);
 });

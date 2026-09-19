@@ -66,7 +66,12 @@ export function localRuleAdvice(c: AdviceContext): string {
   const praise = c.streak > 1 ? `${c.streak}일째 이어오고 있어요.` : '오늘도 기록을 남겼네요.';
 
   if (past.length === 0) {
-    return `${praise} 첫 기록이라 비교할 것이 없어요. 다음 번에 같은 종목을 한 번 더 해보면 그때부터 변화가 보입니다.`;
+    // Nothing to compare against, so say what today actually was. "비교할 것이
+    // 없어요" alone reads as an apology for having no opinion.
+    const what = c.today.groups.length
+      ? `${withParticle(c.today.groups.join(', '), '을/를')} ${c.today.doneSets}세트`
+      : `${c.today.doneSets}세트`;
+    return `${praise} 오늘 ${what} 했어요. 같은 종목을 한 번 더 하면, 그때부터 늘었는지 보입니다.`;
   }
 
   const avgVolume = averageOf(past.map((w) => w.volume));
