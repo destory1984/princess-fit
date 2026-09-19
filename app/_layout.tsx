@@ -82,6 +82,7 @@ function RootNavigator() {
         <Stack.Screen name="exercise/[id]" options={{ title: "운동 종목" }} />
         <Stack.Screen name="summary/[id]" options={{ title: "오늘의 기록" }} />
         <Stack.Screen name="greeting" options={{ title: "" }} />
+        <Stack.Screen name="onerm" options={{ title: "1RM 계산기" }} />
         <Stack.Screen name="settings/girl" options={{ title: "함께 지낼 아이" }} />
         <Stack.Screen name="preview" options={{ title: "미리보기" }} />
         <Stack.Screen

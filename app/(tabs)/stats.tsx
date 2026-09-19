@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { ExercisePicker } from '@/components/ExercisePicker';
 import { GroupBreakdown } from '@/components/GroupBreakdown';
 import { Insights } from '@/components/Insights';
@@ -22,6 +22,7 @@ import type { Exercise } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
 
 export default function StatsScreen() {
+  const router = useRouter();
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [totals, setTotals] = useState<GroupTotal[]>([]);
   const [selected, setSelected] = useState<Exercise | null>(null);
@@ -72,6 +73,15 @@ export default function StatsScreen() {
           <Text style={styles.cardTitle}>부위별 비중</Text>
           <GroupBreakdown totals={totals} />
         </OrnateFrame>
+
+        <Pressable style={styles.tool} onPress={() => router.push('/onerm')}>
+          <Ionicons name="calculator-outline" size={18} color={colors.accent} />
+          <View style={styles.toolBody}>
+            <Text style={styles.toolTitle}>1RM 계산기</Text>
+            <Text style={styles.toolSub}>해본 세트로 한 번에 들 무게를 가늠해요</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={colors.textDim} />
+        </Pressable>
 
         <Pressable style={styles.picker} onPress={() => setPicking(true)}>
           <Text style={styles.pickerLabel}>종목</Text>
@@ -172,6 +182,17 @@ function Toggle({ label, on, onPress }: { label: string; on: boolean; onPress: (
 
 const styles = StyleSheet.create({
   sectionTitle: { color: colors.text, fontSize: 15, fontWeight: '800' },
+  tool: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    padding: spacing.md,
+  },
+  toolBody: { flex: 1 },
+  toolTitle: { color: colors.text, fontSize: 14, fontWeight: '700' },
+  toolSub: { color: colors.textDim, fontSize: 12, marginTop: 2 },
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xl },
   picker: {
