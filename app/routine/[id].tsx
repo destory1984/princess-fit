@@ -1,17 +1,19 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { BodyMap, workedParts } from '@/components/BodyMap';
 import { ExercisePicker } from '@/components/ExercisePicker';
 import { MuscleTag } from '@/components/MuscleTag';
 import { confirmAction, notify } from '@/lib/confirm';
 import {
   addRoutineExercise,
+  getActiveWorkout,
   getRoutine,
   listExercises,
   listRoutineExercises,
   removeRoutineExercise,
+  startWorkout,
   updateRoutineExercise,
 } from '@/lib/db';
 import type { Exercise, Routine, RoutineExercise } from '@/lib/types';
@@ -19,6 +21,7 @@ import { colors, radius, spacing } from '@/lib/theme';
 
 export default function RoutineScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
   const [routine, setRoutine] = useState<Routine | null>(null);
   const [items, setItems] = useState<RoutineExercise[]>([]);
   const [exercises, setExercises] = useState<Exercise[]>([]);
@@ -69,6 +72,21 @@ export default function RoutineScreen() {
     } catch (e: any) {
       notify('저장 실패', e.message);
       load();
+    }
+  }
+
+  async function begin() {
+    if (!id || !routine) return;
+    try {
+      const active = await getActiveWorkout();
+      if (active) {
+        router.push({ pathname: '/workout/[id]', params: { id: active.id } });
+        return;
+      }
+      const created = await startWorkout(routine.name, id);
+      router.replace({ pathname: '/workout/[id]', params: { id: created.id } });
+    } catch (e: any) {
+      notify('시작 실패', e.message);
     }
   }
 
@@ -141,6 +159,15 @@ export default function RoutineScreen() {
         </Pressable>
       </ScrollView>
 
+      {items.length > 0 && (
+        <View style={styles.bottomBar}>
+          <Pressable style={styles.start} onPress={begin}>
+            <Ionicons name="flash" size={18} color="#fff" />
+            <Text style={styles.startText}>이 루틴으로 시작하기</Text>
+          </Pressable>
+        </View>
+      )}
+
       <ExercisePicker
         visible={picking}
         exercises={exercises}
@@ -179,7 +206,23 @@ function Stepper({
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
-  content: { padding: spacing.lg, gap: spacing.sm },
+  content: { padding: spacing.lg, gap: spacing.sm, paddingBottom: 96 },
+  bottomBar: {
+    position: 'absolute',
+    left: spacing.lg,
+    right: spacing.lg,
+    bottom: spacing.lg,
+  },
+  start: {
+    backgroundColor: colors.accent,
+    borderRadius: radius.lg,
+    paddingVertical: spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+  },
+  startText: { color: '#fff', fontWeight: '800', fontSize: 15 },
   title: { color: colors.text, fontSize: 22, fontWeight: '800' },
   bodyCard: {
     backgroundColor: colors.surface,
