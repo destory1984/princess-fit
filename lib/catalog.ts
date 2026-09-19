@@ -56,19 +56,46 @@ export const DEFAULT_EXERCISES: CatalogEntry[] = [
   { name: '로잉 머신', muscle_group: '유산소', secondary_group: '등', equipment: '머신', muscle_detail: '심폐, 광배근', body_parts: 'upper-back,quadriceps' },
 ];
 
+/**
+ * Adds any missing default exercises and backfills catalog metadata onto rows
+ * that predate it, matched by name. Rows the user has already annotated are
+ * left alone.
+ */
 export async function seedDefaultExercises() {
   const { data: userData } = await supabase.auth.getSession();
   const userId = userData.session?.user.id;
   if (!userId) throw new Error('로그인이 필요합니다.');
 
-  const existing = new Set((await listExercises()).map((e) => e.name));
-  const rows = DEFAULT_EXERCISES.filter((e) => !existing.has(e.name)).map((e) => ({
+  const existing = await listExercises();
+  const byName = new Map(existing.map((e) => [e.name, e]));
+
+  const inserts = DEFAULT_EXERCISES.filter((e) => !byName.has(e.name)).map((e) => ({
     ...e,
     user_id: userId,
   }));
-  if (rows.length === 0) return 0;
+  if (inserts.length) {
+    const { error } = await supabase.from('exercises').insert(inserts);
+    if (error) throw error;
+  }
 
-  const { error } = await supabase.from('exercises').insert(rows);
-  if (error) throw error;
-  return rows.length;
+  const stale = DEFAULT_EXERCISES.flatMap((entry) => {
+    const row = byName.get(entry.name);
+    return row && !row.body_parts ? [{ id: row.id, entry }] : [];
+  });
+  await Promise.all(
+    stale.map(({ id, entry }) =>
+      supabase
+        .from('exercises')
+        .update({
+          muscle_group: entry.muscle_group,
+          secondary_group: entry.secondary_group,
+          equipment: entry.equipment,
+          muscle_detail: entry.muscle_detail,
+          body_parts: entry.body_parts,
+        })
+        .eq('id', id)
+    )
+  );
+
+  return { added: inserts.length, updated: stale.length };
 }
