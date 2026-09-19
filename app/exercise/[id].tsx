@@ -67,7 +67,8 @@ export default function ExerciseScreen() {
     0,
     ...history.flatMap((h) => h.sets.map((s) => estimateOneRm(s.weight_kg, s.reps)))
   );
-  const steps = exercise.how_to.split('\n').filter(Boolean);
+  // Rows created before the how_to column exists come back without it.
+  const steps = (exercise.how_to ?? '').split('\n').filter(Boolean);
   const points = history.map((h) => ({
     label: formatDate(h.date, 'short'),
     value: isCardio ? Math.round(h.durationSec / 60) : h.max_weight,
