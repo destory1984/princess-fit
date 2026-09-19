@@ -118,12 +118,14 @@ const styles = StyleSheet.create({
   piece: { position: 'absolute', height: undefined, aspectRatio: 1 },
   // Anchored to the floor and placed right of the window, clear of the plaques
   // above and of the bed on the left.
+  // The box is wider than she is: `contain` centres her inside it, so her
+  // centre stays at 72% across while height alone decides how big she is.
   girl: {
     position: 'absolute',
     bottom: '2%',
-    left: '52%',
-    width: '40%',
-    height: '58%',
+    left: '48%',
+    width: '48%',
+    height: '70%',
   },
   plaque: {
     position: 'absolute',
