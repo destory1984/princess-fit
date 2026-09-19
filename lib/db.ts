@@ -158,6 +158,70 @@ export async function updateWorkout(id: string, patch: Partial<Pick<Workout, 'ti
   if (error) throw error;
 }
 
+export type WorkoutDetailExercise = {
+  exercise: Exercise | null;
+  exercise_id: string;
+  sets: WorkoutSet[];
+  topWeight: number;
+  estimatedOneRm: number;
+};
+
+/** Epley: the load you could lift once, estimated from a set taken near failure. */
+export function estimateOneRm(weight: number, reps: number) {
+  if (weight <= 0 || reps <= 0) return 0;
+  if (reps === 1) return weight;
+  return Math.round(weight * (1 + reps / 30));
+}
+
+export async function getWorkoutDetail(workoutId: string) {
+  const [workout, sets, exercises] = await Promise.all([
+    getWorkout(workoutId),
+    listWorkoutSets(workoutId),
+    listExercises(),
+  ]);
+  const byId = new Map(exercises.map((e) => [e.id, e]));
+
+  const grouped = new Map<string, WorkoutSet[]>();
+  for (const s of sets) {
+    const list = grouped.get(s.exercise_id) ?? [];
+    list.push(s);
+    grouped.set(s.exercise_id, list);
+  }
+
+  const items: WorkoutDetailExercise[] = [...grouped.entries()].map(([exercise_id, list]) => {
+    const done = list.filter((s) => s.done);
+    const topWeight = Math.max(0, ...done.map((s) => s.weight_kg));
+    const estimatedOneRm = Math.max(
+      0,
+      ...done.map((s) => estimateOneRm(s.weight_kg, s.reps))
+    );
+    return {
+      exercise_id,
+      exercise: byId.get(exercise_id) ?? null,
+      sets: [...list].sort((a, b) => a.set_no - b.set_no),
+      topWeight,
+      estimatedOneRm,
+    };
+  });
+
+  return { workout, items };
+}
+
+/** Local-day keys (YYYY-MM-DD) of finished workouts, for the calendar. */
+export async function listWorkoutDays(limit = 400) {
+  const { data, error } = await supabase
+    .from('workouts')
+    .select('id, title, started_at')
+    .not('ended_at', 'is', null)
+    .order('started_at', { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return (data as Pick<Workout, 'id' | 'title' | 'started_at'>[]).map((w) => ({
+    ...w,
+    day: localDayKey(new Date(w.started_at)),
+  }));
+}
+
 export async function getActiveWorkout() {
   const { data, error } = await supabase
     .from('workouts')
