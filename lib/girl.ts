@@ -6,4 +6,4 @@
  * another speaking beside it. Her name lives here so the room, the speech
  * bubble and her nightly message always agree on who is talking.
  */
-export const GIRL_NAME = '금화';
+export const GIRL_NAME = '리나';
