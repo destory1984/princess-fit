@@ -287,6 +287,7 @@ export default function WorkoutScreen() {
         exercises={exercises}
         onSelect={(e) => addSet(e.id)}
         onClose={() => setPicking(false)}
+        onSeeded={load}
       />
     </View>
   );

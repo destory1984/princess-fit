@@ -110,6 +110,7 @@ export default function StatsScreen() {
         exercises={exercises}
         onSelect={setSelected}
         onClose={() => setPicking(false)}
+        onSeeded={loadExercises}
       />
     </View>
   );
