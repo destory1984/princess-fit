@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { BodyMap, workedParts } from '@/components/BodyMap';
 import { ExercisePicker } from '@/components/ExercisePicker';
@@ -96,7 +97,7 @@ export default function RoutineScreen() {
           </Text>
         </View>
 
-        <Text style={styles.hint}>종목을 길게 누르면 뺄 수 있어요.</Text>
+        <Text style={styles.hint}>휴지통을 누르면 종목을 뺄 수 있어요.</Text>
 
         {items.length === 0 ? (
           <Text style={styles.empty}>아직 종목이 없어요.</Text>
@@ -105,7 +106,12 @@ export default function RoutineScreen() {
             <Pressable key={item.id} style={styles.row} onLongPress={() => remove(item)}>
               <View style={styles.rowHead}>
                 <Text style={styles.rowTitle}>{exerciseName(item.exercise_id)}</Text>
-                <MuscleTag group={byId.get(item.exercise_id)?.muscle_group ?? '기타'} />
+                <View style={styles.rowHeadEnd}>
+                  <MuscleTag group={byId.get(item.exercise_id)?.muscle_group ?? '기타'} />
+                  <Pressable hitSlop={8} onPress={() => remove(item)}>
+                    <Ionicons name="trash-outline" size={18} color={colors.textDim} />
+                  </Pressable>
+                </View>
               </View>
               {byId.get(item.exercise_id)?.muscle_detail ? (
                 <Text style={styles.rowSub}>
@@ -189,6 +195,7 @@ const styles = StyleSheet.create({
   },
   hint: { color: colors.textDim, fontSize: 12, marginTop: spacing.md },
   rowHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  rowHeadEnd: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   empty: { color: colors.textDim, paddingVertical: spacing.lg },
   row: {
     backgroundColor: colors.surface,

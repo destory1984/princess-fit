@@ -55,29 +55,27 @@ type Props = {
 };
 
 export function BodyMap({ data, onPartPress, scale = 0.75, labels = true }: Props) {
+  // Passing a handler makes the library attach onPress to every SVG path, which
+  // react-native-web cannot map — so only pass one when a caller wants taps.
+  const press = onPartPress
+    ? (part: { slug?: Slug }) => part.slug && onPartPress(part.slug)
+    : undefined;
+
+  const common = {
+    data,
+    gender: 'male',
+    scale,
+    colors: [colors.accent, '#E0476A'],
+    defaultFill: SKIN,
+    border: 'none',
+    onBodyPartPress: press,
+  } as const;
+
   return (
     <View>
       <View style={styles.row}>
-        <Body
-          data={data}
-          side="front"
-          gender="male"
-          scale={scale}
-          colors={[colors.accent, '#E0476A']}
-          defaultFill={SKIN}
-          border="none"
-          onBodyPartPress={(part) => part.slug && onPartPress?.(part.slug)}
-        />
-        <Body
-          data={data}
-          side="back"
-          gender="male"
-          scale={scale}
-          colors={[colors.accent, '#E0476A']}
-          defaultFill={SKIN}
-          border="none"
-          onBodyPartPress={(part) => part.slug && onPartPress?.(part.slug)}
-        />
+        <Body {...common} side="front" />
+        <Body {...common} side="back" />
       </View>
       {labels && (
         <View style={styles.row}>

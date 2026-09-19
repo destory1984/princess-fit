@@ -119,6 +119,9 @@ export default function RoutinesScreen() {
                 {sizes[item.id] ? `종목 ${sizes[item.id]}개` : '아직 종목이 없어요'}
               </Text>
             </View>
+            <Pressable hitSlop={8} onPress={() => confirmDelete(item)}>
+              <Ionicons name="trash-outline" size={18} color={colors.textDim} />
+            </Pressable>
             <Ionicons name="chevron-forward" size={18} color={colors.textDim} />
           </Pressable>
         )}

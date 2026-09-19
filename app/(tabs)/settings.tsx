@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect } from 'expo-router';
 import { MuscleTag } from '@/components/MuscleTag';
 import { seedDefaultExercises } from '@/lib/catalog';
@@ -132,7 +133,7 @@ export default function SettingsScreen() {
                 {seeding ? '불러오는 중…' : '기본 종목 불러오기 · 정보 새로 고치기'}
               </Text>
             </Pressable>
-            <Text style={styles.hint}>종목을 길게 누르면 삭제할 수 있어요.</Text>
+            <Text style={styles.hint}>오른쪽 휴지통을 누르면 종목을 지울 수 있어요.</Text>
           </View>
         }
         renderItem={({ item }) => (
@@ -145,6 +146,9 @@ export default function SettingsScreen() {
               </Text>
             </View>
             <MuscleTag group={item.muscle_group} />
+            <Pressable hitSlop={8} onPress={() => confirmDelete(item)}>
+              <Ionicons name="trash-outline" size={18} color={colors.textDim} />
+            </Pressable>
           </Pressable>
         )}
         ListFooterComponent={
@@ -205,7 +209,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     padding: spacing.lg,
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: spacing.md,
   },
   rowBody: { flex: 1 },
   rowTitle: { color: colors.text, fontSize: 15, fontWeight: '600' },

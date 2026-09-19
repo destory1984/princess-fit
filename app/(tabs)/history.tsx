@@ -101,6 +101,9 @@ export default function HistoryScreen() {
               <Text style={[styles.badge, !item.ended_at && styles.badgeActive]}>
                 {duration(item)}
               </Text>
+              <Pressable hitSlop={8} onPress={() => confirmDelete(item)}>
+                <Ionicons name="trash-outline" size={18} color={colors.textDim} />
+              </Pressable>
               <Ionicons name="chevron-forward" size={16} color={colors.textDim} />
             </View>
           </Pressable>
@@ -133,7 +136,7 @@ const styles = StyleSheet.create({
   rowMain: { flex: 1, marginRight: spacing.md },
   rowTitle: { color: colors.text, fontSize: 16, fontWeight: '600' },
   rowSub: { color: colors.textDim, marginTop: spacing.xs, fontSize: 12 },
-  rowEnd: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  rowEnd: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   badge: { color: colors.textDim, fontSize: 12 },
   badgeActive: { color: colors.success, fontWeight: '700' },
 });
