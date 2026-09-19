@@ -18,6 +18,28 @@ export async function setWeeklyGoal(goal: number) {
   await AsyncStorage.setItem(WEEKLY_GOAL, String(Math.max(1, Math.min(7, goal))));
 }
 
+const NUDGE = 'refit.nudge';
+/** Evening, when there is still time to go. */
+export const DEFAULT_NUDGE_HOUR = 20;
+
+/** The hour she speaks, or null when the user would rather not hear from her. */
+export async function getNudgeHour(): Promise<number | null> {
+  try {
+    const raw = await AsyncStorage.getItem(NUDGE);
+    if (raw === 'off') return null;
+    const parsed = Number(raw);
+    return Number.isInteger(parsed) && parsed >= 0 && parsed <= 23
+      ? parsed
+      : DEFAULT_NUDGE_HOUR;
+  } catch {
+    return DEFAULT_NUDGE_HOUR;
+  }
+}
+
+export async function setNudgeHour(hour: number | null) {
+  await AsyncStorage.setItem(NUDGE, hour === null ? 'off' : String(hour));
+}
+
 const ADVISOR = 'refit.advisor';
 
 export async function getAdvisorId() {

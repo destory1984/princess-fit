@@ -10,7 +10,10 @@ import { TrainingHall } from '@/components/TrainingHall';
 import { archetypeOf, computeStats, conditionOf, masterSays } from '@/lib/character';
 import { useAdvisor } from '@/lib/useAdvisor';
 import { portraitOf } from '@/lib/portraits';
-import { messageFor, moodOf, type Household } from '@/lib/economy';
+import { messageFor, moodOf, tomorrowsMessage, type Household } from '@/lib/economy';
+import { getAdvisorId, getNudgeHour } from '@/lib/prefs';
+import { advisorById } from '@/lib/advisors';
+import { scheduleDailyMessage } from '@/lib/notify';
 import {
   getActiveWorkout,
   getWeeklyStats,
@@ -25,6 +28,18 @@ import {
 import { summarise, type WorkoutFact } from '@/lib/gamification';
 import type { Routine, Workout } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
+
+async function armDailyMessage(house: Household, facts: WorkoutFact[]) {
+  try {
+    const hour = await getNudgeHour();
+    if (hour === null) return;
+    const advisorId = await getAdvisorId();
+    const speaker = advisorById(advisorId).name;
+    await scheduleDailyMessage(speaker, tomorrowsMessage(house, facts), hour);
+  } catch {
+    // She will try again the next time the app is opened.
+  }
+}
 
 export default function TodayScreen() {
   const router = useRouter();
@@ -53,7 +68,14 @@ export default function TodayScreen() {
         setWeekly(w);
         setExerciseCount(ex.length);
         setFacts(facts);
-        getHousehold().then(setHouse).catch(() => setHouse(null));
+        getHousehold()
+          .then((h) => {
+            setHouse(h);
+            // Re-arm her daily message with the mood she will be in by then.
+            // A failure here is never worth interrupting the screen for.
+            void armDailyMessage(h, facts);
+          })
+          .catch(() => setHouse(null));
         setSummary(summarise(facts));
         setStats(computeStats(facts));
         const sizes = await Promise.all(
