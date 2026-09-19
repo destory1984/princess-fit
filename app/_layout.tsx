@@ -54,6 +54,8 @@ function RootNavigator() {
       <Stack.Screen name="achievements" options={{ title: '수련부' }} />
       <Stack.Screen name="exercise/[id]" options={{ title: '운동 종목' }} />
       <Stack.Screen name="summary/[id]" options={{ title: '오늘의 기록' }} />
+      <Stack.Screen name="settings/advisor" options={{ title: '함께할 사람' }} />
+      <Stack.Screen name="settings/exercises" options={{ title: '운동 종목' }} />
     </Stack>
   );
 }
