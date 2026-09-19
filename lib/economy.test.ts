@@ -8,6 +8,7 @@ import {
   moodOf,
   newHousehold,
   settle,
+  STARTING_GOLD,
   tomorrowsMessage,
   workoutGold,
   type Household,
@@ -101,4 +102,12 @@ test('the scheduled line speaks for tomorrow, not for today', () => {
   const fresh = [fact({ started_at: '2026-09-20T10:00:00' })];
   assert.equal(moodOf(house, fresh, today), 'fine');
   assert.equal(tomorrowsMessage(house, fresh, today), messageFor('hungry', new Date(2026, 8, 21)));
+});
+
+test('she does not start penniless and hungry', () => {
+  const fresh = newHousehold(new Date(2026, 8, 20));
+  assert.equal(fresh.gold, STARTING_GOLD);
+  assert.equal(fresh.satiety, 100);
+  // Enough for a few real meals before the first workout is banked.
+  assert.ok(STARTING_GOLD >= 25 * 3);
 });

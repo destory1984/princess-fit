@@ -44,8 +44,20 @@ export type Household = {
   settledOn: string;
 };
 
+/**
+ * A purse to start with. Without it the first week is a trap: she gets hungry
+ * from day one, and nothing can be bought until a workout has been finished
+ * and banked. Enough for a few decent meals, not enough for a dress.
+ */
+export const STARTING_GOLD = 150;
+
 export function newHousehold(today = new Date()): Household {
-  return { gold: 0, satiety: FULL, attire: FULL, settledOn: localDayKey(today) };
+  return {
+    gold: STARTING_GOLD,
+    satiety: FULL,
+    attire: FULL,
+    settledOn: localDayKey(today),
+  };
 }
 
 function clamp(value: number) {
