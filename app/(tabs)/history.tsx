@@ -88,7 +88,13 @@ export default function HistoryScreen() {
           <Pressable
             key={item.id}
             style={styles.row}
-            onPress={() => router.push(`/workout/${item.id}`)}
+            onPress={() =>
+              router.push(
+                item.ended_at
+                  ? { pathname: '/summary/[id]', params: { id: item.id } }
+                  : { pathname: '/workout/[id]', params: { id: item.id } }
+              )
+            }
             onLongPress={() => confirmDelete(item)}>
             <View style={styles.rowMain}>
               <Text style={styles.rowTitle}>{item.title}</Text>
