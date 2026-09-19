@@ -83,7 +83,20 @@ export default function RoutinesScreen() {
                 <Text style={styles.addButtonText}>만들기</Text>
               </Pressable>
             </View>
-          ) : null
+          ) : (
+            // A beginner's first question is not what to call a routine, it is
+            // what to put in one. Offer the answer before the blank field.
+            <Pressable
+              style={styles.presets}
+              onPress={() => router.push('/routine/presets')}>
+              <Ionicons name="sparkles-outline" size={18} color={colors.accent} />
+              <View style={styles.presetsBody}>
+                <Text style={styles.presetsTitle}>짜여 있는 루틴에서 고르기</Text>
+                <Text style={styles.presetsSub}>전신 입문 · 상하체 분할 · 집에서 맨몸</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.textDim} />
+            </Pressable>
+          )
         }
         ListEmptyComponent={
           <View style={styles.empty}>
@@ -127,6 +140,29 @@ export default function RoutinesScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   list: { padding: spacing.lg, gap: spacing.sm, paddingBottom: 110 },
+  presets: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: colors.surface,
+    borderColor: colors.gold,
+    borderWidth: 1,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  presetsBody: { flex: 1 },
+  presetsTitle: { color: colors.text, fontSize: 14, fontWeight: '700' },
+  presetsSub: { color: colors.textDim, fontSize: 12, marginTop: 2 },
+  emptyAction: {
+    marginTop: spacing.md,
+    borderColor: colors.accent,
+    borderWidth: 1,
+    borderRadius: radius.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+  },
+  emptyActionText: { color: colors.accent, fontWeight: '800' },
   addRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
   input: {
     flex: 1,
