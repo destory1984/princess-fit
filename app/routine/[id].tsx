@@ -13,6 +13,7 @@ import {
   listExercises,
   listRoutineExercises,
   removeRoutineExercise,
+  reorderRoutineExercises,
   startWorkout,
   updateRoutineExercise,
 } from '@/lib/db';
@@ -90,6 +91,20 @@ export default function RoutineScreen() {
     }
   }
 
+  async function move(index: number, delta: number) {
+    const next = [...items];
+    const target = index + delta;
+    if (target < 0 || target >= next.length) return;
+    [next[index], next[target]] = [next[target], next[index]];
+    setItems(next);
+    try {
+      await reorderRoutineExercises(next.map((i) => i.id));
+    } catch (e: any) {
+      notify('순서 저장 실패', e.message);
+      load();
+    }
+  }
+
   function remove(item: RoutineExercise) {
     confirmAction('종목 제거', `"${exerciseName(item.exercise_id)}"을 루틴에서 뺄까요?`, async () => {
       try {
@@ -115,16 +130,37 @@ export default function RoutineScreen() {
           </Text>
         </View>
 
-        <Text style={styles.hint}>휴지통을 누르면 종목을 뺄 수 있어요.</Text>
+        <Text style={styles.hint}>화살표로 순서를 바꾸고, 휴지통으로 뺄 수 있어요.</Text>
 
         {items.length === 0 ? (
           <Text style={styles.empty}>아직 종목이 없어요.</Text>
         ) : (
-          items.map((item) => (
+          items.map((item, index) => (
             <Pressable key={item.id} style={styles.row} onLongPress={() => remove(item)}>
               <View style={styles.rowHead}>
+                <Text style={styles.rowOrder}>{index + 1}</Text>
                 <Text style={styles.rowTitle}>{exerciseName(item.exercise_id)}</Text>
                 <View style={styles.rowHeadEnd}>
+                  <Pressable
+                    hitSlop={6}
+                    disabled={index === 0}
+                    onPress={() => move(index, -1)}>
+                    <Ionicons
+                      name="chevron-up"
+                      size={18}
+                      color={index === 0 ? colors.border : colors.textDim}
+                    />
+                  </Pressable>
+                  <Pressable
+                    hitSlop={6}
+                    disabled={index === items.length - 1}
+                    onPress={() => move(index, 1)}>
+                    <Ionicons
+                      name="chevron-down"
+                      size={18}
+                      color={index === items.length - 1 ? colors.border : colors.textDim}
+                    />
+                  </Pressable>
                   <MuscleTag group={byId.get(item.exercise_id)?.muscle_group ?? '기타'} />
                   <Pressable hitSlop={8} onPress={() => remove(item)}>
                     <Ionicons name="trash-outline" size={18} color={colors.textDim} />
@@ -238,7 +274,7 @@ const styles = StyleSheet.create({
   },
   hint: { color: colors.textDim, fontSize: 12, marginTop: spacing.md },
   rowHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  rowHeadEnd: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  rowHeadEnd: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   empty: { color: colors.textDim, paddingVertical: spacing.lg },
   row: {
     backgroundColor: colors.surface,
@@ -246,7 +282,8 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     gap: spacing.md,
   },
-  rowTitle: { color: colors.text, fontSize: 16, fontWeight: '600' },
+  rowTitle: { color: colors.text, fontSize: 16, fontWeight: '600', flex: 1 },
+  rowOrder: { color: colors.textDim, fontSize: 13, fontWeight: '800', width: 16 },
   rowSub: { color: colors.textDim },
   stepperRow: { flexDirection: 'row', gap: spacing.md },
   stepper: {
