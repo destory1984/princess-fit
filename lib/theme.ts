@@ -11,6 +11,19 @@ export const colors = {
   success: '#3DD68C',
 };
 
+/** An in-app "book page": warm parchment against the dark chrome. */
+export const paper = {
+  bg: '#E9DFC7',
+  bgAlt: '#F3EBD8',
+  line: '#8A6F47',
+  lineSoft: '#C4B48F',
+  ink: '#3B2F23',
+  inkDim: '#6E5C46',
+  fill: '#8A6F47',
+  track: '#CFC0A0',
+  accent: '#A8462E',
+};
+
 export const spacing = {
   xs: 4,
   sm: 8,
