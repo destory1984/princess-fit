@@ -72,9 +72,9 @@ export const FURNITURE: Furniture[] = [
   { id: 'rug', slot: 'rug', name: '꽃무늬 양탄자', detail: '맨발로 내려서도 괜찮아요', price: 500, icon: 'square-outline', place: { x: 0.18, y: 0.72, w: 0.6 } },
   { id: 'bench', slot: 'seat', name: '창가 벤치', detail: '앉아서 밖을 볼 자리', price: 550, icon: 'tablet-landscape-outline', place: { x: 0.06, y: 0.68, w: 0.3 } },
   { id: 'pictures', slot: 'picture', name: '액자 셋', detail: '벽이 허전하지 않게', price: 600, icon: 'image-outline', place: { x: 0.2, y: 0.1, w: 0.18 } },
-  { id: 'mirror', slot: 'dresser', name: '전신 거울', detail: '차림새를 보고 나설 수 있어요', price: 800, icon: 'browsers-outline', place: { x: 0.62, y: 0.3, w: 0.13 } },
+  { id: 'mirror', slot: 'dresser', name: '전신 거울', detail: '차림새를 보고 나설 수 있어요', price: 800, icon: 'browsers-outline', place: { x: 0.64, y: 0.34, w: 0.13 } },
   { id: 'bed', slot: 'bed', name: '천개 달린 침대', detail: '이제 잘 자겠네요', price: 900, icon: 'bed-outline', place: { x: 0.0, y: 0.3, w: 0.48 } },
-  { id: 'shelf', slot: 'shelf', name: '책장', detail: '배운 것을 쌓아둘 곳', price: 1_000, icon: 'library-outline', place: { x: 0.82, y: 0.2, w: 0.16 } },
+  { id: 'shelf', slot: 'shelf', name: '책장', detail: '배운 것을 쌓아둘 곳', price: 1_000, icon: 'library-outline', place: { x: 0.82, y: 0.38, w: 0.16 } },
   { id: 'chandelier', slot: 'light', name: '샹들리에', detail: '밤에도 방이 환해요', price: 1_400, icon: 'bulb-outline', place: { x: 0.42, y: 0.0, w: 0.2 } },
 ];
 
