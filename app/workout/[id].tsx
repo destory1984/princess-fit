@@ -4,7 +4,10 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { BodyMap, workedParts } from '@/components/BodyMap';
 import { ExercisePicker } from '@/components/ExercisePicker';
+import { SetCard } from '@/components/SetCard';
 import { confirmAction, notify } from '@/lib/confirm';
+import { celebrateFeedback, successFeedback } from '@/lib/feedback';
+
 import { formatDate, formatDuration } from '@/lib/format';
 import { summarise } from '@/lib/gamification';
 import {
@@ -92,7 +95,10 @@ export default function WorkoutScreen() {
 
   async function persist(setId: string, patch: Partial<WorkoutSet>) {
     setSets((prev) => prev.map((s) => (s.id === setId ? { ...s, ...patch } : s)));
-    if (patch.done === true) setRestEnd(Date.now() + restLength * 1000);
+    if (patch.done === true) {
+      setRestEnd(Date.now() + restLength * 1000);
+      successFeedback();
+    }
     try {
       await updateWorkoutSet(setId, patch);
     } catch (e: any) {
@@ -178,7 +184,8 @@ export default function WorkoutScreen() {
         after.streak > 1 ? `${after.streak}일 연속 운동 중` : '',
       ].filter(Boolean);
 
-      notify(`수고하셨어요 · +${gained} XP`, lines.join('\n') || undefined);
+      celebrateFeedback();
+      notify(`수고하셨어요 💪 +${gained} XP`, lines.join('\n') || undefined);
       router.back();
     } catch (e: any) {
       notify('종료 실패', e.message);
@@ -218,6 +225,7 @@ export default function WorkoutScreen() {
         {grouped.map(({ exerciseId, exercise, sets: exerciseSets }) => {
           const previous = last.get(exerciseId);
           const exDone = exerciseSets.filter((s) => s.done);
+          const current = exerciseSets.find((s) => !s.done) ?? null;
           const track = exercise?.track_type ?? 'weight_reps';
           const top = Math.max(0, ...exDone.map((s) => s.weight_kg));
           const oneRm = Math.max(0, ...exDone.map((s) => estimateOneRm(s.weight_kg, s.reps)));
@@ -280,63 +288,39 @@ export default function WorkoutScreen() {
                 </View>
               ) : (
                 <>
-                  <View style={styles.tableHead}>
-                    <Text style={[styles.th, styles.thNo]}>
-                      {track === 'weight_reps' ? '세트' : ''}
-                    </Text>
-                    <Text style={styles.th}>{track === 'weight_reps' ? 'KG' : '시간(분)'}</Text>
-                    <Text style={styles.th}>
-                      {track === 'weight_reps' ? '횟수' : track === 'cardio' ? '거리(km)' : ''}
-                    </Text>
-                    <Text style={[styles.th, styles.thDone]}>완료</Text>
-                    <View style={styles.thRemove} />
-                  </View>
-                  {exerciseSets.map((s) => (
-                    <View key={s.id} style={styles.setRow}>
-                      <Text style={styles.setNo}>{track === 'weight_reps' ? s.set_no : ''}</Text>
-                      {track === 'weight_reps' ? (
-                        <>
-                          <NumberField
-                            value={s.weight_kg}
-                            decimal
-                            onCommit={(v) => persist(s.id, { weight_kg: v })}
-                          />
-                          <NumberField
-                            value={s.reps}
-                            onCommit={(v) => persist(s.id, { reps: v })}
-                          />
-                        </>
-                      ) : (
-                        <>
-                          <NumberField
-                            value={Math.round(s.duration_sec / 60)}
-                            onCommit={(v) => persist(s.id, { duration_sec: v * 60 })}
-                          />
-                          {track === 'cardio' ? (
-                            <NumberField
-                              value={s.distance_km}
-                              decimal
-                              onCommit={(v) => persist(s.id, { distance_km: v })}
-                            />
-                          ) : (
-                            <View style={styles.spacer} />
-                          )}
-                        </>
-                      )}
-                      <Pressable
-                        style={[styles.check, s.done && { backgroundColor: colors.success }]}
-                        onPress={() => persist(s.id, { done: !s.done })}>
-                        <Ionicons
-                          name="checkmark"
-                          size={18}
-                          color={s.done ? '#0E1116' : colors.textDim}
-                        />
-                      </Pressable>
-                      <Pressable hitSlop={6} onPress={() => removeSet(s.id)}>
-                        <Ionicons name="close" size={18} color={colors.textDim} />
-                      </Pressable>
+                  {exDone.length > 0 && (
+                    <View style={styles.chipRow}>
+                      {exDone.map((s) => (
+                        <Pressable
+                          key={s.id}
+                          style={[styles.doneChip, { borderColor: tint }]}
+                          onPress={() => persist(s.id, { done: false })}>
+                          <Ionicons name="checkmark" size={12} color={tint} />
+                          <Text style={[styles.doneChipText, { color: tint }]}>
+                            {track === 'weight_reps'
+                              ? `${s.weight_kg}×${s.reps}`
+                              : `${Math.round(s.duration_sec / 60)}분`}
+                          </Text>
+                        </Pressable>
+                      ))}
                     </View>
-                  ))}
+                  )}
+
+                  {current ? (
+                    <SetCard
+                      set={current}
+                      track={track}
+                      index={current.set_no}
+                      total={exerciseSets.length}
+                      tint={tint}
+                      onChange={(patch) => persist(current.id, patch)}
+                      onComplete={() => persist(current.id, { done: true })}
+                      onRemove={() => removeSet(current.id)}
+                    />
+                  ) : (
+                    <Text style={styles.allDone}>이 종목은 다 하셨어요 🎉</Text>
+                  )}
+
                   {track === 'weight_reps' && (
                     <Pressable style={styles.addSet} onPress={() => addSet(exerciseId)}>
                       <Text style={styles.addSetText}>+ 세트 추가</Text>
@@ -431,41 +415,6 @@ export default function WorkoutScreen() {
   );
 }
 
-function NumberField({
-  value,
-  decimal,
-  onCommit,
-}: {
-  value: number;
-  decimal?: boolean;
-  onCommit: (value: number) => void;
-}) {
-  const [text, setText] = useState(String(value));
-
-  useEffect(() => {
-    setText(String(value));
-  }, [value]);
-
-  function commit() {
-    const parsed = decimal ? parseFloat(text) : parseInt(text, 10);
-    const next = Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
-    setText(String(next));
-    if (next !== value) onCommit(next);
-  }
-
-  return (
-    <TextInput
-      style={styles.setInput}
-      keyboardType={decimal ? 'decimal-pad' : 'number-pad'}
-      value={text}
-      selectTextOnFocus
-      onChangeText={setText}
-      onBlur={commit}
-      onSubmitEditing={commit}
-    />
-  );
-}
-
 function MemoField({
   value,
   editable,
@@ -510,36 +459,23 @@ const styles = StyleSheet.create({
   cardSub: { color: colors.textDim, fontSize: 12, marginTop: 2 },
   metrics: { color: colors.text, fontSize: 13, marginTop: spacing.md, fontWeight: '600' },
   previous: { color: colors.textDim, fontSize: 12, marginTop: spacing.xs },
-  tableHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.md },
-  th: { color: colors.textDim, fontSize: 11, flex: 1, textAlign: 'center' },
-  thNo: { flex: 0, width: 28, textAlign: 'left' },
-  thDone: { flex: 0, width: 40 },
-  thRemove: { width: 18 },
-  spacer: { flex: 1 },
-  setRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm },
-  setNo: { color: colors.textDim, width: 28 },
-  setInput: {
-    flex: 1,
-    backgroundColor: colors.surfaceAlt,
-    borderRadius: radius.sm,
-    color: colors.text,
-    paddingVertical: spacing.md,
-    textAlign: 'center',
-    fontSize: 16,
-  },
-  check: {
-    width: 40,
-    height: 40,
-    borderRadius: radius.sm,
-    backgroundColor: colors.surfaceAlt,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   circleRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, marginTop: spacing.md },
   circleItem: { alignItems: 'center' },
   circle: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },
   circleValue: { color: '#fff', fontWeight: '800', fontSize: 16 },
   circleReps: { color: colors.textDim, fontSize: 11, marginTop: 2 },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.md },
+  doneChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingVertical: 4,
+    paddingHorizontal: spacing.md,
+  },
+  doneChipText: { fontWeight: '700', fontSize: 13 },
+  allDone: { color: colors.textDim, textAlign: 'center', paddingVertical: spacing.lg },
   addSet: { paddingTop: spacing.md },
   addSetText: { color: colors.accent, fontWeight: '600' },
   secondary: {
@@ -553,7 +489,6 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   secondaryText: { color: colors.accent, fontWeight: '700' },
-  hint: { color: colors.textDim, fontSize: 12, textAlign: 'center' },
   memo: {
     backgroundColor: colors.surfaceAlt,
     borderRadius: radius.sm,
