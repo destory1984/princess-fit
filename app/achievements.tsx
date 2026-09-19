@@ -24,7 +24,8 @@ import {
   STAT_ORDER,
 } from '@/lib/character';
 import { getLedger, listWorkoutFacts } from '@/lib/db';
-import { effectiveCulture, wardrobeProgress } from '@/lib/shop';
+import { effectiveCulture } from '@/lib/shop';
+import { outfitProgress } from '@/lib/outfit';
 import { roomProgress } from '@/lib/room';
 import { getWeeklyGoal, setWeeklyGoal } from '@/lib/prefs';
 import {
@@ -82,7 +83,7 @@ export default function TrainingLedgerScreen() {
   const summary = summarise(facts);
   // Lessons plus what she is wearing, so this never disagrees with the shop.
   const worn = effectiveCulture(culture, wardrobe);
-  const clothes = wardrobeProgress(wardrobe);
+  const clothes = outfitProgress(wardrobe);
   const room = roomProgress(furniture);
   const stats = computeStats(facts);
   const archetype = archetypeOf(stats);

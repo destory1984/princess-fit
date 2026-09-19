@@ -1,5 +1,6 @@
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { OrnateFrame } from '@/components/OrnateFrame';
+import { PaperDoll } from '@/components/PaperDoll';
 import { STAT_META, STAT_ORDER, type Stats } from '@/lib/character';
 import { artFor } from '@/lib/furnitureArt';
 import { roomContents } from '@/lib/room';
@@ -21,8 +22,8 @@ type Props = {
   furniture?: string[];
   /** Why the numbers are lower than they were, when they are. */
   penalty?: string | null;
-  /** The girl herself, standing in the room. */
-  advisorArt?: number | null;
+  /** The garments she has on, layered over the base girl. */
+  worn?: string[];
   /** A line about how furnished the room is, shown beneath it. */
   caption?: string;
 };
@@ -38,7 +39,7 @@ export function TrainingHall({
   streak,
   furniture = [],
   penalty,
-  advisorArt,
+  worn = [],
   caption,
 }: Props) {
   return (
@@ -76,13 +77,9 @@ export function TrainingHall({
               );
             })}
 
-          {advisorArt ? (
-            <>
-              {/* Without this she floats a little above the floorboards. */}
-              <View style={styles.girlShadow} pointerEvents="none" />
-              <Image source={advisorArt} style={styles.girl} resizeMode="contain" />
-            </>
-          ) : null}
+          {/* Without the shadow she floats a little above the floorboards. */}
+          <View style={styles.girlShadow} pointerEvents="none" />
+          <PaperDoll worn={worn} style={styles.girl} />
 
           <OrnateFrame compact style={styles.datePlaque}>
             <Text style={styles.dateMonth}>
@@ -149,13 +146,7 @@ const styles = StyleSheet.create({
   // Standing at the foot of the bed, mid-room: clear of both plaques above,
   // and not hiding the window. The box is wider than she is — `contain`
   // centres her in it, so height alone decides how big she is.
-  girl: {
-    position: 'absolute',
-    bottom: '2%',
-    left: '18%',
-    width: '48%',
-    height: '70%',
-  },
+  girl: { position: 'absolute', bottom: '2%', left: '24%', height: '70%' },
   plaque: {
     position: 'absolute',
     backgroundColor: paper.bgAlt,

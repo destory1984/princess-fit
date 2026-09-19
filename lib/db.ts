@@ -2,8 +2,16 @@ import { supabase } from './supabase';
 import type { Exercise, Routine, RoutineExercise, Workout, WorkoutSet } from './types';
 import { localDayKey } from './format';
 import type { WorkoutFact } from './gamification';
-import { afterWorkout, newHousehold, settle, workoutGold, type Household } from './economy';
+import {
+  afterWorkout,
+  FULL,
+  newHousehold,
+  settle,
+  workoutGold,
+  type Household,
+} from './economy';
 import { buy, type Item } from './shop';
+import { wearing, type Garment } from './outfit';
 import { attend, EMPTY_CULTURE, type Culture, type Lesson } from './lessons';
 import type { Furniture } from './room';
 import {
@@ -564,7 +572,7 @@ export async function getLedger(today = new Date()): Promise<Ledger> {
   const userId = await requireUserId();
   const { data, error } = await supabase
     .from('household')
-    .select('gold, satiety, attire, settled_on, wardrobe, furniture, grace, learning, charm')
+    .select('gold, satiety, attire, settled_on, wardrobe, worn, furniture, grace, learning, charm')
     .eq('user_id', userId)
     .maybeSingle();
   if (error) throw error;
@@ -579,6 +587,7 @@ export async function getLedger(today = new Date()): Promise<Ledger> {
     : newHousehold(today);
 
   const wardrobe: string[] = data?.wardrobe ?? [];
+  const worn: string[] = data?.worn ?? [];
   const furniture: string[] = data?.furniture ?? [];
   const culture: Culture = data
     ? { grace: data.grace, learning: data.learning, charm: data.charm }
@@ -586,7 +595,7 @@ export async function getLedger(today = new Date()): Promise<Ledger> {
 
   const settled = settle(stored, today);
   if (!data || settled !== stored) await saveHousehold(settled);
-  return { house: settled, wardrobe, furniture, culture };
+  return { house: settled, wardrobe, worn, furniture, culture };
 }
 
 export async function saveHousehold(house: Household, extra: Partial<Omit<Ledger, 'house'>> = {}) {
@@ -598,6 +607,7 @@ export async function saveHousehold(house: Household, extra: Partial<Omit<Ledger
     attire: house.attire,
     settled_on: house.settledOn,
     ...(extra.wardrobe ? { wardrobe: extra.wardrobe } : {}),
+    ...(extra.worn ? { worn: extra.worn } : {}),
     ...(extra.furniture ? { furniture: extra.furniture } : {}),
     ...(extra.culture ? extra.culture : {}),
     updated_at: new Date().toISOString(),
@@ -607,10 +617,36 @@ export async function saveHousehold(house: Household, extra: Partial<Omit<Ledger
 
 export type Ledger = {
   house: Household;
+  /** Garments owned. */
   wardrobe: string[];
+  /** The subset of those she has on. */
+  worn: string[];
   furniture: string[];
   culture: Culture;
 };
+
+/**
+ * Buy a garment. She puts it on at once — nobody buys a dress to leave it in
+ * the wardrobe — and being freshly dressed mends a ragged look.
+ */
+export async function buyGarment(garment: Garment, today = new Date()): Promise<Ledger> {
+  const ledger = await getLedger(today);
+  if (ledger.wardrobe.includes(garment.id)) throw new Error('이미 가지고 있어요');
+  if (ledger.house.gold < garment.price) throw new Error('금화가 모자라요');
+
+  const house = { ...ledger.house, gold: ledger.house.gold - garment.price, attire: FULL };
+  const wardrobe = [...ledger.wardrobe, garment.id];
+  const worn = wearing(ledger.worn, garment);
+  await saveHousehold(house, { wardrobe, worn });
+  return { ...ledger, house, wardrobe, worn };
+}
+
+/** Put on or take off something she already owns. Free. */
+export async function setWorn(worn: string[], today = new Date()): Promise<Ledger> {
+  const ledger = await getLedger(today);
+  await saveHousehold(ledger.house, { worn });
+  return { ...ledger, worn };
+}
 
 /** Spend at the shop. Returns the ledger as it stands afterwards. */
 export async function buyItem(item: Item, today = new Date()): Promise<Ledger> {

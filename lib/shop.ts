@@ -5,19 +5,15 @@ import { CULTURE_CAP, type Culture } from './lessons.ts';
  * What gold buys. Four kinds, and they behave differently on purpose:
  *
  * - Food is consumed. It refills her hunger and is gone.
- * - Clothes are kept, and a new outfit turns her out properly again. The
- *   wardrobe is the thing a year of training is for, so it must not evaporate
- *   the way a meal does.
  * - Accessories are kept too, but small: a good-week purchase that adds charm
  *   without pushing the coronation gown out of reach.
  * - Specials are bought with gems, which cannot be bought yet. They are shown
  *   locked rather than hidden, so the shop is honest about its own shape.
  *
- * The wardrobe totals WARDROBE_TOTAL, which the tests hold against a year of
- * steady training.
+ * Garments live in `./outfit`, because they are worn rather than merely owned.
  */
 
-export type ItemKind = 'food' | 'clothes' | 'accessory' | 'special';
+export type ItemKind = 'food' | 'accessory' | 'special';
 
 export type Item = {
   id: string;
@@ -37,16 +33,6 @@ export const FOOD: Item[] = [
   { id: 'stew', kind: 'food', name: '고기 스튜', detail: '든든한 한 끼', price: 25, restores: 40, icon: 'restaurant-outline' },
   { id: 'roast', kind: 'food', name: '통닭 구이', detail: '오늘은 잘 먹는 날', price: 45, restores: 70, icon: 'flame-outline' },
   { id: 'feast', kind: 'food', name: '만찬', detail: '배가 터지도록', price: 90, restores: 100, icon: 'wine-outline' },
-];
-
-/** Cheap to start, steep at the end — the last piece should feel earned. */
-export const CLOTHES: Item[] = [
-  { id: 'linen', kind: 'clothes', name: '무명 원피스', detail: '수수하지만 깨끗한', price: 300, icon: 'shirt-outline' },
-  { id: 'outing', kind: 'clothes', name: '나들이옷', detail: '성 밖에 나가도 부끄럽지 않은', price: 700, icon: 'shirt-outline' },
-  { id: 'squire', kind: 'clothes', name: '견습 기사복', detail: '처음으로 이름이 붙은 옷', price: 1_200, icon: 'shield-outline' },
-  { id: 'ball', kind: 'clothes', name: '무도회 드레스', detail: '한 번쯤은 주인공이 되는', price: 1_800, icon: 'sparkles-outline' },
-  { id: 'order', kind: 'clothes', name: '기사단 예복', detail: '검을 받던 날의 옷', price: 2_600, icon: 'ribbon-outline' },
-  { id: 'crown', kind: 'clothes', name: '대관식 예복', detail: '일 년을 걸어야 닿는 자리', price: 3_400, icon: 'diamond-outline' },
 ];
 
 /**
@@ -74,9 +60,7 @@ export const SPECIALS: Item[] = [
   { id: 'crown_jewel', kind: 'special', name: '왕관의 보석', detail: '단 하나뿐인', price: 80, icon: 'diamond-outline' },
 ];
 
-export const CATALOG: Item[] = [...FOOD, ...CLOTHES, ...ACCESSORIES, ...SPECIALS];
-
-export const WARDROBE_TOTAL = CLOTHES.reduce((sum, c) => sum + c.price, 0);
+export const CATALOG: Item[] = [...FOOD, ...ACCESSORIES, ...SPECIALS];
 
 export function itemById(id: string) {
   return CATALOG.find((i) => i.id === id) ?? null;
@@ -102,9 +86,9 @@ export const REFUSAL_TEXT: Record<Exclude<Refusal, null>, string> = {
   locked: '보석으로만 살 수 있어요 (준비 중)',
 };
 
-/** Clothes and accessories stay; food does not. */
+/** Accessories stay; food does not. */
 export function isKept(item: Item) {
-  return item.kind === 'clothes' || item.kind === 'accessory';
+  return item.kind === 'accessory';
 }
 
 /**
@@ -123,10 +107,8 @@ export function buy(item: Item, house: Household, wardrobe: string[]): Purchase 
       wardrobe,
     };
   }
-  // New clothes are new clothes: she is turned out properly again. An
-  // accessory is not a change of outfit, so it does not mend a ragged one.
-  const attire = item.kind === 'clothes' ? FULL : house.attire;
-  return { house: { ...house, gold, attire }, wardrobe: [...wardrobe, item.id] };
+  // An accessory is not a change of outfit, so it does not mend a ragged one.
+  return { house: { ...house, gold }, wardrobe: [...wardrobe, item.id] };
 }
 
 /** Charm earned by what she is wearing, on top of what lessons taught. */
@@ -134,17 +116,6 @@ export function wornCharm(wardrobe: string[]) {
   return ACCESSORIES.filter((a) => wardrobe.includes(a.id)).reduce((s, a) => s + (a.charm ?? 0), 0);
 }
 
-/** How far along the wardrobe is, 0–1. The year's progress bar. */
-export function wardrobeProgress(wardrobe: string[]) {
-  const owned = CLOTHES.filter((c) => wardrobe.includes(c.id));
-  return {
-    count: owned.length,
-    total: CLOTHES.length,
-    spent: owned.reduce((s, c) => s + c.price, 0),
-    ratio: owned.reduce((s, c) => s + c.price, 0) / WARDROBE_TOTAL,
-    complete: owned.length === CLOTHES.length,
-  };
-}
 
 /**
  * Her standing as it actually reads: what lessons taught, plus what she is

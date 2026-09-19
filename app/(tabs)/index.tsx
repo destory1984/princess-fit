@@ -67,6 +67,7 @@ export default function TodayScreen() {
   const [facts, setFacts] = useState<WorkoutFact[]>([]);
   const [house, setHouse] = useState<Household | null>(null);
   const [furniture, setFurniture] = useState<string[]>([]);
+  const [worn, setWorn] = useState<string[]>([]);
   const advisor = useAdvisor();
 
   const load = useCallback(() => {
@@ -84,9 +85,10 @@ export default function TodayScreen() {
         setExerciseCount(ex.length);
         setFacts(facts);
         getLedger()
-          .then(({ house: h, furniture: mine }) => {
+          .then(({ house: h, furniture: mine, worn: dressed }) => {
             setHouse(h);
             setFurniture(mine);
+            setWorn(dressed);
             // Re-arm her daily message with the mood she will be in by then.
             // A failure here is never worth interrupting the screen for.
             void armDailyMessage(h, facts);
@@ -163,7 +165,7 @@ export default function TodayScreen() {
             streak={summary.streak}
             furniture={furniture}
             penalty={penalty}
-            advisorArt={portraitOf(advisor.id)}
+            worn={worn}
             caption={roomMood(furniture)}
           />
           {house && (
