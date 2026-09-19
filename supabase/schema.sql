@@ -118,3 +118,10 @@ create policy "own household" on household
 -- What she owns. Clothes are permanent, so they live beside the purse rather
 -- than in a log of purchases.
 alter table household add column if not exists wardrobe text[] not null default '{}';
+
+-- Furniture she has bought, and what schooling has made of her. Kept beside
+-- the purse so one read fetches the whole household.
+alter table household add column if not exists furniture text[] not null default '{}';
+alter table household add column if not exists grace integer not null default 0;
+alter table household add column if not exists learning integer not null default 0;
+alter table household add column if not exists charm integer not null default 0;

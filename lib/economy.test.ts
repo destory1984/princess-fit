@@ -28,10 +28,10 @@ function fact(partial: Partial<WorkoutFact> = {}): WorkoutFact {
 }
 
 test('showing up pays, and doing more pays more', () => {
-  assert.equal(workoutGold(fact()), 60);
-  assert.equal(workoutGold(fact({ doneSets: 12 })), 96);
-  assert.equal(workoutGold(fact({ volume: 3000 })), 75);
-  assert.equal(workoutGold(fact({ durationSec: 1800 })), 90);
+  assert.equal(workoutGold(fact()), 75);
+  assert.equal(workoutGold(fact({ doneSets: 12 })), 111);
+  assert.equal(workoutGold(fact({ volume: 3000 })), 90);
+  assert.equal(workoutGold(fact({ durationSec: 1800 })), 105);
 });
 
 // The whole economy is tuned around this one promise, so it is asserted rather
@@ -90,7 +90,7 @@ test('the same day always says the same thing', () => {
 test('a workout pays into the purse and feeds her a little', () => {
   const house: Household = { gold: 0, satiety: 50, attire: 50, settledOn: '2026-09-20' };
   const after = afterWorkout(house, fact({ doneSets: 10 }));
-  assert.equal(after.gold, 90);
+  assert.equal(after.gold, 105);
   assert.equal(after.satiety, 54);
 });
 

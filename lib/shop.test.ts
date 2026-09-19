@@ -1,7 +1,18 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buy, CLOTHES, FOOD, refusalFor, WARDROBE_TOTAL, wardrobeProgress } from './shop.ts';
+import {
+  ACCESSORIES,
+  buy,
+  CLOTHES,
+  FOOD,
+  refusalFor,
+  SPECIALS,
+  WARDROBE_TOTAL,
+  wardrobeProgress,
+  wornCharm,
+} from './shop.ts';
 import { DAILY_UPKEEP, workoutGold, type Household } from './economy.ts';
+import { LESSONS } from './lessons.ts';
 import type { WorkoutFact } from './gamification.ts';
 
 const rich: Household = { gold: 10_000, satiety: 50, attire: 10, settledOn: '2026-09-20' };
@@ -47,7 +58,7 @@ test('a full belly refuses more food but not a new dress', () => {
 
 // The promise the whole design rests on, checked end to end rather than by
 // eyeballing two constants in different files.
-test('a year of steady training pays for the whole wardrobe and her meals', () => {
+test('a year of steady training pays for meals, the wardrobe and schooling', () => {
   const typical: WorkoutFact = {
     id: 'w',
     started_at: '2026-09-20T10:00:00',
@@ -61,10 +72,10 @@ test('a year of steady training pays for the whole wardrobe and her meals', () =
   const upkeep = DAILY_UPKEEP * 365;
   // Roughly a decent meal every other day alongside the clothes.
   const meals = 25 * 180;
-  assert.ok(
-    earned - upkeep - meals >= WARDROBE_TOTAL,
-    `short by ${WARDROBE_TOTAL - (earned - upkeep - meals)}`
-  );
+  // And twenty lessons across the year, at the going rate.
+  const schooling = 20 * (LESSONS.reduce((s, l) => s + l.price, 0) / LESSONS.length);
+  const spare = earned - upkeep - meals - schooling - WARDROBE_TOTAL;
+  assert.ok(spare >= 0, `short by ${Math.round(-spare)}`);
 });
 
 test('wardrobe progress counts by price, not by pieces', () => {
@@ -74,4 +85,22 @@ test('wardrobe progress counts by price, not by pieces', () => {
   const done = wardrobeProgress(CLOTHES.map((c) => c.id));
   assert.equal(done.complete, true);
   assert.equal(done.ratio, 1);
+});
+
+test('accessories are kept but do not mend a ragged outfit', () => {
+  const ribbon = ACCESSORIES[0];
+  const ragged: Household = { ...rich, attire: 10 };
+  const { house, wardrobe } = buy(ribbon, ragged, []);
+  assert.equal(house.attire, 10, 'a ribbon is not a change of clothes');
+  assert.deepEqual(wardrobe, ['ribbon']);
+  assert.equal(wornCharm(wardrobe), ribbon.charm);
+});
+
+test('the gem shelf is locked, however much gold she has', () => {
+  assert.equal(refusalFor(SPECIALS[0], rich, []), 'locked');
+  assert.throws(() => buy(SPECIALS[0], rich, []), /준비 중/);
+});
+
+test('accessories are not counted as wardrobe progress', () => {
+  assert.equal(wardrobeProgress(['ribbon', 'tiara']).count, 0);
 });

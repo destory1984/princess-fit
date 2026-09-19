@@ -4,6 +4,8 @@ import { localDayKey } from './format';
 import type { WorkoutFact } from './gamification';
 import { afterWorkout, newHousehold, settle, workoutGold, type Household } from './economy';
 import { buy, type Item } from './shop';
+import { attend, EMPTY_CULTURE, type Culture, type Lesson } from './lessons';
+import type { Furniture } from './room';
 import {
   groupHistory,
   streakDays,
@@ -562,7 +564,7 @@ export async function getLedger(today = new Date()): Promise<Ledger> {
   const userId = await requireUserId();
   const { data, error } = await supabase
     .from('household')
-    .select('gold, satiety, attire, settled_on, wardrobe')
+    .select('gold, satiety, attire, settled_on, wardrobe, furniture, grace, learning, charm')
     .eq('user_id', userId)
     .maybeSingle();
   if (error) throw error;
@@ -577,12 +579,17 @@ export async function getLedger(today = new Date()): Promise<Ledger> {
     : newHousehold(today);
 
   const wardrobe: string[] = data?.wardrobe ?? [];
+  const furniture: string[] = data?.furniture ?? [];
+  const culture: Culture = data
+    ? { grace: data.grace, learning: data.learning, charm: data.charm }
+    : EMPTY_CULTURE;
+
   const settled = settle(stored, today);
   if (!data || settled !== stored) await saveHousehold(settled);
-  return { house: settled, wardrobe };
+  return { house: settled, wardrobe, furniture, culture };
 }
 
-export async function saveHousehold(house: Household, wardrobe?: string[]) {
+export async function saveHousehold(house: Household, extra: Partial<Omit<Ledger, 'house'>> = {}) {
   const userId = await requireUserId();
   const { error } = await supabase.from('household').upsert({
     user_id: userId,
@@ -590,20 +597,50 @@ export async function saveHousehold(house: Household, wardrobe?: string[]) {
     satiety: house.satiety,
     attire: house.attire,
     settled_on: house.settledOn,
-    ...(wardrobe ? { wardrobe } : {}),
+    ...(extra.wardrobe ? { wardrobe: extra.wardrobe } : {}),
+    ...(extra.furniture ? { furniture: extra.furniture } : {}),
+    ...(extra.culture ? extra.culture : {}),
     updated_at: new Date().toISOString(),
   });
   if (error) throw error;
 }
 
-export type Ledger = { house: Household; wardrobe: string[] };
+export type Ledger = {
+  house: Household;
+  wardrobe: string[];
+  furniture: string[];
+  culture: Culture;
+};
 
 /** Spend at the shop. Returns the ledger as it stands afterwards. */
 export async function buyItem(item: Item, today = new Date()): Promise<Ledger> {
-  const { house, wardrobe } = await getLedger(today);
-  const next = buy(item, house, wardrobe);
-  await saveHousehold(next.house, next.wardrobe);
-  return next;
+  const ledger = await getLedger(today);
+  const next = buy(item, ledger.house, ledger.wardrobe);
+  await saveHousehold(next.house, { wardrobe: next.wardrobe });
+  return { ...ledger, house: next.house, wardrobe: next.wardrobe };
+}
+
+/** Buy a piece for her room. The slot it fills may already hold something. */
+export async function buyFurniture(piece: Furniture, today = new Date()): Promise<Ledger> {
+  const ledger = await getLedger(today);
+  if (ledger.furniture.includes(piece.id)) throw new Error('이미 가지고 있어요');
+  if (ledger.house.gold < piece.price) throw new Error('금화가 모자라요');
+
+  const house = { ...ledger.house, gold: ledger.house.gold - piece.price };
+  const furniture = [...ledger.furniture, piece.id];
+  await saveHousehold(house, { furniture });
+  return { ...ledger, house, furniture };
+}
+
+/** Pay for a lesson. What it teaches depends on how much she already knows. */
+export async function takeLesson(lesson: Lesson, today = new Date()): Promise<Ledger> {
+  const ledger = await getLedger(today);
+  if (ledger.house.gold < lesson.price) throw new Error('금화가 모자라요');
+
+  const house = { ...ledger.house, gold: ledger.house.gold - lesson.price };
+  const culture = attend(lesson, ledger.culture);
+  await saveHousehold(house, { culture });
+  return { ...ledger, house, culture };
 }
 
 /** Pay out a finished workout. Returns the new ledger and what it earned. */
