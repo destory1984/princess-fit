@@ -4,6 +4,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect } from 'expo-router';
 import { ExercisePicker } from '@/components/ExercisePicker';
 import { GroupBreakdown } from '@/components/GroupBreakdown';
+import { Insights } from '@/components/Insights';
 import { LineChart } from '@/components/LineChart';
 import { OrnateFrame } from '@/components/OrnateFrame';
 import { notify } from '@/lib/confirm';
@@ -11,10 +12,12 @@ import {
   getExerciseHistory,
   getGroupTotals,
   listExercises,
+  listWorkoutFacts,
   type ExerciseHistoryPoint,
   type GroupTotal,
 } from '@/lib/db';
 import { formatDate, formatDuration } from '@/lib/format';
+import type { WorkoutFact } from '@/lib/gamification';
 import type { Exercise } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
 
@@ -25,8 +28,14 @@ export default function StatsScreen() {
   const [history, setHistory] = useState<ExerciseHistoryPoint[]>([]);
   const [metric, setMetric] = useState<'max_weight' | 'volume'>('max_weight');
   const [picking, setPicking] = useState(false);
+  const [facts, setFacts] = useState<WorkoutFact[]>([]);
 
   const load = useCallback(() => {
+    listWorkoutFacts()
+      .then(setFacts)
+      .catch(() => {
+        // The charts below still work; only the reading is lost.
+      });
     Promise.all([listExercises(), getGroupTotals()])
       .then(([list, groups]) => {
         setExercises(list);
@@ -56,6 +65,9 @@ export default function StatsScreen() {
   return (
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
+        <Text style={styles.sectionTitle}>이번 달, 이렇게 하고 계세요</Text>
+        <Insights workouts={facts} />
+
         <OrnateFrame>
           <Text style={styles.cardTitle}>부위별 비중</Text>
           <GroupBreakdown totals={totals} />
@@ -159,6 +171,7 @@ function Toggle({ label, on, onPress }: { label: string; on: boolean; onPress: (
 }
 
 const styles = StyleSheet.create({
+  sectionTitle: { color: colors.text, fontSize: 15, fontWeight: '800' },
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xl },
   picker: {

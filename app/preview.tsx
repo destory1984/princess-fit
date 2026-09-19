@@ -4,6 +4,7 @@ import { Advisor } from '@/components/Advisor';
 import { BigStepper } from '@/components/BigStepper';
 import { BragCard } from '@/components/BragCard';
 import { Cheer } from '@/components/Cheer';
+import { Insights } from '@/components/Insights';
 import { NudgeSetting } from '@/components/NudgeSetting';
 import { nextWeight } from '@/lib/weight';
 import { Greeting } from '@/components/Greeting';
@@ -30,6 +31,21 @@ import { colors, spacing } from '@/lib/theme';
  *
  * It is not part of the app: in a release build it redirects home.
  */
+/** A month of chest-only training: enough for the reading to have opinions. */
+const benchFacts = [0, 2, 4, 7, 9, 12, 15, 18].map((daysAgo) => {
+  const d = new Date();
+  d.setDate(d.getDate() - daysAgo);
+  return {
+    id: `p${daysAgo}`,
+    started_at: `${d.toISOString().slice(0, 10)}T10:00:00`,
+    groups: ['가슴', '팔'],
+    doneSets: 12,
+    volume: 3000,
+    durationSec: 0,
+    distanceKm: 0,
+  };
+});
+
 export default function PreviewScreen() {
   if (!__DEV__) return <Redirect href="/" />;
 
@@ -97,6 +113,12 @@ export default function PreviewScreen() {
         }}
         summary={summarise([])}
       />
+
+      <Text style={styles.heading}>통계가 짚어주는 것</Text>
+      <Insights workouts={benchFacts} />
+
+      <Text style={styles.heading}>기록이 적을 때</Text>
+      <Insights workouts={benchFacts.slice(0, 2)} />
 
       <Text style={styles.heading}>알림 설정</Text>
       <NudgeSetting />
