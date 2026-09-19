@@ -92,6 +92,8 @@ export default function WorkoutScreen() {
   const doneSets = sets.filter((s) => s.done);
   const totalVolume = doneSets.reduce((sum, s) => sum + s.weight_kg * s.reps, 0);
   const done = Boolean(workout?.ended_at);
+  const progress = sets.length ? doneSets.length / sets.length : 0;
+  const upNext = grouped.find((g) => g.sets.some((s) => !s.done));
 
   async function persist(setId: string, patch: Partial<WorkoutSet>) {
     setSets((prev) => prev.map((s) => (s.id === setId ? { ...s, ...patch } : s)));
@@ -215,6 +217,19 @@ export default function WorkoutScreen() {
             {formatDate(workout.started_at)} · 총 {totalVolume.toLocaleString()} kg · 완료{' '}
             {doneSets.length}/{sets.length} 세트
           </Text>
+          {!done && sets.length > 0 && (
+            <>
+              <View style={styles.progressTrack}>
+                <View style={[styles.progressFill, { width: `${Math.round(progress * 100)}%` }]} />
+              </View>
+              <Text style={styles.upNext}>
+                {upNext
+                  ? `다음 · ${upNext.exercise?.name ?? '종목'}`
+                  : '모든 세트를 끝냈어요. 아래에서 운동을 완료하세요.'}
+              </Text>
+            </>
+          )}
+
           {worked.length > 0 && (
             <View style={styles.bodyWrap}>
               <BodyMap data={worked} scale={0.55} labels={false} />
@@ -451,6 +466,15 @@ const styles = StyleSheet.create({
   summaryTitle: { color: colors.text, fontSize: 20, fontWeight: '800' },
   summarySub: { color: colors.textDim, marginTop: spacing.xs, fontSize: 13 },
   bodyWrap: { marginTop: spacing.md },
+  progressTrack: {
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.surfaceAlt,
+    overflow: 'hidden',
+    marginTop: spacing.md,
+  },
+  progressFill: { height: 8, borderRadius: 4, backgroundColor: colors.accent },
+  upNext: { color: colors.accent, fontSize: 13, fontWeight: '700', marginTop: spacing.xs },
   card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.lg },
   cardHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   stripe: { width: 4, height: 32, borderRadius: 2 },
