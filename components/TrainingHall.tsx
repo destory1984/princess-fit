@@ -72,8 +72,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   scene: { backgroundColor: paper.bgAlt },
-  // The asset is cropped to this ratio, so covering never bites into the room.
-  room: { width: '100%', aspectRatio: 4 / 3 },
+  // A banner, not the whole screen: the rest of the page has to fit under it.
+  room: { width: '100%', aspectRatio: 4 / 3, maxHeight: 280 },
 
   datePlaque: { position: 'absolute', top: 10, left: 10, minWidth: 92 },
   dateMonth: { textAlign: 'center', color: paper.inkDim, fontSize: 10, fontWeight: '700' },
