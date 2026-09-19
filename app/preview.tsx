@@ -6,6 +6,9 @@ import { BragCard } from '@/components/BragCard';
 import { Cheer } from '@/components/Cheer';
 import { Insights } from '@/components/Insights';
 import { MonthCalendar } from '@/components/MonthCalendar';
+import GirlScreen from '@/app/settings/girl';
+import OneRmScreen from '@/app/onerm';
+import RoutinePresetsScreen from '@/app/routine/presets';
 import { OneRmChart } from '@/components/OneRmChart';
 import { NudgeSetting } from '@/components/NudgeSetting';
 import { nextWeight } from '@/lib/weight';
@@ -115,6 +118,25 @@ export default function PreviewScreen() {
         }}
         summary={summarise([])}
       />
+
+      {/*
+        Whole screens, so the ones that need an account can still be looked at.
+        They mount against no data, which is also the state a new user sees.
+      */}
+      <Text style={styles.heading}>1RM 계산기 (화면 전체)</Text>
+      <View style={styles.framed}>
+        <OneRmScreen />
+      </View>
+
+      <Text style={styles.heading}>짜여 있는 루틴 (화면 전체)</Text>
+      <View style={styles.framedTall}>
+        <RoutinePresetsScreen />
+      </View>
+
+      <Text style={styles.heading}>함께 지낼 아이 (화면 전체)</Text>
+      <View style={styles.framedTall}>
+        <GirlScreen />
+      </View>
 
       <Text style={styles.heading}>달력</Text>
       <MonthCalendar
@@ -253,6 +275,8 @@ const styles = StyleSheet.create({
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xl },
   heading: { color: colors.text, fontSize: 15, fontWeight: '800', marginTop: spacing.md },
   steppers: { flexDirection: 'row', gap: spacing.md },
+  framed: { height: 640, borderWidth: 1, borderColor: colors.faint, borderRadius: 8 },
+  framedTall: { height: 720, borderWidth: 1, borderColor: colors.faint, borderRadius: 8 },
   greeting: { height: 520 },
   dolls: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   dollCell: { alignItems: 'center', gap: 4, width: 100 },
