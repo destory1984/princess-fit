@@ -17,6 +17,7 @@ export type Exercise = {
   muscle_detail: string;
   body_parts: string;
   track_type: TrackType;
+  how_to: string;
   created_at: string;
 };
 

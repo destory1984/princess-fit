@@ -53,6 +53,8 @@ alter table exercises add column if not exists muscle_detail text not null defau
 alter table exercises add column if not exists body_parts text not null default '';
 -- How a set is measured: weight_reps | duration | cardio (duration + distance).
 alter table exercises add column if not exists track_type text not null default 'weight_reps';
+-- Short how-to steps, one per line.
+alter table exercises add column if not exists how_to text not null default '';
 alter table workout_sets add column if not exists duration_sec int not null default 0;
 alter table workout_sets add column if not exists distance_km numeric(6, 2) not null default 0;
 

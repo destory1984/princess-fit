@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 import { listExercises } from './db';
 import type { TrackType } from './types';
+import { HOW_TO } from './howTo';
 
 export type CatalogEntry = {
   name: string;
@@ -10,9 +11,10 @@ export type CatalogEntry = {
   muscle_detail: string;
   body_parts: string;
   track_type: TrackType;
+  how_to: string;
 };
 
-export const DEFAULT_EXERCISES: CatalogEntry[] = [
+const ENTRIES: Omit<CatalogEntry, 'how_to'>[] = [
   { name: '벤치프레스', muscle_group: '가슴', secondary_group: '팔', equipment: '바벨', muscle_detail: '대흉근, 삼두', body_parts: 'chest,triceps,deltoids' , track_type: 'weight_reps' },
   { name: '인클라인 벤치프레스', muscle_group: '가슴', secondary_group: '어깨', equipment: '바벨', muscle_detail: '대흉근 상부, 삼각근', body_parts: 'chest,deltoids,triceps' , track_type: 'weight_reps' },
   { name: '덤벨 프레스', muscle_group: '가슴', secondary_group: '팔', equipment: '덤벨', muscle_detail: '대흉근, 삼두', body_parts: 'chest,triceps' , track_type: 'weight_reps' },
@@ -98,6 +100,11 @@ export const DEFAULT_EXERCISES: CatalogEntry[] = [
  * that predate it, matched by name. Rows the user has already annotated are
  * left alone.
  */
+export const DEFAULT_EXERCISES: CatalogEntry[] = ENTRIES.map((e) => ({
+  ...e,
+  how_to: HOW_TO[e.name] ?? '',
+}));
+
 export async function seedDefaultExercises() {
   const { data: userData } = await supabase.auth.getSession();
   const userId = userData.session?.user.id;
@@ -117,7 +124,8 @@ export async function seedDefaultExercises() {
 
   const stale = DEFAULT_EXERCISES.flatMap((entry) => {
     const row = byName.get(entry.name);
-    return row && !row.body_parts ? [{ id: row.id, entry }] : [];
+    const stale = row && (!row.body_parts || (!row.how_to && entry.how_to));
+    return stale ? [{ id: row.id, entry }] : [];
   });
   await Promise.all(
     stale.map(({ id, entry }) =>
@@ -130,6 +138,7 @@ export async function seedDefaultExercises() {
           muscle_detail: entry.muscle_detail,
           body_parts: entry.body_parts,
           track_type: entry.track_type,
+          how_to: entry.how_to,
         })
         .eq('id', id)
     )

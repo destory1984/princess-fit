@@ -153,11 +153,14 @@ export default function SettingsScreen() {
                 {seeding ? '불러오는 중…' : '기본 종목 불러오기 · 정보 새로 고치기'}
               </Text>
             </Pressable>
-            <Text style={styles.hint}>오른쪽 휴지통을 누르면 종목을 지울 수 있어요.</Text>
+            <Text style={styles.hint}>종목을 누르면 하는 법과 내 기록을 볼 수 있어요.</Text>
           </View>
         }
         renderItem={({ item }) => (
-          <Pressable style={styles.row} onLongPress={() => confirmDelete(item)}>
+          <Pressable
+            style={styles.row}
+            onPress={() => router.push({ pathname: '/exercise/[id]', params: { id: item.id } })}
+            onLongPress={() => confirmDelete(item)}>
             <View style={styles.rowBody}>
               <Text style={styles.rowTitle}>{item.name}</Text>
               <Text style={styles.rowSub}>

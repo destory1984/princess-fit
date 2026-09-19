@@ -389,7 +389,7 @@ export async function deleteWorkoutSet(id: string) {
 export async function getExerciseHistory(exerciseId: string, limit = 30) {
   const { data, error } = await supabase
     .from('workout_sets')
-    .select('workout_id, exercise_id, set_no, weight_kg, reps, workouts!inner(started_at, ended_at)')
+    .select('workout_id, exercise_id, set_no, weight_kg, reps, duration_sec, distance_km, workouts!inner(started_at, ended_at)')
     .eq('exercise_id', exerciseId)
     .eq('done', true)
     .not('workouts.ended_at', 'is', null)
