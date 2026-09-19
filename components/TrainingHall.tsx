@@ -1,4 +1,6 @@
+import { useRef } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
+import { BlurTargetView, BlurView } from 'expo-blur';
 import { OrnateFrame } from '@/components/OrnateFrame';
 import { STAT_META, STAT_ORDER, type Stats } from '@/lib/character';
 import { artFor } from '@/lib/furnitureArt';
@@ -6,6 +8,9 @@ import { roomContents } from '@/lib/room';
 import { colors, paper, spacing } from '@/lib/theme';
 
 const ROOM = require('../assets/room.png');
+
+/** Enough to take the room out of focus without smearing it. */
+const ROOM_BLUR = 18;
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
@@ -41,17 +46,35 @@ export function TrainingHall({
   advisorArt,
   caption,
 }: Props) {
+  // Android blurs a nominated subtree rather than whatever is behind the view,
+  // so the room has to be wrapped and handed over by ref. On iOS and web the
+  // wrapper is an ordinary View and the ref is ignored.
+  const roomRef = useRef<View | null>(null);
+
   return (
     <View style={styles.frameOuter}>
       <View style={styles.frameInner}>
         <View style={styles.scene}>
-          <Image source={ROOM} style={styles.room} resizeMode="cover" />
-
           {/*
-            The room art is as crisp as she is, so the two compete and she
-            disappears into it. A warm wash pushes the room back a step —
-            placed here, so everything drawn after it stays at full strength.
+            The room art is as crisp as she is, so the two competed and she
+            vanished into the floorboards. Throwing the room out of focus is
+            the one treatment that reliably separates them; the wash on top
+            warms it back toward the paper palette.
+
+            Only the painting goes soft — furniture drawn after this stays
+            sharp, because the stand-in plaques have to stay readable.
           */}
+          <BlurTargetView ref={roomRef} style={styles.roomLayer}>
+            <Image source={ROOM} style={styles.room} resizeMode="cover" />
+          </BlurTargetView>
+          <BlurView
+            blurTarget={roomRef}
+            intensity={ROOM_BLUR}
+            tint="light"
+            blurMethod="dimezisBlurViewSdk31Plus"
+            style={styles.blur}
+            pointerEvents="none"
+          />
           <View style={styles.wash} pointerEvents="none" />
 
           {roomContents(furniture)
@@ -127,6 +150,14 @@ const styles = StyleSheet.create({
     backgroundColor: paper.bgAlt,
   },
   piece: { position: 'absolute', height: undefined, aspectRatio: 1 },
+  roomLayer: { width: '100%' },
+  blur: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
   wash: {
     position: 'absolute',
     top: 0,
@@ -134,7 +165,8 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: paper.bg,
-    opacity: 0.25,
+    // Lighter than before: the blur is now doing most of the separating.
+    opacity: 0.14,
   },
   girlShadow: {
     position: 'absolute',
