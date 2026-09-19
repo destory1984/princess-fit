@@ -35,11 +35,11 @@ export function TrainingHall({
     <View style={styles.frameOuter}>
       <View style={styles.frameInner}>
         <View style={styles.scene}>
-          {/* The picture sets the height; the box must not crop it. */}
-          <Image source={ROOM} style={styles.room} resizeMode="cover" />
+          {/* Capped and contained, so the whole room fits on screen at once. */}
+          <Image source={ROOM} style={styles.room} resizeMode="contain" />
 
           <View style={styles.character} pointerEvents="none">
-            <BodyMap data={trained} scale={0.52} labels={false} fill="#D8C7AB" />
+            <BodyMap data={trained} scale={0.34} labels={false} fill="#D8C7AB" />
           </View>
 
           <OrnateFrame compact style={styles.datePlaque}>
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   scene: { backgroundColor: paper.bgAlt },
-  room: { width: '100%', aspectRatio: 3 / 4 },
+  room: { width: '100%', aspectRatio: 3 / 4, maxHeight: 360 },
   character: {
     position: 'absolute',
     left: 0,
