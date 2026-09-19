@@ -1,7 +1,9 @@
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { OrnateFrame } from '@/components/OrnateFrame';
 import { STAT_META, STAT_ORDER, type Stats } from '@/lib/character';
-import { paper, spacing } from '@/lib/theme';
+import { artFor } from '@/lib/furnitureArt';
+import { roomContents } from '@/lib/room';
+import { colors, paper, spacing } from '@/lib/theme';
 
 const ROOM = require('../assets/room.png');
 
@@ -15,6 +17,8 @@ type Props = {
   condition: string;
   stats: Stats;
   streak: number;
+  /** Ids of the furniture she owns; the cot is always there underneath. */
+  furniture?: string[];
 };
 
 /** The main hall: a room you stand in, with plaques pinned to its corners. */
@@ -26,12 +30,35 @@ export function TrainingHall({
   condition,
   stats,
   streak,
+  furniture = [],
 }: Props) {
   return (
     <View style={styles.frameOuter}>
       <View style={styles.frameInner}>
         <View style={styles.scene}>
           <Image source={ROOM} style={styles.room} resizeMode="cover" />
+
+          {roomContents(furniture)
+            .filter((piece) => !piece.paintedIn)
+            .map((piece) => {
+              const art = artFor(piece.id);
+              const box = {
+                left: `${piece.place.x * 100}%` as const,
+                top: `${piece.place.y * 100}%` as const,
+                width: `${piece.place.w * 100}%` as const,
+              };
+              // Until a sprite exists, a plaque stands in so the purchase is
+              // visibly in the room rather than only in the database.
+              return art ? (
+                <Image key={piece.id} source={art} style={[styles.piece, box]} resizeMode="contain" />
+              ) : (
+                <View key={piece.id} style={[styles.plaque, box]}>
+                  <Text style={styles.plaqueText} numberOfLines={1}>
+                    {piece.name}
+                  </Text>
+                </View>
+              );
+            })}
 
           <OrnateFrame compact style={styles.datePlaque}>
             <Text style={styles.dateMonth}>
@@ -64,6 +91,17 @@ export function TrainingHall({
 }
 
 const styles = StyleSheet.create({
+  piece: { position: 'absolute', height: undefined, aspectRatio: 1 },
+  plaque: {
+    position: 'absolute',
+    backgroundColor: paper.bgAlt,
+    borderColor: colors.gold,
+    borderWidth: 1,
+    borderRadius: 4,
+    paddingVertical: 2,
+    paddingHorizontal: 4,
+  },
+  plaqueText: { color: colors.text, fontSize: 9, lineHeight: 13, textAlign: 'center' },
   frameOuter: { backgroundColor: paper.line, borderRadius: 8, padding: 3 },
   frameInner: {
     borderColor: paper.bg,
