@@ -10,5 +10,5 @@ test('every advisor has a distinct id and a name', () => {
 test('an unknown or missing choice falls back to the default', () => {
   assert.equal(advisorById(null).id, DEFAULT_ADVISOR_ID);
   assert.equal(advisorById('nobody').id, DEFAULT_ADVISOR_ID);
-  assert.equal(advisorById('munhui').name, '문희');
+  assert.equal(advisorById('seora').name, '설아');
 });

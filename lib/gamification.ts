@@ -48,18 +48,18 @@ export function levelAt(xp: number) {
 
 /** One rank per level so the title changes often enough to notice. */
 export const LEVEL_TITLES = [
-  '문하생',
-  '수련생',
-  '내문 제자',
-  '무사',
-  '검객',
-  '일류',
-  '고수',
-  '절정',
-  '초절정',
-  '화경',
-  '현경',
-  '생사경',
+  '견습',
+  '시동',
+  '종자',
+  '기사',
+  '근위 기사',
+  '성기사',
+  '남작',
+  '자작',
+  '백작',
+  '후작',
+  '공작',
+  '여왕',
 ];
 
 export function levelTitle(level: number) {

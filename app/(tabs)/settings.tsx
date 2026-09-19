@@ -56,7 +56,7 @@ export default function SettingsScreen() {
           <Ionicons name="trophy-outline" size={22} color={colors.accent} />
         </View>
         <View style={styles.body}>
-          <Text style={styles.title}>수련부</Text>
+          <Text style={styles.title}>연대기</Text>
           <Text style={styles.sub}>성장 기록과 업적 보기</Text>
         </View>
         <Ionicons name="chevron-forward" size={20} color={colors.textDim} />

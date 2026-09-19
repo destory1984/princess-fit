@@ -43,12 +43,12 @@ test('levels start at 100 xp and stretch out', () => {
 });
 
 test('every level has its own rank, and the top one holds', () => {
-  assert.equal(levelAt(0).title, '문하생');
-  assert.equal(levelAt(100).title, '수련생');
-  assert.equal(levelAt(400).title, '내문 제자');
-  assert.equal(levelAt(12100).title, '생사경');
+  assert.equal(levelAt(0).title, '견습');
+  assert.equal(levelAt(100).title, '시동');
+  assert.equal(levelAt(400).title, '종자');
+  assert.equal(levelAt(12100).title, '여왕');
   // past the last rank the title stays put rather than going undefined
-  assert.equal(levelAt(1_000_000).title, '생사경');
+  assert.equal(levelAt(1_000_000).title, '여왕');
 });
 
 test('longest streak counts consecutive calendar days, not sessions', () => {

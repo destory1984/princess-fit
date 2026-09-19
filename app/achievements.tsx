@@ -6,6 +6,7 @@ import { BodyMap, workedParts } from '@/components/BodyMap';
 import { Scroll } from '@/components/Scroll';
 import { StatBar } from '@/components/StatBar';
 import { ScreenState } from '@/components/ScreenState';
+import { useAdvisor } from '@/lib/useAdvisor';
 import { notify } from '@/lib/confirm';
 import {
   archetypeOf,
@@ -29,6 +30,7 @@ export default function TrainingLedgerScreen() {
   const [facts, setFacts] = useState<WorkoutFact[] | null>(null);
   const [goal, setGoal] = useState(3);
   const [error, setError] = useState<string | null>(null);
+  const advisor = useAdvisor();
 
   const load = useCallback(() => {
     setError(null);
@@ -91,7 +93,7 @@ export default function TrainingLedgerScreen() {
               />
             ))}
             <View style={styles.xpRow}>
-              <Text style={styles.xpLabel}>내공</Text>
+              <Text style={styles.xpLabel}>경험</Text>
               <Text style={styles.xpValue}>{summary.xp.toLocaleString()}</Text>
             </View>
           </View>
@@ -99,13 +101,13 @@ export default function TrainingLedgerScreen() {
 
         <View style={styles.speech}>
           <View style={styles.speaker}>
-            <Text style={styles.speakerText}>사부</Text>
+            <Text style={styles.speakerText}>{advisor.name}</Text>
           </View>
           <Text style={styles.speechText}>{saying}</Text>
         </View>
       </Scroll>
 
-      <Scroll title="이번 주 수련">
+      <Scroll title="이번 주 훈련">
         <View style={styles.goalRow}>
           <Text style={styles.goalLabel}>주간 목표</Text>
           <Pressable hitSlop={8} onPress={() => changeGoal(-1)}>

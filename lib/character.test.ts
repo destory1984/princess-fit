@@ -18,7 +18,7 @@ function fact(partial: Partial<WorkoutFact> & { started_at: string }): WorkoutFa
 test('an empty history leaves every stat at zero', () => {
   const stats = computeStats([], new Date('2026-09-19T10:00:00'));
   assert.deepEqual(Object.values(stats), [0, 0, 0, 0, 0]);
-  assert.equal(archetypeOf(stats).name, '백지(白紙)');
+  assert.equal(archetypeOf(stats).name, '이름 없는 아이');
 });
 
 test('stats stay within 0 and 100 even for absurd inputs', () => {
@@ -31,15 +31,15 @@ test('stats stay within 0 and 100 even for absurd inputs', () => {
   }
 });
 
-test('lifting heavy makes 역사, running makes 축지 행자', () => {
+test('lifting heavy makes a warrior, running makes a pilgrim', () => {
   const day = (d: number) => `2026-09-${String(d).padStart(2, '0')}T10:00:00`;
   const lifter = computeStats([fact({ started_at: day(19), volume: 9000, doneSets: 20 })]);
-  assert.equal(archetypeOf(lifter).name, '역사(力士)');
+  assert.equal(archetypeOf(lifter).name, '괴력의 전사');
 
   const runner = computeStats([
     fact({ started_at: day(19), durationSec: 40_000, distanceKm: 60 }),
   ]);
-  assert.equal(archetypeOf(runner).name, '축지 행자');
+  assert.equal(archetypeOf(runner).name, '순례자');
 });
 
 test('balance rises with how many groups a week covers', () => {
