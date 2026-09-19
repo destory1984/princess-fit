@@ -3,7 +3,6 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { notify } from '@/lib/confirm';
-import { workedParts } from '@/components/BodyMap';
 import { LevelCard } from '@/components/LevelCard';
 import { TrainingHall } from '@/components/TrainingHall';
 import { archetypeOf, computeStats, conditionOf } from '@/lib/character';
@@ -30,7 +29,6 @@ export default function TodayScreen() {
   const [weekly, setWeekly] = useState<WeeklyStats>({ workouts: 0, volume: 0, streakDays: 0 });
   const [summary, setSummary] = useState<ReturnType<typeof summarise> | null>(null);
   const [stats, setStats] = useState<ReturnType<typeof computeStats> | null>(null);
-  const [trained, setTrained] = useState<ReturnType<typeof workedParts>>([]);
 
   const load = useCallback(() => {
     Promise.all([
@@ -47,13 +45,6 @@ export default function TodayScreen() {
         setExerciseCount(ex.length);
         setSummary(summarise(facts));
         setStats(computeStats(facts));
-        setTrained(
-          workedParts(
-            facts.flatMap((f) =>
-              f.groups.map((g) => ({ muscle_group: g, secondary_group: null }))
-            )
-          )
-        );
         const sizes = await Promise.all(
           r.map(async (routine) => [routine.id, (await listRoutineExercises(routine.id)).length] as const)
         );
@@ -116,7 +107,6 @@ export default function TodayScreen() {
             condition={conditionOf(stats, summary.streak)}
             stats={stats}
             streak={summary.streak}
-            trained={trained}
           />
           <LevelCard
             level={summary.level}

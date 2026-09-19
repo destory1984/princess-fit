@@ -1,9 +1,7 @@
 import { Image, StyleSheet, Text, View } from 'react-native';
-import { BodyMap } from '@/components/BodyMap';
 import { OrnateFrame } from '@/components/OrnateFrame';
 import { STAT_META, STAT_ORDER, type Stats } from '@/lib/character';
 import { paper, spacing } from '@/lib/theme';
-import type { Slug } from 'react-native-body-highlighter';
 
 const ROOM = require('../assets/room.png');
 
@@ -17,7 +15,6 @@ type Props = {
   condition: string;
   stats: Stats;
   streak: number;
-  trained: { slug: Slug; intensity: number }[];
 };
 
 /** The main hall: a room you stand in, with plaques pinned to its corners. */
@@ -29,7 +26,6 @@ export function TrainingHall({
   condition,
   stats,
   streak,
-  trained,
 }: Props) {
   return (
     <View style={styles.frameOuter}>
@@ -37,10 +33,6 @@ export function TrainingHall({
         <View style={styles.scene}>
           {/* Capped and contained, so the whole room fits on screen at once. */}
           <Image source={ROOM} style={styles.room} resizeMode="contain" />
-
-          <View style={styles.character} pointerEvents="none">
-            <BodyMap data={trained} scale={0.34} labels={false} fill="#D8C7AB" />
-          </View>
 
           <OrnateFrame compact style={styles.datePlaque}>
             <Text style={styles.dateMonth}>
@@ -82,13 +74,6 @@ const styles = StyleSheet.create({
   },
   scene: { backgroundColor: paper.bgAlt },
   room: { width: '100%', aspectRatio: 3 / 4, maxHeight: 360 },
-  character: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: '6%',
-    alignItems: 'center',
-  },
 
   datePlaque: { position: 'absolute', top: 10, left: 10, minWidth: 92 },
   dateMonth: { textAlign: 'center', color: paper.inkDim, fontSize: 10, fontWeight: '700' },
