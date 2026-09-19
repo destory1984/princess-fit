@@ -114,3 +114,7 @@ alter table household enable row level security;
 drop policy if exists "own household" on household;
 create policy "own household" on household
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- What she owns. Clothes are permanent, so they live beside the purse rather
+-- than in a log of purchases.
+alter table household add column if not exists wardrobe text[] not null default '{}';
