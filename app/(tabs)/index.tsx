@@ -53,7 +53,7 @@ export default function TodayScreen() {
     }
   }
 
-  const isNew = weekly.workouts === 0 && routines.length === 0;
+  const isNew = weekly.workouts === 0 && routines.length === 0 && !active;
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
