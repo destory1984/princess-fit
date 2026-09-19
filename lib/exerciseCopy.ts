@@ -5,6 +5,16 @@ type Described = Pick<
   'name' | 'muscle_group' | 'secondary_group' | 'equipment' | 'muscle_detail' | 'track_type'
 >;
 
+/** 을/를, 은/는 — picked by whether the last syllable ends in a consonant. */
+export function withParticle(word: string, pair: '을/를' | '은/는') {
+  const last = word.trim().slice(-1);
+  const code = last.charCodeAt(0);
+  const isHangul = code >= 0xac00 && code <= 0xd7a3;
+  const hasFinal = isHangul && (code - 0xac00) % 28 !== 0;
+  const [withFinal, withoutFinal] = pair.split('/');
+  return `${word}${hasFinal ? withFinal : withoutFinal}`;
+}
+
 const EQUIPMENT_PHRASE: Record<string, string> = {
   바벨: '바벨로 하는',
   덤벨: '덤벨로 하는',
@@ -22,7 +32,7 @@ export function introOf(e: Described) {
       ? '숨이 차오르는 유산소 운동'
       : e.track_type === 'duration'
         ? '자세를 버티는 운동'
-        : `${e.muscle_group}을 쓰는 운동`;
+        : `${withParticle(e.muscle_group, '을/를')} 쓰는 운동`;
 
   const lead = [gear, kind].filter(Boolean).join(' ');
   const detail = e.muscle_detail ? `${e.muscle_detail}에 주로 자극이 갑니다.` : '';
@@ -31,7 +41,7 @@ export function introOf(e: Described) {
       ? ` ${e.secondary_group}도 함께 쓰입니다.`
       : '';
 
-  return `${e.name}은(는) ${lead}입니다. ${detail}${also}`.replace(/\s+/g, ' ').trim();
+  return `${withParticle(e.name, '은/는')} ${lead}입니다. ${detail}${also}`.replace(/\s+/g, ' ').trim();
 }
 
 const COMPOUND = ['데드리프트', '스쿼트', '벤치프레스', '오버헤드 프레스', '바벨 로우', '풀업'];

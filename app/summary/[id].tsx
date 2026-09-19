@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
@@ -41,6 +41,15 @@ export default function SummaryScreen() {
   }, [id]);
 
   useFocusEffect(load);
+
+  // Must be stable: AdviceCard refetches whenever this object's identity changes.
+  const adviceContext = useMemo(
+    () =>
+      fact && summary
+        ? { today: fact, history: facts, stats: computeStats(facts), streak: summary.streak }
+        : null,
+    [fact, facts, summary]
+  );
 
   async function share() {
     try {
@@ -117,9 +126,7 @@ export default function SummaryScreen() {
         </OrnateFrame>
       </View>
 
-      <AdviceCard
-        context={{ today: fact, history: facts, stats: computeStats(facts), streak: summary.streak }}
-      />
+      {adviceContext && <AdviceCard context={adviceContext} />}
 
       <Pressable style={styles.share} onPress={share}>
         <Ionicons name={Platform.OS === 'web' ? 'download-outline' : 'share-outline'} size={18} color="#fff" />
