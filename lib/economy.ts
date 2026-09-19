@@ -5,12 +5,12 @@ import { workoutXp, type WorkoutFact } from './gamification.ts';
  * The household ledger: what a workout earns, and what a day away costs.
  *
  * The numbers are set against one target — a year of steady training (three
- * sessions a week, 156 in all) should pay for the full wardrobe with something
- * left over for meals. Change one and the year drifts, so `YEAR_CHECK` in the
- * tests re-derives it.
+ * sessions a week, 156 in all) should pay for her meals, the full wardrobe,
+ * and a year of schooling besides. Change one and the year drifts, so the
+ * shop tests re-derive it rather than trusting a comment.
  */
 
-export const GOLD_PER_WORKOUT = 60;
+export const GOLD_PER_WORKOUT = 75;
 export const GOLD_PER_SET = 3;
 /** Heavy days pay a little more, but not enough to make volume the whole game. */
 export const GOLD_PER_200KG = 1;
