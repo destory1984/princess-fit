@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { ActivityIndicator, Pressable, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -36,13 +36,17 @@ function RootNavigator() {
         headerTitleStyle: { fontWeight: '800' },
         headerShadowVisible: false,
         contentStyle: { backgroundColor: colors.bg },
-        // The web header has no back affordance of its own.
-        headerLeft: () =>
-          router.canGoBack() ? (
-            <Pressable hitSlop={10} style={{ paddingRight: 12 }} onPress={() => router.back()}>
-              <Ionicons name="chevron-back" size={24} color={colors.chromeText} />
-            </Pressable>
-          ) : null,
+        // The web header has no back affordance of its own, and a screen opened
+        // straight from a URL has nothing to go back to — send those home.
+        headerLeft: () => (
+          <Pressable
+            hitSlop={10}
+            style={{ paddingRight: 12, flexDirection: 'row', alignItems: 'center' }}
+            onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}>
+            <Ionicons name="chevron-back" size={22} color={colors.chromeText} />
+            <Text style={{ color: colors.chromeText, fontSize: 15, fontWeight: '700' }}>뒤로</Text>
+          </Pressable>
+        ),
       }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="login" options={{ headerShown: false }} />
