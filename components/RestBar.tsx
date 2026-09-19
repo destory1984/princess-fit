@@ -11,7 +11,6 @@ type Props = {
   /** Ten seconds on or off: the current rest if one is running, else the
    *  exercise's own length. */
   onAdjust: (delta: number) => void;
-  onSkip: () => void;
   /** Start the rest by hand, without finishing a set first. */
   onStart: () => void;
   grain: number;
@@ -33,7 +32,6 @@ export function RestBar({
   length,
   remaining,
   onAdjust,
-  onSkip,
   onStart,
   grain,
 }: Props) {
@@ -63,18 +61,14 @@ export function RestBar({
             <Text style={styles.buttonText}>+{grain}</Text>
           </Pressable>
           {/*
-            One button in this slot either way: start a rest that is not
-            running, or cut short one that is. Both are about the clock, and
-            only one of them can apply at a time.
+            No skip button: a rest blocks nothing, so starting the next set is
+            already the way out of one. Only starting a rest needs a control.
           */}
-          <Pressable
-            style={[styles.button, styles.primary]}
-            onPress={running ? onSkip : onStart}
-          >
-            <Text style={[styles.buttonText, styles.primaryText]}>
-              {running ? '건너뛰기' : '시작'}
-            </Text>
-          </Pressable>
+          {!running && (
+            <Pressable style={[styles.button, styles.primary]} onPress={onStart}>
+              <Text style={[styles.buttonText, styles.primaryText]}>시작</Text>
+            </Pressable>
+          )}
         </View>
       </View>
     </View>

@@ -666,7 +666,6 @@ export default function WorkoutScreen() {
                     Math.max(Date.now(), (end ?? Date.now()) + delta * 1000),
                   )
             }
-            onSkip={() => setRestEnd(null)}
             onStart={() => {
               setRestFor(restExercise?.id ?? null);
               setRestEnd(Date.now() + restLength * 1000);
@@ -692,7 +691,7 @@ export default function WorkoutScreen() {
               </Pressable>
             )}
             <Pressable style={styles.finish} onPress={finish}>
-              <Text style={styles.finishText}>운동 완료</Text>
+              <Text style={styles.finishText}>오늘의 운동 완료</Text>
             </Pressable>
           </View>
         </View>
