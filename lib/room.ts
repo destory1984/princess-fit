@@ -80,10 +80,6 @@ export const FURNITURE: Furniture[] = [
 
 export const ROOM_TOTAL = FURNITURE.reduce((sum, f) => sum + f.price, 0);
 
-export function furnitureById(id: string) {
-  return id === STARTER.id ? STARTER : (FURNITURE.find((f) => f.id === id) ?? null);
-}
-
 /**
  * What is actually in the room right now, back to front. Later slots draw over
  * earlier ones, and the starter bed only shows while nothing better fills its

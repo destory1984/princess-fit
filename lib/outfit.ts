@@ -26,9 +26,6 @@ export const LAYER_ORDER: OutfitSlot[] = ['sleeves', 'bottom', 'top', 'hand'];
 
 export type Fit = { x: number; y: number; w: number };
 
-/** Art drawn on the base's own canvas needs no adjustment. */
-export const FULL_FIT: Fit = { x: 0, y: 0, w: 1 };
-
 export type Garment = {
   id: string;
   slot: OutfitSlot;

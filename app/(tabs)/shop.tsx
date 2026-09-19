@@ -5,6 +5,9 @@ import { ShopShelves, type Spend } from "@/components/ShopShelves";
 import { notify } from "@/lib/confirm";
 import { getLedger, type Ledger } from "@/lib/db";
 import { thanksFor } from "@/lib/economy";
+import { GIRL_NAME } from "@/lib/girl";
+import { tripTimes } from "@/lib/lessons";
+import { scheduleLessonTrip } from "@/lib/notify";
 
 /**
  * The shop screen: reads the ledger and carries out purchases. What it looks
@@ -35,6 +38,12 @@ export default function ShopScreen() {
         price ? `${label} · −${price.toLocaleString()} G` : label,
         thanksFor(kind, id),
       );
+      // A lesson is a day out: she says goodbye in the morning and tells you
+      // how it went when she is back. Booking that must not look like a failed
+      // purchase, so it is deliberately kept out of the catch above.
+      if (kind === "lesson") {
+        void scheduleLessonTrip(GIRL_NAME, label, tripTimes()).catch(() => {});
+      }
     } catch (e: any) {
       notify("사지 못했어요", e.message);
     } finally {
