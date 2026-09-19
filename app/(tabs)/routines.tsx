@@ -42,14 +42,22 @@ export default function RoutinesScreen() {
   }
 
   function confirmDelete(routine: Routine) {
-    confirmAction('루틴 삭제', `"${routine.name}"을 삭제할까요?`, async () => {
-      try {
-        await deleteRoutine(routine.id);
-        load();
-      } catch (e: any) {
-        notify('삭제 실패', e.message);
+    // workouts.routine_id is ON DELETE SET NULL, so past sessions survive —
+    // worth saying, because "되돌릴 수 없어요" otherwise sounds like they go too.
+    confirmAction(
+      '루틴 삭제',
+      `"${routine.name}"을 삭제할까요?
+
+되돌릴 수 없어요. 이 루틴으로 했던 운동 기록은 그대로 남아요.`,
+      async () => {
+        try {
+          await deleteRoutine(routine.id);
+          load();
+        } catch (e: any) {
+          notify('삭제 실패', e.message);
+        }
       }
-    });
+    );
   }
 
   return (
