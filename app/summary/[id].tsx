@@ -6,7 +6,7 @@ import { captureRef } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
 import { AdviceCard } from '@/components/AdviceCard';
 import { BodyMap, workedParts } from '@/components/BodyMap';
-import { OrnateFrame } from '@/components/OrnateFrame';
+import { BragCard } from '@/components/BragCard';
 import { ScreenState } from '@/components/ScreenState';
 import { notify } from '@/lib/confirm';
 import {
@@ -22,8 +22,6 @@ import { summarise, workoutXp, type WorkoutFact } from '@/lib/gamification';
 import { workoutGold } from '@/lib/economy';
 import type { Workout } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
-
-const CHEERS = ['오늘도 해냈다', '어제의 나를 이겼다', '기록은 거짓말을 안 한다', '한 칸 더 올라감'];
 
 export default function SummaryScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -97,61 +95,9 @@ export default function SummaryScreen() {
 
   if (!workout || !fact || !summary) return <ScreenState error={error} onRetry={load} />;
 
-  const worked = workedParts(items.flatMap((i) => i.exercise ?? []));
-  const doneSets = items.reduce((sum, i) => sum + i.sets.filter((s) => s.done).length, 0);
-  const minutes = workout.ended_at
-    ? Math.max(1, Math.round((+new Date(workout.ended_at) - +new Date(workout.started_at)) / 60000))
-    : 0;
-  const cheer = CHEERS[new Date(workout.started_at).getDate() % CHEERS.length];
-  const best = items
-    .filter((i) => i.topWeight > 0)
-    .sort((a, b) => b.estimatedOneRm - a.estimatedOneRm)[0];
-
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <View ref={card} collapsable={false}>
-        <OrnateFrame style={styles.card}>
-        <Text style={styles.date}>{formatDate(workout.started_at)}</Text>
-        <Text style={styles.cheer}>💪 {cheer}</Text>
-        <Text style={styles.title}>{workout.title}</Text>
-
-        <View style={styles.statRow}>
-          <Stat value={fact.volume.toLocaleString()} unit="kg" label="총 무게" />
-          <Stat value={String(doneSets)} unit="세트" label="완료" />
-          <Stat value={String(minutes)} unit="분" label="걸린 시간" />
-        </View>
-
-        {worked.length > 0 && (
-          <View style={styles.body}>
-            <BodyMap data={worked} scale={0.62} labels={false} />
-          </View>
-        )}
-
-        <View style={styles.badgeRow}>
-          <Pill icon="flash" text={`+${workoutXp(fact)} XP`} tint={colors.accent} />
-          <Pill icon="ellipse" text={`+${workoutGold(fact)} G`} tint={colors.gold} />
-          <Pill icon="ribbon" text={`Lv.${summary.level} ${summary.title}`} tint={colors.success} />
-          {summary.streak > 1 && (
-            <Pill icon="flame" text={`${summary.streak}일 연속`} tint={colors.danger} />
-          )}
-        </View>
-
-        {best && (
-          <Text style={styles.highlight}>
-            오늘의 한 방 · {best.exercise?.name} {best.topWeight}kg (예상 1RM{' '}
-            {best.estimatedOneRm}kg)
-          </Text>
-        )}
-        {fact.durationSec > 0 && (
-          <Text style={styles.highlight}>
-            유산소 {formatDuration(fact.durationSec)}
-            {fact.distanceKm > 0 && ` · ${fact.distanceKm}km`}
-          </Text>
-        )}
-
-          <Text style={styles.brand}>Refit</Text>
-        </OrnateFrame>
-      </View>
+      <BragCard ref={card} workout={workout} items={items} fact={fact} summary={summary} />
 
       {adviceContext && <AdviceCard context={adviceContext} />}
 
@@ -176,60 +122,9 @@ export default function SummaryScreen() {
   );
 }
 
-function Stat({ value, unit, label }: { value: string; unit: string; label: string }) {
-  return (
-    <View style={styles.stat}>
-      <Text style={styles.statValue}>
-        {value}
-        <Text style={styles.statUnit}> {unit}</Text>
-      </Text>
-      <Text style={styles.statLabel}>{label}</Text>
-    </View>
-  );
-}
-
-function Pill({ icon, text, tint }: { icon: string; text: string; tint: string }) {
-  return (
-    <View style={[styles.pill, { backgroundColor: `${tint}26`, borderColor: `${tint}66` }]}>
-      <Ionicons name={icon as any} size={13} color={tint} />
-      <Text style={[styles.pillText, { color: tint }]}>{text}</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xl },
-  card: { gap: spacing.sm },
-  date: { color: colors.textDim, fontSize: 13 },
-  cheer: { color: colors.accent, fontSize: 15, fontWeight: '700' },
-  title: { color: colors.text, fontSize: 26, fontWeight: '800', marginBottom: spacing.md },
-  statRow: { flexDirection: 'row', gap: spacing.md },
-  stat: { flex: 1 },
-  statValue: { color: colors.text, fontSize: 26, fontWeight: '800' },
-  statUnit: { color: colors.textDim, fontSize: 13, fontWeight: '600' },
-  statLabel: { color: colors.textDim, fontSize: 12, marginTop: 2 },
-  body: { marginVertical: spacing.md },
-  badgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  pill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    borderWidth: 1,
-    borderRadius: 14,
-    paddingVertical: 4,
-    paddingHorizontal: spacing.md,
-  },
-  pillText: { fontWeight: '700', fontSize: 12 },
-  highlight: { color: colors.textDim, fontSize: 13, marginTop: spacing.xs },
-  brand: {
-    color: colors.textDim,
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 1,
-    textAlign: 'right',
-    marginTop: spacing.md,
-  },
   hint: { color: colors.textDim, textAlign: 'center' },
   repeat: {
     borderColor: colors.accent,

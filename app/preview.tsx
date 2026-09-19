@@ -2,6 +2,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Redirect } from 'expo-router';
 import { Advisor } from '@/components/Advisor';
 import { BigStepper } from '@/components/BigStepper';
+import { BragCard } from '@/components/BragCard';
 import { nextWeight } from '@/lib/weight';
 import { Greeting } from '@/components/Greeting';
 import { PaperDoll } from '@/components/PaperDoll';
@@ -12,6 +13,7 @@ import { Purse } from '@/components/Purse';
 import { TrainingHall } from '@/components/TrainingHall';
 import { FURNITURE } from '@/lib/room';
 import { GARMENTS } from '@/lib/outfit';
+import { summarise } from '@/lib/gamification';
 import { BASE_GIRL } from '@/lib/outfitArt';
 import { GIRL_NAME } from '@/lib/girl';
 import { colors, spacing } from '@/lib/theme';
@@ -69,6 +71,30 @@ export default function PreviewScreen() {
 
       <Text style={styles.heading}>지갑</Text>
       <Purse house={house} opensShop />
+
+      <Text style={styles.heading}>운동을 마친 카드</Text>
+      <BragCard
+        workout={{
+          id: 'w',
+          user_id: 'u',
+          routine_id: null,
+          title: '월요일 상체',
+          memo: null,
+          started_at: '2026-09-20T18:00:00',
+          ended_at: '2026-09-20T19:07:00',
+        }}
+        items={[]}
+        fact={{
+          id: 'w',
+          started_at: '2026-09-20T18:00:00',
+          groups: ['가슴', '팔'],
+          doneSets: 14,
+          volume: 4_120,
+          durationSec: 0,
+          distanceKm: 0,
+        }}
+        summary={summarise([])}
+      />
 
       <Text style={styles.heading}>쉬는 시간 막대</Text>
       <RestBar
