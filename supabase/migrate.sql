@@ -1,5 +1,16 @@
--- Run this if the shop reports a missing column. It adds only what was added
--- after the household table first shipped, and is safe to run more than once.
+-- Brings an older database up to the current schema. Every statement is
+-- idempotent, so running it more than once is harmless — and a test holds it
+-- to covering every column schema.sql adds after a table is created.
+alter table workout_sets add column if not exists position int not null default 0;
+alter table workout_sets add column if not exists duration_sec int not null default 0;
+alter table workout_sets add column if not exists distance_km numeric(6, 2) not null default 0;
+alter table exercises add column if not exists equipment text not null default '기타';
+alter table exercises add column if not exists secondary_group text;
+alter table exercises add column if not exists muscle_detail text not null default '';
+alter table exercises add column if not exists body_parts text not null default '';
+alter table exercises add column if not exists track_type text not null default 'weight_reps';
+alter table exercises add column if not exists how_to text not null default '';
+
 alter table household add column if not exists wardrobe  text[] not null default '{}';
 alter table household add column if not exists worn      text[] not null default '{}';
 alter table household add column if not exists furniture text[] not null default '{}';
