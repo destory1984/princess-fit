@@ -82,6 +82,15 @@ export default function HistoryScreen() {
         }
       />
 
+      <Pressable style={styles.tool} onPress={() => router.push('/body')}>
+        <Ionicons name="body-outline" size={18} color={colors.accent} />
+        <View style={styles.toolBody}>
+          <Text style={styles.toolTitle}>신체 기록</Text>
+          <Text style={styles.toolSub}>몸무게 · 체지방 · 골격근량</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color={colors.textDim} />
+      </Pressable>
+
       <Insights workouts={facts} limit={2} />
 
       <View style={styles.listHeader}>
@@ -136,6 +145,17 @@ export default function HistoryScreen() {
 }
 
 const styles = StyleSheet.create({
+  tool: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    padding: spacing.md,
+  },
+  toolBody: { flex: 1 },
+  toolTitle: { color: colors.text, fontSize: 14, fontWeight: '700' },
+  toolSub: { color: colors.textDim, fontSize: 12, marginTop: 2 },
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.lg, gap: spacing.sm, paddingBottom: spacing.xl },
   listHeader: {
