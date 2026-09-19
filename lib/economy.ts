@@ -1,5 +1,6 @@
 import { localDayKey } from './format.ts';
 import type { WorkoutFact } from './gamification.ts';
+import { insightsFor } from './insight.ts';
 
 /**
  * The household ledger: what a workout earns, and what a day away costs.
@@ -156,7 +157,7 @@ export function tomorrowsMessage(house: Household, workouts: WorkoutFact[], toda
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
   const projected = settle(house, tomorrow);
-  return messageFor(moodOf(projected, workouts, tomorrow), tomorrow);
+  return dailyLine(projected, workouts, tomorrow);
 }
 
 export type GiftKind = 'food' | 'clothes' | 'accessory' | 'furniture' | 'lesson';
@@ -179,4 +180,26 @@ export function thanksFor(kind: GiftKind, itemId: string) {
   const lines = THANKS[kind];
   const seed = [...itemId].reduce((n, c) => n + c.charCodeAt(0), 0);
   return lines[seed % lines.length];
+}
+
+/**
+ * Her line for a given day: what she needs first, then what your training
+ * needs.
+ *
+ * Hunger and rags come first because they are about her, and she is the one
+ * speaking. Once she is comfortable she has attention to spare for the thing
+ * the numbers noticed — which is how a companion differs from a dashboard.
+ */
+export function dailyLine(
+  house: Household,
+  workouts: WorkoutFact[],
+  today = new Date()
+): string {
+  const mood = moodOf(house, workouts, today);
+  if (mood !== 'fine' && mood !== 'happy') return messageFor(mood, today);
+
+  const watch = insightsFor(workouts, today).find((i) => i.tone === 'watch');
+  if (watch) return `${watch.title}. ${watch.detail}`;
+
+  return messageFor(mood, today);
 }
