@@ -16,11 +16,13 @@ export default function TabLayout() {
           borderTopColor: colors.gold,
           borderTopWidth: 2,
           paddingTop: 6,
+          paddingBottom: 6,
+          // Tall enough for icon plus a Korean label with its descenders.
+          height: 64,
         },
         tabBarActiveTintColor: colors.gold,
         tabBarInactiveTintColor: '#9A8873',
-        // Korean labels lose their bottom stroke without room for descenders.
-        tabBarLabelStyle: { fontSize: 11, lineHeight: 16, paddingBottom: 2 },
+        tabBarLabelStyle: { fontSize: 11, lineHeight: 15 },
         tabBarAllowFontScaling: false,
       }}>
       <Tabs.Screen
