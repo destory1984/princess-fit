@@ -51,9 +51,11 @@ type Props = {
   onPartPress?: (slug: Slug) => void;
   scale?: number;
   labels?: boolean;
+  /** Colour of untrained muscles, for surfaces the default would vanish against. */
+  fill?: string;
 };
 
-export function BodyMap({ data, onPartPress, scale = 0.75, labels = true }: Props) {
+export function BodyMap({ data, onPartPress, scale = 0.75, labels = true, fill }: Props) {
   // Passing a handler makes the library attach onPress to every SVG path, which
   // react-native-web cannot map — so only pass one when a caller wants taps.
   const press = onPartPress
@@ -65,7 +67,7 @@ export function BodyMap({ data, onPartPress, scale = 0.75, labels = true }: Prop
     gender: 'male',
     scale,
     colors: intensityRamp,
-    defaultFill: SKIN,
+    defaultFill: fill ?? SKIN,
     border: 'none',
     onBodyPartPress: press,
   } as const;
