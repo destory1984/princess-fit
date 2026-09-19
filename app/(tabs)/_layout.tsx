@@ -22,7 +22,9 @@ export default function TabLayout() {
         },
         tabBarActiveTintColor: colors.gold,
         tabBarInactiveTintColor: colors.chromeDim,
-        tabBarLabelStyle: { fontSize: 11, lineHeight: 15 },
+        // Six tabs share the bar, so the labels sit tighter than before.
+        tabBarLabelStyle: { fontSize: 10, lineHeight: 14 },
+        tabBarItemStyle: { paddingHorizontal: 0 },
         tabBarAllowFontScaling: false,
       }}>
       <Tabs.Screen
@@ -37,6 +39,15 @@ export default function TabLayout() {
         options={{
           title: '루틴',
           tabBarIcon: ({ color, size }) => <Ionicons name="list" size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="shop"
+        options={{
+          title: '상점',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="storefront" size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen

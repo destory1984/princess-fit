@@ -39,17 +39,6 @@ export default function SettingsScreen() {
         <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
       </Pressable>
 
-      <Pressable style={styles.row} onPress={() => router.push('/shop')}>
-        <View style={styles.icon}>
-          <Ionicons name="storefront-outline" size={22} color={colors.accent} />
-        </View>
-        <View style={styles.body}>
-          <Text style={styles.title}>상점</Text>
-          <Text style={styles.sub}>밥 · 옷 · 장신구 · 수업 · 방</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
-      </Pressable>
-
       <Pressable style={styles.row} onPress={() => router.push('/settings/exercises')}>
         <View style={styles.icon}>
           <Ionicons name="barbell-outline" size={22} color={colors.accent} />
