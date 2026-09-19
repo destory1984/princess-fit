@@ -3,6 +3,7 @@ import { Redirect } from 'expo-router';
 import { Advisor } from '@/components/Advisor';
 import { BigStepper } from '@/components/BigStepper';
 import { BragCard } from '@/components/BragCard';
+import { Cheer } from '@/components/Cheer';
 import { nextWeight } from '@/lib/weight';
 import { Greeting } from '@/components/Greeting';
 import { PaperDoll } from '@/components/PaperDoll';
@@ -95,6 +96,12 @@ export default function PreviewScreen() {
         }}
         summary={summarise([])}
       />
+
+      <Text style={styles.heading}>리나의 응원</Text>
+      <Cheer doneSets={0} totalSets={12} />
+      <Cheer doneSets={7} totalSets={12} />
+      <Cheer doneSets={11} totalSets={12} />
+      <Cheer doneSets={12} totalSets={12} />
 
       <Text style={styles.heading}>쉬는 시간 막대</Text>
       <RestBar
