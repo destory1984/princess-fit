@@ -36,6 +36,7 @@ import {
   wornCharm,
   type Item,
 } from '@/lib/shop';
+import { thanksFor, type GiftKind } from '@/lib/economy';
 import { colors, paper, radius, spacing } from '@/lib/theme';
 
 const SHELVES = ['부엌', '옷장', '장신구', '수업', '방', '특별'] as const;
@@ -57,12 +58,18 @@ export default function ShopScreen() {
   useFocusEffect(load);
 
   /** One path for every kind of purchase, so the busy state cannot be forgotten. */
-  async function spend(id: string, label: string, price: number, run: () => Promise<Ledger>) {
+  async function spend(
+    id: string,
+    label: string,
+    price: number,
+    kind: GiftKind,
+    run: () => Promise<Ledger>
+  ) {
     if (busy) return;
     setBusy(id);
     try {
       setLedger(await run());
-      notify(price ? `${label} · −${price.toLocaleString()} G` : label);
+      notify(price ? `${label} · −${price.toLocaleString()} G` : label, thanksFor(kind, id));
     } catch (e: any) {
       notify('사지 못했어요', e.message);
     } finally {
@@ -141,7 +148,9 @@ export default function ShopScreen() {
         }
         disabled={!!refusal}
         owned={refusal === 'owned'}
-        onPress={() => spend(item.id, item.name, item.price, () => buyItem(item))}
+        onPress={() => spend(item.id, item.name, item.price, item.kind === 'food' ? 'food' : 'accessory', () =>
+            buyItem(item)
+          )}
       />
     );
   }
@@ -160,7 +169,7 @@ export default function ShopScreen() {
         price={lesson.price}
         note={note}
         disabled={house.gold < lesson.price || preview.length === 0}
-        onPress={() => spend(lesson.id, lesson.name, lesson.price, () => takeLesson(lesson))}
+        onPress={() => spend(lesson.id, lesson.name, lesson.price, 'lesson', () => takeLesson(lesson))}
       />
     );
   }
@@ -187,10 +196,10 @@ export default function ShopScreen() {
         owned={on}
         onPress={() =>
           owned
-            ? spend(garment.id, garment.name, 0, () =>
+            ? spend(garment.id, garment.name, 0, 'clothes', () =>
                 setWorn(on ? takingOff(worn, garment.id) : wearing(worn, garment))
               )
-            : spend(garment.id, garment.name, garment.price, () => buyGarment(garment))
+            : spend(garment.id, garment.name, garment.price, 'clothes', () => buyGarment(garment))
         }
       />
     );
@@ -209,7 +218,7 @@ export default function ShopScreen() {
         note={swaps ? `${swaps.name} 대신 들어와요` : SLOT_NAME[piece.slot]}
         disabled={owned || house.gold < piece.price}
         owned={owned}
-        onPress={() => spend(piece.id, piece.name, piece.price, () => buyFurniture(piece))}
+        onPress={() => spend(piece.id, piece.name, piece.price, 'furniture', () => buyFurniture(piece))}
       />
     );
   }
@@ -266,7 +275,10 @@ export default function ShopScreen() {
 
       {shelf === '장신구' && (
         <>
-          <Text style={styles.hint}>옷만큼 비싸지 않고, 매력이 조금씩 붙어요.</Text>
+          <Text style={styles.hint}>
+            옷만큼 비싸지 않고, 매력이 조금씩 붙어요. 아직 그림이 없어서 리나가 걸친
+            모습은 보이지 않아요.
+          </Text>
           {ACCESSORIES.map((item) => (
             <ItemRow key={item.id} item={item} />
           ))}

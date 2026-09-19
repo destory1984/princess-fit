@@ -10,7 +10,9 @@ import {
   settle,
   STARTING_GOLD,
   tomorrowsMessage,
+  thanksFor,
   workoutGold,
+  type GiftKind,
   type Household,
 } from './economy.ts';
 import type { WorkoutFact } from './gamification.ts';
@@ -110,4 +112,15 @@ test('she does not start penniless and hungry', () => {
   assert.equal(fresh.satiety, 100);
   // Enough for a few real meals before the first workout is banked.
   assert.ok(STARTING_GOLD >= 25 * 3);
+});
+
+test('she says something about every kind of thing bought for her', () => {
+  const kinds: GiftKind[] = ['food', 'clothes', 'accessory', 'furniture', 'lesson'];
+  for (const kind of kinds) {
+    assert.ok(thanksFor(kind, 'bread').length > 0, kind);
+  }
+});
+
+test('the same purchase always draws the same line', () => {
+  assert.equal(thanksFor('clothes', 'gown'), thanksFor('clothes', 'gown'));
 });
