@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { OrnateFrame } from '@/components/OrnateFrame';
 import { PaperDoll } from '@/components/PaperDoll';
@@ -42,10 +43,19 @@ export function TrainingHall({
   worn = [],
   caption,
 }: Props) {
+  // The room art is clamped by maxHeight, so the scene is not the artwork's
+  // 3:2 and percentage sizing inside it cannot be reasoned about. Measure it
+  // and place her in real pixels instead.
+  const [scene, setScene] = useState({ width: 0, height: 0 });
+  const girlHeight = scene.height * 0.7;
+  const girlWidth = girlHeight * (1086 / 1448);
+
   return (
     <View style={styles.frameOuter}>
       <View style={styles.frameInner}>
-        <View style={styles.scene}>
+        <View
+          style={styles.scene}
+          onLayout={(e) => setScene(e.nativeEvent.layout)}>
           <Image source={ROOM} style={styles.room} resizeMode="cover" />
 
           {/*
@@ -84,7 +94,19 @@ export function TrainingHall({
 
           {/* Without the shadow she floats a little above the floorboards. */}
           <View style={styles.girlShadow} pointerEvents="none" />
-          <PaperDoll worn={worn} style={styles.girl} />
+          {scene.height > 0 && (
+            <PaperDoll
+              worn={worn}
+              style={{
+                position: 'absolute',
+                bottom: scene.height * 0.02,
+                // Centred at 42% across: at the foot of the bed.
+                left: scene.width * 0.42 - girlWidth / 2,
+                width: girlWidth,
+                height: girlHeight,
+              }}
+            />
+          )}
 
           <OrnateFrame compact style={styles.datePlaque}>
             <Text style={styles.dateMonth}>
@@ -152,11 +174,6 @@ const styles = StyleSheet.create({
   // Standing at the foot of the bed, mid-room: clear of both plaques above,
   // and not hiding the window. The box is wider than she is — `contain`
   // centres her in it, so height alone decides how big she is.
-  // Both dimensions, explicitly. Given height alone the doll's aspectRatio
-  // cannot resolve a percentage against the room and the layers blow up.
-  // Room is 3:2, so 70% of its height is 46.7% of its width; at the doll's
-  // 1086:1448 that is 35% across.
-  girl: { position: 'absolute', bottom: '2%', left: '24%', width: '35%', height: '70%' },
   plaque: {
     position: 'absolute',
     backgroundColor: paper.bgAlt,
