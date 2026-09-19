@@ -41,8 +41,12 @@ export default function SettingsScreen() {
   async function seed() {
     setSeeding(true);
     try {
-      const added = await seedDefaultExercises();
-      notify(added ? `${added}개 종목을 추가했어요.` : '이미 기본 종목이 모두 있어요.');
+      const { added, updated } = await seedDefaultExercises();
+      const parts = [
+        added ? `${added}개 추가` : '',
+        updated ? `${updated}개 정보 갱신` : '',
+      ].filter(Boolean);
+      notify(parts.length ? parts.join(' · ') : '이미 최신 상태예요.');
       load();
     } catch (e: any) {
       notify('불러오기 실패', e.message);
@@ -125,7 +129,7 @@ export default function SettingsScreen() {
               disabled={seeding}
               onPress={seed}>
               <Text style={styles.seedButtonText}>
-                {seeding ? '불러오는 중…' : '기본 종목 불러오기 (벤치프레스, 스쿼트 등)'}
+                {seeding ? '불러오는 중…' : '기본 종목 불러오기 · 정보 새로 고치기'}
               </Text>
             </Pressable>
             <Text style={styles.hint}>종목을 길게 누르면 삭제할 수 있어요.</Text>

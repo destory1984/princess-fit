@@ -81,6 +81,7 @@ export function ExercisePicker({ visible, exercises, onSelect, onClose, onSeeded
                   <ActivityIndicator color="#fff" />
                 ) : (
                   <Text style={styles.seedButtonText}>기본 종목 불러오기</Text>
+
                 )}
               </Pressable>
             </View>
