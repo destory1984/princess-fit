@@ -9,6 +9,7 @@ import {
   SPECIALS,
   WARDROBE_TOTAL,
   wardrobeProgress,
+  effectiveCulture,
   wornCharm,
 } from './shop.ts';
 import { DAILY_UPKEEP, workoutGold, type Household } from './economy.ts';
@@ -103,4 +104,16 @@ test('the gem shelf is locked, however much gold she has', () => {
 
 test('accessories are not counted as wardrobe progress', () => {
   assert.equal(wardrobeProgress(['ribbon', 'tiara']).count, 0);
+});
+
+test('the charm an accessory promises actually shows up', () => {
+  const taught = { grace: 10, learning: 10, charm: 20 };
+  const worn = effectiveCulture(taught, ['ribbon', 'tiara']);
+  assert.equal(worn.charm, 20 + 2 + 6);
+  assert.equal(worn.grace, 10, 'nothing else is touched');
+});
+
+test('what she wears cannot push her past the cap', () => {
+  const nearly = { grace: 0, learning: 0, charm: 98 };
+  assert.equal(effectiveCulture(nearly, ['tiara']).charm, 100);
 });
