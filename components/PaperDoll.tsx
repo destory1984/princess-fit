@@ -1,10 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Animated,
   Easing,
   Image,
   StyleSheet,
-  View,
   type StyleProp,
   type ViewStyle,
 } from "react-native";
@@ -36,7 +35,9 @@ export function PaperDoll({ worn, style, idle }: Props) {
   // Percentages and aspectRatio both lose to an image's intrinsic size here,
   // so the box is measured and every garment placed in real pixels.
   const [box, setBox] = useState({ width: 0, height: 0 });
-  const breath = useRef(new Animated.Value(0)).current;
+  // useMemo rather than a ref: the value is created once either way, and
+  // reading a ref during render is the kind of thing that only works by luck.
+  const breath = useMemo(() => new Animated.Value(0), []);
 
   useEffect(() => {
     if (!idle) return;

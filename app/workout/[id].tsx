@@ -61,7 +61,8 @@ export default function WorkoutScreen() {
   // finished, or the one coming up before anything has been done.
   const [restFor, setRestFor] = useState<string | null>(null);
   const [restEnd, setRestEnd] = useState<number | null>(null);
-  const [now, setNow] = useState(Date.now());
+  // Lazy, so the clock is read once on mount rather than on every render.
+  const [now, setNow] = useState(() => Date.now());
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(() => {
