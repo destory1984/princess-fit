@@ -18,6 +18,7 @@ import {
   estimateOneRm,
   finishWorkout,
   getLastPerformance,
+  getPersonalBests,
   getWorkout,
   listExercises,
   listWorkoutFacts,
@@ -42,6 +43,7 @@ export default function WorkoutScreen() {
   const [sets, setSets] = useState<WorkoutSet[]>([]);
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [last, setLast] = useState<Map<string, ExerciseHistoryPoint>>(new Map());
+  const [bests, setBests] = useState<Map<string, number>>(new Map());
   const [picking, setPicking] = useState(false);
   const [restLength, setRestLength] = useState(DEFAULT_REST);
   const [restEnd, setRestEnd] = useState<number | null>(null);
@@ -54,7 +56,13 @@ export default function WorkoutScreen() {
         setWorkout(w);
         setSets(s);
         setExercises(e);
-        setLast(await getLastPerformance([...new Set(s.map((x) => x.exercise_id))], id));
+        const ids = [...new Set(s.map((x) => x.exercise_id))];
+        const [lastSeen, personalBests] = await Promise.all([
+          getLastPerformance(ids, id),
+          getPersonalBests(ids, id),
+        ]);
+        setLast(lastSeen);
+        setBests(personalBests);
       })
       .catch((e) => notify('불러오기 실패', e.message));
   }, [id]);
@@ -253,6 +261,9 @@ export default function WorkoutScreen() {
           const totalSec = exDone.reduce((sum, s) => sum + s.duration_sec, 0);
           const totalKm = exDone.reduce((sum, s) => sum + s.distance_km, 0);
           const tint = muscleColor(exercise?.muscle_group ?? '기타');
+          const previousBest = bests.get(exerciseId) ?? 0;
+          const isRecord =
+            track === 'weight_reps' && previousBest > 0 && top > previousBest;
 
           return (
             <View key={exerciseId} style={styles.card}>
@@ -272,6 +283,14 @@ export default function WorkoutScreen() {
                 <Text style={styles.metrics}>
                   최고 무게 {top}kg · 예상 1RM {oneRm}kg
                 </Text>
+              )}
+              {isRecord && (
+                <View style={styles.record}>
+                  <Ionicons name="trophy" size={13} color={colors.accent} />
+                  <Text style={styles.recordText}>
+                    신기록! 이전 최고 {previousBest}kg
+                  </Text>
+                </View>
               )}
               {track !== 'weight_reps' && totalSec > 0 && (
                 <Text style={styles.metrics}>
@@ -488,6 +507,18 @@ const styles = StyleSheet.create({
   cardTitle: { color: colors.text, fontSize: 16, fontWeight: '700' },
   cardSub: { color: colors.textDim, fontSize: 12, marginTop: 2 },
   metrics: { color: colors.text, fontSize: 13, marginTop: spacing.md, fontWeight: '600' },
+  record: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 4,
+    marginTop: spacing.xs,
+    backgroundColor: colors.accentSoft,
+    borderRadius: 12,
+    paddingVertical: 3,
+    paddingHorizontal: spacing.sm,
+  },
+  recordText: { color: colors.accent, fontSize: 12, fontWeight: '800' },
   previous: { color: colors.textDim, fontSize: 12, marginTop: spacing.xs },
   circleRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, marginTop: spacing.md },
   circleItem: { alignItems: 'center' },

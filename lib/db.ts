@@ -257,6 +257,40 @@ export async function listWorkoutFacts(limit = 500): Promise<WorkoutFact[]> {
   });
 }
 
+/**
+ * Heaviest weight lifted for each exercise before the given workout, so a new
+ * best can be recognised. Bounded to recent sessions, like the last-time hints.
+ */
+export async function getPersonalBests(exerciseIds: string[], excludeWorkoutId?: string) {
+  const best = new Map<string, number>();
+  if (exerciseIds.length === 0) return best;
+
+  let recentQuery = supabase
+    .from('workouts')
+    .select('id')
+    .not('ended_at', 'is', null)
+    .order('started_at', { ascending: false })
+    .limit(60);
+  if (excludeWorkoutId) recentQuery = recentQuery.neq('id', excludeWorkoutId);
+  const { data: recent, error: recentError } = await recentQuery;
+  if (recentError) throw recentError;
+  const recentIds = (recent as { id: string }[]).map((w) => w.id);
+  if (recentIds.length === 0) return best;
+
+  const { data, error } = await supabase
+    .from('workout_sets')
+    .select('exercise_id, weight_kg')
+    .in('exercise_id', exerciseIds)
+    .in('workout_id', recentIds)
+    .eq('done', true);
+  if (error) throw error;
+
+  for (const row of data as { exercise_id: string; weight_kg: number }[]) {
+    best.set(row.exercise_id, Math.max(best.get(row.exercise_id) ?? 0, row.weight_kg));
+  }
+  return best;
+}
+
 export type GroupTotal = { group: string; sets: number; volume: number; durationSec: number };
 
 /** How effort split across muscle groups over a recent window. */
