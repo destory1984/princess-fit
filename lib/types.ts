@@ -1,3 +1,12 @@
+/** weight_reps: kg × 횟수 · duration: 시간만 · cardio: 시간 + 거리 */
+export type TrackType = 'weight_reps' | 'duration' | 'cardio';
+
+export const TRACK_TYPE_LABEL: Record<TrackType, string> = {
+  weight_reps: '무게 × 횟수',
+  duration: '시간',
+  cardio: '시간 + 거리',
+};
+
 export type Exercise = {
   id: string;
   user_id: string;
@@ -7,6 +16,7 @@ export type Exercise = {
   equipment: string;
   muscle_detail: string;
   body_parts: string;
+  track_type: TrackType;
   created_at: string;
 };
 
@@ -44,6 +54,8 @@ export type WorkoutSet = {
   set_no: number;
   weight_kg: number;
   reps: number;
+  duration_sec: number;
+  distance_km: number;
   done: boolean;
 };
 

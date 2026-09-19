@@ -8,7 +8,13 @@ import { confirmAction, notify } from '@/lib/confirm';
 import { countExerciseSets, createExercise, deleteExercise, listExercises } from '@/lib/db';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
-import { EQUIPMENT, MUSCLE_GROUPS, type Exercise } from '@/lib/types';
+import {
+  EQUIPMENT,
+  MUSCLE_GROUPS,
+  TRACK_TYPE_LABEL,
+  type Exercise,
+  type TrackType,
+} from '@/lib/types';
 import { colors, muscleColor, radius, spacing } from '@/lib/theme';
 
 export default function SettingsScreen() {
@@ -17,6 +23,7 @@ export default function SettingsScreen() {
   const [name, setName] = useState('');
   const [group, setGroup] = useState<string>(MUSCLE_GROUPS[0]);
   const [gear, setGear] = useState<string>(EQUIPMENT[0]);
+  const [track, setTrack] = useState<TrackType>('weight_reps');
   const [seeding, setSeeding] = useState(false);
 
   const load = useCallback(() => {
@@ -31,7 +38,7 @@ export default function SettingsScreen() {
     const trimmed = name.trim();
     if (!trimmed) return;
     try {
-      await createExercise(trimmed, group, gear);
+      await createExercise(trimmed, group, gear, track);
       setName('');
       load();
     } catch (e: any) {
@@ -119,6 +126,18 @@ export default function SettingsScreen() {
                   style={[styles.chip, gear === g && styles.chipOn]}
                   onPress={() => setGear(g)}>
                   <Text style={[styles.chipText, gear === g && styles.chipTextOn]}>{g}</Text>
+                </Pressable>
+              ))}
+            </View>
+            <View style={styles.chipRow}>
+              {(Object.keys(TRACK_TYPE_LABEL) as TrackType[]).map((t) => (
+                <Pressable
+                  key={t}
+                  style={[styles.chip, track === t && styles.chipOn]}
+                  onPress={() => setTrack(t)}>
+                  <Text style={[styles.chipText, track === t && styles.chipTextOn]}>
+                    {TRACK_TYPE_LABEL[t]}
+                  </Text>
                 </Pressable>
               ))}
             </View>
