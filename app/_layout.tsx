@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -43,8 +43,7 @@ function RootNavigator() {
             hitSlop={10}
             style={{ paddingRight: 12, flexDirection: 'row', alignItems: 'center' }}
             onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}>
-            <Ionicons name="chevron-back" size={22} color={colors.chromeText} />
-            <Text style={{ color: colors.chromeText, fontSize: 15, fontWeight: '700' }}>뒤로</Text>
+            <Ionicons name="chevron-back" size={24} color={colors.chromeText} />
           </Pressable>
         ),
       }}>
