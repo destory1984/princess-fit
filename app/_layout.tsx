@@ -15,7 +15,10 @@ function RootNavigator() {
   useEffect(() => {
     if (loading) return;
     const onLoginScreen = segments[0] === 'login';
-    if (!session && !onLoginScreen) router.replace('/login');
+    // The development bench needs no account: it renders components against
+    // made-up data, and sending it to the login screen would defeat it.
+    const onPreview = __DEV__ && segments[0] === 'preview';
+    if (!session && !onLoginScreen && !onPreview) router.replace('/login');
     if (session && onLoginScreen) router.replace('/');
   }, [session, loading, segments, router]);
 
@@ -54,6 +57,7 @@ function RootNavigator() {
       <Stack.Screen name="achievements" options={{ title: '연대기' }} />
       <Stack.Screen name="exercise/[id]" options={{ title: '운동 종목' }} />
       <Stack.Screen name="summary/[id]" options={{ title: '오늘의 기록' }} />
+      <Stack.Screen name="preview" options={{ title: '미리보기' }} />
       <Stack.Screen name="settings/advisor" options={{ title: '함께할 사람' }} />
       <Stack.Screen name="settings/exercises" options={{ title: '운동 종목' }} />
     </Stack>

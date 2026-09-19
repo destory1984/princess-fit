@@ -50,7 +50,7 @@ export const GARMENTS: Garment[] = [
     detail: '누가 준 것인지는 말하지 않아요',
     price: 400,
     charm: 2,
-    fit: { x: 0.46, y: 0.3, w: 0.36 },
+    fit: { x: 0.44, y: 0.42, w: 0.32 },
   },
   {
     id: 'sleeves_orange',

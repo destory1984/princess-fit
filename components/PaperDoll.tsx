@@ -1,6 +1,13 @@
-import { Image, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
-import { BASE_GIRL, garmentArt } from '@/lib/outfitArt';
-import { layersOf } from '@/lib/outfit';
+import { useState } from "react";
+import {
+  Image,
+  StyleSheet,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
+import { BASE_GIRL, garmentArt } from "@/lib/outfitArt";
+import { layersOf } from "@/lib/outfit";
 
 type Props = {
   /** Ids of the garments she has on. */
@@ -19,35 +26,55 @@ type Props = {
  * Give the box a width, or both dimensions.
  */
 export function PaperDoll({ worn, style }: Props) {
-  return (
-    <View style={[styles.doll, style]} pointerEvents="none">
-      <Image source={BASE_GIRL.source} style={styles.base} resizeMode="contain" />
+  // Percentages and aspectRatio both lose to an image's intrinsic size here,
+  // so the box is measured and every garment placed in real pixels.
+  const [box, setBox] = useState({ width: 0, height: 0 });
 
-      {layersOf(worn).map((garment) => {
-        const art = garmentArt(garment.id);
-        return (
-          <Image
-            key={garment.id}
-            source={art.source}
-            resizeMode="contain"
-            style={[
-              styles.garment,
-              {
-                left: `${garment.fit.x * 100}%`,
-                top: `${garment.fit.y * 100}%`,
-                width: `${garment.fit.w * 100}%`,
-                aspectRatio: art.aspect,
-              },
-            ]}
-          />
-        );
-      })}
+  return (
+    <View
+      style={[styles.doll, style]}
+      pointerEvents="none"
+      onLayout={(e) => setBox(e.nativeEvent.layout)}
+    >
+      <Image
+        source={BASE_GIRL.source}
+        style={styles.base}
+        resizeMode="contain"
+      />
+
+      {box.width > 0 &&
+        layersOf(worn).map((garment) => {
+          const art = garmentArt(garment.id);
+          const width = box.width * garment.fit.w;
+          return (
+            <Image
+              key={garment.id}
+              source={art.source}
+              resizeMode="contain"
+              style={[
+                styles.garment,
+                {
+                  left: box.width * garment.fit.x,
+                  top: box.height * garment.fit.y,
+                  width,
+                  height: width / art.aspect,
+                },
+              ]}
+            />
+          );
+        })}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  doll: { aspectRatio: 1086 / 1448, overflow: 'hidden' },
-  base: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' },
-  garment: { position: 'absolute' },
+  doll: { aspectRatio: 1086 / 1448, overflow: "hidden" },
+  base: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+  },
+  garment: { position: "absolute" },
 });

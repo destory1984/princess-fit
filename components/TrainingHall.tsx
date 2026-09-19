@@ -1,15 +1,15 @@
-import { useState } from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
-import { OrnateFrame } from '@/components/OrnateFrame';
-import { PaperDoll } from '@/components/PaperDoll';
-import { STAT_META, STAT_ORDER, type Stats } from '@/lib/character';
-import { artFor } from '@/lib/furnitureArt';
-import { roomContents } from '@/lib/room';
-import { colors, paper, spacing } from '@/lib/theme';
+import { useState } from "react";
+import { Image, StyleSheet, Text, View } from "react-native";
+import { OrnateFrame } from "@/components/OrnateFrame";
+import { PaperDoll } from "@/components/PaperDoll";
+import { STAT_META, STAT_ORDER, type Stats } from "@/lib/character";
+import { artFor } from "@/lib/furnitureArt";
+import { roomContents } from "@/lib/room";
+import { colors, paper, spacing } from "@/lib/theme";
 
-const ROOM = require('../assets/room.png');
+const ROOM = require("../assets/room.png");
 
-const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
 type Props = {
   today: Date;
@@ -43,10 +43,13 @@ export function TrainingHall({
   worn = [],
   caption,
 }: Props) {
-  // The room art is clamped by maxHeight, so the scene is not the artwork's
-  // 3:2 and percentage sizing inside it cannot be reasoned about. Measure it
-  // and place her in real pixels instead.
-  const [scene, setScene] = useState({ width: 0, height: 0 });
+  // Everything in the scene — the girl, every piece of furniture — is placed
+  // as a fraction of it, so the scene has to be exactly the artwork's 3:2.
+  // Neither aspectRatio nor a percentage height survives contact with an
+  // image this large: both lose to its intrinsic size. So measure the width
+  // the layout gives us and set every size from that, in real pixels.
+  const [width, setWidth] = useState(0);
+  const scene = { width, height: (width * 2) / 3 };
   const girlHeight = scene.height * 0.7;
   const girlWidth = girlHeight * (1086 / 1448);
 
@@ -54,8 +57,9 @@ export function TrainingHall({
     <View style={styles.frameOuter}>
       <View style={styles.frameInner}>
         <View
-          style={styles.scene}
-          onLayout={(e) => setScene(e.nativeEvent.layout)}>
+          style={[styles.scene, { height: scene.height }]}
+          onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
+        >
           <Image source={ROOM} style={styles.room} resizeMode="cover" />
 
           {/*
@@ -65,32 +69,34 @@ export function TrainingHall({
           */}
           <View style={styles.wash} pointerEvents="none" />
 
-          {roomContents(furniture)
-            .filter((piece) => !piece.paintedIn)
-            .map((piece) => {
-              const art = artFor(piece.id);
-              const box = {
-                left: `${piece.place.x * 100}%` as const,
-                top: `${piece.place.y * 100}%` as const,
-                width: `${piece.place.w * 100}%` as const,
-              };
-              // Until a sprite exists, a plaque stands in so the purchase is
-              // visibly in the room rather than only in the database.
-              return art ? (
-                <Image
-                  key={piece.id}
-                  source={art.source}
-                  resizeMode="contain"
-                  style={[styles.piece, box, { aspectRatio: art.aspect }]}
-                />
-              ) : (
-                <View key={piece.id} style={[styles.plaque, box]}>
-                  <Text style={styles.plaqueText} numberOfLines={1}>
-                    {piece.name}
-                  </Text>
-                </View>
-              );
-            })}
+          {scene.width > 0 &&
+            roomContents(furniture)
+              .filter((piece) => !piece.paintedIn)
+              .map((piece) => {
+                const art = artFor(piece.id);
+                const width = scene.width * piece.place.w;
+                const box = {
+                  left: scene.width * piece.place.x,
+                  top: scene.height * piece.place.y,
+                  width,
+                };
+                // Until a sprite exists, a plaque stands in so the purchase is
+                // visibly in the room rather than only in the database.
+                return art ? (
+                  <Image
+                    key={piece.id}
+                    source={art.source}
+                    resizeMode="contain"
+                    style={[styles.piece, box, { height: width / art.aspect }]}
+                  />
+                ) : (
+                  <View key={piece.id} style={[styles.plaque, box]}>
+                    <Text style={styles.plaqueText} numberOfLines={1}>
+                      {piece.name}
+                    </Text>
+                  </View>
+                );
+              })}
 
           {/* Without the shadow she floats a little above the floorboards. */}
           <View style={styles.girlShadow} pointerEvents="none" />
@@ -98,7 +104,7 @@ export function TrainingHall({
             <PaperDoll
               worn={worn}
               style={{
-                position: 'absolute',
+                position: "absolute",
                 bottom: scene.height * 0.02,
                 // Centred at 42% across: at the foot of the bed.
                 left: scene.width * 0.42 - girlWidth / 2,
@@ -113,7 +119,9 @@ export function TrainingHall({
               {today.getFullYear()}년 {today.getMonth() + 1}월
             </Text>
             <Text style={styles.dateDay}>{today.getDate()}</Text>
-            <Text style={styles.dateWeekday}>{WEEKDAYS[today.getDay()]}요일</Text>
+            <Text style={styles.dateWeekday}>
+              {WEEKDAYS[today.getDay()]}요일
+            </Text>
           </OrnateFrame>
 
           <OrnateFrame compact style={styles.statusPanel}>
@@ -125,13 +133,19 @@ export function TrainingHall({
             <View style={styles.statusNumbers}>
               {STAT_ORDER.map((key) => (
                 <View key={key} style={styles.statusStat}>
-                  <Text style={styles.statusStatLabel}>{STAT_META[key].name[0]}</Text>
+                  <Text style={styles.statusStatLabel}>
+                    {STAT_META[key].name[0]}
+                  </Text>
                   <Text style={styles.statusStatValue}>{stats[key]}</Text>
                 </View>
               ))}
             </View>
-            {streak > 0 && <Text style={styles.statusStreak}>연속 {streak}일</Text>}
-            {penalty ? <Text style={styles.statusPenalty}>{penalty}</Text> : null}
+            {streak > 0 && (
+              <Text style={styles.statusStreak}>연속 {streak}일</Text>
+            )}
+            {penalty ? (
+              <Text style={styles.statusPenalty}>{penalty}</Text>
+            ) : null}
           </OrnateFrame>
         </View>
 
@@ -146,14 +160,14 @@ const styles = StyleSheet.create({
     color: paper.inkDim,
     fontSize: 11,
     lineHeight: 16,
-    textAlign: 'center',
+    textAlign: "center",
     paddingVertical: 5,
     backgroundColor: paper.bgAlt,
   },
   // Width comes from the room data; aspectRatio from the art itself.
-  piece: { position: 'absolute' },
+  piece: { position: "absolute" },
   wash: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
@@ -162,10 +176,10 @@ const styles = StyleSheet.create({
     opacity: 0.25,
   },
   girlShadow: {
-    position: 'absolute',
-    bottom: '3%',
-    left: '34%',
-    width: '16%',
+    position: "absolute",
+    bottom: "3%",
+    left: "34%",
+    width: "16%",
     height: 10,
     borderRadius: 999,
     backgroundColor: paper.ink,
@@ -175,7 +189,7 @@ const styles = StyleSheet.create({
   // and not hiding the window. The box is wider than she is — `contain`
   // centres her in it, so height alone decides how big she is.
   plaque: {
-    position: 'absolute',
+    position: "absolute",
     backgroundColor: paper.bgAlt,
     borderColor: colors.gold,
     borderWidth: 1,
@@ -183,45 +197,81 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     paddingHorizontal: 4,
   },
-  plaqueText: { color: colors.text, fontSize: 9, lineHeight: 13, textAlign: 'center' },
-  statusPenalty: { color: colors.accent, fontSize: 9, lineHeight: 13, marginTop: 2 },
-  frameOuter: { backgroundColor: paper.line, borderRadius: 8, padding: 3 },
+  plaqueText: {
+    color: colors.text,
+    fontSize: 9,
+    lineHeight: 13,
+    textAlign: "center",
+  },
+  statusPenalty: {
+    color: colors.accent,
+    fontSize: 9,
+    lineHeight: 13,
+    marginTop: 2,
+  },
+  // Capping the whole card keeps the scene at 3:2 on a wide screen without
+  // a gold frame stretching away from it.
+  frameOuter: {
+    backgroundColor: paper.line,
+    borderRadius: 8,
+    padding: 3,
+    width: "100%",
+    maxWidth: 440,
+    alignSelf: "center",
+  },
   frameInner: {
     borderColor: paper.bg,
     borderWidth: 2,
     borderRadius: 5,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
+  // The scene must be exactly the artwork's 3:2, because everything in it —
+  // the girl, every piece of furniture — is placed as a fraction of it. Cap
+  // the width rather than the height: capping height cropped the art and left
+  // every fraction pointing somewhere else.
   scene: { backgroundColor: paper.bgAlt },
-  // A banner, not the whole screen: the rest of the page has to fit under it.
-  // 3:2, the artwork's own ratio — anything else crops the window out.
-  room: { width: '100%', aspectRatio: 3 / 2, maxHeight: 280 },
+  room: { width: "100%", height: "100%" },
 
-  datePlaque: { position: 'absolute', top: 10, left: 10, minWidth: 92 },
-  dateMonth: { textAlign: 'center', color: paper.inkDim, fontSize: 10, fontWeight: '700' },
+  datePlaque: { position: "absolute", top: 10, left: 10, minWidth: 92 },
+  dateMonth: {
+    textAlign: "center",
+    color: paper.inkDim,
+    fontSize: 10,
+    fontWeight: "700",
+  },
   dateDay: {
-    textAlign: 'center',
+    textAlign: "center",
     color: paper.ink,
     fontSize: 26,
-    fontWeight: '800',
+    fontWeight: "800",
     lineHeight: 30,
   },
-  dateWeekday: { textAlign: 'center', color: paper.accent, fontSize: 10, fontWeight: '700' },
+  dateWeekday: {
+    textAlign: "center",
+    color: paper.accent,
+    fontSize: 10,
+    fontWeight: "700",
+  },
 
-  statusPanel: { position: 'absolute', top: 10, right: 10, minWidth: 146 },
-  statusName: { color: paper.ink, fontSize: 14, fontWeight: '800' },
-  statusRank: { color: paper.inkDim, fontSize: 10, fontWeight: '700' },
-  statusCondition: { color: paper.accent, fontSize: 11, fontWeight: '700', marginTop: 2 },
+  statusPanel: { position: "absolute", top: 10, right: 10, minWidth: 146 },
+  statusName: { color: paper.ink, fontSize: 14, fontWeight: "800" },
+  statusRank: { color: paper.inkDim, fontSize: 10, fontWeight: "700" },
+  statusCondition: {
+    color: paper.accent,
+    fontSize: 11,
+    fontWeight: "700",
+    marginTop: 2,
+  },
   statusNumbers: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 4,
     marginTop: 4,
     borderTopColor: paper.lineSoft,
     borderTopWidth: 1,
     paddingTop: 3,
   },
-  statusStat: { alignItems: 'center', minWidth: 20 },
-  statusStatLabel: { color: paper.inkDim, fontSize: 9, fontWeight: '700' },
-  statusStatValue: { color: paper.ink, fontSize: 12, fontWeight: '800' },
+  statusStat: { alignItems: "center", minWidth: 20 },
+  statusStatLabel: { color: paper.inkDim, fontSize: 9, fontWeight: "700" },
+  statusStatValue: { color: paper.ink, fontSize: 12, fontWeight: "800" },
   statusStreak: { color: paper.inkDim, fontSize: 10, marginTop: 2 },
 });
