@@ -7,7 +7,7 @@ import { confirmAction, notify } from '@/lib/confirm';
 import { countExerciseSets, createExercise, deleteExercise, listExercises } from '@/lib/db';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
-import { MUSCLE_GROUPS, type Exercise } from '@/lib/types';
+import { EQUIPMENT, MUSCLE_GROUPS, type Exercise } from '@/lib/types';
 import { colors, muscleColor, radius, spacing } from '@/lib/theme';
 
 export default function SettingsScreen() {
@@ -15,6 +15,7 @@ export default function SettingsScreen() {
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [name, setName] = useState('');
   const [group, setGroup] = useState<string>(MUSCLE_GROUPS[0]);
+  const [gear, setGear] = useState<string>(EQUIPMENT[0]);
   const [seeding, setSeeding] = useState(false);
 
   const load = useCallback(() => {
@@ -29,7 +30,7 @@ export default function SettingsScreen() {
     const trimmed = name.trim();
     if (!trimmed) return;
     try {
-      await createExercise(trimmed, group);
+      await createExercise(trimmed, group, gear);
       setName('');
       load();
     } catch (e: any) {
@@ -106,6 +107,16 @@ export default function SettingsScreen() {
                 </Pressable>
               ))}
             </View>
+            <View style={styles.chipRow}>
+              {EQUIPMENT.map((g) => (
+                <Pressable
+                  key={g}
+                  style={[styles.chip, gear === g && styles.chipOn]}
+                  onPress={() => setGear(g)}>
+                  <Text style={[styles.chipText, gear === g && styles.chipTextOn]}>{g}</Text>
+                </Pressable>
+              ))}
+            </View>
             <Pressable style={styles.addButton} onPress={add}>
               <Text style={styles.addButtonText}>종목 추가</Text>
             </Pressable>
@@ -122,7 +133,13 @@ export default function SettingsScreen() {
         }
         renderItem={({ item }) => (
           <Pressable style={styles.row} onLongPress={() => confirmDelete(item)}>
-            <Text style={styles.rowTitle}>{item.name}</Text>
+            <View style={styles.rowBody}>
+              <Text style={styles.rowTitle}>{item.name}</Text>
+              <Text style={styles.rowSub}>
+                {item.muscle_detail ? `${item.muscle_detail} · ` : ''}
+                {item.equipment}
+              </Text>
+            </View>
             <MuscleTag group={item.muscle_group} />
           </Pressable>
         )}
@@ -160,6 +177,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   chipText: { color: colors.textDim },
+  chipOn: { backgroundColor: colors.accentSoft, borderColor: colors.accent },
+  chipTextOn: { color: colors.accent, fontWeight: '700' },
   addButton: {
     backgroundColor: colors.accent,
     borderRadius: radius.md,
@@ -184,8 +203,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
+  rowBody: { flex: 1 },
   rowTitle: { color: colors.text, fontSize: 15, fontWeight: '600' },
-  rowSub: { color: colors.textDim },
+  rowSub: { color: colors.textDim, fontSize: 12, marginTop: 2 },
   footer: { marginTop: spacing.xl, alignItems: 'center', gap: spacing.md },
   account: { color: colors.textDim },
   logout: { padding: spacing.md },
