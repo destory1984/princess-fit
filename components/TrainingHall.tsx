@@ -51,6 +51,10 @@ export function TrainingHall({
   const [width, setWidth] = useState(0);
   const scene = { width, height: (width * 2) / 3 };
   const girlHeight = scene.height * 0.7;
+
+  const inRoom = roomContents(furniture).filter((piece) => !piece.paintedIn);
+  const drawn = inRoom.filter((piece) => artFor(piece.id));
+  const unpictured = inRoom.filter((piece) => !artFor(piece.id));
   const girlWidth = girlHeight * (1086 / 1448);
 
   return (
@@ -70,33 +74,44 @@ export function TrainingHall({
           <View style={styles.wash} pointerEvents="none" />
 
           {scene.width > 0 &&
-            roomContents(furniture)
-              .filter((piece) => !piece.paintedIn)
-              .map((piece) => {
-                const art = artFor(piece.id);
-                const width = scene.width * piece.place.w;
-                const box = {
-                  left: scene.width * piece.place.x,
-                  top: scene.height * piece.place.y,
-                  width,
-                };
-                // Until a sprite exists, a plaque stands in so the purchase is
-                // visibly in the room rather than only in the database.
-                return art ? (
-                  <Image
-                    key={piece.id}
-                    source={art.source}
-                    resizeMode="contain"
-                    style={[styles.piece, box, { height: width / art.aspect }]}
-                  />
-                ) : (
-                  <View key={piece.id} style={[styles.plaque, box]}>
-                    <Text style={styles.plaqueText} numberOfLines={1}>
-                      {piece.name}
-                    </Text>
-                  </View>
-                );
-              })}
+            drawn.map((piece) => {
+              const art = artFor(piece.id)!;
+              const width = scene.width * piece.place.w;
+              return (
+                <Image
+                  key={piece.id}
+                  source={art.source}
+                  resizeMode="contain"
+                  style={[
+                    styles.piece,
+                    {
+                      left: scene.width * piece.place.x,
+                      top: scene.height * piece.place.y,
+                      width,
+                      height: width / art.aspect,
+                    },
+                  ]}
+                />
+              );
+            })}
+
+          {/*
+            Pieces whose art has not arrived yet. They are listed along the
+            bottom rather than standing where they belong: placed in the room
+            they collided with each other and with the plaques above, and an
+            unreadable label is worse than an honest list.
+          */}
+          {unpictured.length > 0 && (
+            <View style={styles.missingRow} pointerEvents="none">
+              {unpictured.map((piece) => (
+                <View key={piece.id} style={styles.plaque}>
+                  <Text style={styles.plaqueText} numberOfLines={1}>
+                    {piece.name}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
 
           {/* Without the shadow she floats a little above the floorboards. */}
           <View style={styles.girlShadow} pointerEvents="none" />
@@ -185,11 +200,17 @@ const styles = StyleSheet.create({
     backgroundColor: paper.ink,
     opacity: 0.18,
   },
-  // Standing at the foot of the bed, mid-room: clear of both plaques above,
-  // and not hiding the window. The box is wider than she is — `contain`
-  // centres her in it, so height alone decides how big she is.
-  plaque: {
+  missingRow: {
     position: "absolute",
+    left: 6,
+    right: 6,
+    bottom: 6,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 4,
+    justifyContent: "center",
+  },
+  plaque: {
     backgroundColor: paper.bgAlt,
     borderColor: colors.gold,
     borderWidth: 1,
