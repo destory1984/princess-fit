@@ -33,6 +33,18 @@ export default function LoginScreen() {
       notify('가입 완료', '이메일로 온 인증 링크를 누른 뒤 로그인해 주세요.');
   }
 
+  async function resendConfirmation() {
+    if (!email.trim()) {
+      notify('이메일을 입력해 주세요.');
+      return;
+    }
+    setBusy(true);
+    const { error } = await supabase.auth.resend({ type: 'signup', email: email.trim() });
+    setBusy(false);
+    if (error) notify('재발송 실패', error.message);
+    else notify('인증 메일을 다시 보냈어요', '메일의 링크를 1시간 안에 눌러 주세요.');
+  }
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -67,6 +79,10 @@ export default function LoginScreen() {
 
       <Pressable disabled={busy} onPress={() => submit('signUp')}>
         <Text style={styles.link}>처음이신가요? 회원가입</Text>
+      </Pressable>
+
+      <Pressable disabled={busy} onPress={resendConfirmation}>
+        <Text style={styles.link}>인증 메일 다시 보내기</Text>
       </Pressable>
     </KeyboardAvoidingView>
   );
@@ -104,5 +120,5 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: { opacity: 0.6 },
   buttonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
-  link: { color: colors.textDim, textAlign: 'center', marginTop: spacing.lg },
+  link: { color: colors.textDim, textAlign: 'center', marginTop: spacing.lg, padding: spacing.xs },
 });
