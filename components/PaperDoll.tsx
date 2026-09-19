@@ -11,6 +11,9 @@ type Props = {
 /**
  * The girl and everything she has on, stacked back to front.
  *
+ * Give the box a width, or both dimensions. Height alone leaves `aspectRatio`
+ * with nothing to resolve against and every layer stretches to fill.
+ *
  * Every layer fills the same box, so the base and the garments line up by
  * construction — a garment only needs its `fit` because its art was drawn on
  * its own canvas rather than over the base.
