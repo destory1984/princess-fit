@@ -2,19 +2,32 @@ import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { localDayKey } from '@/lib/format';
-import { colors, radius, spacing } from '@/lib/theme';
+import { colors, muscleColor, radius, spacing } from '@/lib/theme';
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
 type Props = {
   month: Date;
   markedDays: Set<string>;
+  /**
+   * Muscle groups trained on each day. The dot takes the colour of the first
+   * one, so a month reads as a pattern — three weeks of chest look like three
+   * weeks of one colour — rather than as identical marks.
+   */
+  dayGroups?: Map<string, string[]>;
   selected: string | null;
   onSelect: (day: string) => void;
   onShiftMonth: (delta: number) => void;
 };
 
-export function MonthCalendar({ month, markedDays, selected, onSelect, onShiftMonth }: Props) {
+export function MonthCalendar({
+  month,
+  markedDays,
+  dayGroups,
+  selected,
+  onSelect,
+  onShiftMonth,
+}: Props) {
   const cells = useMemo(() => {
     const first = new Date(month.getFullYear(), month.getMonth(), 1);
     const start = new Date(first);
@@ -74,7 +87,17 @@ export function MonthCalendar({ month, markedDays, selected, onSelect, onShiftMo
                     {d.getDate()}
                   </Text>
                 </View>
-                <View style={[styles.dot, marked && !outside && styles.dotOn]} />
+                <View
+                  style={[
+                    styles.dot,
+                    marked && !outside && styles.dotOn,
+                    marked &&
+                      !outside &&
+                      dayGroups?.get(key)?.[0] && {
+                        backgroundColor: muscleColor(dayGroups.get(key)![0]),
+                      },
+                  ]}
+                />
               </Pressable>
             );
           })}
