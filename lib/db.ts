@@ -252,6 +252,40 @@ export async function listWorkoutFacts(limit = 500): Promise<WorkoutFact[]> {
   });
 }
 
+export type GroupTotal = { group: string; sets: number; volume: number; durationSec: number };
+
+/** How effort split across muscle groups over a recent window. */
+export async function getGroupTotals(days = 30): Promise<GroupTotal[]> {
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+  const [{ data, error }, exercises] = await Promise.all([
+    supabase
+      .from('workout_sets')
+      .select('exercise_id, weight_kg, reps, duration_sec, workouts!inner(started_at, ended_at)')
+      .eq('done', true)
+      .not('workouts.ended_at', 'is', null)
+      .gte('workouts.started_at', since),
+    listExercises(),
+  ]);
+  if (error) throw error;
+  const groupOf = new Map(exercises.map((e) => [e.id, e.muscle_group]));
+
+  const totals = new Map<string, GroupTotal>();
+  for (const row of data as unknown as {
+    exercise_id: string;
+    weight_kg: number;
+    reps: number;
+    duration_sec: number;
+  }[]) {
+    const group = groupOf.get(row.exercise_id) ?? '기타';
+    const entry = totals.get(group) ?? { group, sets: 0, volume: 0, durationSec: 0 };
+    entry.sets += 1;
+    entry.volume += row.weight_kg * row.reps;
+    entry.durationSec += row.duration_sec;
+    totals.set(group, entry);
+  }
+  return [...totals.values()].sort((a, b) => b.sets - a.sets);
+}
+
 /** Local-day keys (YYYY-MM-DD) of finished workouts, for the calendar. */
 export async function listWorkoutDays(limit = 400) {
   const { data, error } = await supabase
