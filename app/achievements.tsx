@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   rankNow: { backgroundColor: paper.fill, borderColor: paper.line },
-  rankCellText: { color: '#CBB899', fontSize: 12, lineHeight: 17 },
+  rankCellText: { color: colors.faint, fontSize: 12, lineHeight: 17 },
   rankReached: { color: paper.inkDim },
   rankNowText: { color: paper.bg, fontWeight: '800' },
 
