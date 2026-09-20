@@ -37,7 +37,7 @@ const ROOM = {
   // 0.456..0.768 and its crown sits at 0.117. The old numbers were wider and
   // higher than the window, which is exactly what 「커튼이 공중에 떠있는
   // 느낌인데」 looks like — a rod hung on the wall beside the glass.
-  window: [0.44, 0.79, 0.1],
+  window: [0.415, 0.765, 0.1],
   wallLeft: [0.06, 0.3, 0.1],
   floorLeft: [0.04, 0.34, 0.66],
   floorRight: [0.62, 0.95, 0.62],
