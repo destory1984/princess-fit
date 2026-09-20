@@ -33,6 +33,14 @@ export type PastSet = {
    */
   warmup?: boolean;
   /**
+   * Which limb did it, for movements done one side at a time.
+   *
+   * Needed here for the same reason `warmup` is: the shape this file reads
+   * has to be one sequence of comparable sets. Left set one against right set
+   * three is not a fall-off, it is two different arms.
+   */
+  side?: 'L' | 'R' | null;
+  /**
    * Reps left in the tank when the set was racked, if they were asked.
    *
    * A review of a much larger app, about a feature it had quietly dropped:
@@ -74,7 +82,23 @@ export type Readiness = {
  */
 export function readiness(sets: PastSet[]): Readiness | null {
   // Working sets only. What was lifted to get warm is not part of the shape.
-  const weighted = sets.filter((s) => !s.warmup && s.weight_kg > 0 && s.reps > 0);
+  const counted = sets.filter((s) => !s.warmup && s.weight_kg > 0 && s.reps > 0);
+
+  /*
+    One limb's sequence, when the movement is done one limb at a time.
+
+    Both sides follow the same plan, so either answers the question — and
+    reading them interleaved would compare the left arm's opening set against
+    the right arm's last, which is not a fall-off at all. The side with more
+    sets wins, so a session abandoned halfway through the second arm is read
+    off the arm that actually finished.
+  */
+  const sided = counted.some((s) => s.side);
+  const weighted = sided
+    ? (['L', 'R'] as const)
+        .map((side) => counted.filter((s) => s.side === side))
+        .sort((a, b) => b.length - a.length)[0]
+    : counted;
   if (weighted.length < MIN_SETS) return null;
 
   const first = weighted[0];

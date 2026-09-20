@@ -62,3 +62,5 @@ alter table exercises add column if not exists hidden boolean not null default f
 alter table workout_sets add column if not exists rir int;
 
 alter table workout_sets add column if not exists warmup boolean not null default false;
+
+alter table workout_sets add column if not exists side text;

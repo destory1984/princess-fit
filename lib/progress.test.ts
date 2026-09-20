@@ -195,3 +195,27 @@ test('warm-ups alone leave nothing to read', () => {
     null
   );
 });
+
+test('two arms are not read as one falling off', () => {
+  // Left opens at 10 and holds; right opens at 10 and holds. Read together
+  // the sequence looks like 10, 10, 10, 10 — fine — but change the reps and
+  // the interleaving lies. Here the right arm is simply weaker, and that is
+  // the balance line's job, not this one's.
+  const alternating = readiness([
+    { weight_kg: 20, reps: 10, side: 'L' },
+    { weight_kg: 20, reps: 6, side: 'R' },
+    { weight_kg: 20, reps: 10, side: 'L' },
+    { weight_kg: 20, reps: 6, side: 'R' },
+  ]);
+  // Both arms held their reps, so there is room to add.
+  assert.equal(alternating?.verdict, 'add');
+});
+
+test('a session abandoned partway is read off the arm that finished', () => {
+  const stopped = readiness([
+    { weight_kg: 20, reps: 10, side: 'L' },
+    { weight_kg: 20, reps: 10, side: 'R' },
+    { weight_kg: 20, reps: 10, side: 'L' },
+  ]);
+  assert.equal(stopped?.verdict, 'add');
+});

@@ -36,6 +36,7 @@ export type HistoryRow = {
   distance_km?: number;
   rir?: number | null;
   warmup?: boolean;
+  side?: 'L' | 'R' | null;
   workouts: { started_at: string };
 };
 
@@ -46,7 +47,14 @@ export type ExerciseHistoryPoint = {
   volume: number;
   durationSec: number;
   distanceKm: number;
-  sets: { set_no: number; weight_kg: number; reps: number; rir?: number | null; warmup?: boolean }[];
+  sets: {
+    set_no: number;
+    weight_kg: number;
+    reps: number;
+    rir?: number | null;
+    warmup?: boolean;
+    side?: 'L' | 'R' | null;
+  }[];
 };
 
 export function groupHistory(rows: HistoryRow[]) {
@@ -69,6 +77,7 @@ export function groupHistory(rows: HistoryRow[]) {
       // rather than only what the reps did.
       rir: row.rir ?? null,
       warmup: row.warmup ?? false,
+      side: row.side ?? null,
     });
     // A warm-up never sets a record and never counts toward the session's
     // top weight, however honestly it was lifted.

@@ -33,6 +33,7 @@ export type SetPatch = {
   done?: boolean;
   rir?: number | null;
   warmup?: boolean;
+  side?: 'L' | 'R' | null;
 };
 
 /** The columns a set needs before it can exist at all. */

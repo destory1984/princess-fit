@@ -93,6 +93,7 @@ import {
 } from "@/lib/outboxStore";
 import { remainingSeconds, remainingWord } from "@/lib/duration";
 import { bringForward, canBringForward } from "@/lib/order";
+import { balanceOf, balanceWord, isUnilateral, nextSide, type Side } from "@/lib/sides";
 import { colors, muscleColor, radius, spacing } from "@/lib/theme";
 
 export default function WorkoutScreen() {
@@ -511,6 +512,7 @@ export default function WorkoutScreen() {
     setNo: number,
     weight: number,
     reps: number,
+    side: Side | null = null,
   ) {
     const row = {
       id: Crypto.randomUUID(),
@@ -526,9 +528,10 @@ export default function WorkoutScreen() {
       duration_sec: 0,
       distance_km: 0,
       done: false,
+      side,
     } as WorkoutSet;
     setSets((prev) => [...prev, set]);
-    await saveSet(row.id, { weight_kg: weight, reps }, row);
+    await saveSet(row.id, { weight_kg: weight, reps, side }, row);
     return set;
   }
 
@@ -578,12 +581,16 @@ export default function WorkoutScreen() {
       lastDone ??
       previous ??
       lastTime?.[Math.min(existing.length, lastTime.length - 1)];
+    // A one-sided movement alternates, so adding a set asks for the arm that
+    // has not just been done rather than repeating the last one.
+    const sided = isUnilateral(byId.get(exerciseId)?.name ?? '');
     await newSet(
       exerciseId,
       position,
       existing.length + 1,
       template?.weight_kg ?? 0,
       template?.reps ?? 10,
+      sided ? nextSide(existing) : null,
     );
     if (!last.has(exerciseId)) {
       try {
@@ -643,10 +650,21 @@ export default function WorkoutScreen() {
       workout?.condition ?? DEFAULT_CONDITION
     );
     const position = sets.reduce((m, x) => Math.max(m, x.position), -1) + 1;
-    // Sequential rather than in parallel: each one appends to the board, and
-    // the queue they may end up in has to keep the order they were planned in.
-    for (const [i, planned] of plan.entries()) {
-      await newSet(exercise.id, position, i + 1, planned.weight, planned.reps);
+    /*
+      Sequential rather than in parallel: each one appends to the board, and
+      the queue they may end up in has to keep the order they were planned in.
+
+      A one-sided movement gets each planned set twice, left then right. Three
+      sets of a split squat is six trips to the floor, and a board that says
+      three is a board that is lying about the afternoon ahead.
+    */
+    const sided = isUnilateral(exercise.name);
+    let setNo = 0;
+    for (const planned of plan) {
+      for (const side of sided ? (['L', 'R'] as Side[]) : [null]) {
+        setNo += 1;
+        await newSet(exercise.id, position, setNo, planned.weight, planned.reps, side);
+      }
     }
     void offerToRoutine(exercise);
   }
@@ -1064,6 +1082,25 @@ export default function WorkoutScreen() {
                         .join("  ")}
                     </Text>
                   )}
+                  {/*
+                    The answer to 「어느 쪽이 약한가요」, which is the whole
+                    reason the sides are recorded at all. Read off today's
+                    board, so it appears as the second side is finished rather
+                    than next week — and silent when they are close, which is
+                    most of the time.
+                  */}
+                  {(() => {
+                    const said = balanceWord(
+                      balanceOf(exDone),
+                      exercise?.name ?? "이 종목",
+                    );
+                    return said ? (
+                      <View style={styles.balance}>
+                        <Ionicons name="git-compare-outline" size={14} color={colors.gold} />
+                        <Text style={styles.balanceText}>{said}</Text>
+                      </View>
+                    ) : null;
+                  })()}
 
                   {/*
                     The board already carries last time's weight forward, and
@@ -1434,6 +1471,13 @@ function MemoField({
 }
 
 const styles = StyleSheet.create({
+  balance: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.sm,
+    paddingTop: spacing.sm,
+  },
+  balanceText: { color: colors.textDim, fontSize: 12, lineHeight: 18, flex: 1 },
   rir: { gap: spacing.sm, paddingTop: spacing.md },
   rirAsk: { color: colors.text, fontSize: 13, fontWeight: "700" },
   rirRow: { flexDirection: "row", gap: spacing.sm },
