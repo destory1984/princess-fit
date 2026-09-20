@@ -24,6 +24,29 @@ test('two-armed movements are not asked the question', () => {
   assert.ok(isUnilateral('원암 덤벨 로우'));
 });
 
+test('a hand-made movement can be told, since its name cannot be guessed', () => {
+  // The person who typed this is the one who asked for the feature, and no
+  // list would ever have held their spelling of it.
+  assert.ok(isUnilateral('한발 데드', true));
+  assert.ok(isUnilateral('싱글 레그 루마니안 데드리프트', true));
+});
+
+test('said aloud beats the list, in both directions', () => {
+  // Off on a built-in is a decision, not a gap: someone doing split squats
+  // with both feet loaded does not want to be asked every week.
+  assert.ok(!isUnilateral('런지', false));
+  assert.ok(isUnilateral('벤치프레스', true));
+});
+
+test('unsaid is not a no', () => {
+  // A row written before the column existed comes back without it, and reading
+  // that as 「아니오」 would quietly stop asking about the seven that worked.
+  assert.ok(isUnilateral('런지', null));
+  assert.ok(isUnilateral('런지', undefined));
+  assert.ok(isUnilateral('런지'));
+  assert.ok(!isUnilateral('벤치프레스', null));
+});
+
 test('a side needs both sides before it can be compared', () => {
   const onlyLeft: SidedSet[] = [{ side: 'L', weight_kg: 20, reps: 10 }];
   // Calling the untrained arm a total collapse would be the app inventing an

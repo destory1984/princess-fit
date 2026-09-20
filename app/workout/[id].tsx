@@ -587,7 +587,8 @@ export default function WorkoutScreen() {
       lastTime?.[Math.min(existing.length, lastTime.length - 1)];
     // A one-sided movement alternates, so adding a set asks for the arm that
     // has not just been done rather than repeating the last one.
-    const sided = isUnilateral(byId.get(exerciseId)?.name ?? '');
+    const chosen = byId.get(exerciseId);
+    const sided = isUnilateral(chosen?.name ?? '', chosen?.unilateral);
     await newSet(
       exerciseId,
       position,
@@ -662,7 +663,7 @@ export default function WorkoutScreen() {
       sets of a split squat is six trips to the floor, and a board that says
       three is a board that is lying about the afternoon ahead.
     */
-    const sided = isUnilateral(exercise.name);
+    const sided = isUnilateral(exercise.name, exercise.unilateral);
     let setNo = 0;
     for (const planned of plan) {
       for (const side of sided ? (['L', 'R'] as Side[]) : [null]) {
