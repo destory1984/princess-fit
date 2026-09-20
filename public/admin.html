@@ -253,8 +253,15 @@
             target: opened,
             sessions: 5,
           });
+          // A missing function means the SQL has not been run, which is the
+          // one cause worth naming: the raw message says what is absent and
+          // nothing about what to do.
           recentHtml = recentError
-            ? `<p class="error">${escape(recentError.message)}</p>`
+            ? `<p class="error">${
+                /Could not find the function/.test(recentError.message)
+                  ? 'supabase/admin.sql을 다시 한 번 실행해 주세요.'
+                  : escape(recentError.message)
+              }</p>`
             : rows.length
               ? rows
                   .map(
@@ -285,9 +292,16 @@
                 ${u.admin ? '<span class="tag added">관리자</span>' : ''}
                 <span class="meta" style="margin-left:auto">가입 ${day(u.joined)}</span>
               </div>
+              <!--
+                == null rather than === null: a field the database has not
+                returned at all comes back undefined, and strict equality let
+                it through to Number(undefined), which is how 「골드 NaN」
+                appeared on screen the first time this ran against an older
+                version of the function.
+              -->
               <div class="meta">
                 운동 ${u.workouts}회 · 마지막 ${day(u.last_workout)} ·
-                골드 ${u.gold === null ? '아직 없음' : Number(u.gold).toLocaleString()}
+                골드 ${u.gold == null ? '아직 없음' : Number(u.gold).toLocaleString()}
               </div>
               <div class="row" style="margin-top:10px">
                 <!--
