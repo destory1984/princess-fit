@@ -41,10 +41,22 @@ export function describeContext(c: AdviceContext) {
   // "연속 운동 4일" alone was read as four days of the same body part. Say
   // what it counts, and say what it does not.
   lines.push(`쉬지 않고 운동한 날: ${c.streak}일 (부위는 날마다 다를 수 있음)`);
-  lines.push(
-    `능력치 — 근력 ${c.stats.strength}, 지구력 ${c.stats.stamina}, 활력 ${c.stats.vitality}, ` +
-      `균형 ${c.stats.balance}, 꾸준함 ${c.stats.discipline}`
-  );
+  /*
+    The stats are deliberately not here.
+
+    They were, and every bad reply was built out of them — 「근력 75의 실력을
+    잘 보여줬습니다」, then 「최근 평균을 넘어선 꾸준함 30을 잘 살렸습니다」,
+    then 「활력 41을 높이는 데 집중하세요」. They are scores in a game about
+    raising a girl, not measurements of a body, and 「활력 41을 높이라」 is not
+    an instruction anyone can follow in a gym.
+
+    Telling the model not to misuse them did not work. Not handing them over
+    does: a number never given cannot be woven into a sentence, and the guard
+    rejects the reply if one turns up anyway.
+
+    They stay in `AdviceContext` because `localRuleAdvice` uses them properly
+    — 「유산소가 적은 편이에요」 comes from a low stamina score and is true.
+  */
   return lines.join('\n');
 }
 
@@ -57,9 +69,9 @@ export function buildPrompt(c: AdviceContext) {
     // Said plainly because the failure was specific: it took 「세트 8개」 and
     // recommended 7, which is a number it made up to have something to say.
     '아래에 없는 숫자는 쓰지 마세요. 새로운 목표치를 지어내지 마세요.',
-    // The stats are the game's, not the body's. 「근력 75의 실력」 read one of
-    // them as a real-world capability.
-    '능력치는 이 앱 안의 점수입니다. 실제 실력이나 건강 상태로 말하지 마세요.',
+    // The stats are no longer handed over at all, so this asks for the one
+    // thing the block cannot enforce: a sentence somebody can act on.
+    '마지막 문장은 다음 운동에서 할 수 있는 한 가지 행동이어야 합니다.',
     '통증이나 부상 이야기가 있으면 병원에 가보라고만 하세요.',
     '',
     describeContext(c),
@@ -147,7 +159,21 @@ export function allowedNumbers(context: string): Set<string> {
 export function staysInTheFacts(reply: string, context: string): boolean {
   const allowed = allowedNumbers(context);
   const said = reply.replace(/,/g, '').match(/\d+/g) ?? [];
-  return said.every((n) => allowed.has(n));
+  return said.every((n) => allowed.has(n)) && !namesAStat(reply);
+}
+
+/** The game's scores, which a coach has no business naming. */
+export const STAT_WORDS = ['근력', '지구력', '활력', '균형', '꾸준함'];
+
+/**
+ * Whether the reply talks about the game's stats.
+ *
+ * Checked as well as withheld, because these five words exist elsewhere in
+ * the app's own vocabulary and a model that has seen them once will reach for
+ * them again. Naming one is enough: every sentence that did was nonsense.
+ */
+export function namesAStat(reply: string) {
+  return STAT_WORDS.some((word) => reply.includes(word));
 }
 
 type Provider = { url: string; model: string };

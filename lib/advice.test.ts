@@ -5,6 +5,7 @@ import {
   buildPrompt,
   describeContext,
   localRuleAdvice,
+  STAT_WORDS,
   staysInTheFacts,
   type AdviceContext,
 } from './advice.ts';
@@ -97,6 +98,8 @@ test('a first workout is told what it was, not that there is nothing to say', ()
 });
 
 
+const NEWLINE = String.fromCharCode(10);
+
 const FACTS = [
   '오늘 운동: 팔',
   '오늘 세트 8개, 총 무게 1,167kg',
@@ -141,8 +144,20 @@ test('a reply with no numbers at all is fine', () => {
   assert.ok(staysInTheFacts('', FACTS));
 });
 
-test('the prompt says the two things that went wrong out loud', () => {
-  const said = buildPrompt(ctx({ today: fact({ id: 'w' }) }));
-  assert.match(said, /없는 숫자는 쓰지 마세요/);
-  assert.match(said, /능력치는 이 앱 안의 점수/);
+test('the model never sees the scores from the game', () => {
+  // Every bad reply was built out of them. A number never given cannot be
+  // woven into a sentence.
+  const said = describeContext(ctx({ today: fact({ id: 'w' }) }));
+  for (const word of STAT_WORDS) assert.ok(!said.includes(word), word);
+  assert.match(buildPrompt(ctx({ today: fact({ id: 'w' }) })), /없는 숫자는 쓰지 마세요/);
+});
+
+test('a reply that names a score is thrown away even when the numbers check out', () => {
+  // 오늘 8세트와 1,167kg으로 최근 평균을 넘어선 꾸준함 30을 잘 살렸습니다.
+  // Every number in that was real, and the sentence still means nothing —
+  // 「활력 41을 높이라」 is not an instruction anyone can follow in a gym.
+  const facts = FACTS + NEWLINE + '꾸준함 30';
+  assert.ok(!staysInTheFacts('최근 평균을 넘어선 꾸준함 30을 잘 살렸습니다.', facts));
+  assert.ok(!staysInTheFacts('활력을 높이는 데 집중하세요.', facts));
+  assert.ok(staysInTheFacts('오늘 8세트 하셨어요. 다음엔 하루 쉬어 주세요.', facts));
 });
