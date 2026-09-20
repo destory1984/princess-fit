@@ -84,11 +84,22 @@ export default function WorkoutScreen() {
   const [now, setNow] = useState(() => Date.now());
   const [error, setError] = useState<string | null>(null);
   const [usage, setUsage] = useState<UsageMap>(new Map());
-  // For the movement she offers on an empty board: what has rested, and where
-  // they said they train. Both optional — without either she still suggests,
-  // just with less to go on.
-  const [muscles, setMuscles] = useState<Muscle[]>([]);
-  const [place, setPlace] = useState<Place | null>(null);
+  /*
+    For the movement she offers on an empty board: what has rested, and where
+    they said they train.
+
+    Null until the recovery read answers. An empty list is not "nothing is
+    tired", it is "nobody has asked" — and suggesting from it means she names
+    one movement and swaps it the moment the answer lands, which is the one
+    thing a suggestion must never do.
+
+    The place is waited for too, and wrapped rather than stored bare, because
+    null is a real answer there — it means nobody was ever asked. Equipment
+    outranks every other term in the scoring, so a place arriving one tick late
+    would swap a barbell movement for a bodyweight one in front of you.
+  */
+  const [muscles, setMuscles] = useState<Muscle[] | null>(null);
+  const [place, setPlace] = useState<{ value: Place | null } | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -98,7 +109,9 @@ export default function WorkoutScreen() {
         // Without it she offers no particular movement and falls back to
         // 「종목을 하나 골라볼까요?」, which is a smaller loss than a wrong pick.
       });
-    getPlace().then((stored) => alive && stored && setPlace(stored));
+    getPlace()
+      .then((stored) => alive && setPlace({ value: stored }))
+      .catch(() => alive && setPlace({ value: null }));
     return () => {
       alive = false;
     };
@@ -237,10 +250,10 @@ export default function WorkoutScreen() {
   // Only worth working out for an empty board, which is the only time she asks.
   const suggestion = useMemo(
     () =>
-      sets.length > 0
+      sets.length > 0 || muscles === null || place === null
         ? null
         : suggestExercise(exercises, muscles, {
-            place,
+            place: place.value,
             // Familiarity is a count; the map also carries when it was last
             // done, which the picker orders by and this does not need.
             usage: new Map([...usage].map(([id, u]) => [id, u.count])),
