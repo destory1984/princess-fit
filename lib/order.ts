@@ -18,8 +18,14 @@
  * afternoon it recorded.
  */
 
-/** Exercise ids in the order they appear on the board, first to last. */
-export type Board = { exerciseId: string; done: boolean }[];
+/**
+ * The blocks on the board, first to last.
+ *
+ * A block rather than an exercise, because the same movement can now sit on
+ * the board twice — 「A머신 이후 마지막단계 A머신 한번더」 — and the two are
+ * separate things to move around.
+ */
+export type Board = { blockId: string; done: boolean }[];
 
 /**
  * The board with this exercise brought to the front of what is still to do.
@@ -31,16 +37,16 @@ export type Board = { exerciseId: string; done: boolean }[];
  * Returns the same array when there is nothing to change, so a caller can skip
  * the write rather than sending a reorder that reorders nothing.
  */
-export function bringForward(board: Board, exerciseId: string): Board {
-  const moving = board.find((e) => e.exerciseId === exerciseId);
+export function bringForward(board: Board, blockId: string): Board {
+  const moving = board.find((e) => e.blockId === blockId);
   if (!moving) return board;
 
-  const rest = board.filter((e) => e.exerciseId !== exerciseId);
+  const rest = board.filter((e) => e.blockId !== blockId);
   const firstUndone = rest.findIndex((e) => !e.done);
   const at = firstUndone === -1 ? rest.length : firstUndone;
 
   const next = [...rest.slice(0, at), moving, ...rest.slice(at)];
-  const same = next.every((e, i) => e.exerciseId === board[i].exerciseId);
+  const same = next.every((e, i) => e.blockId === board[i].blockId);
   return same ? board : next;
 }
 
@@ -50,6 +56,6 @@ export function bringForward(board: Board, exerciseId: string): Board {
  * A button that is visibly there and visibly does nothing teaches people to
  * stop trusting the buttons, so the first thing still to do does not get one.
  */
-export function canBringForward(board: Board, exerciseId: string) {
-  return bringForward(board, exerciseId) !== board;
+export function canBringForward(board: Board, blockId: string) {
+  return bringForward(board, blockId) !== board;
 }

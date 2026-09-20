@@ -39,7 +39,7 @@ import {
   listWorkoutSets,
   listRoutineExercises,
   addRoutineExercise,
-  reorderWorkoutExercises,
+  reorderWorkoutBlocks,
   updateWorkout,
   clampRest,
   DEFAULT_REST_SEC,
@@ -97,8 +97,13 @@ export default function WorkoutScreen() {
   );
   const [bests, setBests] = useState<Map<string, number>>(new Map());
   const [picking, setPicking] = useState(false);
-  // The movement whose remaining sets are being handed to something else.
-  const [swapping, setSwapping] = useState<Exercise | null>(null);
+  // The block whose remaining sets are being handed to something else. The
+  // block and not the movement: the same movement may be on the board twice,
+  // and swapping the second visit must not touch the first.
+  const [swapping, setSwapping] = useState<{
+    blockId: string;
+    exercise: Exercise;
+  } | null>(null);
   // Which exercise the rest bar is speaking for: the one whose set just
   // finished, or the one coming up before anything has been done.
   const [restFor, setRestFor] = useState<string | null>(null);
@@ -285,34 +290,46 @@ export default function WorkoutScreen() {
     [exercises],
   );
 
+  /*
+    The board, in blocks.
+
+    Grouped by position rather than by exercise, which is the whole of this
+    change: 「A머신 사용이후 마지막단계 A머신 한번더 사용한 기록을 올릴수
+    있도록 머신 두번 ADD 할수있도록 해주세요」. Keyed by exercise, a second
+    visit to the bench silently folded into the first card, and the board
+    disagreed with the hour — the two blocks were half an hour and four other
+    movements apart.
+
+    A block is identified by its position as a string, because the screen's
+    state has always been keyed by a string and a number would only mean
+    tracking down every === in the file to no purpose.
+  */
   const grouped = useMemo(() => {
-    const map = new Map<string, WorkoutSet[]>();
+    const map = new Map<number, WorkoutSet[]>();
     for (const s of sets) {
-      const list = map.get(s.exercise_id) ?? [];
+      const list = map.get(s.position) ?? [];
       list.push(s);
-      map.set(s.exercise_id, list);
+      map.set(s.position, list);
     }
     return [...map.entries()]
-      .map(([exerciseId, list]) => ({
-        exerciseId,
-        exercise: byId.get(exerciseId) ?? null,
+      .map(([position, list]) => ({
+        blockId: String(position),
+        position,
+        exerciseId: list[0].exercise_id,
+        exercise: byId.get(list[0].exercise_id) ?? null,
         sets: [...list].sort((a, b) => a.set_no - b.set_no),
       }))
       // Ordered by the stored position rather than by whatever order the rows
       // arrived in. Those matched until the board could be reordered — after
       // which the numbers changed and nothing on screen moved, which looks
       // exactly like the tap being missed.
-      .sort(
-        (a, b) =>
-          Math.min(...a.sets.map((x) => x.position)) -
-          Math.min(...b.sets.map((x) => x.position))
-      );
+      .sort((a, b) => a.position - b.position);
   }, [sets, byId]);
 
   // What the reorder button asks about: which movements are behind which, and
   // which of them are finished.
   const boardOrder = grouped.map((g) => ({
-    exerciseId: g.exerciseId,
+    blockId: g.blockId,
     done: g.sets.every((x) => x.done),
   }));
 
@@ -348,10 +365,7 @@ export default function WorkoutScreen() {
   // A long workout is mostly finished exercises; those collapse to one line so
   // the set you are actually on is never three screens down.
   const expandedId =
-    opened ??
-    upNext?.exerciseId ??
-    grouped[grouped.length - 1]?.exerciseId ??
-    null;
+    opened ?? upNext?.blockId ?? grouped[grouped.length - 1]?.blockId ?? null;
   // While resting, the exercise just finished — that is whose rest is running.
   // Once it ends, the one coming up, because that is what the buttons would
   // change and what the next set will use.
@@ -370,8 +384,8 @@ export default function WorkoutScreen() {
    * plan. Screen first, then the server — the board is the only sign the tap
    * landed.
    */
-  function applyWeight(exerciseId: string, weight: number) {
-    const waiting = sets.filter((x) => x.exercise_id === exerciseId && !x.done);
+  function applyWeight(position: number, weight: number) {
+    const waiting = sets.filter((x) => x.position === position && !x.done);
     if (waiting.length === 0) return;
     setSets((prev) =>
       prev.map((x) =>
@@ -480,33 +494,36 @@ export default function WorkoutScreen() {
    * network before anything visibly happens feels like the tap was missed,
    * and it is exactly the tap someone makes while walking across a gym.
    */
-  async function bringForwardTo(exerciseId: string) {
+  async function bringForwardTo(blockId: string) {
     if (!id) return;
-    const board = grouped.map((g) => ({
-      exerciseId: g.exerciseId,
-      done: g.sets.every((x) => x.done),
-    }));
-    const next = bringForward(board, exerciseId);
-    if (next === board) return;
+    const next = bringForward(boardOrder, blockId);
+    if (next === boardOrder) return;
 
-    const order = new Map(next.map((e, i) => [e.exerciseId, i]));
-    setSets((prev) =>
-      prev.map((x) => ({ ...x, position: order.get(x.exercise_id) ?? x.position })),
-    );
+    const setsOf = new Map(grouped.map((g) => [g.blockId, g.sets.map((x) => x.id)]));
+    const moved = next.map((e, position) => ({
+      setIds: setsOf.get(e.blockId) ?? [],
+      position,
+    }));
+
+    const at = new Map<string, number>();
+    for (const block of moved) for (const setId of block.setIds) at.set(setId, block.position);
+    setSets((prev) => prev.map((x) => ({ ...x, position: at.get(x.id) ?? x.position })));
+
     try {
-      await reorderWorkoutExercises(
-        id,
-        next.map((e) => e.exerciseId),
-      );
+      await reorderWorkoutBlocks(moved);
     } catch (e: any) {
       notify("순서 바꾸기 실패", e.message);
       load();
     }
   }
 
-  async function addSet(exerciseId: string) {
+  async function addSet(position: number) {
     if (!id) return;
-    const existing = sets.filter((s) => s.exercise_id === exerciseId);
+    // This block's sets, not every set of this movement — the same movement
+    // may be sitting further down the board as a block of its own.
+    const existing = sets.filter((s) => s.position === position);
+    const exerciseId = existing[0]?.exercise_id;
+    if (!exerciseId) return;
     const previous = existing[existing.length - 1];
     const lastTime = last.get(exerciseId)?.sets;
     // Prefer the last set actually finished today: the one at the end of the
@@ -516,9 +533,6 @@ export default function WorkoutScreen() {
       lastDone ??
       previous ??
       lastTime?.[Math.min(existing.length, lastTime.length - 1)];
-    const position =
-      previous?.position ??
-      sets.reduce((m, s) => Math.max(m, s.position), -1) + 1;
     await newSet(
       exerciseId,
       position,
@@ -553,8 +567,11 @@ export default function WorkoutScreen() {
     const from = swapping;
     setSwapping(null);
     if (!id || !from) return;
+    const block = grouped.find((g) => g.blockId === from.blockId);
+    const ahead = (block?.sets ?? []).filter((x) => !x.done).map((x) => x.id);
+    if (ahead.length === 0) return;
     try {
-      await swapRemainingSets(id, from.id, replacement.id);
+      await swapRemainingSets(ahead, replacement.id);
       load();
     } catch (e: any) {
       notify('바꾸기 실패', e.message);
@@ -859,7 +876,7 @@ export default function WorkoutScreen() {
           )}
         </View>
 
-        {grouped.map(({ exerciseId, exercise, sets: exerciseSets }) => {
+        {grouped.map(({ blockId, position, exerciseId, exercise, sets: exerciseSets }) => {
           const previous = last.get(exerciseId);
           const exDone = exerciseSets.filter((s) => s.done);
           const current = exerciseSets.find((s) => !s.done) ?? null;
@@ -875,13 +892,13 @@ export default function WorkoutScreen() {
           const previousBest = bests.get(exerciseId) ?? 0;
           const isRecord =
             track === "weight_reps" && previousBest > 0 && top > previousBest;
-          const expanded = exerciseId === expandedId;
+          const expanded = blockId === expandedId;
 
           return (
-            <View key={exerciseId} style={styles.card}>
+            <View key={blockId} style={styles.card}>
               <Pressable
                 style={styles.cardHead}
-                onPress={() => setOpened(expanded ? null : exerciseId)}
+                onPress={() => setOpened(expanded ? null : blockId)}
               >
                 <View style={[styles.stripe, { backgroundColor: tint }]} />
                 <View style={styles.cardHeadBody}>
@@ -933,7 +950,7 @@ export default function WorkoutScreen() {
                   <Pressable
                     hitSlop={10}
                     style={styles.cardInfo}
-                    onPress={() => setSwapping(exercise)}
+                    onPress={() => setSwapping({ blockId, exercise })}
                   >
                     <Ionicons
                       name="swap-horizontal"
@@ -950,11 +967,11 @@ export default function WorkoutScreen() {
                   because a button that visibly does nothing teaches people to
                   stop trusting the buttons.
                 */}
-                {!done && canBringForward(boardOrder, exerciseId) && (
+                {!done && canBringForward(boardOrder, blockId) && (
                   <Pressable
                     hitSlop={10}
                     style={styles.cardInfo}
-                    onPress={() => bringForwardTo(exerciseId)}
+                    onPress={() => bringForwardTo(blockId)}
                   >
                     <Ionicons
                       name="arrow-up-circle-outline"
@@ -1031,7 +1048,7 @@ export default function WorkoutScreen() {
                         <Text style={styles.suggestText}>{word}</Text>
                         <Pressable
                           style={styles.suggestButton}
-                          onPress={() => applyWeight(exerciseId, read.weight)}
+                          onPress={() => applyWeight(position, read.weight)}
                         >
                           <Text style={styles.suggestButtonText}>
                             {applyLabel(read)}
@@ -1165,7 +1182,7 @@ export default function WorkoutScreen() {
                       {track === "weight_reps" && !current && (
                         <Pressable
                           style={styles.addSet}
-                          onPress={() => addSet(exerciseId)}
+                          onPress={() => addSet(position)}
                         >
                           <Ionicons
                             name="add"
@@ -1276,9 +1293,12 @@ export default function WorkoutScreen() {
       />
 
       <SwapSheet
-        target={swapping}
+        target={swapping?.exercise ?? null}
         exercises={exercises}
-        doneCount={sets.filter((s) => s.done && s.exercise_id === swapping?.id).length}
+        doneCount={
+          grouped.find((g) => g.blockId === swapping?.blockId)?.sets.filter((x) => x.done)
+            .length ?? 0
+        }
         onPick={swapTo}
         onClose={() => setSwapping(null)}
       />
