@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Pressable,
   ScrollView,
@@ -39,7 +39,6 @@ import {
   listWorkoutFacts,
   listWorkoutSets,
   updateWorkout,
-  updateWorkoutSet,
   clampRest,
   DEFAULT_REST_SEC,
   REST_GRAIN,
@@ -62,6 +61,8 @@ import type { Place } from "@/lib/onboarding";
 import { getPlace } from "@/lib/prefs";
 import { recoveryOf, type Muscle } from "@/lib/recovery";
 import { suggestExercise } from "@/lib/suggest";
+import { overlay, pendingWord, type PendingWrite } from "@/lib/outbox";
+import { flushOutbox, saveSet, watchPending } from "@/lib/outboxStore";
 import { colors, muscleColor, radius, spacing } from "@/lib/theme";
 
 export default function WorkoutScreen() {
@@ -104,6 +105,22 @@ export default function WorkoutScreen() {
   */
   const [muscles, setMuscles] = useState<Muscle[] | null>(null);
   const [place, setPlace] = useState<{ value: Place | null } | null>(null);
+  /*
+    Edits that have not reached the server. Held in a ref as well as state
+    because `load` reads them while re-laying the board, and a reload that saw
+    a stale copy would be the very thing this is here to prevent.
+  */
+  const [unsent, setUnsent] = useState<PendingWrite[]>([]);
+  const unsentRef = useRef<PendingWrite[]>([]);
+
+  useEffect(
+    () =>
+      watchPending((pending) => {
+        unsentRef.current = pending;
+        setUnsent(pending);
+      }),
+    [],
+  );
 
   useEffect(() => {
     let alive = true;
@@ -121,13 +138,17 @@ export default function WorkoutScreen() {
     };
   }, []);
 
+  const unsentWord = pendingWord(unsent);
+
   const load = useCallback(() => {
     if (!id) return;
     setError(null);
     Promise.all([getWorkout(id), listWorkoutSets(id), listExercises()])
       .then(async ([w, s, e]) => {
         setWorkout(w);
-        setSets(s);
+        // The server's rows, with anything that has not reached it laid back
+        // on top. Without this a reload is what loses the set you just typed.
+        setSets(overlay(s, unsentRef.current));
         setExercises(e);
         const ids = [...new Set(s.map((x) => x.exercise_id))];
         const [lastSeen, personalBests] = await Promise.all([
@@ -140,7 +161,13 @@ export default function WorkoutScreen() {
       .catch((e) => setError(e.message));
   }, [id]);
 
-  useFocusEffect(load);
+  useFocusEffect(
+    useCallback(() => {
+      // Coming back to the screen is the commonest moment for the signal to
+      // have returned — a pocket, a lift, a walk out of the basement.
+      void flushOutbox().finally(load);
+    }, [load]),
+  );
 
   // Give the model a long head start on loading; advice is asked for at the end.
   useEffect(() => {
@@ -299,12 +326,13 @@ export default function WorkoutScreen() {
         waiting.some((w) => w.id === x.id) ? { ...x, weight_kg: weight } : x,
       ),
     );
-    Promise.all(waiting.map((x) => updateWorkoutSet(x.id, { weight_kg: weight })))
-      .then(() => successFeedback())
-      .catch((e: any) => {
-        notify("저장 실패", e.message);
-        load();
-      });
+    void Promise.all(
+      waiting.map((x) => saveSet(x.id, { weight_kg: weight })),
+    ).then((landed) => {
+      // Queued counts as saved here: the number is on the screen and in the
+      // outbox, and the banner already says what has not gone out yet.
+      if (landed.every(Boolean)) successFeedback();
+    });
   }
 
   async function persist(setId: string, patch: Partial<WorkoutSet>) {
@@ -337,34 +365,25 @@ export default function WorkoutScreen() {
               waiting.some((w) => w.id === x.id) ? { ...x, ...carry } : x,
             ),
           );
-          Promise.all(waiting.map((w) => updateWorkoutSet(w.id, carry))).catch(
-            () => {
-              // The numbers on screen are right; a failed save shows up on reload.
-            },
-          );
+          // Queued rather than dropped on failure — this was the line that
+          // said 「a failed save shows up on reload」, which was true and was
+          // the bug: what showed up was the older number.
+          void Promise.all(waiting.map((w) => saveSet(w.id, carry)));
         }
       }
     }
-    try {
-      await updateWorkoutSet(setId, patch);
-    } catch (e: any) {
-      notify("저장 실패", e.message);
-      load();
-    }
+    // No notify and no reload: an edit that cannot go out now goes out later,
+    // and the banner says how many are waiting. Interrupting someone between
+    // sets to tell them about a signal they cannot do anything about was the
+    // old behaviour, and it took their numbers away as it went.
+    await saveSet(setId, patch);
   }
 
   async function completeAll() {
     const pending = sets.filter((s) => !s.done);
     if (pending.length === 0) return;
     setSets((prev) => prev.map((s) => ({ ...s, done: true })));
-    try {
-      await Promise.all(
-        pending.map((s) => updateWorkoutSet(s.id, { done: true })),
-      );
-    } catch (e: any) {
-      notify("저장 실패", e.message);
-      load();
-    }
+    await Promise.all(pending.map((s) => saveSet(s.id, { done: true })));
   }
 
   async function addSet(exerciseId: string) {
@@ -648,6 +667,19 @@ export default function WorkoutScreen() {
                 {conditionLine(workout.condition)}
               </Text>
             </View>
+          )}
+
+          {/*
+            Shown only when something is actually waiting. A status line that
+            is always there stops being read, and the whole promise is that a
+            bad signal is not something anyone has to think about. Tapping it
+            tries again, for the one who would rather not wait for the lift.
+          */}
+          {unsentWord && (
+            <Pressable style={styles.unsent} onPress={() => void flushOutbox()}>
+              <Ionicons name="cloud-offline-outline" size={15} color={colors.gold} />
+              <Text style={styles.unsentText}>{unsentWord}</Text>
+            </Pressable>
           )}
 
           {/* Otherwise this screen is a spreadsheet you sweat next to. */}
@@ -1053,6 +1085,17 @@ function MemoField({
 }
 
 const styles = StyleSheet.create({
+  unsent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    borderColor: colors.gold,
+    borderWidth: 1,
+    borderRadius: radius.sm,
+    padding: spacing.md,
+    marginTop: spacing.sm,
+  },
+  unsentText: { color: colors.text, fontSize: 12, lineHeight: 18, flex: 1 },
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: 220 },
   summary: {
