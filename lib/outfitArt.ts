@@ -25,6 +25,11 @@ export const BASE_GIRL: Art = {
  */
 const BASE_ART: Record<string, Art> = {
   geumhwa: BASE_GIRL,
+  // Drawn on the same canvas as 리나, which is what lets one wardrobe fit all
+  // three: a garment's placement is in fractions of this box, so a base of a
+  // different shape would wear every dress crooked.
+  seora: { source: require('../assets/outfit/base_seora.png'), aspect: 1086 / 1448 },
+  dohwa: { source: require('../assets/outfit/base_dohwa.png'), aspect: 1086 / 1448 },
 };
 
 export function baseArt(advisorId: string): Art {
