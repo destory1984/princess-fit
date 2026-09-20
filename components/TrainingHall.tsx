@@ -95,24 +95,6 @@ export function TrainingHall({
               );
             })}
 
-          {/*
-            Pieces whose art has not arrived yet. They are listed along the
-            bottom rather than standing where they belong: placed in the room
-            they collided with each other and with the plaques above, and an
-            unreadable label is worse than an honest list.
-          */}
-          {unpictured.length > 0 && (
-            <View style={styles.missingRow}>
-              {unpictured.map((piece) => (
-                <View key={piece.id} style={styles.plaque}>
-                  <Text style={styles.plaqueText} numberOfLines={1}>
-                    {piece.name}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          )}
-
           {/* Without the shadow she floats a little above the floorboards. */}
           <View style={styles.girlShadow} />
           {scene.height > 0 && (
@@ -165,6 +147,19 @@ export function TrainingHall({
         </View>
 
         {caption ? <Text style={styles.caption}>{caption}</Text> : null}
+
+        {/*
+          Pieces whose art has not arrived yet, named under the room rather
+          than in it. Standing them inside put a label on the floorboards
+          beside her, which reads as a price tag rather than as furniture —
+          and a name on a rug is not a rug however honestly it is written.
+        */}
+        {unpictured.length > 0 && (
+          <Text style={styles.missing} numberOfLines={2}>
+            들여둔 것 · {unpictured.map((piece) => piece.name).join(' · ')}
+            {'  (그림은 준비 중이에요)'}
+          </Text>
+        )}
       </View>
     </View>
   );
@@ -202,30 +197,14 @@ const styles = StyleSheet.create({
     backgroundColor: paper.ink,
     opacity: 0.18,
   },
-  missingRow: {
-    pointerEvents: "none",
-    position: "absolute",
-    left: 6,
-    right: 6,
-    bottom: 6,
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 4,
-    justifyContent: "center",
-  },
-  plaque: {
-    backgroundColor: paper.bgAlt,
-    borderColor: colors.gold,
-    borderWidth: 1,
-    borderRadius: 4,
-    paddingVertical: 2,
-    paddingHorizontal: 4,
-  },
-  plaqueText: {
-    color: colors.text,
-    fontSize: 9,
-    lineHeight: 13,
+  missing: {
+    color: paper.inkDim,
+    fontSize: 10,
+    lineHeight: 15,
     textAlign: "center",
+    paddingHorizontal: 6,
+    paddingBottom: 5,
+    backgroundColor: paper.bgAlt,
   },
   statusPenalty: {
     color: colors.accent,
