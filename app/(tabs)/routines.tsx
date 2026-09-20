@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
+import { ScreenState } from '@/components/ScreenState';
 import { confirmAction, notify } from '@/lib/confirm';
 import { createRoutine, deleteRoutine, listRoutineExercises, listRoutines } from '@/lib/db';
 import type { Routine } from '@/lib/types';
@@ -9,21 +10,26 @@ import { colors, radius, spacing } from '@/lib/theme';
 
 export default function RoutinesScreen() {
   const router = useRouter();
-  const [routines, setRoutines] = useState<Routine[]>([]);
+  const [routines, setRoutines] = useState<Routine[] | null>(null);
   const [sizes, setSizes] = useState<Record<string, number>>({});
   const [name, setName] = useState('');
   const [adding, setAdding] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(() => {
+    setError(null);
     listRoutines()
-      .then(async (list) => {
+      .then((list) => {
         setRoutines(list);
-        const counted = await Promise.all(
+        // The counts only decide a subtitle, so the list does not wait on one
+        // query per routine before it is allowed to appear.
+        Promise.all(
           list.map(async (r) => [r.id, (await listRoutineExercises(r.id)).length] as const)
-        );
-        setSizes(Object.fromEntries(counted));
+        )
+          .then((counted) => setSizes(Object.fromEntries(counted)))
+          .catch(() => {});
       })
-      .catch((e) => notify('불러오기 실패', e.message));
+      .catch((e) => setError(e.message));
   }, []);
 
   useFocusEffect(load);
@@ -59,6 +65,10 @@ export default function RoutinesScreen() {
       }
     );
   }
+
+  // "루틴이 없어요" and "not asked yet" look identical from an empty array,
+  // and the second one is true for a moment every time this tab is opened.
+  if (!routines) return <ScreenState error={error} onRetry={load} />;
 
   return (
     <View style={styles.screen}>
@@ -115,8 +125,13 @@ export default function RoutinesScreen() {
             <Ionicons name="flash" size={18} color={colors.accent} />
             <View style={styles.rowBody}>
               <Text style={styles.rowTitle}>{item.name}</Text>
+              {/* Uncounted is not empty; a space holds the line meanwhile. */}
               <Text style={styles.rowSub}>
-                {sizes[item.id] ? `종목 ${sizes[item.id]}개` : '아직 종목이 없어요'}
+                {sizes[item.id] === undefined
+                  ? ' '
+                  : sizes[item.id] > 0
+                    ? `종목 ${sizes[item.id]}개`
+                    : '아직 종목이 없어요'}
               </Text>
             </View>
             <Pressable hitSlop={8} onPress={() => confirmDelete(item)}>

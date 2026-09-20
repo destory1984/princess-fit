@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Insights } from '@/components/Insights';
+import { ScreenState } from '@/components/ScreenState';
 import { MonthCalendar } from '@/components/MonthCalendar';
 import { confirmAction, notify } from '@/lib/confirm';
 import {
@@ -29,7 +30,8 @@ function duration(workout: Workout) {
 
 export default function HistoryScreen() {
   const router = useRouter();
-  const [workouts, setWorkouts] = useState<WorkoutSummary[]>([]);
+  const [workouts, setWorkouts] = useState<WorkoutSummary[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [days, setDays] = useState<Set<string>>(new Set());
   const [month, setMonth] = useState(() => new Date());
   const [selected, setSelected] = useState<string | null>(null);
@@ -46,6 +48,7 @@ export default function HistoryScreen() {
   }, [facts]);
 
   const load = useCallback(() => {
+    setError(null);
     listWorkoutFacts()
       .then(setFacts)
       .catch(() => {
@@ -56,7 +59,7 @@ export default function HistoryScreen() {
         setWorkouts(list);
         setDays(new Set(marked.map((m) => m.day)));
       })
-      .catch((e) => notify('불러오기 실패', e.message));
+      .catch((e) => setError(e.message));
   }, []);
 
   useFocusEffect(load);
@@ -64,8 +67,8 @@ export default function HistoryScreen() {
   const shown = useMemo(
     () =>
       selected
-        ? workouts.filter((w) => localDayKey(new Date(w.started_at)) === selected)
-        : workouts,
+        ? (workouts ?? []).filter((w) => localDayKey(new Date(w.started_at)) === selected)
+        : (workouts ?? []),
     [workouts, selected]
   );
 
@@ -98,6 +101,10 @@ export default function HistoryScreen() {
       }
     );
   }
+
+  // An empty calendar and "아직 기록이 없어요" are also what this screen holds
+  // before it has asked, which is one flash per visit to the tab.
+  if (!workouts) return <ScreenState error={error} onRetry={load} />;
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>

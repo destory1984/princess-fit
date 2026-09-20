@@ -5,6 +5,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { ExercisePicker } from '@/components/ExercisePicker';
 import { GroupBreakdown } from '@/components/GroupBreakdown';
 import { Insights } from '@/components/Insights';
+import { ScreenState } from '@/components/ScreenState';
 import { LineChart } from '@/components/LineChart';
 import { OrnateFrame } from '@/components/OrnateFrame';
 import { notify } from '@/lib/confirm';
@@ -25,7 +26,8 @@ import { colors, radius, spacing } from '@/lib/theme';
 
 export default function StatsScreen() {
   const router = useRouter();
-  const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [exercises, setExercises] = useState<Exercise[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [totals, setTotals] = useState<GroupTotal[]>([]);
   const [selected, setSelected] = useState<Exercise | null>(null);
   const [history, setHistory] = useState<ExerciseHistoryPoint[]>([]);
@@ -35,6 +37,7 @@ export default function StatsScreen() {
   const [usage, setUsage] = useState<UsageMap>(new Map());
 
   const load = useCallback(() => {
+    setError(null);
     getExerciseUsage()
       .then(setUsage)
       .catch(() => {
@@ -51,7 +54,7 @@ export default function StatsScreen() {
         setTotals(groups);
         setSelected((cur) => cur ?? list[0] ?? null);
       })
-      .catch((e) => notify('불러오기 실패', e.message));
+      .catch((e) => setError(e.message));
   }, []);
 
   useFocusEffect(load);
@@ -70,6 +73,10 @@ export default function StatsScreen() {
   }));
   const best = history.reduce((m, h) => Math.max(m, h.max_weight), 0);
   const totalMinutes = Math.round(history.reduce((s, h) => s + h.durationSec, 0) / 60);
+
+  // Empty charts and "아직 기록이 없어요" are what this screen holds before it
+  // has asked, so drawing early says the month was empty and then corrects it.
+  if (!exercises) return <ScreenState error={error} onRetry={load} />;
 
   return (
     <View style={styles.screen}>
