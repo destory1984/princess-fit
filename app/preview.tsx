@@ -6,6 +6,7 @@ import { BigStepper } from '@/components/BigStepper';
 import { BragCard } from '@/components/BragCard';
 import { Cheer } from '@/components/Cheer';
 import { ExercisePicker } from '@/components/ExercisePicker';
+import { TimeField } from '@/components/TimeField';
 import { DEFAULT_EXERCISES } from '@/lib/exerciseCatalog';
 import { Insights } from '@/components/Insights';
 import { MonthCalendar } from '@/components/MonthCalendar';
@@ -154,6 +155,12 @@ export default function PreviewScreen() {
       <Text style={styles.heading}>함께 지낼 아이 (화면 전체)</Text>
       <View style={styles.framedTall}>
         <GirlScreen />
+      </View>
+
+      <Text style={styles.heading}>잠든 · 일어난 시각</Text>
+      <View style={styles.steppers}>
+        <TimeField label="잠든 시각" value={23 * 60 + 30} onChange={() => {}} />
+        <TimeField label="일어난 시각" value={6 * 60 + 40} onChange={() => {}} />
       </View>
 
       <Text style={styles.heading}>종목 고르기</Text>
