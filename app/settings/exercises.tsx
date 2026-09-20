@@ -205,13 +205,25 @@ export default function ExercisesScreen() {
             <Pressable style={styles.addButton} onPress={add}>
               <Text style={styles.addButtonText}>종목 추가</Text>
             </Pressable>
+            {/*
+              The label alone got asked 「이건 뭐야」, which is the only review
+              a label ever gets. What it does is worth two clauses: it fills in
+              what is missing and touches nothing else, and both halves of that
+              matter to someone deciding whether it is safe to press.
+            */}
             <Pressable
               style={[styles.seedButton, seeding && styles.disabled]}
               disabled={seeding}
               onPress={seed}>
               <Text style={styles.seedButtonText}>
-                {seeding ? '불러오는 중…' : '기본 종목 불러오기 · 정보 새로 고치기'}
+                {seeding ? '불러오는 중…' : '기본 종목 불러오기'}
               </Text>
+              {!seeding && (
+                <Text style={styles.seedButtonSub}>
+                  빠진 기본 종목을 채우고, 비어 있는 설명만 메워요.{'\n'}
+                  직접 만드신 종목과 지금 설정은 그대로예요.
+                </Text>
+              )}
             </Pressable>
             {/*
               The pair sits together on purpose. 「전부 끄기」 sweeps seventy
@@ -320,6 +332,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   addButtonText: { color: '#fff', fontWeight: '700' },
+  seedButtonSub: {
+    color: colors.textDim,
+    fontSize: 11,
+    lineHeight: 17,
+    textAlign: 'center',
+    marginTop: 2,
+  },
   seedButton: {
     borderColor: colors.border,
     borderWidth: 1,
