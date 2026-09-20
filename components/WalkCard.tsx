@@ -15,6 +15,7 @@ import {
   walkOwed,
   walkShare,
   walkWord,
+  WALK_REASON,
 } from '@/lib/steps';
 import { stepsToday } from '@/lib/stepCounter';
 import { colors, radius, spacing } from '@/lib/theme';
@@ -121,7 +122,7 @@ export function WalkCard({ onFed, dense = false }: Props) {
             <View style={styles.rowTrack}>
               <View style={[styles.fill, { width: `${Math.round(share * 100)}%` }]} />
             </View>
-            {fed > 0 && <Text style={styles.rowFed}>포만감 +{fed}</Text>}
+            {fed > 0 && <Text style={styles.rowFed}>장 봄 +{fed}</Text>}
           </>
         )}
         <Ionicons name="chevron-down" size={16} color={colors.faint} />
@@ -183,7 +184,7 @@ export function WalkCard({ onFed, dense = false }: Props) {
         </View>
       )}
 
-      <Text style={styles.note}>걸음은 골드를 주지 않아요. 대신 덜 배고파해요.</Text>
+      <Text style={styles.note}>{WALK_REASON}</Text>
     </View>
   );
 }

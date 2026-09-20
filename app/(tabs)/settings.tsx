@@ -58,7 +58,7 @@ export default function SettingsScreen() {
           <Ionicons name="flag-outline" size={22} color={colors.accent} />
         </View>
         <View style={styles.body}>
-          <Text style={styles.title}>내 계획</Text>
+          <Text style={styles.title}>내 운동 계획</Text>
           <Text style={styles.sub}>
             {plan === null
               ? '불러오는 중…'

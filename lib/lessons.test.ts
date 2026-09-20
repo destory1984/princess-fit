@@ -10,6 +10,11 @@ import {
   previewOf,
   refinementTitle,
   tripTimes,
+  enrol,
+  daysLeft,
+  isFinished,
+  enrolmentWord,
+  lengthWord,
 } from './lessons.ts';
 
 test('a lesson teaches what it says it teaches', () => {
@@ -78,4 +83,63 @@ test('she always comes back the same day she sets off', () => {
   const { leaves, returns } = tripTimes(new Date(2026, 8, 20, 9, 30));
   assert.equal(returns.getDate(), leaves.getDate());
   assert.ok(returns > leaves);
+});
+
+test('every lesson takes real days, and the longer ones teach more', () => {
+  for (const lesson of LESSONS) {
+    assert.ok(lesson.days >= 1, `${lesson.name} takes no time`);
+    assert.equal(lesson.days, Math.round(lesson.days));
+  }
+  const taught = (l: (typeof LESSONS)[number]) =>
+    Object.values(l.teaches).reduce((s, n) => s + (n ?? 0), 0);
+  const byDays = [...LESSONS].sort((a, b) => a.days - b.days);
+  assert.ok(taught(byDays[0]) <= taught(byDays[byDays.length - 1]));
+});
+
+test('a course runs from today for as many mornings as it says', () => {
+  const start = new Date(2026, 8, 20, 23, 30);
+  const lesson = LESSONS.find((l) => l.days === 3)!;
+  const signed = enrol(lesson, start);
+  assert.equal(signed.startedOn, '2026-09-20');
+  assert.equal(signed.endsOn, '2026-09-22', 'inclusive: three mornings, not four');
+  assert.equal(daysLeft(signed, start), 3);
+});
+
+test('the hour it was bought does not change its length', () => {
+  const lesson = LESSONS[0];
+  const early = enrol(lesson, new Date(2026, 8, 20, 0, 1));
+  const late = enrol(lesson, new Date(2026, 8, 20, 23, 59));
+  assert.deepEqual(early, late);
+});
+
+test('days left counts down and stops at zero', () => {
+  const lesson = LESSONS.find((l) => l.days === 3)!;
+  const signed = enrol(lesson, new Date(2026, 8, 20));
+  assert.equal(daysLeft(signed, new Date(2026, 8, 20)), 3);
+  assert.equal(daysLeft(signed, new Date(2026, 8, 21)), 2);
+  assert.equal(daysLeft(signed, new Date(2026, 8, 22)), 1);
+  assert.equal(daysLeft(signed, new Date(2026, 8, 23)), 0);
+  assert.equal(daysLeft(signed, new Date(2026, 9, 30)), 0);
+});
+
+test('a course is over the morning after its last lesson, not before', () => {
+  const lesson = LESSONS.find((l) => l.days === 3)!;
+  const signed = enrol(lesson, new Date(2026, 8, 20));
+  assert.equal(isFinished(signed, new Date(2026, 8, 22, 23, 59)), false);
+  assert.equal(isFinished(signed, new Date(2026, 8, 23, 0, 1)), true);
+});
+
+test('it says what she is doing and how much is left', () => {
+  const lesson = LESSONS.find((l) => l.days === 3)!;
+  const signed = enrol(lesson, new Date(2026, 8, 20));
+  const midway = enrolmentWord(signed, new Date(2026, 8, 21));
+  assert.ok(midway.includes(lesson.name));
+  assert.ok(midway.includes('2일'));
+  assert.ok(enrolmentWord(signed, new Date(2026, 8, 22)).includes('마지막'));
+});
+
+test('a length reads in weeks when it is whole weeks', () => {
+  assert.equal(lengthWord({ ...LESSONS[0], days: 7 }), '1주');
+  assert.equal(lengthWord({ ...LESSONS[0], days: 14 }), '2주');
+  assert.equal(lengthWord({ ...LESSONS[0], days: 5 }), '5일');
 });
