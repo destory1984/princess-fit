@@ -32,6 +32,7 @@ import {
 } from './lessons';
 import type { Furniture } from './room';
 import { SPLIT_WINDOW_DAYS, type RoutineUse } from './split';
+import type { BackupWorkout } from './backup';
 import {
   groupHistory,
   streakDays,
@@ -640,6 +641,66 @@ export async function listWorkoutSets(workoutId: string) {
     .order('set_no');
   if (error) throw error;
   return data as WorkoutSet[];
+}
+
+/**
+ * Everything, in one read, shaped for a file the user keeps.
+ *
+ * Two queries rather than one join per workout: a year of training is a few
+ * hundred rows on each side, and asking the server once for each is how an
+ * export of a long history turns into a minute of waiting.
+ */
+export async function listBackup(): Promise<BackupWorkout[]> {
+  const [workouts, sets, exercises] = await Promise.all([
+    supabase
+      .from('workouts')
+      .select('id, started_at, ended_at, title, condition, memo')
+      .order('started_at'),
+    supabase
+      .from('workout_sets')
+      .select('workout_id, exercise_id, position, set_no, weight_kg, reps, duration_sec, distance_km, done')
+      .order('position')
+      .order('set_no'),
+    listExercises(),
+  ]);
+  if (workouts.error) throw workouts.error;
+  if (sets.error) throw sets.error;
+
+  const named = new Map(exercises.map((e) => [e.id, e]));
+  const byWorkout = new Map<string, Map<string, BackupWorkout['exercises'][number]>>();
+  for (const row of sets.data as (WorkoutSet & { workout_id: string })[]) {
+    let board = byWorkout.get(row.workout_id);
+    if (!board) byWorkout.set(row.workout_id, (board = new Map()));
+    let entry = board.get(row.exercise_id);
+    if (!entry) {
+      const exercise = named.get(row.exercise_id);
+      // A set whose exercise has since been deleted is still a set that was
+      // done. Dropping it would make the backup disagree with the history.
+      entry = {
+        name: exercise?.name ?? '삭제된 종목',
+        muscle_group: exercise?.muscle_group ?? '',
+        sets: [],
+      };
+      board.set(row.exercise_id, entry);
+    }
+    entry.sets.push({
+      set_no: row.set_no,
+      weight_kg: row.weight_kg,
+      reps: row.reps,
+      duration_sec: row.duration_sec,
+      distance_km: row.distance_km,
+      done: row.done,
+    });
+  }
+
+  return (workouts.data as (Workout & { id: string })[]).map((w) => ({
+    started_at: w.started_at,
+    ended_at: w.ended_at,
+    title: w.title,
+    condition: w.condition ?? null,
+    memo: w.memo ?? null,
+    exercises: [...(byWorkout.get(w.id)?.values() ?? [])],
+  }));
 }
 
 export async function addWorkoutSet(input: {
