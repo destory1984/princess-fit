@@ -1,6 +1,7 @@
 import { localDayKey } from './format.ts';
 import type { WorkoutFact } from './gamification.ts';
 import { insightsFor } from './insight.ts';
+import { daysLeft, isFinished, lessonById, type Enrolment } from './lessons.ts';
 
 /**
  * The household ledger: what a workout earns, and what a day away costs.
@@ -160,17 +161,39 @@ export function messageFor(mood: Mood, today = new Date()) {
 }
 
 
+// What she says about the course she is on. Only on the days that are worth
+// remarking on — the first, the last, and the one after — because a girl who
+// mentions her dance class every single evening for a week is a notice board.
+function lessonLine(lesson: Enrolment, today: Date): string | null {
+  const taught = lessonById(lesson.lessonId);
+  if (!taught) return null;
+
+  const key = localDayKey(today);
+  const left = daysLeft(lesson, today);
+  if (key === lesson.startedOn) return `오늘부터 ${taught.name} 배우러 다녀요.`;
+  if (left === 1) return `${taught.name}은 오늘이 마지막이에요. 조금 아쉬워요.`;
+  if (left === 2) return `${taught.name}, 이제 이틀 남았어요.`;
+  return null;
+}
+
 /**
  * The line she will have tomorrow, used to schedule the daily message today.
  * Projecting rather than reusing today's mood matters most at the boundary: a
  * girl who is fine this evening and hungry by tomorrow night should say the
  * hungry line, not the cheerful one.
  */
-export function tomorrowsMessage(house: Household, workouts: WorkoutFact[], today = new Date()) {
+export function tomorrowsMessage(
+  house: Household,
+  workouts: WorkoutFact[],
+  today = new Date(),
+  lesson: Enrolment | null = null
+) {
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
   const projected = settle(house, tomorrow);
-  return dailyLine(projected, workouts, tomorrow);
+  // A course that will have ended by tomorrow is not news tomorrow.
+  const still = lesson && !isFinished(lesson, tomorrow) ? lesson : null;
+  return dailyLine(projected, workouts, tomorrow, still);
 }
 
 export type GiftKind = 'food' | 'clothes' | 'accessory' | 'furniture' | 'lesson';
@@ -206,10 +229,20 @@ export function thanksFor(kind: GiftKind, itemId: string) {
 export function dailyLine(
   house: Household,
   workouts: WorkoutFact[],
-  today = new Date()
+  today = new Date(),
+  lesson: Enrolment | null = null
 ): string {
   const mood = moodOf(house, workouts, today);
   if (mood !== 'fine' && mood !== 'happy') return messageFor(mood, today);
+
+  // A course she is part-way through is the most concrete thing in her week,
+  // and it only exists because gold was spent on it — so it should reach the
+  // room rather than living on a shop shelf. It yields to hunger and to rags,
+  // which are about her rather than about her schedule.
+  if (lesson) {
+    const word = lessonLine(lesson, today);
+    if (word) return word;
+  }
 
   const watch = insightsFor(workouts, today).find((i) => i.tone === 'watch');
   if (watch) return `${watch.title}. ${watch.detail}`;
