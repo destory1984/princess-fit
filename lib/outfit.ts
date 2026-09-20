@@ -72,7 +72,9 @@ export const GARMENTS: Garment[] = [
     detail: '누가 준 것인지는 말하지 않아요',
     price: 400,
     charm: 2,
-    fit: { x: 0.44, y: 0.42, w: 0.32 },
+    // Held against her with the stems down where her folded arms meet.
+    // Centred on her chest it read as flowers pinned flat to her front.
+    fit: { x: 0.361, y: 0.369, w: 0.324 },
   },
   {
     id: 'sleeves_orange',
@@ -81,7 +83,10 @@ export const GARMENTS: Garment[] = [
     detail: '팔이 가벼워 보여요',
     price: 700,
     charm: 2,
-    fit: { x: 0.2, y: 0.32, w: 0.6 },
+    // From the shoulders, not the waist. The two sleeve pieces share a slot
+    // but not a drawing, so they no longer share a fit either — this one sits
+    // higher on its canvas than the blue.
+    fit: { x: 0.172, y: 0.195, w: 0.641 },
   },
   {
     id: 'sleeves_blue',
@@ -90,7 +95,7 @@ export const GARMENTS: Garment[] = [
     detail: '차분한 쪽이 좋다면',
     price: 700,
     charm: 2,
-    fit: { x: 0.2, y: 0.32, w: 0.6 },
+    fit: { x: 0.188, y: 0.269, w: 0.622 },
   },
   {
     id: 'skirt_white',
