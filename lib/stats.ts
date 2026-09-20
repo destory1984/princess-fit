@@ -26,6 +26,7 @@ export type HistoryRow = {
   reps: number;
   duration_sec?: number;
   distance_km?: number;
+  rir?: number | null;
   workouts: { started_at: string };
 };
 
@@ -36,7 +37,7 @@ export type ExerciseHistoryPoint = {
   volume: number;
   durationSec: number;
   distanceKm: number;
-  sets: { set_no: number; weight_kg: number; reps: number }[];
+  sets: { set_no: number; weight_kg: number; reps: number; rir?: number | null }[];
 };
 
 export function groupHistory(rows: HistoryRow[]) {
@@ -51,7 +52,14 @@ export function groupHistory(rows: HistoryRow[]) {
       distanceKm: 0,
       sets: [],
     };
-    point.sets.push({ set_no: row.set_no, weight_kg: row.weight_kg, reps: row.reps });
+    point.sets.push({
+      set_no: row.set_no,
+      weight_kg: row.weight_kg,
+      reps: row.reps,
+      // Carried through so the next session's reading can use what they said
+      // rather than only what the reps did.
+      rir: row.rir ?? null,
+    });
     point.max_weight = Math.max(point.max_weight, row.weight_kg);
     point.volume += row.weight_kg * row.reps;
     point.durationSec += row.duration_sec ?? 0;

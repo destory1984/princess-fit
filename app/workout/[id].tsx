@@ -49,7 +49,13 @@ import {
 } from "@/lib/db";
 import type { Exercise, Workout, WorkoutSet } from "@/lib/types";
 import { followOn, planFor } from "@/lib/setPlan";
-import { applyLabel, progressWord, readiness } from "@/lib/progress";
+import {
+  applyLabel,
+  progressWord,
+  readiness,
+  RIR_CHOICES,
+  RIR_QUESTION,
+} from "@/lib/progress";
 import {
   conditionLabel,
   conditionLine,
@@ -1005,7 +1011,11 @@ export default function WorkoutScreen() {
                   {(() => {
                     if (done || !expanded || track !== "weight_reps") return null;
                     const read = previous ? readiness(previous.sets) : null;
-                    const word = progressWord(read);
+                    // Whether they answered last time, so she can speak as
+                    // someone who was told rather than someone who guessed.
+                    const told =
+                      typeof previous?.sets[previous.sets.length - 1]?.rir === "number";
+                    const word = progressWord(read, told);
                     if (!word || !read) return null;
                     return (
                       <View style={styles.suggest}>
@@ -1093,9 +1103,58 @@ export default function WorkoutScreen() {
                           onRemove={() => removeSet(current.id)}
                         />
                       ) : (
-                        <Text style={styles.allDone}>
-                          이 종목은 다 하셨어요 🎉
-                        </Text>
+                        <>
+                          <Text style={styles.allDone}>
+                            이 종목은 다 하셨어요 🎉
+                          </Text>
+                          {/*
+                            Asked once a movement is finished, and only then.
+                            After every set it would be the thing a review of
+                            the app this borrows from called 「쓸데없는 말이 너무
+                            많음」; before the set it would be a question about
+                            effort not yet spent. Answering is optional — the
+                            card reads the same whether or not anyone does.
+                          */}
+                          {(() => {
+                            const lastSet = exerciseSets[exerciseSets.length - 1];
+                            if (!lastSet || track !== "weight_reps") return null;
+                            if (lastSet.weight_kg <= 0) return null;
+                            if (typeof lastSet.rir === "number") {
+                              return (
+                                <Text style={styles.rirSaid}>
+                                  {
+                                    RIR_CHOICES.find((c) => c.rir === lastSet.rir)
+                                      ?.label
+                                  }{" "}
+                                  더 하실 수 있었다고 하셨어요.
+                                </Text>
+                              );
+                            }
+                            return (
+                              <View style={styles.rir}>
+                                <Text style={styles.rirAsk}>{RIR_QUESTION}</Text>
+                                <View style={styles.rirRow}>
+                                  {RIR_CHOICES.map((choice) => (
+                                    <Pressable
+                                      key={choice.rir}
+                                      style={styles.rirChip}
+                                      onPress={() =>
+                                        persist(lastSet.id, { rir: choice.rir })
+                                      }
+                                    >
+                                      <Text style={styles.rirChipText}>
+                                        {choice.label}
+                                      </Text>
+                                    </Pressable>
+                                  ))}
+                                </View>
+                                <Text style={styles.rirWhy}>
+                                  다음에 무게를 올릴지 정할 때 써요. 안 고르셔도 돼요.
+                                </Text>
+                              </View>
+                            );
+                          })()}
+                        </>
                       )}
 
                       {/*
@@ -1304,6 +1363,20 @@ function MemoField({
 }
 
 const styles = StyleSheet.create({
+  rir: { gap: spacing.sm, paddingTop: spacing.md },
+  rirAsk: { color: colors.text, fontSize: 13, fontWeight: "700" },
+  rirRow: { flexDirection: "row", gap: spacing.sm },
+  rirChip: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: spacing.md,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.faint,
+  },
+  rirChipText: { color: colors.text, fontSize: 13, fontWeight: "700" },
+  rirWhy: { color: colors.textDim, fontSize: 11, lineHeight: 17 },
+  rirSaid: { color: colors.textDim, fontSize: 12, paddingTop: spacing.sm },
   unsent: {
     flexDirection: "row",
     alignItems: "center",

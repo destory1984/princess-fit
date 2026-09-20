@@ -814,7 +814,9 @@ export async function insertWorkoutSet(row: Record<string, unknown>) {
 
 export async function updateWorkoutSet(
   id: string,
-  patch: Partial<Pick<WorkoutSet, 'weight_kg' | 'reps' | 'duration_sec' | 'distance_km' | 'done'>>
+  patch: Partial<
+    Pick<WorkoutSet, 'weight_kg' | 'reps' | 'duration_sec' | 'distance_km' | 'done' | 'rir'>
+  >
 ) {
   const { error } = await supabase.from('workout_sets').update(patch).eq('id', id);
   if (error) throw error;
@@ -880,7 +882,7 @@ export async function getLastPerformance(exerciseIds: string[], excludeWorkoutId
 
   const { data, error } = await supabase
     .from('workout_sets')
-    .select('workout_id, exercise_id, set_no, weight_kg, reps, workouts!inner(started_at)')
+    .select('workout_id, exercise_id, set_no, weight_kg, reps, rir, workouts!inner(started_at)')
     .in('exercise_id', exerciseIds)
     .in('workout_id', recentIds)
     .eq('done', true)

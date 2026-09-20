@@ -75,6 +75,13 @@ export type WorkoutSet = {
   duration_sec: number;
   distance_km: number;
   done: boolean;
+  /**
+   * Reps they felt were left when the set was racked, if they were asked.
+   *
+   * Optional and nullable, and those mean the same thing here: nobody said.
+   * A zero is an answer — 「더 못 해요」 — so it must never stand in for silence.
+   */
+  rir?: number | null;
 };
 
 export const MUSCLE_GROUPS = [
