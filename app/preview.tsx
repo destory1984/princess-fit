@@ -61,7 +61,10 @@ const benchFacts = [0, 2, 4, 7, 9, 12, 15, 18].map((daysAgo) => {
   };
 });
 
-const benchExercises = DEFAULT_EXERCISES.slice(0, 10).map((e, i) => ({
+// Spread across the catalogue rather than the first ten, which were all
+// chest and back — searching the bench for a squat found nothing and looked
+// like a broken search rather than a narrow fixture.
+const benchExercises = DEFAULT_EXERCISES.filter((_, i) => i % 6 === 0).map((e, i) => ({
   ...e,
   id: `x${i}`,
   user_id: 'u',
