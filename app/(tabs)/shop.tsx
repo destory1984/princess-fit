@@ -5,7 +5,7 @@ import { ShopShelves, type Spend } from "@/components/ShopShelves";
 import { notify } from "@/lib/confirm";
 import { getLedger, type Ledger } from "@/lib/db";
 import { thanksFor } from "@/lib/economy";
-import { tripTimes } from "@/lib/lessons";
+import { courseTrip } from "@/lib/lessons";
 import { scheduleLessonTrip } from "@/lib/notify";
 import { useGirl } from '@/lib/girl';
 
@@ -34,16 +34,21 @@ export default function ShopScreen() {
     if (busy) return;
     setBusy(id);
     try {
-      setLedger(await run());
+      const next = await run();
+      setLedger(next);
       notify(
         price ? `${label} · −${price.toLocaleString()} G` : label,
         thanksFor(kind, id),
       );
-      // A lesson is a day out: she says goodbye in the morning and tells you
-      // how it went when she is back. Booking that must not look like a failed
-      // purchase, so it is deliberately kept out of the catch above.
-      if (kind === "lesson") {
-        void scheduleLessonTrip(girl.name, label, tripTimes()).catch(() => {});
+      // A course is days of going every morning: she says goodbye on the first
+      // and tells you how it went on the last. Booking that must not look like
+      // a failed purchase, so it is deliberately kept out of the catch above.
+      if (kind === "lesson" && next.lesson) {
+        void scheduleLessonTrip(
+          girl.name,
+          label,
+          courseTrip(next.lesson),
+        ).catch(() => {});
       }
     } catch (e: any) {
       notify("사지 못했어요", e.message);
