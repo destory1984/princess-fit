@@ -205,7 +205,10 @@ const THANKS: Record<GiftKind, string[]> = {
   clothes: ['어때요? 이상하지 않죠?', '거울 앞에 좀 오래 서 있었어요.'],
   accessory: ['작은 게 더 티가 나는 법이에요.', '오늘은 이걸 하고 있을게요.'],
   furniture: ['방이 좀 달라 보여요.', '여기 있으니 딱 맞네요.'],
-  lesson: ['배운 건 어디 안 가니까요.', '생각보다 어렵진 않았어요.'],
+  // She is signing up, not coming home: the gains land when the course ends.
+  // Thanking you for something she has not learned yet was left over from when
+  // paying and learning happened in the same instant.
+  lesson: ['잘 배우고 올게요.', '내일 아침부터 부지런히 다녀올게요.'],
 };
 
 /**
