@@ -99,7 +99,6 @@ drop policy if exists "admins answer requests" on exercise_requests;
 create policy "admins answer requests" on exercise_requests
   for update using (is_admin()) with check (is_admin());
 
-notify pgrst, 'reload schema';
 
 
 -- ---------------------------------------------------------------------------
@@ -165,6 +164,7 @@ returns table (
   joined timestamptz,
   workouts bigint,
   last_workout timestamptz,
+  gold integer,
   admin boolean
 )
 language sql
@@ -178,11 +178,15 @@ as $$
     p.created_at,
     count(w.id),
     max(w.started_at),
+    -- Null until the app has settled the household once, which is not the
+    -- same as nothing: a purse that has never been opened is not empty.
+    h.gold,
     exists (select 1 from admins a where a.user_id = p.user_id)
   from profiles p
   left join workouts w on w.user_id = p.user_id and w.ended_at is not null
+  left join household h on h.user_id = p.user_id
   where is_admin()
-  group by p.user_id, p.email, p.created_at
+  group by p.user_id, p.email, p.created_at, h.gold
   order by p.created_at desc;
 $$;
 
@@ -220,5 +224,41 @@ $$;
 
 revoke all on function admin_set_admin(uuid, boolean) from public;
 grant execute on function admin_set_admin(uuid, boolean) to authenticated;
+
+notify pgrst, 'reload schema';
+
+/*
+  Setting somebody's purse from the desk.
+
+  For putting right what the app got wrong — a payout that failed mid-workout,
+  a test account, an apology. It writes only the gold: her hunger, her clothes
+  and the lesson she is part-way through are hers and none of the desk's
+  business.
+
+  Creates the row when there is none, because an account that has never opened
+  the app has no household yet and 「그 사람은 못 준다」 would be a strange rule.
+*/
+create or replace function admin_set_gold(target uuid, amount integer)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not is_admin() then
+    raise exception '관리자만 할 수 있어요.';
+  end if;
+  if amount < 0 then
+    raise exception '골드는 0보다 작을 수 없어요.';
+  end if;
+
+  insert into household (user_id, gold)
+  values (target, amount)
+  on conflict (user_id) do update set gold = excluded.gold, updated_at = now();
+end;
+$$;
+
+revoke all on function admin_set_gold(uuid, integer) from public;
+grant execute on function admin_set_gold(uuid, integer) to authenticated;
 
 notify pgrst, 'reload schema';
