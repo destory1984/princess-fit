@@ -54,6 +54,12 @@ export function buildPrompt(c: AdviceContext) {
     '아래 기록을 보고 세 문장 이내로 조언하세요.',
     '규칙: 칭찬 한 줄, 다음에 바꿀 점 한 줄. 진단이나 치료 이야기는 하지 마세요.',
     '아래 적힌 사실만 쓰세요. 적히지 않은 것은 추측하지 마세요.',
+    // Said plainly because the failure was specific: it took 「세트 8개」 and
+    // recommended 7, which is a number it made up to have something to say.
+    '아래에 없는 숫자는 쓰지 마세요. 새로운 목표치를 지어내지 마세요.',
+    // The stats are the game's, not the body's. 「근력 75의 실력」 read one of
+    // them as a real-world capability.
+    '능력치는 이 앱 안의 점수입니다. 실제 실력이나 건강 상태로 말하지 마세요.',
     '통증이나 부상 이야기가 있으면 병원에 가보라고만 하세요.',
     '',
     describeContext(c),
@@ -98,6 +104,50 @@ export function localRuleAdvice(c: AdviceContext): string {
     return `${praise} 유산소가 적은 편이에요. 운동 끝에 10분만 걸어도 지구력이 달라집니다.`;
   }
   return `${praise} 흐름이 안정적이에요. 다음엔 가장 자신 있는 종목에서 무게를 조금만 올려 보세요.`;
+}
+
+/**
+ * Every number the model is allowed to say.
+ *
+ * Read out of the facts it was given rather than listed by hand, so a new line
+ * in `describeContext` widens this on its own and nobody has to remember to.
+ * Commas are stripped: 「1,167」 is written that way in the block and may come
+ * back either way.
+ */
+export function allowedNumbers(context: string): Set<string> {
+  return new Set((context.replace(/,/g, '').match(/\d+/g) ?? []));
+}
+
+/**
+ * Whether a reply stayed inside the facts.
+ *
+ * The prompt already says 「아래 적힌 사실만 쓰세요」, and saying it is not
+ * enough. What came back one evening was:
+ *
+ *   「다음에는 최근 평균 대비 크게 늘어난 부하로 인해 세트 수를 8개로
+ *    유지하기보다, 7개에 맞춰 안정감을 찾는 것을 목표로 해보세요.」
+ *
+ * The 8 was real. The 7 was not — it was the shape of a prescription with
+ * nothing behind it, and dropping one set changes nothing anyway. A made-up
+ * recommendation almost always arrives wearing a made-up number, which is
+ * what makes this checkable at all.
+ *
+ * Every number, with no allowance for small ones.
+ *
+ * There was one at first — anything up to ten was taken for a turn of phrase
+ * like 「10분만 걸어도」 rather than a target. It let through the very reply
+ * this was written for, because the number it invented was 7. A threshold that
+ * does not catch the case that prompted it is not a threshold, it is a hole.
+ *
+ * The cost is that a good line mentioning a number nobody recorded is thrown
+ * away too. That is the right way to be wrong here: the rule-based advice has
+ * something true to say about the same session, and losing a well-phrased
+ * suggestion costs less than passing on an invented one.
+ */
+export function staysInTheFacts(reply: string, context: string): boolean {
+  const allowed = allowedNumbers(context);
+  const said = reply.replace(/,/g, '').match(/\d+/g) ?? [];
+  return said.every((n) => allowed.has(n));
 }
 
 type Provider = { url: string; model: string };
@@ -167,6 +217,10 @@ export async function requestAdvice(
     const body = (await res.json()) as { response?: string };
     const text = body.response?.trim();
     if (!text) throw new Error('빈 응답');
+    // A reply that invented numbers invented the advice with them. The rules
+    // have something true to say about the same session, so use that instead
+    // of passing on a target nobody can stand behind.
+    if (!staysInTheFacts(text, describeContext(c))) throw new Error('사실 밖의 숫자');
     return { text, source: 'model' };
   } catch {
     return { text: localRuleAdvice(c), source: 'rules' };

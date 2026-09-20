@@ -1,6 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildPrompt, describeContext, localRuleAdvice, type AdviceContext } from './advice.ts';
+import {
+  allowedNumbers,
+  buildPrompt,
+  describeContext,
+  localRuleAdvice,
+  staysInTheFacts,
+  type AdviceContext,
+} from './advice.ts';
 import type { WorkoutFact } from './gamification.ts';
 import type { Stats } from './character.ts';
 
@@ -87,4 +94,55 @@ test('a first workout is told what it was, not that there is nothing to say', ()
   );
   assert.match(advice, /가슴, 팔을 12세트/);
   assert.doesNotMatch(advice, /비교할 것이 없어요/);
+});
+
+
+const FACTS = [
+  '오늘 운동: 팔',
+  '오늘 세트 8개, 총 무게 1,167kg',
+  '최근 8회 평균: 세트 9개, 총 무게 980kg',
+  '능력치 — 근력 75, 지구력 20, 활력 41, 균형 50, 꾸준함 30',
+].join('\n');
+
+test('the numbers in the facts are the numbers allowed', () => {
+  const allowed = allowedNumbers(FACTS);
+  assert.ok(allowed.has('8'));
+  assert.ok(allowed.has('75'));
+  // Written with a comma in the block and may come back either way.
+  assert.ok(allowed.has('1167'));
+  assert.ok(!allowed.has('7'));
+});
+
+test('the reply that started this is rejected', () => {
+  // The 8 was real. The 7 was the shape of a prescription with nothing behind
+  // it — and dropping one set changes nothing anyway.
+  const invented =
+    '오늘 총 무게 1,167kg을 기록했습니다. 다음에는 세트 수를 8개로 유지하기보다 7개에 맞춰 안정감을 찾아보세요.';
+  assert.ok(!staysInTheFacts(invented, FACTS));
+});
+
+test('a reply that only repeats the facts is kept', () => {
+  const grounded = '오늘 8세트, 1,167kg 드셨어요. 최근 평균 980kg보다 많으니 하루는 쉬어 주세요.';
+  assert.ok(staysInTheFacts(grounded, FACTS));
+});
+
+test('no number is small enough to be waved through', () => {
+  // An allowance for anything under ten was tried first, and it let through
+  // the exact reply this was written for: the number invented was 7. The cost
+  // of dropping it is that a good line mentioning an unrecorded number goes
+  // too — which is the right way to be wrong, since the rules still have
+  // something true to say about the same session.
+  assert.ok(!staysInTheFacts('운동 끝에 10분만 걸어도 지구력이 달라집니다.', FACTS));
+  assert.ok(!staysInTheFacts('다음엔 12세트를 목표로 해보세요.', FACTS));
+});
+
+test('a reply with no numbers at all is fine', () => {
+  assert.ok(staysInTheFacts('꾸준히 이어오고 계세요. 다음엔 조금만 가볍게 가보세요.', FACTS));
+  assert.ok(staysInTheFacts('', FACTS));
+});
+
+test('the prompt says the two things that went wrong out loud', () => {
+  const said = buildPrompt(ctx({ today: fact({ id: 'w' }) }));
+  assert.match(said, /없는 숫자는 쓰지 마세요/);
+  assert.match(said, /능력치는 이 앱 안의 점수/);
 });
