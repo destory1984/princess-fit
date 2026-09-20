@@ -110,6 +110,12 @@ create table if not exists household (
   satiety integer not null default 100,
   attire integer not null default 100,
   settled_on date not null default current_date,
+  -- The course she is part-way through, if any. Two day keys rather than
+  -- timestamps: a lesson is counted in mornings she went, so the hour it was
+  -- paid for must not change its length.
+  lesson_id text,
+  lesson_started_on date,
+  lesson_ends_on date,
   updated_at timestamptz not null default now()
 );
 

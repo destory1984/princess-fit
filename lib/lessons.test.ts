@@ -15,6 +15,7 @@ import {
   isFinished,
   enrolmentWord,
   lengthWord,
+  courseTrip,
 } from './lessons.ts';
 
 test('a lesson teaches what it says it teaches', () => {
@@ -142,4 +143,28 @@ test('a length reads in weeks when it is whole weeks', () => {
   assert.equal(lengthWord({ ...LESSONS[0], days: 7 }), '1주');
   assert.equal(lengthWord({ ...LESSONS[0], days: 14 }), '2주');
   assert.equal(lengthWord({ ...LESSONS[0], days: 5 }), '5일');
+});
+
+test('a course brackets its whole length, not one day out', () => {
+  const now = new Date(2026, 8, 20, 8, 0);
+  const lesson = LESSONS.find((l) => l.days === 3)!;
+  const signed = enrol(lesson, now);
+  const { leaves, returns } = courseTrip(signed, now);
+  assert.equal(leaves.getDate(), 20, 'she sets off this morning');
+  assert.equal(returns.getDate(), 22, 'and is done on the last afternoon');
+  assert.ok(returns > leaves);
+});
+
+test('a one-day course still ends after it starts', () => {
+  const now = new Date(2026, 8, 20, 8, 0);
+  const signed = enrol({ ...LESSONS[0], days: 1 }, now);
+  const { leaves, returns } = courseTrip(signed, now);
+  assert.ok(returns > leaves);
+});
+
+test('the date reads as a date, not as a stored key', () => {
+  const signed = enrol(LESSONS[0], new Date(2026, 8, 7));
+  const said = enrolmentWord(signed, new Date(2026, 8, 7));
+  assert.ok(said.includes('9월'), said);
+  assert.ok(!said.includes('09'), said);
 });

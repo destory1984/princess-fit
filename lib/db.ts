@@ -20,7 +20,16 @@ import type { BodyLog } from './body';
 import type { UsageMap } from './exerciseUsage';
 import type { SleepLog } from './sleep';
 import { wearing, type Garment } from './outfit';
-import { attend, EMPTY_CULTURE, type Culture, type Lesson } from './lessons';
+import {
+  attend,
+  enrol,
+  EMPTY_CULTURE,
+  isFinished,
+  lessonById,
+  type Culture,
+  type Enrolment,
+  type Lesson,
+} from './lessons';
 import type { Furniture } from './room';
 import {
   groupHistory,
@@ -727,7 +736,9 @@ export async function getLedger(today = new Date()): Promise<Ledger> {
   const userId = await requireUserId();
   const { data, error } = await supabase
     .from('household')
-    .select('gold, satiety, attire, settled_on, wardrobe, worn, furniture, grace, learning, charm')
+    .select(
+      'gold, satiety, attire, settled_on, wardrobe, worn, furniture, grace, learning, charm, lesson_id, lesson_started_on, lesson_ends_on'
+    )
     .eq('user_id', userId)
     .maybeSingle();
   if (error) throw error;
@@ -744,13 +755,36 @@ export async function getLedger(today = new Date()): Promise<Ledger> {
   const wardrobe: string[] = data?.wardrobe ?? [];
   const worn: string[] = data?.worn ?? [];
   const furniture: string[] = data?.furniture ?? [];
-  const culture: Culture = data
+  let culture: Culture = data
     ? { grace: data.grace, learning: data.learning, charm: data.charm }
     : EMPTY_CULTURE;
 
+  let lesson: Enrolment | null =
+    data?.lesson_id && data.lesson_started_on && data.lesson_ends_on
+      ? {
+          lessonId: data.lesson_id,
+          startedOn: data.lesson_started_on,
+          endsOn: data.lesson_ends_on,
+        }
+      : null;
+
   const settled = settle(stored, today);
-  if (!data || settled !== stored) await saveHousehold(settled);
-  return { house: settled, wardrobe, worn, furniture, culture };
+
+  // A course that has run out is collected here rather than when the shop is
+  // opened. What she learned should land on the morning after her last class
+  // whether or not anyone was looking, the same way the days away are charged.
+  let collected: Enrolment | null = null;
+  if (lesson && isFinished(lesson, today)) {
+    const taught = lessonById(lesson.lessonId);
+    if (taught) culture = attend(taught, culture);
+    collected = lesson;
+    lesson = null;
+  }
+
+  if (!data || settled !== stored || collected) {
+    await saveHousehold(settled, collected ? { culture, lesson } : undefined);
+  }
+  return { house: settled, wardrobe, worn, furniture, culture, lesson };
 }
 
 /**
@@ -778,6 +812,15 @@ export async function saveHousehold(house: Household, extra: Partial<Omit<Ledger
     satiety: house.satiety,
     attire: house.attire,
     settled_on: house.settledOn,
+    // `lesson` is the one field whose null is meaningful — it is how a course
+    // ends — so it is written whenever the caller mentions it at all.
+    ...('lesson' in extra
+      ? {
+          lesson_id: extra.lesson?.lessonId ?? null,
+          lesson_started_on: extra.lesson?.startedOn ?? null,
+          lesson_ends_on: extra.lesson?.endsOn ?? null,
+        }
+      : {}),
     ...(extra.wardrobe ? { wardrobe: extra.wardrobe } : {}),
     ...(extra.worn ? { worn: extra.worn } : {}),
     ...(extra.furniture ? { furniture: extra.furniture } : {}),
@@ -795,6 +838,8 @@ export type Ledger = {
   worn: string[];
   furniture: string[];
   culture: Culture;
+  /** The course she is part-way through, or null when she is free. */
+  lesson: Enrolment | null;
 };
 
 /**
@@ -841,14 +886,22 @@ export async function buyFurniture(piece: Furniture, today = new Date()): Promis
 }
 
 /** Pay for a lesson. What it teaches depends on how much she already knows. */
+/**
+ * Sign her up. What she learns lands when the course finishes, not now.
+ *
+ * Paying and learning in the same instant made the length meaningless and the
+ * notification a lie — it said she had set off for a lesson whose points were
+ * already banked.
+ */
 export async function takeLesson(lesson: Lesson, today = new Date()): Promise<Ledger> {
   const ledger = await getLedger(today);
+  if (ledger.lesson) throw new Error('지금은 수업 중이에요');
   if (ledger.house.gold < lesson.price) throw new Error('골드가 모자라요');
 
   const house = { ...ledger.house, gold: ledger.house.gold - lesson.price };
-  const culture = attend(lesson, ledger.culture);
-  await saveHousehold(house, { culture });
-  return { ...ledger, house, culture };
+  const enrolment = enrol(lesson, today);
+  await saveHousehold(house, { lesson: enrolment });
+  return { ...ledger, house, lesson: enrolment };
 }
 
 /** Pay out a finished workout. Returns the new ledger and what it earned. */

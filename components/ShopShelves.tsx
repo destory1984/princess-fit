@@ -17,8 +17,12 @@ import type { GiftKind } from "@/lib/economy";
 import {
   CULTURE_META,
   CULTURE_ORDER,
+  daysLeft,
+  enrolmentWord,
+  lengthWord,
   LESSONS,
   previewOf,
+  type Enrolment,
   type Lesson,
 } from "@/lib/lessons";
 import {
@@ -169,28 +173,45 @@ function ItemRow({ item, shop }: { item: Item; shop: Shop }) {
   );
 }
 
-function LessonRow({ lesson, shop }: { lesson: Lesson; shop: Shop }) {
+function LessonRow({
+  lesson,
+  shop,
+  enrolled,
+}: {
+  lesson: Lesson;
+  shop: Shop;
+  enrolled: Enrolment | null;
+}) {
   const { house, culture } = shop.ledger;
   const preview = previewOf(lesson, culture);
   const short = house.gold < lesson.price;
+  const busyWithThis = enrolled?.lessonId === lesson.id;
+  const busyWithOther = !!enrolled && !busyWithThis;
+
   // Same rule as the kitchen: the reason a row is dead outranks what it would
   // have done. Listing the lessons she would gain beside a row that cannot be
-  // pressed says nothing about why not.
-  const note = short
-    ? REFUSAL_TEXT.poor
-    : preview.length
-      ? preview.map((p) => `${p.name} +${p.gain}`).join(" · ")
-      : "더 배울 것이 없어요";
+  // pressed says nothing about why not — and a row that is merely greyed out
+  // says least of all.
+  const note = busyWithThis
+    ? `지금 듣는 중 · ${daysLeft(enrolled!)}일 남았어요`
+    : busyWithOther
+      ? '지금 수업 중이라서 다른 수업은 못 들어요'
+      : short
+        ? REFUSAL_TEXT.poor
+        : preview.length
+          ? `${lengthWord(lesson)} · ${preview.map((p) => `${p.name} +${p.gain}`).join(" · ")}`
+          : "더 배울 것이 없어요";
   return (
     <Row
       id={lesson.id}
       busy={shop.busy}
-      icon={lesson.icon}
+      icon={busyWithThis ? "school-outline" : lesson.icon}
       name={lesson.name}
-      detail={lesson.detail}
+      detail={busyWithThis || busyWithOther ? lesson.detail : `${lengthWord(lesson)} 과정`}
       price={lesson.price}
       note={note}
-      disabled={short || preview.length === 0}
+      owned={busyWithThis}
+      disabled={!!enrolled || short || preview.length === 0}
       onPress={() =>
         shop.spend(lesson.id, lesson.name, lesson.price, "lesson", () =>
           takeLesson(lesson),
@@ -309,6 +330,7 @@ export function ShopShelves({ ledger, busy, onSpend }: Props) {
   // What the bars show: lessons plus whatever she has on.
   const standing = effectiveCulture(culture, wardrobe, worn);
 
+  const enrolled = ledger.lesson;
   const previewed = tryingOn ? GARMENTS.find((g) => g.id === tryingOn) ?? null : null;
   const shownWorn = previewed ? wearing(worn, previewed) : worn;
 
@@ -438,8 +460,24 @@ export function ShopShelves({ ledger, busy, onSpend }: Props) {
               ? ` 지금 차림으로 매력 +${standing.charm - culture.charm}.`
               : ""}
           </Text>
+          {/*
+            What she is doing and until when. Without this the shelf could
+            only say a lesson was unavailable, which answers the wrong
+            question: 「아이가 언제부터 언제까지 어떤 수업하는지 알 수가 없네」.
+          */}
+          {enrolled && (
+            <View style={styles.enrolled}>
+              <Ionicons name="school-outline" size={16} color={colors.gold} />
+              <Text style={styles.enrolledText}>{enrolmentWord(enrolled)}</Text>
+            </View>
+          )}
           {LESSONS.map((lesson) => (
-            <LessonRow key={lesson.id} lesson={lesson} shop={shop} />
+            <LessonRow
+              key={lesson.id}
+              lesson={lesson}
+              shop={shop}
+              enrolled={enrolled}
+            />
           ))}
         </>
       )}
@@ -502,6 +540,17 @@ const styles = StyleSheet.create({
   },
   doll: { width: 96 },
   dollBody: { flex: 1 },
+  enrolled: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    backgroundColor: paper.bgAlt,
+    borderColor: colors.gold,
+    borderWidth: 1,
+    borderRadius: radius.sm,
+    padding: spacing.md,
+  },
+  enrolledText: { color: colors.text, fontSize: 13, lineHeight: 19, flex: 1 },
   tryRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, marginTop: spacing.sm },
   buy: {
     flex: 1,

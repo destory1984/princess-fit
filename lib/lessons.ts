@@ -248,9 +248,25 @@ export function lengthWord(lesson: Lesson) {
 export function enrolmentWord(enrolment: Enrolment, today = new Date()) {
   const lesson = lessonById(enrolment.lessonId);
   const left = daysLeft(enrolment, today);
-  const until = enrolment.endsOn.slice(5).replace('-', '월 ');
+  const [, month, day] = enrolment.endsOn.split('-');
+  const until = `${Number(month)}월 ${Number(day)}`;
   const name = lesson?.name ?? '수업';
   return left <= 1
     ? `${name} · 오늘이 마지막 날이에요`
     : `${name} · ${until}일까지, ${left}일 남았어요`;
+}
+
+/**
+ * When she sets off and when the course is done.
+ *
+ * She leaves on the first morning and is finished on the last afternoon, so
+ * the two messages bracket the whole course rather than a single day out —
+ * which is what they did when a lesson was bought and learned in one instant.
+ */
+export function courseTrip(enrolment: Enrolment, now = new Date()): Trip {
+  const { leaves } = tripTimes(now);
+  const returns = new Date(`${enrolment.endsOn}T00:00:00`);
+  returns.setHours(LEAVE_HOUR + LESSON_HOURS, 0, 0, 0);
+  // A one-day course ends the afternoon she left; never before she sets off.
+  return { leaves, returns: returns > leaves ? returns : new Date(leaves.getTime() + LESSON_HOURS * 3_600_000) };
 }
