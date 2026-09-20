@@ -1,7 +1,8 @@
 import { useCallback, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { MuscleTag } from '@/components/MuscleTag';
+import { NewExerciseSheet } from '@/components/NewExerciseSheet';
 import { ScreenState } from '@/components/ScreenState';
 import { seedDefaultExercises } from '@/lib/catalog';
 import { explain } from '@/lib/dbError';
@@ -14,24 +15,15 @@ import {
   setAllExercisesHidden,
   setExerciseHidden,
 } from '@/lib/db';
-import {
-  EQUIPMENT,
-  MUSCLE_GROUPS,
-  TRACK_TYPE_LABEL,
-  type Exercise,
-  type TrackType,
-} from '@/lib/types';
-import { colors, muscleColor, radius, spacing } from '@/lib/theme';
+import type { Exercise, TrackType } from '@/lib/types';
+import { colors, radius, spacing } from '@/lib/theme';
 
 export default function ExercisesScreen() {
   const router = useRouter();
   const [exercises, setExercises] = useState<Exercise[] | null>(null);
   const [sweeping, setSweeping] = useState(false);
+  const [making, setMaking] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [name, setName] = useState('');
-  const [group, setGroup] = useState<string>(MUSCLE_GROUPS[0]);
-  const [gear, setGear] = useState<string>(EQUIPMENT[0]);
-  const [track, setTrack] = useState<TrackType>('weight_reps');
   const [seeding, setSeeding] = useState(false);
 
   const load = useCallback(() => {
@@ -43,15 +35,17 @@ export default function ExercisesScreen() {
 
   useFocusEffect(load);
 
-  async function add() {
-    const trimmed = name.trim();
-    if (!trimmed) return;
+  /**
+   * Thrown rather than swallowed, so the sheet can keep what was typed when
+   * the save fails and close only when it did not.
+   */
+  async function add(name: string, group: string, gear: string, track: TrackType) {
     try {
-      await createExercise(trimmed, group, gear, track);
-      setName('');
+      await createExercise(name, group, gear, track);
       load();
     } catch (e: any) {
       notify('추가 실패', explain(e));
+      throw e;
     }
   }
 
@@ -66,7 +60,7 @@ export default function ExercisesScreen() {
       notify(parts.length ? parts.join(' · ') : '이미 최신 상태예요.');
       load();
     } catch (e: any) {
-      notify('불러오기 실패', explain(e));
+      notify('채우지 못했어요', explain(e));
     } finally {
       setSeeding(false);
     }
@@ -154,73 +148,36 @@ export default function ExercisesScreen() {
         contentContainerStyle={styles.list}
         ListHeaderComponent={
           <View style={styles.header}>
-            <TextInput
-              style={styles.input}
-              placeholder="새 종목 이름 (예: 벤치프레스)"
-              placeholderTextColor={colors.textDim}
-              value={name}
-              onChangeText={setName}
-            />
-            <View style={styles.chipRow}>
-              {MUSCLE_GROUPS.map((g) => (
-                <Pressable
-                  key={g}
-                  style={[
-                    styles.chip,
-                    group === g && {
-                      backgroundColor: `${muscleColor(g)}26`,
-                      borderColor: muscleColor(g),
-                    },
-                  ]}
-                  onPress={() => setGroup(g)}>
-                  <Text
-                    style={[styles.chipText, group === g && { color: muscleColor(g), fontWeight: '700' }]}>
-                    {g}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-            <View style={styles.chipRow}>
-              {EQUIPMENT.map((g) => (
-                <Pressable
-                  key={g}
-                  style={[styles.chip, gear === g && styles.chipOn]}
-                  onPress={() => setGear(g)}>
-                  <Text style={[styles.chipText, gear === g && styles.chipTextOn]}>{g}</Text>
-                </Pressable>
-              ))}
-            </View>
-            <View style={styles.chipRow}>
-              {(Object.keys(TRACK_TYPE_LABEL) as TrackType[]).map((t) => (
-                <Pressable
-                  key={t}
-                  style={[styles.chip, track === t && styles.chipOn]}
-                  onPress={() => setTrack(t)}>
-                  <Text style={[styles.chipText, track === t && styles.chipTextOn]}>
-                    {TRACK_TYPE_LABEL[t]}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-            <Pressable style={styles.addButton} onPress={add}>
-              <Text style={styles.addButtonText}>종목 추가</Text>
-            </Pressable>
             {/*
-              The label alone got asked 「이건 뭐야」, which is the only review
-              a label ever gets. What it does is worth two clauses: it fills in
-              what is missing and touches nothing else, and both halves of that
-              matter to someone deciding whether it is safe to press.
+              Its own sheet, not a block above the list.
+
+              The list is what people come to this screen for; making a
+              movement by hand is the rare thing, and it was taking the top of
+              the screen every time. Three rows of unlabelled chips above the
+              thing you actually came for earns 「이건 뭐야?」, which is what
+              they got.
+            */}
+            <Pressable style={styles.newButton} onPress={() => setMaking(true)}>
+              <Text style={styles.newButtonText}>＋ 새 종목 직접 만들기</Text>
+            </Pressable>
+
+            {/*
+              The label alone got asked 「이건 뭐야」, and then 「서버에서
+              불러온다는 얘기지?」 — which it is not. The seventy-one movements
+              ship inside the app; the button copies the missing ones into this
+              account's own rows and fetches nothing. 「불러오기」 says download
+              to anyone who reads it, so it says 채우기 instead.
             */}
             <Pressable
               style={[styles.seedButton, seeding && styles.disabled]}
               disabled={seeding}
               onPress={seed}>
               <Text style={styles.seedButtonText}>
-                {seeding ? '불러오는 중…' : '기본 종목 불러오기'}
+                {seeding ? '채우는 중…' : '기본 종목 채우기'}
               </Text>
               {!seeding && (
                 <Text style={styles.seedButtonSub}>
-                  빠진 기본 종목을 채우고, 비어 있는 설명만 메워요.{'\n'}
+                  앱에 들어 있는 기본 71종목 중 빠진 것만 채워요.{'\n'}
                   직접 만드신 종목과 지금 설정은 그대로예요.
                 </Text>
               )}
@@ -299,6 +256,12 @@ export default function ExercisesScreen() {
           </View>
         )}
       />
+
+      <NewExerciseSheet
+        visible={making}
+        onCreate={add}
+        onClose={() => setMaking(false)}
+      />
     </View>
   );
 }
@@ -332,6 +295,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   addButtonText: { color: '#fff', fontWeight: '700' },
+  fieldLabel: { color: colors.textDim, fontSize: 12, marginTop: spacing.sm },
+  // Quiet, like the one under it. Neither of these is the thing this screen
+  // is for, and a red button says press me before anyone has read it.
+  newButton: {
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  newButtonText: { color: colors.text, fontWeight: '600' },
   seedButtonSub: {
     color: colors.textDim,
     fontSize: 11,
@@ -346,7 +321,7 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     alignItems: 'center',
   },
-  seedButtonText: { color: colors.accent, fontWeight: '600' },
+  seedButtonText: { color: colors.text, fontWeight: '600' },
   disabled: { opacity: 0.6 },
   bulkRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
   bulk: {
