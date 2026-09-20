@@ -1,7 +1,11 @@
+import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { insightsFor, MIN_WORKOUTS, type Insight } from '@/lib/insight';
 import type { WorkoutFact } from '@/lib/gamification';
+import type { Goal } from '@/lib/onboarding';
+import { rankByGoal, watchingWord } from '@/lib/plan';
+import { getGoal } from '@/lib/prefs';
 import { colors, paper, radius, spacing } from '@/lib/theme';
 
 type Props = {
@@ -16,9 +20,24 @@ type Props = {
  * Charts say what happened; they do not say that you have not touched your
  * back in three weeks. Things to change are listed before things going well,
  * because the first is why you opened this screen.
+ *
+ * What you said you came for decides which of them goes first — she promised
+ * as much while asking. It changes the order and nothing else: the findings
+ * are the same, and so is every word of them.
  */
 export function Insights({ workouts, limit = 3 }: Props) {
+  const [goal, setGoal] = useState<Goal | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    getGoal().then((stored) => alive && stored && setGoal(stored));
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   const all = insightsFor(workouts);
+  const watching = watchingWord(goal);
 
   if (all.length === 0) {
     return (
@@ -32,11 +51,18 @@ export function Insights({ workouts, limit = 3 }: Props) {
     );
   }
 
-  // Watch first: the thing to change is why this screen gets opened.
-  const ordered = [...all].sort((a, b) => (a.tone === b.tone ? 0 : a.tone === 'watch' ? -1 : 1));
+  // Watch first: the thing to change is why this screen gets opened. Within
+  // that, whatever the stated goal cares about most.
+  const byGoal = rankByGoal(all, goal);
+  const ordered = [...byGoal].sort((a, b) =>
+    a.tone === b.tone ? 0 : a.tone === 'watch' ? -1 : 1
+  );
 
   return (
     <View style={styles.wrap}>
+      {/* Said out loud, because a list that quietly rearranges itself is
+          worse than one that never changed. */}
+      {watching && <Text style={styles.watching}>{watching}</Text>}
       {ordered.slice(0, limit).map((insight) => (
         <Row key={insight.id} insight={insight} />
       ))}
@@ -75,6 +101,7 @@ const styles = StyleSheet.create({
   body: { flex: 1, gap: 2 },
   title: { color: colors.text, fontSize: 14, fontWeight: '700', lineHeight: 20 },
   detail: { color: colors.textDim, fontSize: 12, lineHeight: 18 },
+  watching: { color: colors.textDim, fontSize: 11, lineHeight: 17, paddingHorizontal: 2 },
   quiet: {
     backgroundColor: paper.bgAlt,
     borderColor: colors.faint,
