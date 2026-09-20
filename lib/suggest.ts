@@ -18,7 +18,13 @@ import { withParticle } from './korean.ts';
  * a recommendation without a reason is just an app being bossy.
  */
 
-export type Candidate = WorkedExercise & { id: string; name: string; equipment: string };
+export type Candidate = WorkedExercise & {
+  id: string;
+  name: string;
+  equipment: string;
+  /** Put away by its owner. Never offered, whatever the numbers say. */
+  hidden?: boolean;
+};
 
 export type Suggestion = {
   id: string;
@@ -70,7 +76,9 @@ export function suggestExercise(
   const recovery = new Map(muscles.map((m) => [m.slug, m.recovery]));
 
   const scored = candidates
-    .filter((c) => !exclude.has(c.id))
+    // Hidden outranks every score. Someone who put a movement away and is
+    // then offered it by name has been told their answer did not count.
+    .filter((c) => !c.hidden && !exclude.has(c.id))
     .map((c) => {
       const slugs = slugsOf(c);
       const rest = restOf(slugs, recovery);

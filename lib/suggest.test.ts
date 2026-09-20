@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { DEFAULT_EXERCISES } from './exerciseCatalog.ts';
 import { HOME_EQUIPMENT, usableAt } from './plan.ts';
-import { MUSCLE_LABELS, recoveryOf, type Session } from './recovery.ts';
+import { MUSCLE_LABELS, recoveryOf, type Muscle, type Session } from './recovery.ts';
 import { offerWord, suggestExercise, type Candidate } from './suggest.ts';
 
 const NOW = new Date('2026-09-20T12:00:00');
@@ -134,4 +134,14 @@ test('the reason picks its particle instead of bracketing it', () => {
     assert.ok(!/\([은는이가을를]\)/.test(picked.why), picked.why);
     assert.ok(!/\([은는이가을를]\)/.test(offerWord(picked)), picked.name);
   }
+});
+
+test('a movement put away is never offered, however rested it is', () => {
+  // Hidden has to outrank the score. Being offered by name the very thing you
+  // put away is being told your answer did not count.
+  const fresh: Muscle[] = [{ slug: 'chest', label: '가슴', recovery: 100, hoursSince: null }];
+  const put = { id: 'a', name: '벤치프레스', equipment: '바벨', muscle_group: '가슴', secondary_group: null, body_parts: 'chest', hidden: true };
+  const kept = { ...put, id: 'b', name: '푸시업', equipment: '맨몸', hidden: false };
+  assert.equal(suggestExercise([put], fresh)?.name, undefined);
+  assert.equal(suggestExercise([put, kept], fresh)?.name, '푸시업');
 });

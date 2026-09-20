@@ -166,8 +166,14 @@ export default function ExercisesScreen() {
             onPress={() => router.push({ pathname: '/exercise/[id]', params: { id: item.id } })}
             onLongPress={() => confirmDelete(item)}>
             <View style={styles.rowBody}>
-              <Text style={styles.rowTitle}>{item.name}</Text>
+              <Text style={[styles.rowTitle, item.hidden && styles.putAway]}>{item.name}</Text>
               <Text style={styles.rowSub}>
+                {/*
+                  This list is the whole catalogue, hidden ones included —
+                  it is where someone comes to find what they put away and
+                  take it back out. The picker is where they stay out of sight.
+                */}
+                {item.hidden ? '내려둔 종목 · ' : ''}
                 {item.muscle_detail ? `${item.muscle_detail} · ` : ''}
                 {item.equipment}
               </Text>
@@ -232,5 +238,6 @@ const styles = StyleSheet.create({
   },
   rowBody: { flex: 1 },
   rowTitle: { color: colors.text, fontSize: 15, fontWeight: '600' },
+  putAway: { color: colors.textDim },
   rowSub: { color: colors.textDim, fontSize: 12, marginTop: 2 },
 });
