@@ -23,6 +23,15 @@ export type Exercise = {
   rest_sec: number;
   /** Starred, so it sorts to the top of the picker. */
   favourite: boolean;
+  /**
+   * Put away: still yours, still in your history, just not offered.
+   *
+   * Not deleted, because deleting takes the sets with it — and 「이 종목은 다시
+   * 안 해요」 is not the same sentence as 「이 종목을 한 적이 없어요」. Rows made
+   * before this column exists come back without it, so every reader must treat
+   * a missing value as false.
+   */
+  hidden?: boolean;
   how_to: string;
   created_at: string;
 };

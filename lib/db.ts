@@ -1195,10 +1195,27 @@ export async function getExerciseUsage(sessions = 200): Promise<UsageMap> {
 }
 
 /** Star or unstar an exercise. Purely about finding it again quickly. */
+/**
+ * Put a movement away, or take it back out.
+ *
+ * Starring and hiding are opposites, so doing one undoes the other: a hidden
+ * movement that was once a favourite would otherwise come back to the top of
+ * the picker the moment it was unhidden, which is not what either tap meant.
+ */
+export async function setExerciseHidden(exerciseId: string, hidden: boolean) {
+  const { error } = await supabase
+    .from('exercises')
+    .update(hidden ? { hidden, favourite: false } : { hidden })
+    .eq('id', exerciseId);
+  if (error) throw error;
+}
+
 export async function setExerciseFavourite(exerciseId: string, favourite: boolean) {
   const { error } = await supabase
     .from('exercises')
-    .update({ favourite })
+    // Starring something you had put away takes it back out. The two taps
+    // mean opposite things, so one has to undo the other in both directions.
+    .update(favourite ? { favourite, hidden: false } : { favourite })
     .eq('id', exerciseId);
   if (error) throw error;
 }

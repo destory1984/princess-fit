@@ -73,6 +73,10 @@ export function ExercisePicker({
     () =>
       withStars.filter(
         (e) =>
+          // Put away stays put away, unless it is what you searched for. A
+          // hidden movement that cannot be found by name is a deleted one
+          // wearing a different word, and nobody agreed to that.
+          (!e.hidden || query.trim() !== '') &&
           (group === null || e.muscle_group === group) &&
           (gear === null || e.equipment === gear) &&
           // ㅂㅂㅂㅊㅍㄹㅅ finds 바벨 벤치 프레스. Nobody types sixty-seven

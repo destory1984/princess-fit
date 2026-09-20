@@ -18,6 +18,7 @@ import {
   listExercises,
   REST_GRAIN,
   setExerciseFavourite,
+  setExerciseHidden,
   setExerciseRest,
   type ExerciseHistoryPoint,
 } from '@/lib/db';
@@ -64,6 +65,18 @@ export default function ExerciseScreen() {
     const next = !exercise.favourite;
     setExercise({ ...exercise, favourite: next });
     setExerciseFavourite(exercise.id, next).catch((e: any) => {
+      notify('저장 실패', e.message);
+      load();
+    });
+  }
+
+  function toggleHidden() {
+    if (!exercise) return;
+    const next = !exercise.hidden;
+    // Starring and hiding are opposites, so the screen follows the same rule
+    // the database does rather than showing a star on something put away.
+    setExercise({ ...exercise, hidden: next, favourite: next ? false : exercise.favourite });
+    setExerciseHidden(exercise.id, next).catch((e: any) => {
       notify('저장 실패', e.message);
       load();
     });
@@ -250,6 +263,30 @@ export default function ExerciseScreen() {
         )}
       </View>
 
+      {/*
+        Offered above deleting, and on purpose. Someone who never wants to see
+        a movement again reaches for the red thing, and the red thing takes
+        their sets with it — 「이 종목은 다시 안 해요」 and 「이 종목을 한 적이
+        없어요」 are not the same sentence. This is the one they meant.
+      */}
+      <Pressable style={styles.put} onPress={toggleHidden}>
+        <Ionicons
+          name={exercise.hidden ? 'eye-outline' : 'eye-off-outline'}
+          size={16}
+          color={colors.textDim}
+        />
+        <View style={styles.putBody}>
+          <Text style={styles.putText}>
+            {exercise.hidden ? '다시 목록에 올리기' : '목록에서 내려두기'}
+          </Text>
+          <Text style={styles.putSub}>
+            {exercise.hidden
+              ? '지금은 고를 때 안 보여요. 기록은 그대로 있어요.'
+              : '기록은 그대로 두고, 고를 때만 안 보이게 해요.'}
+          </Text>
+        </View>
+      </Pressable>
+
       <Pressable style={styles.delete} onPress={remove}>
         <Ionicons name="trash-outline" size={16} color={colors.danger} />
         <Text style={styles.deleteText}>이 종목 삭제</Text>
@@ -300,6 +337,17 @@ const styles = StyleSheet.create({
   stepText: { color: colors.text, fontSize: 14, lineHeight: 21, flex: 1 },
   caution: { color: colors.textDim, fontSize: 11, lineHeight: 17, marginTop: spacing.sm },
   empty: { color: colors.textDim },
+  put: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    padding: spacing.lg,
+  },
+  putBody: { flex: 1, gap: 2 },
+  putText: { color: colors.text, fontSize: 14, fontWeight: '700' },
+  putSub: { color: colors.textDim, fontSize: 12, lineHeight: 18 },
   altRow: {
     flexDirection: 'row',
     alignItems: 'center',
