@@ -19,3 +19,20 @@ export function formatDate(iso: string, style: 'full' | 'short' = 'full') {
     ? `${d.getMonth() + 1}/${d.getDate()}`
     : `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}`;
 }
+
+/**
+ * A distance, written the way a person would say it.
+ *
+ * Distances are entered in tenths and then added up, and a tenth is not a
+ * number a computer can hold exactly. Roughly one pair of tenths in five comes
+ * out long — 1.4000000000000001km — and the app was printing whatever the sum
+ * happened to be. From the reviews of the app this is measured against:
+ * 「소숫점 너무 많이 나와요」.
+ *
+ * One decimal place, and no trailing zero: 5km rather than 5.0km, because
+ * nobody writing it down by hand would add the zero.
+ */
+export function formatKm(km: number) {
+  const rounded = Math.round(km * 10) / 10;
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+}

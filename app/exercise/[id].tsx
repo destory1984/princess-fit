@@ -23,7 +23,7 @@ import {
   type ExerciseHistoryPoint,
 } from '@/lib/db';
 import { coachTipOf, introOf } from '@/lib/exerciseCopy';
-import { formatDate, formatDuration } from '@/lib/format';
+import { formatDate, formatDuration, formatKm } from '@/lib/format';
 import { TRACK_TYPE_LABEL, type Exercise } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
 import { useGirl } from '@/lib/girl';
@@ -235,7 +235,7 @@ export default function ExerciseScreen() {
                     label="누적 시간"
                   />
                   <Stat
-                    value={`${history.reduce((s, h) => s + h.distanceKm, 0).toFixed(1)}km`}
+                    value={`${formatKm(history.reduce((s, h) => s + h.distanceKm, 0))}km`}
                     label="누적 거리"
                   />
                   <Stat value={String(history.length)} label="수행 횟수" />
@@ -254,7 +254,7 @@ export default function ExerciseScreen() {
                 <Text style={styles.rowDate}>{formatDate(h.date, 'short')}</Text>
                 <Text style={styles.rowSets} numberOfLines={1}>
                   {isCardio
-                    ? `${formatDuration(h.durationSec)}${h.distanceKm > 0 ? ` · ${h.distanceKm}km` : ''}`
+                    ? `${formatDuration(h.durationSec)}${h.distanceKm > 0 ? ` · ${formatKm(h.distanceKm)}km` : ''}`
                     : h.sets.map((s) => `${s.weight_kg}×${s.reps}`).join('  ')}
                 </Text>
               </View>

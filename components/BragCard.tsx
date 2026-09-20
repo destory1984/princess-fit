@@ -5,7 +5,7 @@ import { BodyMap, workedParts } from '@/components/BodyMap';
 import { OrnateFrame } from '@/components/OrnateFrame';
 import type { WorkoutDetailExercise } from '@/lib/db';
 import { workoutGold } from '@/lib/economy';
-import { formatDate, formatDuration } from '@/lib/format';
+import { formatDate, formatDuration, formatKm } from '@/lib/format';
 import { workoutXp, type summarise, type WorkoutFact } from '@/lib/gamification';
 import type { Workout } from '@/lib/types';
 import { colors, spacing } from '@/lib/theme';
@@ -89,7 +89,7 @@ export const BragCard = forwardRef<View, Props>(function BragCard(
         {fact.durationSec > 0 && (
           <Text style={styles.highlight}>
             유산소 {formatDuration(fact.durationSec)}
-            {fact.distanceKm > 0 && ` · ${fact.distanceKm}km`}
+            {fact.distanceKm > 0 && ` · ${formatKm(fact.distanceKm)}km`}
           </Text>
         )}
 

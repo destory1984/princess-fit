@@ -1,5 +1,5 @@
 import { withParticle } from './exerciseCopy.ts';
-import { formatDuration } from './format.ts';
+import { formatDuration, formatKm } from './format.ts';
 import type { WorkoutFact } from './gamification.ts';
 import type { Stats } from './character.ts';
 
@@ -29,7 +29,7 @@ export function describeContext(c: AdviceContext) {
   if (c.today.durationSec > 0) {
     lines.push(
       `오늘 유산소 ${formatDuration(c.today.durationSec)}` +
-        (c.today.distanceKm > 0 ? `, ${c.today.distanceKm}km` : '')
+        (c.today.distanceKm > 0 ? `, ${formatKm(c.today.distanceKm)}km` : '')
     );
   }
   if (past.length) {
