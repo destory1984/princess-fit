@@ -5,7 +5,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { NudgeSetting } from '@/components/NudgeSetting';
 import { Portrait } from '@/components/Portrait';
 import { notify } from '@/lib/confirm';
-import { listExercises } from '@/lib/db';
+import { getLedger, listExercises, saveHousehold } from '@/lib/db';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { GOALS, PLACES, type Goal, type Place } from '@/lib/onboarding';
@@ -23,6 +23,7 @@ export default function SettingsScreen() {
   // Anyone who was using the app before the greeting existed never answered
   // these, and nothing on screen said so — the picker quietly went unordered
   // and the findings quietly went unranked. The row says which it is.
+  const [granting, setGranting] = useState<string | null>(null);
   const [plan, setPlan] = useState<{
     days: number;
     goal: Goal | null;
@@ -41,6 +42,19 @@ export default function SettingsScreen() {
       );
     }, [])
   );
+
+  /** Dev-only: top the purse up so the shop can be exercised. */
+  async function grant() {
+    setGranting('넣는 중…');
+    try {
+      const { house } = await getLedger();
+      await saveHousehold({ ...house, gold: house.gold + 1000 });
+      setGranting(`${(house.gold + 1000).toLocaleString()} G`);
+    } catch (e: any) {
+      setGranting(null);
+      notify('넣지 못했어요', e.message);
+    }
+  }
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
@@ -95,6 +109,26 @@ export default function SettingsScreen() {
         </View>
         <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
       </Pressable>
+
+      {/*
+        Development only. Testing the shop means having spent nothing and
+        owning nothing, over and over, and the honest way to that state is a
+        button rather than hand-edited rows in someone's database. `__DEV__`
+        is false in a release build, so this cannot ship by accident.
+      */}
+      {__DEV__ && (
+        <Pressable style={styles.row} disabled={!!granting} onPress={grant}>
+          <View style={styles.icon}>
+            <Ionicons name="flask-outline" size={22} color={colors.textDim} />
+          </View>
+          <View style={styles.body}>
+            <Text style={styles.title}>골드 1,000 넣기</Text>
+            <Text style={styles.sub}>
+              {granting ?? '개발 중에만 보여요. 시험용이에요.'}
+            </Text>
+          </View>
+        </Pressable>
+      )}
 
       <View style={styles.footer}>
         <Text style={styles.account}>{session?.user.email}</Text>
