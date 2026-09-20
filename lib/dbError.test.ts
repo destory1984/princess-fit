@@ -24,3 +24,22 @@ test('nothing at all does not become "undefined"', () => {
   assert.equal(explain(null), '');
   assert.equal(explain(undefined), '');
 });
+
+test('a rejection that is not an Error still reads', () => {
+  // Supabase rejects with a plain object, and checking instanceof Error alone
+  // turned a readable complaint into 「[object Object]」 — less use than the
+  // raw text it was meant to improve on.
+  const postgrest = {
+    message: "Could not find the 'hidden' column of 'exercises' in the schema cache",
+    details: null,
+    hint: null,
+    code: 'PGRST204',
+  };
+  assert.match(explain(postgrest), /exercises\.hidden/);
+  assert.equal(explain({ message: '권한이 없습니다' }), '권한이 없습니다');
+});
+
+test('something with no message at all does not print its shape', () => {
+  assert.equal(explain({ code: 'PGRST204' }), '');
+  assert.equal(explain({}), '');
+});
