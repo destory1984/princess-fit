@@ -440,6 +440,21 @@ export async function startWorkout(
   return workout;
 }
 
+/** Which muscles a routine sets out to work, as body-map slugs. */
+export async function routineSlugs(routineId: string): Promise<string[]> {
+  const [items, exercises] = await Promise.all([
+    listRoutineExercises(routineId),
+    listExercises(),
+  ]);
+  const byId = new Map(exercises.map((e) => [e.id, e]));
+  const slugs = new Set<string>();
+  for (const item of items) {
+    const exercise = byId.get(item.exercise_id);
+    if (exercise) for (const slug of slugsOf(exercise)) slugs.add(slug);
+  }
+  return [...slugs];
+}
+
 /**
  * Completed sets per muscle, per session, over the recent past.
  *

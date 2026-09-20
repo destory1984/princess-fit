@@ -307,6 +307,7 @@ export default function TodayScreen() {
 
       <ConditionPicker
         visible={pending !== null}
+        routineId={pending?.routine?.id ?? null}
         onPick={beginWith}
         onClose={() => setPending(null)}
       />

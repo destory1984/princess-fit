@@ -1,4 +1,4 @@
-import { intensityRamp } from './theme';
+import { intensityRamp } from './theme.ts';
 
 /**
  * Which muscles an exercise works, as body-map slugs.
