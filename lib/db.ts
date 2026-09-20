@@ -1414,6 +1414,20 @@ export async function setExerciseHidden(exerciseId: string, hidden: boolean) {
 }
 
 /**
+ * Whether this movement is done one side at a time.
+ *
+ * Stored on the movement rather than guessed from its name, because the person
+ * who needed this is the one who typed a name nothing could recognise.
+ */
+export async function setExerciseUnilateral(exerciseId: string, unilateral: boolean) {
+  const { error } = await supabase
+    .from('exercises')
+    .update({ unilateral })
+    .eq('id', exerciseId);
+  if (error) throw error;
+}
+
+/**
  * Turn the whole catalogue on or off at once.
  *
  * One statement rather than seventy: row level security already scopes it to

@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { BodyMap, workedParts } from '@/components/BodyMap';
@@ -21,10 +21,12 @@ import {
   setExerciseFavourite,
   setExerciseHidden,
   setExerciseRest,
+  setExerciseUnilateral,
   type ExerciseHistoryPoint,
 } from '@/lib/db';
 import { coachTipOf, introOf } from '@/lib/exerciseCopy';
 import { formatDate, formatDuration, formatKm } from '@/lib/format';
+import { isUnilateral } from '@/lib/sides';
 import { TRACK_TYPE_LABEL, type Exercise } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
 import { useGirl } from '@/lib/girl';
@@ -79,6 +81,24 @@ export default function ExerciseScreen() {
     // the database does rather than showing a star on something put away.
     setExercise({ ...exercise, hidden: next, favourite: next ? false : exercise.favourite });
     setExerciseHidden(exercise.id, next).catch((e: any) => {
+      notify('저장 실패', explain(e));
+      load();
+    });
+  }
+
+  /**
+   * 「한쪽씩 하는 종목」, said by the person rather than guessed from the name.
+   *
+   * The seven in the catalogue were recognised by name, which left the person
+   * who typed 「한발 데드」 with no way to be asked the question — and they are
+   * the one who asked for it. Written as a plain true or false, so the answer
+   * stops depending on the spelling from here on.
+   */
+  function toggleUnilateral() {
+    if (!exercise) return;
+    const next = !isUnilateral(exercise.name, exercise.unilateral);
+    setExercise({ ...exercise, unilateral: next });
+    setExerciseUnilateral(exercise.id, next).catch((e: any) => {
       notify('저장 실패', explain(e));
       load();
     });
@@ -219,6 +239,34 @@ export default function ExerciseScreen() {
               <Ionicons name="chevron-forward" size={18} color={colors.faint} />
             </Pressable>
           ))}
+        </View>
+      )}
+
+      {/*
+        One side at a time, or both.
+
+        Next to 쉬는 시간 because it is the same kind of fact — something true
+        of the movement itself, decided away from the gym floor. Hidden for
+        movements recorded by time or distance: 「왼쪽 달리기」 is not a thing,
+        and a switch that makes no sense in front of someone is a switch that
+        makes them doubt the ones that do.
+      */}
+      {exercise.track_type === 'weight_reps' && (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>한쪽씩 하는 종목</Text>
+          <View style={styles.restRow}>
+            <Text style={styles.sub}>
+              {isUnilateral(exercise.name, exercise.unilateral) ? '왼쪽 · 오른쪽' : '양쪽 함께'}
+            </Text>
+            <Switch
+              value={isUnilateral(exercise.name, exercise.unilateral)}
+              onValueChange={toggleUnilateral}
+              trackColor={{ true: colors.accent }}
+            />
+          </View>
+          <Text style={styles.caution}>
+            켜면 세트가 왼쪽·오른쪽으로 갈라지고, 마친 뒤에 어느 쪽이 덜 나왔는지 알려드려요.
+          </Text>
         </View>
       )}
 

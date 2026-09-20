@@ -44,7 +44,22 @@ export const UNILATERAL = new Set([
   '트라이셉스 킥백',
 ]);
 
-export function isUnilateral(name: string) {
+/**
+ * Whether to ask the question about this movement.
+ *
+ * The list above covers the catalogue, and a catalogue is not what everyone
+ * trains from. Someone who adds 싱글 레그 데드리프트 by hand is exactly the
+ * person who wanted this feature, and the name they typed is not on any list
+ * — 「싱글 레그 데드리프트」, 「한발 데드」, 「SLDL」 are all the same movement
+ * and no amount of guessing at the name catches all three. So the movement
+ * carries the answer, and the list is only what to do when it does not.
+ *
+ * Null and undefined are not false. A row written before the column existed
+ * arrives without it, and reading that as 「아니오」 would silently stop asking
+ * about the seven that always worked.
+ */
+export function isUnilateral(name: string, unilateral?: boolean | null) {
+  if (unilateral === true || unilateral === false) return unilateral;
   return UNILATERAL.has(name);
 }
 

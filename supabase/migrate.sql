@@ -69,3 +69,8 @@ alter table workout_sets add column if not exists done_at timestamptz;
 
 alter table workouts add column if not exists advice        text;
 alter table workouts add column if not exists advice_source text;
+
+-- Left unsaid on purpose: null means 「decide by the movement's name」, so the
+-- seven built-ins keep working and a false here is someone's own decision to
+-- stop being asked.
+alter table exercises add column if not exists unilateral boolean;

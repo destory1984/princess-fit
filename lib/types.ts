@@ -32,6 +32,16 @@ export type Exercise = {
    * a missing value as false.
    */
   hidden?: boolean;
+  /**
+   * Done one side at a time — or unsaid, which is not the same as no.
+   *
+   * Three states, and the third is the point. Null means nobody has decided,
+   * so the name decides (see `lib/sides.ts`); false means someone turned it
+   * off and does not want to be asked again. Collapsing the two would either
+   * lose the seven built-ins the moment this column exists, or reinstate the
+   * question for the person who said no to it.
+   */
+  unilateral?: boolean | null;
   how_to: string;
   created_at: string;
 };
