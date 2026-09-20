@@ -48,6 +48,22 @@ export type AdviceContext = {
    * dropped leaves no trace in a comparison that only walks what was done.
    */
   previous?: PastSession | null;
+  /**
+   * What they said they were after, back at the start.
+   *
+   * A coach who does not know whether someone came to get stronger or to stop
+   * being out of breath is guessing at every sentence. It was asked once, at
+   * onboarding, and then never shown to the one thing being asked to advise.
+   */
+  plan?: { goal: string; place: string; perWeek: number } | null;
+  /**
+   * A month of finished sessions, newest first, one line each.
+   *
+   * The eight-session averages above say how much; this says what, and in
+   * what order. A month is where 「요즘 하체를 안 하신다」 and 「3주째 같은
+   * 무게」 live, and neither is visible in a single session or an average.
+   */
+  month?: { date: string; title: string; did: string }[];
   /** Earlier finished sessions, newest first. */
   history: WorkoutFact[];
   stats: Stats;
@@ -97,6 +113,12 @@ export function describeContext(c: AdviceContext) {
   }
   if (c.minutes) lines.push(`오늘 걸린 시간: ${c.minutes}분`);
 
+  if (c.plan) {
+    lines.push(
+      `본인이 정한 계획: ${c.plan.goal}, ${c.plan.place}에서, 주 ${c.plan.perWeek}회`
+    );
+  }
+
   /*
     The same routine, last time.
 
@@ -123,6 +145,19 @@ export function describeContext(c: AdviceContext) {
   // "연속 운동 4일" alone was read as four days of the same body part. Say
   // what it counts, and say what it does not.
   lines.push(`쉬지 않고 운동한 날: ${c.streak}일 (부위는 날마다 다를 수 있음)`);
+
+  /*
+    A month, one line per session.
+
+    Compact on purpose. Thirteen sessions listed movement by movement would
+    bury the two lines above it that describe today, and the questions a month
+    answers — 「요즘 하체를 안 하신다」, 「3주째 같은 무게」 — need the shape of
+    the whole stretch rather than its detail.
+  */
+  if (c.month && c.month.length) {
+    lines.push('최근 한 달:');
+    for (const s of c.month) lines.push(`- ${s.date} ${s.title}: ${s.did}`);
+  }
   /*
     The stats are deliberately not here.
 

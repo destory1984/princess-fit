@@ -12,12 +12,16 @@ import {
   getActiveWorkout,
   getLastPerformance,
   getWorkoutDetail,
+  monthOfSessions,
   previousRoutineSession,
+  type SessionLine,
   listWorkoutFacts,
   repeatWorkout,
   type WorkoutDetailExercise,
 } from '@/lib/db';
 import { formatDate } from '@/lib/format';
+import { GOALS, PLACES } from '@/lib/onboarding';
+import { getGoal, getPlace, getWeeklyGoal } from '@/lib/prefs';
 import { computeStats } from '@/lib/character';
 import { summarise, type WorkoutFact } from '@/lib/gamification';
 import type { Workout } from '@/lib/types';
@@ -39,6 +43,10 @@ export default function SummaryScreen() {
   const [previous, setPrevious] = useState<Awaited<
     ReturnType<typeof previousRoutineSession>
   > | null>(null);
+  const [month, setMonth] = useState<SessionLine[]>([]);
+  const [plan, setPlan] = useState<{ goal: string; place: string; perWeek: number } | null>(
+    null
+  );
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(() => {
@@ -70,6 +78,25 @@ export default function SummaryScreen() {
         // Only feeds the adviser's 「지난번 같은 루틴」, so it is never waited on.
         previousRoutineSession(id)
           .then(setPrevious)
+          .catch(() => {});
+
+        // The month, and what they said they came for. Both only widen what
+        // the adviser can see, so neither holds the screen up.
+        monthOfSessions()
+          .then(setMonth)
+          .catch(() => {});
+        Promise.all([getGoal(), getPlace(), getWeeklyGoal()])
+          .then(([goal, place, perWeek]) =>
+            setPlan(
+              goal && place
+                ? {
+                    goal: GOALS.find((g) => g.id === goal)?.label ?? goal,
+                    place: PLACES.find((p) => p.id === place)?.label ?? place,
+                    perWeek,
+                  }
+                : null
+            )
+          )
           .catch(() => {});
       })
       .catch((e) => setError(e.message));
@@ -134,6 +161,20 @@ export default function SummaryScreen() {
     [previous]
   );
 
+  // One line per session: date, what it was called, and the movements with
+  // the weight that mattered.
+  const monthLines = useMemo(
+    () =>
+      month.map((s) => ({
+        date: formatDate(s.started_at, 'short'),
+        title: s.title,
+        did: s.did
+          .map((d) => (d.topWeight > 0 ? `${d.name} ${d.topWeight}kg` : `${d.name} ${d.sets}세트`))
+          .join(', '),
+      })),
+    [month]
+  );
+
   // Null when nobody recorded it, which is what the card shows as 「—」.
   const minutes = useMemo(() => {
     if (!workout?.ended_at) return null;
@@ -150,12 +191,14 @@ export default function SummaryScreen() {
             done,
             minutes,
             previous: previousSession,
+            plan,
+            month: monthLines,
             history: facts,
             stats: computeStats(facts),
             streak: summary.streak,
           }
         : null,
-    [fact, done, minutes, previousSession, facts, summary]
+    [fact, done, minutes, previousSession, plan, monthLines, facts, summary]
   );
 
   async function repeat() {
