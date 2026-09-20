@@ -100,7 +100,7 @@ export const GARMENTS: Garment[] = [
     detail: '무엇에나 어울려요',
     price: 900,
     charm: 3,
-    fit: { x: 0.14, y: 0.48, w: 0.72 },
+    fit: { x: 0.123, y: 0.468, w: 0.743 },
   },
   {
     id: 'skirt_orange',
@@ -109,7 +109,7 @@ export const GARMENTS: Garment[] = [
     detail: '멀리서도 눈에 띄어요',
     price: 900,
     charm: 3,
-    fit: { x: 0.14, y: 0.48, w: 0.72 },
+    fit: { x: 0.135, y: 0.394, w: 0.741 },
   },
   {
     id: 'skirt_blue',
@@ -118,7 +118,7 @@ export const GARMENTS: Garment[] = [
     detail: '단정하게 보이고 싶은 날',
     price: 900,
     charm: 3,
-    fit: { x: 0.14, y: 0.48, w: 0.72 },
+    fit: { x: 0.122, y: 0.467, w: 0.744 },
   },
   {
     id: 'blouse',
