@@ -100,3 +100,125 @@ create policy "admins answer requests" on exercise_requests
   for update using (is_admin()) with check (is_admin());
 
 notify pgrst, 'reload schema';
+
+
+-- ---------------------------------------------------------------------------
+-- Who is using this.
+--
+-- auth.users cannot be read with the app's key, and it should not be: the
+-- service-role key that could is the one key that must never reach a browser,
+-- since it can delete every row every user has. So the parts worth showing are
+-- mirrored into a table of our own, kept current by a trigger.
+
+create table if not exists profiles (
+  user_id uuid primary key references auth.users on delete cascade,
+  email text,
+  created_at timestamptz not null default now()
+);
+
+create or replace function handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into profiles (user_id, email, created_at)
+  values (new.id, new.email, new.created_at)
+  on conflict (user_id) do update set email = excluded.email;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function handle_new_user();
+
+-- Everyone who signed up before the trigger existed.
+insert into profiles (user_id, email, created_at)
+select id, email, created_at from auth.users
+on conflict (user_id) do update set email = excluded.email;
+
+alter table profiles enable row level security;
+
+drop policy if exists "own profile" on profiles;
+create policy "own profile" on profiles for select using (auth.uid() = user_id);
+
+drop policy if exists "admins read profiles" on profiles;
+create policy "admins read profiles" on profiles for select using (is_admin());
+
+/*
+  The list, with each person's training counted beside them.
+
+  A function rather than a view, because the counting has to reach into
+  workouts — which every policy there quite rightly keeps to its owner. This
+  runs as its owner and refuses anyone who is not an admin, so the desk can
+  see totals without any user's rows becoming readable by another.
+
+  Totals only. Nobody's sets, weights or memos are returned.
+*/
+create or replace function admin_users()
+returns table (
+  user_id uuid,
+  email text,
+  joined timestamptz,
+  workouts bigint,
+  last_workout timestamptz,
+  admin boolean
+)
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select
+    p.user_id,
+    p.email,
+    p.created_at,
+    count(w.id),
+    max(w.started_at),
+    exists (select 1 from admins a where a.user_id = p.user_id)
+  from profiles p
+  left join workouts w on w.user_id = p.user_id and w.ended_at is not null
+  where is_admin()
+  group by p.user_id, p.email, p.created_at
+  order by p.created_at desc;
+$$;
+
+revoke all on function admin_users() from public;
+grant execute on function admin_users() to authenticated;
+
+/*
+  Making someone an admin, or taking it back.
+  
+  Refuses to remove the last one. Locking every admin out of the desk is a
+  single mis-tap otherwise, and it cannot be undone from the app — only from
+  the SQL editor, by someone who knows that is where to go.
+*/
+create or replace function admin_set_admin(target uuid, make_admin boolean)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not is_admin() then
+    raise exception '관리자만 할 수 있어요.';
+  end if;
+
+  if make_admin then
+    insert into admins (user_id) values (target) on conflict (user_id) do nothing;
+  else
+    if (select count(*) from admins) <= 1 then
+      raise exception '마지막 관리자는 내릴 수 없어요.';
+    end if;
+    delete from admins where user_id = target;
+  end if;
+end;
+$$;
+
+revoke all on function admin_set_admin(uuid, boolean) from public;
+grant execute on function admin_set_admin(uuid, boolean) to authenticated;
+
+notify pgrst, 'reload schema';
