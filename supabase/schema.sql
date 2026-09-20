@@ -196,3 +196,5 @@ alter table workout_sets add column if not exists rir int;
 alter table workout_sets add column if not exists warmup boolean not null default false;
 
 alter table workout_sets add column if not exists side text;
+
+alter table workout_sets add column if not exists done_at timestamptz;

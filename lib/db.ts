@@ -652,8 +652,40 @@ export async function startWorkoutOn(dayKey: string, title: string) {
  */
 export async function finishWorkout(id: string) {
   const workout = await getWorkout(id);
-  const sameDay = localDayKey(new Date(workout.started_at)) === localDayKey(new Date());
-  const ended_at = sameDay ? new Date().toISOString() : workout.started_at;
+
+  /*
+    A session ends when the last set was finished, not when the button was
+    pressed. Those are the same moment for someone who ends the workout on the
+    spot, and hours apart for everyone who presses it on the way out of the
+    building or the next morning — which is how 487분 ended up on a card for
+    eight sets.
+
+    Falls back to the old behaviour when nothing carries a time: rows written
+    before the column exists, and sets ticked while offline whose write is
+    still in the queue.
+  */
+  const { data: last } = await supabase
+    .from('workout_sets')
+    .select('done_at')
+    .eq('workout_id', id)
+    .not('done_at', 'is', null)
+    .order('done_at', { ascending: false })
+    .limit(1);
+  const lastDone = (last as { done_at: string }[] | null)?.[0]?.done_at ?? null;
+
+  /*
+    Only when the stamp belongs to the same day the session started.
+
+    A Tuesday session written up on Friday has its sets ticked on Friday, so
+    the last stamp is three days after the start — which would make a
+    backdated entry read as a seventy-hour workout. The rule that already
+    covered that case still covers it: a session not begun today has no
+    recorded length at all.
+  */
+  const startedOn = localDayKey(new Date(workout.started_at));
+  const usable = lastDone && localDayKey(new Date(lastDone)) === startedOn ? lastDone : null;
+  const sameDay = startedOn === localDayKey(new Date());
+  const ended_at = usable ?? (sameDay ? new Date().toISOString() : workout.started_at);
   const { error } = await supabase.from('workouts').update({ ended_at }).eq('id', id);
   if (error) throw error;
 }
@@ -849,7 +881,15 @@ export async function updateWorkoutSet(
   patch: Partial<
     Pick<
       WorkoutSet,
-      'weight_kg' | 'reps' | 'duration_sec' | 'distance_km' | 'done' | 'rir' | 'warmup' | 'side'
+      | 'weight_kg'
+      | 'reps'
+      | 'duration_sec'
+      | 'distance_km'
+      | 'done'
+      | 'rir'
+      | 'warmup'
+      | 'side'
+      | 'done_at'
     >
   >
 ) {

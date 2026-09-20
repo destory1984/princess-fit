@@ -34,6 +34,7 @@ export type SetPatch = {
   rir?: number | null;
   warmup?: boolean;
   side?: 'L' | 'R' | null;
+  done_at?: string | null;
 };
 
 /** The columns a set needs before it can exist at all. */
