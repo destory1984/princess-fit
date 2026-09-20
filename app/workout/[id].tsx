@@ -24,7 +24,7 @@ import {
 } from "@/lib/notify";
 import { celebrateFeedback, successFeedback } from "@/lib/feedback";
 
-import { formatDate, formatDuration } from "@/lib/format";
+import { formatDate, formatDuration, formatKm } from "@/lib/format";
 import { warmUpAdvice } from "@/lib/advice";
 import { summarise } from "@/lib/gamification";
 import {
@@ -1071,7 +1071,7 @@ export default function WorkoutScreen() {
                   {track !== "weight_reps" && totalSec > 0 && (
                     <Text style={styles.metrics}>
                       {formatDuration(totalSec)}
-                      {totalKm > 0 && ` · ${totalKm}km`}
+                      {totalKm > 0 && ` · ${formatKm(totalKm)}km`}
                     </Text>
                   )}
                   {previous && track === "weight_reps" && (
@@ -1160,7 +1160,7 @@ export default function WorkoutScreen() {
                             {track === "weight_reps"
                               ? `${s.reps}회`
                               : track === "cardio" && s.distance_km > 0
-                                ? `분 · ${s.distance_km}km`
+                                ? `분 · ${formatKm(s.distance_km)}km`
                                 : "분"}
                           </Text>
                         </View>

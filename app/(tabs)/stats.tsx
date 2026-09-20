@@ -18,7 +18,7 @@ import {
   type ExerciseHistoryPoint,
   type GroupTotal,
 } from '@/lib/db';
-import { formatDate, formatDuration } from '@/lib/format';
+import { formatDate, formatDuration, formatKm } from '@/lib/format';
 import type { UsageMap } from '@/lib/exerciseUsage';
 import type { WorkoutFact } from '@/lib/gamification';
 import type { Exercise } from '@/lib/types';
@@ -184,7 +184,7 @@ export default function StatsScreen() {
                     <Text style={styles.tableValue}>
                       {isCardio
                         ? h.distanceKm > 0
-                          ? `${h.distanceKm}km`
+                          ? `${formatKm(h.distanceKm)}km`
                           : ''
                         : metric === 'max_weight'
                           ? `${h.max_weight}kg`
