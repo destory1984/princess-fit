@@ -493,11 +493,42 @@ export async function repeatWorkout(sourceId: string) {
   return workout;
 }
 
-export async function finishWorkout(id: string) {
-  const { error } = await supabase
+/**
+ * A session that happened but was never logged.
+ *
+ * Backdated to the evening of the day it names, because a workout at 00:00
+ * reads as one nobody did. Everything else about it is an ordinary session —
+ * the same screen fills it in, and finishing it pays the same gold, since the
+ * training was real even though the logging was late.
+ *
+ * It is not asked how today's body felt. That question is about the day a
+ * session starts, and this one started a week ago.
+ */
+export async function startWorkoutOn(dayKey: string, title: string) {
+  const user_id = await requireUserId();
+  const when = new Date(`${dayKey}T18:00:00`);
+  const { data, error } = await supabase
     .from('workouts')
-    .update({ ended_at: new Date().toISOString() })
-    .eq('id', id);
+    .insert({ user_id, title, routine_id: null, started_at: when.toISOString() })
+    .select()
+    .single();
+  if (error) throw error;
+  return data as Workout;
+}
+
+/**
+ * Close a session.
+ *
+ * A backdated one ends when it started rather than now: a record entered on
+ * Friday for Tuesday's training did not take three days, and the honest answer
+ * to how long it took is that nobody wrote it down. `formatDuration` shows
+ * that as unrecorded rather than as a minute.
+ */
+export async function finishWorkout(id: string) {
+  const workout = await getWorkout(id);
+  const sameDay = localDayKey(new Date(workout.started_at)) === localDayKey(new Date());
+  const ended_at = sameDay ? new Date().toISOString() : workout.started_at;
+  const { error } = await supabase.from('workouts').update({ ended_at }).eq('id', id);
   if (error) throw error;
 }
 

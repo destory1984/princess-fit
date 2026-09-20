@@ -7,6 +7,7 @@ import { MonthCalendar } from '@/components/MonthCalendar';
 import { confirmAction, notify } from '@/lib/confirm';
 import {
   deleteWorkout,
+  startWorkoutOn,
   listWorkoutDays,
   listWorkoutFacts,
   listWorkouts,
@@ -20,7 +21,10 @@ import { colors, muscleColor, radius, spacing } from '@/lib/theme';
 function duration(workout: Workout) {
   if (!workout.ended_at) return '진행 중';
   const ms = new Date(workout.ended_at).getTime() - new Date(workout.started_at).getTime();
-  return `${Math.max(1, Math.round(ms / 60000))}분`;
+  // A session written down after the fact has no length — rounding that up to
+  // a minute would be inventing the one number nobody recorded.
+  if (ms < 60000) return '시간 미기록';
+  return `${Math.round(ms / 60000)}분`;
 }
 
 export default function HistoryScreen() {
@@ -64,6 +68,21 @@ export default function HistoryScreen() {
         : workouts,
     [workouts, selected]
   );
+
+  /**
+   * Write down a session that happened but was never logged.
+   *
+   * Offered only for a day already chosen on the calendar, and never for a day
+   * that has not happened: a record of next Tuesday is not a missing record.
+   */
+  async function addPast(day: string) {
+    try {
+      const w = await startWorkoutOn(day, '기록하지 못한 운동');
+      router.push(`/workout/${w.id}`);
+    } catch (e: any) {
+      notify('만들지 못했어요', e.message);
+    }
+  }
 
   function confirmDelete(workout: Workout) {
     confirmAction(
@@ -143,6 +162,13 @@ export default function HistoryScreen() {
         )}
       </View>
 
+      {selected && selected <= localDayKey(new Date()) && (
+        <Pressable style={styles.addPast} onPress={() => addPast(selected)}>
+          <Ionicons name="add" size={16} color={colors.accent} />
+          <Text style={styles.addPastText}>이 날 운동 적기</Text>
+        </Pressable>
+      )}
+
       {shown.length === 0 ? (
         <Text style={styles.empty}>
           {selected ? '이 날은 기록이 없어요.' : '아직 기록이 없어요.'}
@@ -201,6 +227,18 @@ const styles = StyleSheet.create({
   toolSub: { color: colors.textDim, fontSize: 12, marginTop: 2 },
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.lg, gap: spacing.sm, paddingBottom: spacing.xl },
+  addPast: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    borderColor: colors.accent,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderRadius: radius.md,
+    paddingVertical: spacing.md,
+  },
+  addPastText: { color: colors.accent, fontWeight: '700' },
   listHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
