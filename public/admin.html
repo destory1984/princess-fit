@@ -9,8 +9,12 @@
 
       Deliberately not a second app. Refit is Expo and React Native; standing
       up Next.js beside it to read one table would double the toolchain that
-      has to keep working, for a screen one person opens. This is a file you
-      can double-click, and it talks to the same Supabase the app does.
+      has to keep working, for a screen one person opens.
+
+      It lives in public/, which Expo serves at the web root, so it is at
+      /admin.html beside the app in development and in any web build — the
+      place someone would guess. It is also a plain file that opens by being
+      double-clicked, with no server at all.
 
       There is no secret in here. The anon key is public by design and every
       question of who may read what is answered by row level security — the
@@ -99,7 +103,7 @@
         the file stays free of one project's details and can be opened against
         another without editing it:
 
-          admin/index.html?url=https://xxx.supabase.co&key=eyJ...
+          /admin.html?url=https://xxx.supabase.co&key=eyJ...
       */
       const params = new URLSearchParams(location.search);
       const url = params.get('url') || localStorage.getItem('refit.url');
@@ -117,7 +121,7 @@
       if (!url || !key) {
         body.innerHTML = `<div class="card">
           <p>Supabase 주소와 anon key가 필요해요. 주소창에 한 번만 붙여 주세요:</p>
-          <p class="meta">admin/index.html?url=https://xxx.supabase.co&amp;key=eyJ...</p>
+          <p class="meta">/admin.html?url=https://xxx.supabase.co&amp;key=eyJ...</p>
           <p class="meta">앱의 .env에 있는 EXPO_PUBLIC_SUPABASE_URL / EXPO_PUBLIC_SUPABASE_ANON_KEY 예요.</p>
         </div>`;
       } else {
