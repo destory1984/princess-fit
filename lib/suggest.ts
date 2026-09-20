@@ -2,6 +2,7 @@ import { slugsOf, type WorkedExercise } from './muscles.ts';
 import type { Place } from './onboarding.ts';
 import { usableAt } from './plan.ts';
 import { MUSCLE_LABELS, READY, type Muscle } from './recovery.ts';
+import { withParticle } from './korean.ts';
 
 /**
  * One movement to start with, chosen rather than listed.
@@ -99,12 +100,12 @@ function whyOf(rest: number, muscle: Muscle | null) {
   if (!muscle) return '가볍게 시작하기 좋아요.';
   const label = MUSCLE_LABELS[muscle.slug] ?? muscle.label;
 
-  if (muscle.hoursSince === null) return `${label}은(는) 아직 한 번도 안 하셨어요.`;
-  if (rest < READY) return `${label}이(가) 아직 ${rest}%지만, 가볍게라면 괜찮아요.`;
+  if (muscle.hoursSince === null) return `${withParticle(label, '은는')} 아직 한 번도 안 하셨어요.`;
+  if (rest < READY) return `${withParticle(label, '이가')} 아직 ${rest}%지만, 가볍게라면 괜찮아요.`;
 
   const days = Math.floor(muscle.hoursSince / 24);
-  if (days >= 1) return `${label}을(를) ${days}일째 안 하셨어요.`;
-  return `${label}은(는) 충분히 쉬었어요.`;
+  if (days >= 1) return `${withParticle(label, '을를')} ${days}일째 안 하셨어요.`;
+  return `${withParticle(label, '은는')} 충분히 쉬었어요.`;
 }
 
 /** Her line offering it, so the wording lives beside the choosing. */

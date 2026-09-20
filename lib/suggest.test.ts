@@ -122,3 +122,16 @@ test('the offer reads as one sentence with the movement in it', () => {
   assert.ok(said.includes(picked.name));
   assert.ok(said.endsWith('어떠세요?'));
 });
+
+test('the reason picks its particle instead of bracketing it', () => {
+  // 「둔근은」 and 「종아리는」, never 「둔근은(는)」 — a bracket is the app
+  // admitting mid-sentence that it is assembling text rather than talking.
+  const muscles = recoveryOf([], NOW);
+  for (let i = 0; i < CATALOGUE.length; i += 1) {
+    const exclude = new Set(CATALOGUE.slice(0, i).map((c) => c.id));
+    const picked = suggestExercise(CATALOGUE, muscles, { exclude });
+    if (!picked) break;
+    assert.ok(!/\([은는이가을를]\)/.test(picked.why), picked.why);
+    assert.ok(!/\([은는이가을를]\)/.test(offerWord(picked)), picked.name);
+  }
+});
