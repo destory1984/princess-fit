@@ -69,6 +69,11 @@ export default function TodayScreen() {
   // The routine waiting on an answer about today's body, if one is.
   const [pending, setPending] = useState<{ routine: Routine | null } | null>(null);
   const [weeklyGoal, setWeeklyGoalState] = useState(DEFAULT_WEEKLY_GOAL);
+  // Whether the answers have arrived. An empty routine list and a zero count
+  // are also what this screen holds before it has asked anything, and telling
+  // the two apart is the difference between greeting a newcomer and greeting
+  // everyone, every launch, for as long as the query takes.
+  const [loaded, setLoaded] = useState(false);
 
   const load = useCallback(() => {
     Promise.all([
@@ -101,6 +106,7 @@ export default function TodayScreen() {
           r.map(async (routine) => [routine.id, (await listRoutineExercises(routine.id)).length] as const)
         );
         setRoutineSizes(Object.fromEntries(sizes));
+        setLoaded(true);
       })
       .catch((e) => notify('불러오기 실패', e.message));
   }, [girl.name]);
@@ -135,7 +141,7 @@ export default function TodayScreen() {
     }
   }
 
-  const isNew = weekly.workouts === 0 && routines.length === 0 && !active;
+  const isNew = loaded && weekly.workouts === 0 && routines.length === 0 && !active;
 
   // What she can show today, not what she once managed. Neglect dims it.
   const factor = house ? conditionFactor(house) : 1;
@@ -236,7 +242,9 @@ export default function TodayScreen() {
         </Pressable>
       </View>
 
-      {routines.length === 0 ? (
+      {/* Same flash, one line down: nothing is said about an empty list until
+          it is known to be empty rather than merely unanswered. */}
+      {!loaded ? null : routines.length === 0 ? (
         <Pressable style={styles.emptyCard} onPress={() => router.push('/routines')}>
           <Ionicons name="list-outline" size={22} color={colors.textDim} />
           <Text style={styles.emptyTitle}>정해 둔 루틴이 아직 없어요</Text>
