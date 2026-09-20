@@ -112,6 +112,15 @@ export default function HistoryScreen() {
         ))}
       </View>
 
+      <Pressable style={styles.tool} onPress={() => router.push('/photos')}>
+        <Ionicons name="camera-outline" size={18} color={colors.accent} />
+        <View style={styles.toolBody}>
+          <Text style={styles.toolTitle}>사진 기록</Text>
+          <Text style={styles.toolSub}>이 폰에만 저장돼요</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color={colors.textDim} />
+      </Pressable>
+
       <Pressable style={styles.tool} onPress={() => router.push('/sleep')}>
         <Ionicons name="moon-outline" size={18} color={colors.accent} />
         <View style={styles.toolBody}>
