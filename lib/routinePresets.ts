@@ -66,6 +66,20 @@ export const ROUTINE_PRESETS: RoutinePreset[] = [
     ],
   },
   {
+    id: 'cardio',
+    name: '숨 차는 날',
+    detail: '심폐를 올리는 날. 오래 움직이고, 다리는 가볍게만 써요.',
+    minutes: 35,
+    days: '주 2~3회',
+    exercises: [
+      { name: '걷기', sets: 1, reps: 0 },
+      { name: '줄넘기', sets: 3, reps: 0 },
+      { name: '계단 오르기', sets: 1, reps: 0 },
+      { name: '마운틴 클라이머', sets: 3, reps: 20 },
+      { name: '플랭크', sets: 3, reps: 0 },
+    ],
+  },
+  {
     id: 'home',
     name: '집에서 맨몸',
     detail: '기구 없이. 출장이나 쉬는 날에도 할 수 있어요.',
