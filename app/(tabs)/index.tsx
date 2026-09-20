@@ -77,21 +77,28 @@ export default function TodayScreen() {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  /**
+   * What the screen needs in order to exist, and nothing else.
+   *
+   * The paint used to wait on two things it does not draw with: the whole
+   * exercise catalogue, read only for a line in a guide that almost never
+   * shows, and one query per routine for the "종목 N개" subtitle. Those ran
+   * before the screen was allowed to appear, so a second routine meant a
+   * longer blank screen — for a caption. They fill themselves in afterwards
+   * now, against a screen that is already there.
+   */
   const load = useCallback(() => {
     setError(null);
-    Promise.all([
-      getActiveWorkout(),
-      listRoutines(),
-      getWeeklyStats(),
-      listExercises(),
-      listWorkoutFacts(),
-    ])
-      .then(async ([a, r, w, ex, facts]) => {
+    Promise.all([getActiveWorkout(), listRoutines(), getWeeklyStats(), listWorkoutFacts()])
+      .then(([a, r, w, facts]) => {
         setActive(a);
         setRoutines(r);
         setWeekly(w);
-        setExerciseCount(ex.length);
         setFacts(facts);
+        setSummary(summarise(facts));
+        setStats(computeStats(facts));
+        setLoaded(true);
+
         getWeeklyGoal().then(setWeeklyGoalState);
         getLedger()
           .then(({ house: h, furniture: mine, worn: dressed }) => {
@@ -103,13 +110,22 @@ export default function TodayScreen() {
             void armDailyMessage(girl.name, h, facts);
           })
           .catch(() => setHouse(null));
-        setSummary(summarise(facts));
-        setStats(computeStats(facts));
-        const sizes = await Promise.all(
-          r.map(async (routine) => [routine.id, (await listRoutineExercises(routine.id)).length] as const)
-        );
-        setRoutineSizes(Object.fromEntries(sizes));
-        setLoaded(true);
+
+        // Only decides whether the newcomer guide's first step is ticked.
+        listExercises()
+          .then((ex) => setExerciseCount(ex.length))
+          .catch(() => {});
+
+        Promise.all(
+          r.map(
+            async (routine) =>
+              [routine.id, (await listRoutineExercises(routine.id)).length] as const
+          )
+        )
+          .then((sizes) => setRoutineSizes(Object.fromEntries(sizes)))
+          .catch(() => {
+            // The subtitle stays as "종목을 더 담아 주세요" rather than lying.
+          });
       })
       .catch((e) => setError(e.message));
   }, [girl.name]);
@@ -267,8 +283,18 @@ export default function TodayScreen() {
           <Pressable key={r.id} style={styles.row} onPress={() => begin(r)}>
             <View style={styles.rowBody}>
               <Text style={styles.rowTitle}>{r.name}</Text>
+              {/*
+                Three states, not two. Counted-as-zero means the routine is
+                empty and should say so; not-counted-yet means nothing is
+                known, and a space holds the line at its height rather than
+                telling every routine it is empty for a moment.
+              */}
               <Text style={styles.rowSub}>
-                {routineSizes[r.id] ? `종목 ${routineSizes[r.id]}개` : '종목을 더 담아 주세요'}
+                {routineSizes[r.id] === undefined
+                  ? ' '
+                  : routineSizes[r.id] > 0
+                    ? `종목 ${routineSizes[r.id]}개`
+                    : '종목을 더 담아 주세요'}
               </Text>
             </View>
             <View style={styles.startPill}>
