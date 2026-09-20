@@ -162,6 +162,18 @@ export default function ExercisesScreen() {
             </Pressable>
 
             {/*
+              The other half of a missing movement. Making one by hand solves
+              it for one person; asking is how the catalogue gets it for
+              everybody, and this is the screen where somebody has just found
+              out theirs is not here.
+            */}
+            <Pressable
+              style={styles.newButton}
+              onPress={() => router.push('/settings/requests')}>
+              <Text style={styles.newButtonText}>없는 운동 넣어달라고 하기</Text>
+            </Pressable>
+
+            {/*
               The label alone got asked 「이건 뭐야」, and then 「서버에서
               불러온다는 얘기지?」 — which it is not. The seventy-one movements
               ship inside the app; the button copies the missing ones into this

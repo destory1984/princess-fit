@@ -132,6 +132,7 @@ function RootNavigator() {
         <Stack.Screen name="settings/girl" options={{ title: "함께 지낼 아이" }} />
         <Stack.Screen name="settings/plan" options={{ title: "내 운동 계획" }} />
         <Stack.Screen name="settings/backup" options={{ title: "기록 백업" }} />
+        <Stack.Screen name="settings/requests" options={{ title: "운동 넣어달라고 하기" }} />
         <Stack.Screen name="preview" options={{ title: "미리보기" }} />
         <Stack.Screen
           name="settings/exercises"
