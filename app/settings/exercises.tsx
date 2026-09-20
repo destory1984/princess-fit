@@ -1,12 +1,18 @@
 import { useCallback, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { FlatList, Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { MuscleTag } from '@/components/MuscleTag';
 import { ScreenState } from '@/components/ScreenState';
 import { seedDefaultExercises } from '@/lib/catalog';
 import { confirmAction, notify } from '@/lib/confirm';
-import { countExerciseSets, createExercise, deleteExercise, listExercises } from '@/lib/db';
+import {
+  countExerciseSets,
+  createExercise,
+  deleteExercise,
+  listExercises,
+  setAllExercisesHidden,
+  setExerciseHidden,
+} from '@/lib/db';
 import {
   EQUIPMENT,
   MUSCLE_GROUPS,
@@ -19,6 +25,7 @@ import { colors, muscleColor, radius, spacing } from '@/lib/theme';
 export default function ExercisesScreen() {
   const router = useRouter();
   const [exercises, setExercises] = useState<Exercise[] | null>(null);
+  const [sweeping, setSweeping] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [group, setGroup] = useState<string>(MUSCLE_GROUPS[0]);
@@ -62,6 +69,54 @@ export default function ExercisesScreen() {
     } finally {
       setSeeding(false);
     }
+  }
+
+  /**
+   * Every switch at once.
+   *
+   * Useful in both directions and for opposite reasons: someone training at
+   * home turns the lot off and puts back the six they can actually do, and
+   * someone who over-pruned puts it all back rather than hunting for what
+   * they lost.
+   */
+  async function sweep(hidden: boolean) {
+    setSweeping(true);
+    setExercises((prev) =>
+      prev
+        ? prev.map((e) => ({ ...e, hidden, favourite: hidden ? false : e.favourite }))
+        : prev
+    );
+    try {
+      await setAllExercisesHidden(hidden);
+    } catch (e: any) {
+      notify('저장 실패', e.message);
+      load();
+    } finally {
+      setSweeping(false);
+    }
+  }
+
+  /**
+   * Flip a movement in or out of the pickers.
+   *
+   * The row moves first and the write follows: a switch that waits on the
+   * network before it moves reads as one that did not take the tap, and this
+   * is a list people flip several of in a row.
+   */
+  function toggleHidden(exercise: Exercise, hidden: boolean) {
+    setExercises((prev) =>
+      prev
+        ? prev.map((e) =>
+            e.id === exercise.id
+              ? { ...e, hidden, favourite: hidden ? false : e.favourite }
+              : e
+          )
+        : prev
+    );
+    setExerciseHidden(exercise.id, hidden).catch((e: any) => {
+      notify('저장 실패', e.message);
+      load();
+    });
   }
 
   async function confirmDelete(exercise: Exercise) {
@@ -157,7 +212,29 @@ export default function ExercisesScreen() {
                 {seeding ? '불러오는 중…' : '기본 종목 불러오기 · 정보 새로 고치기'}
               </Text>
             </Pressable>
-            <Text style={styles.hint}>종목을 누르면 하는 법과 내 기록을 볼 수 있어요.</Text>
+            {/*
+              The pair sits together on purpose. 「전부 끄기」 sweeps seventy
+              switches, and the only thing that makes that safe to press is
+              seeing its undo in the same breath — so neither one asks 정말요.
+            */}
+            <View style={styles.bulkRow}>
+              <Pressable
+                style={[styles.bulk, sweeping && styles.disabled]}
+                disabled={sweeping}
+                onPress={() => sweep(true)}>
+                <Text style={styles.bulkText}>전부 끄기</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.bulk, sweeping && styles.disabled]}
+                disabled={sweeping}
+                onPress={() => sweep(false)}>
+                <Text style={styles.bulkText}>전부 켜기</Text>
+              </Pressable>
+            </View>
+            <Text style={styles.hint}>
+              종목을 누르면 하는 법과 내 기록을 볼 수 있어요.{'\n'}
+              스위치를 끄면 고를 때 안 보여요. 기록은 그대로 남아요.
+            </Text>
           </View>
         }
         renderItem={({ item }) => (
@@ -173,15 +250,28 @@ export default function ExercisesScreen() {
                   it is where someone comes to find what they put away and
                   take it back out. The picker is where they stay out of sight.
                 */}
-                {item.hidden ? '내려둔 종목 · ' : ''}
                 {item.muscle_detail ? `${item.muscle_detail} · ` : ''}
                 {item.equipment}
               </Text>
             </View>
             <MuscleTag group={item.muscle_group} />
-            <Pressable hitSlop={8} onPress={() => confirmDelete(item)}>
-              <Ionicons name="trash-outline" size={18} color={colors.textDim} />
-            </Pressable>
+            {/*
+              On or off, here, where the whole catalogue is in front of you.
+              Putting a movement away was buried at the bottom of its own
+              detail screen, which is three taps from the place someone
+              actually decides they never want to see a cable movement again.
+
+              The bin used to sit here too and does not any more. Turning a
+              movement off is the thing people want from this list; deleting
+              takes every set ever logged with it, which is a different and
+              much rarer intention. It is still reachable by holding the row,
+              and stated plainly on the movement's own screen.
+            */}
+            <Switch
+              value={!item.hidden}
+              onValueChange={(on) => toggleHidden(item, !on)}
+              trackColor={{ true: colors.accent }}
+            />
           </Pressable>
         )}
       />
@@ -227,6 +317,16 @@ const styles = StyleSheet.create({
   },
   seedButtonText: { color: colors.accent, fontWeight: '600' },
   disabled: { opacity: 0.6 },
+  bulkRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
+  bulk: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.faint,
+  },
+  bulkText: { color: colors.textDim, fontSize: 13, fontWeight: '700' },
   hint: { color: colors.textDim, fontSize: 12 },
   row: {
     backgroundColor: colors.surface,
