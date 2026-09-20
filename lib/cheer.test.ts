@@ -27,3 +27,20 @@ test('finishing everything reads as finished', () => {
 test('the same board always says the same thing', () => {
   assert.deepEqual(cheerFor(2, 5), cheerFor(2, 5));
 });
+
+test('only the line that asks for something says it is asking', () => {
+  assert.equal(cheerFor(0, 0).invites, true);
+  for (const [done, total] of [
+    [0, 3],
+    [1, 3],
+    [2, 3],
+    [3, 3],
+    [5, 3],
+  ]) {
+    assert.equal(cheerFor(done, total).invites, false, `${done}/${total} invited`);
+  }
+});
+
+test('an inviting line is phrased as a question, so tapping it makes sense', () => {
+  assert.ok(cheerFor(0, 0).line.endsWith('?'));
+});
