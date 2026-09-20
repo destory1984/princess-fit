@@ -32,12 +32,13 @@ export const BragCard = forwardRef<View, Props>(function BragCard(
 ) {
   const worked = workedParts(items.flatMap((i) => i.exercise ?? []));
   const doneSets = items.reduce((sum, i) => sum + i.sets.filter((s) => s.done).length, 0);
-  const minutes = workout.ended_at
-    ? Math.max(
-        1,
-        Math.round((+new Date(workout.ended_at) - +new Date(workout.started_at)) / 60000)
-      )
+  // A session written down after the fact has no length. Rounding that up to
+  // one minute would put the only number nobody recorded on the card people
+  // share, so it says so instead.
+  const span = workout.ended_at
+    ? +new Date(workout.ended_at) - +new Date(workout.started_at)
     : 0;
+  const minutes = span >= 60000 ? Math.round(span / 60000) : null;
   const cheer = CHEERS[new Date(workout.started_at).getDate() % CHEERS.length];
   const best = items
     .filter((i) => i.topWeight > 0)
@@ -53,7 +54,11 @@ export const BragCard = forwardRef<View, Props>(function BragCard(
         <View style={styles.statRow}>
           <Stat value={fact.volume.toLocaleString()} unit="kg" label="총 무게" />
           <Stat value={String(doneSets)} unit="세트" label="완료" />
-          <Stat value={String(minutes)} unit="분" label="걸린 시간" />
+          <Stat
+            value={minutes === null ? '—' : String(minutes)}
+            unit={minutes === null ? '' : '분'}
+            label="걸린 시간"
+          />
         </View>
 
         {worked.length > 0 && (
