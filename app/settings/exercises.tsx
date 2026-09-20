@@ -1,5 +1,13 @@
 import { useCallback, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import {
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { MuscleTag } from '@/components/MuscleTag';
 import { NewExerciseSheet } from '@/components/NewExerciseSheet';
@@ -15,8 +23,10 @@ import {
   setAllExercisesHidden,
   setExerciseHidden,
 } from '@/lib/db';
-import type { Exercise, TrackType } from '@/lib/types';
-import { colors, radius, spacing } from '@/lib/theme';
+import { EQUIPMENT, MUSCLE_GROUPS, type Exercise, type TrackType } from '@/lib/types';
+import { aliasesOf } from '@/lib/aliases';
+import { matchesAny } from '@/lib/hangul';
+import { colors, muscleColor, radius, spacing } from '@/lib/theme';
 
 export default function ExercisesScreen() {
   const router = useRouter();
@@ -25,6 +35,12 @@ export default function ExercisesScreen() {
   const [making, setMaking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [seeding, setSeeding] = useState(false);
+  const [query, setQuery] = useState('');
+  const [group, setGroup] = useState<string | null>(null);
+  const [gear, setGear] = useState<string | null>(null);
+  // null = both. Worth having because the list is where someone goes to find
+  // what they put away, and 「꺼진 것만」 is the fastest way back to it.
+  const [showing, setShowing] = useState<'on' | 'off' | null>(null);
 
   const load = useCallback(() => {
     setError(null);
@@ -34,6 +50,26 @@ export default function ExercisesScreen() {
   }, []);
 
   useFocusEffect(load);
+
+  /*
+    What the list is showing right now.
+
+    The same search the picker uses, so 「랫풀」 and 「ㅅㅋㅌ」 and 「bench」 all
+    work here too — a catalogue of seventy-odd is past the point where
+    scrolling is a way to find anything.
+  */
+  const visible = (exercises ?? []).filter(
+    (e) =>
+      (group === null || e.muscle_group === group) &&
+      (gear === null || e.equipment === gear) &&
+      (showing === null || (showing === 'off' ? !!e.hidden : !e.hidden)) &&
+      matchesAny(
+        [e.name, ...aliasesOf(e.name), e.muscle_detail, e.muscle_group, e.equipment],
+        query
+      )
+  );
+  const filtered =
+    query.trim() !== '' || group !== null || gear !== null || showing !== null;
 
   /**
    * Thrown rather than swallowed, so the sheet can keep what was typed when
@@ -73,16 +109,24 @@ export default function ExercisesScreen() {
    * home turns the lot off and puts back the six they can actually do, and
    * someone who over-pruned puts it all back rather than hunting for what
    * they lost.
+   *
+   * It sweeps what is on screen, not the catalogue. With a filter up 「전부」
+   * means these eight cable movements, which is both what it looks like and
+   * the more useful of the two.
    */
   async function sweep(hidden: boolean) {
+    const ids = new Set(visible.map((e) => e.id));
+    if (ids.size === 0) return;
     setSweeping(true);
     setExercises((prev) =>
       prev
-        ? prev.map((e) => ({ ...e, hidden, favourite: hidden ? false : e.favourite }))
+        ? prev.map((e) =>
+            ids.has(e.id) ? { ...e, hidden, favourite: hidden ? false : e.favourite } : e
+          )
         : prev
     );
     try {
-      await setAllExercisesHidden(hidden);
+      await setAllExercisesHidden(hidden, filtered ? [...ids] : undefined);
     } catch (e: any) {
       notify('저장 실패', explain(e));
       load();
@@ -143,7 +187,7 @@ export default function ExercisesScreen() {
   return (
     <View style={styles.screen}>
       <FlatList
-        data={exercises}
+        data={visible}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         ListHeaderComponent={
@@ -204,15 +248,84 @@ export default function ExercisesScreen() {
                 style={[styles.bulk, sweeping && styles.disabled]}
                 disabled={sweeping}
                 onPress={() => sweep(true)}>
-                <Text style={styles.bulkText}>전부 끄기</Text>
+                <Text style={styles.bulkText}>{filtered ? '보이는 것 전부 끄기' : '전부 끄기'}</Text>
               </Pressable>
               <Pressable
                 style={[styles.bulk, sweeping && styles.disabled]}
                 disabled={sweeping}
                 onPress={() => sweep(false)}>
-                <Text style={styles.bulkText}>전부 켜기</Text>
+                <Text style={styles.bulkText}>{filtered ? '보이는 것 전부 켜기' : '전부 켜기'}</Text>
               </Pressable>
             </View>
+            {/*
+              Search and filters, above the list and below the buttons that
+              change it. Seventy-odd movements is well past the point where
+              scrolling finds anything, and this is the screen where someone
+              is hunting for one particular row to flip.
+            */}
+            <TextInput
+              style={styles.search}
+              placeholder="이름 · 부위 · 기구 · 초성 · 랫풀/bench"
+              placeholderTextColor={colors.textDim}
+              value={query}
+              onChangeText={setQuery}
+              autoCorrect={false}
+            />
+
+            <View style={styles.chipRow}>
+              {MUSCLE_GROUPS.map((g) => (
+                <Pressable
+                  key={g}
+                  style={[
+                    styles.chip,
+                    group === g && {
+                      backgroundColor: `${muscleColor(g)}26`,
+                      borderColor: muscleColor(g),
+                    },
+                  ]}
+                  onPress={() => setGroup(group === g ? null : g)}>
+                  <Text
+                    style={[
+                      styles.chipText,
+                      group === g && { color: muscleColor(g), fontWeight: '700' },
+                    ]}>
+                    {g}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+
+            <View style={styles.chipRow}>
+              {EQUIPMENT.map((g) => (
+                <Pressable
+                  key={g}
+                  style={[styles.chip, gear === g && styles.chipOn]}
+                  onPress={() => setGear(gear === g ? null : g)}>
+                  <Text style={[styles.chipText, gear === g && styles.chipTextOn]}>{g}</Text>
+                </Pressable>
+              ))}
+              {/* The fastest way back to something put away. */}
+              <Pressable
+                style={[styles.chip, showing === 'off' && styles.chipOn]}
+                onPress={() => setShowing(showing === 'off' ? null : 'off')}>
+                <Text style={[styles.chipText, showing === 'off' && styles.chipTextOn]}>
+                  꺼진 것만
+                </Text>
+              </Pressable>
+              {filtered && (
+                <Pressable
+                  style={styles.chip}
+                  onPress={() => {
+                    setQuery('');
+                    setGroup(null);
+                    setGear(null);
+                    setShowing(null);
+                  }}>
+                  <Text style={styles.chipText}>조건 지우기</Text>
+                </Pressable>
+              )}
+            </View>
+
             <Text style={styles.hint}>
               종목을 누르면 하는 법과 내 기록을 볼 수 있어요.{'\n'}
               스위치를 끄면 고를 때 안 보여요. 기록은 그대로 남아요.
@@ -288,7 +401,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     padding: spacing.md,
   },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.sm },
   chip: {
     backgroundColor: colors.surface,
     borderRadius: radius.sm,
@@ -307,6 +420,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   addButtonText: { color: '#fff', fontWeight: '700' },
+  search: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    color: colors.text,
+    marginTop: spacing.sm,
+  },
   fieldLabel: { color: colors.textDim, fontSize: 12, marginTop: spacing.sm },
   // Quiet, like the one under it. Neither of these is the thing this screen
   // is for, and a red button says press me before anyone has read it.
