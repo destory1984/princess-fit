@@ -8,6 +8,7 @@ import { Insights } from '@/components/Insights';
 import { ScreenState } from '@/components/ScreenState';
 import { LineChart } from '@/components/LineChart';
 import { OrnateFrame } from '@/components/OrnateFrame';
+import { explain } from '@/lib/dbError';
 import { notify } from '@/lib/confirm';
 import {
   getExerciseHistory,
@@ -70,7 +71,7 @@ export default function StatsScreen() {
         // answer rather than as a failure.
         if (!alive) return;
         setHistory([]);
-        notify('불러오기 실패', e.message);
+        notify('불러오기 실패', explain(e));
       });
     return () => {
       alive = false;

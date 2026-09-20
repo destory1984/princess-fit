@@ -13,6 +13,7 @@ import {
 import { ExerciseThumb } from '@/components/ExerciseThumb';
 import { MuscleTag } from '@/components/MuscleTag';
 import { seedDefaultExercises } from '@/lib/catalog';
+import { explain } from '@/lib/dbError';
 import { notify } from '@/lib/confirm';
 import { setExerciseFavourite } from '@/lib/db';
 import { sortByUsage, SORT_NAME, type Sort, type UsageMap } from '@/lib/exerciseUsage';
@@ -120,7 +121,7 @@ export function ExercisePicker({
     const next = !exercise.favourite;
     setStarred((prev) => new Map(prev).set(exercise.id, next));
     setExerciseFavourite(exercise.id, next).catch((e: any) => {
-      notify('저장 실패', e.message);
+      notify('저장 실패', explain(e));
       setStarred((prev) => {
         const back = new Map(prev);
         back.delete(exercise.id);
@@ -143,7 +144,7 @@ export function ExercisePicker({
       await seedDefaultExercises();
       onSeeded?.();
     } catch (e: any) {
-      notify('불러오기 실패', e.message);
+      notify('불러오기 실패', explain(e));
     } finally {
       setSeeding(false);
     }

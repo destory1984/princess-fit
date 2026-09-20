@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect } from 'expo-router';
+import { explain } from '@/lib/dbError';
 import { notify } from '@/lib/confirm';
 import { cancelDailyMessage } from '@/lib/notify';
 import {
@@ -52,7 +53,7 @@ export function NudgeSetting() {
       // turning it off has to act now, or a stale message would still fire.
       if (next === null) await cancelDailyMessage();
     } catch (e: any) {
-      notify('저장 실패', e.message);
+      notify('저장 실패', explain(e));
       setHour(previous);
     }
   }
@@ -63,7 +64,7 @@ export function NudgeSetting() {
     try {
       await setQuietHours(next);
     } catch (e: any) {
-      notify('저장 실패', e.message);
+      notify('저장 실패', explain(e));
       setQuiet(previous);
     }
   }

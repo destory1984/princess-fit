@@ -4,6 +4,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { NudgeSetting } from '@/components/NudgeSetting';
 import { Portrait } from '@/components/Portrait';
+import { explain } from '@/lib/dbError';
 import { notify } from '@/lib/confirm';
 import { getLedger, listExercises, saveHousehold } from '@/lib/db';
 import { supabase } from '@/lib/supabase';
@@ -37,7 +38,7 @@ export default function SettingsScreen() {
     useCallback(() => {
       listExercises()
         .then((list) => setCount(list.length))
-        .catch((e) => notify('불러오기 실패', e.message));
+        .catch((e) => notify('불러오기 실패', explain(e)));
       Promise.all([getWeeklyGoal(), getGoal(), getPlace()]).then(([days, goal, place]) =>
         setPlan({ days, goal, place })
       );
@@ -54,7 +55,7 @@ export default function SettingsScreen() {
       setGranting(`${(house.gold + 1000).toLocaleString()} G`);
     } catch (e: any) {
       setGranting(null);
-      notify('넣지 못했어요', e.message);
+      notify('넣지 못했어요', explain(e));
     }
   }
 

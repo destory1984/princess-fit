@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
+import { explain } from '@/lib/dbError';
 import { notify } from '@/lib/confirm';
 import { ScreenState } from '@/components/ScreenState';
 import { Advisor } from '@/components/Advisor';
@@ -183,7 +184,7 @@ export default function TodayScreen() {
       );
       router.push(`/workout/${w.id}`);
     } catch (e: any) {
-      notify('시작 실패', e.message);
+      notify('시작 실패', explain(e));
     } finally {
       setStarting(false);
     }

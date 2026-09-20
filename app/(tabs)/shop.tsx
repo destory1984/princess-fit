@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { useFocusEffect } from "expo-router";
 import { ScreenState } from "@/components/ScreenState";
 import { ShopShelves, type Spend } from "@/components/ShopShelves";
+import { explain } from '@/lib/dbError';
 import { notify } from "@/lib/confirm";
 import { getLedger, type Ledger } from "@/lib/db";
 import { thanksFor } from "@/lib/economy";
@@ -51,7 +52,7 @@ export default function ShopScreen() {
         ).catch(() => {});
       }
     } catch (e: any) {
-      notify("사지 못했어요", e.message);
+      notify("사지 못했어요", explain(e));
     } finally {
       setBusy(null);
     }

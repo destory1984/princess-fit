@@ -8,6 +8,7 @@ import { Advisor } from '@/components/Advisor';
 import { MuscleTag } from '@/components/MuscleTag';
 import { OrnateFrame } from '@/components/OrnateFrame';
 import { ScreenState } from '@/components/ScreenState';
+import { explain } from '@/lib/dbError';
 import { confirmAction, notify } from '@/lib/confirm';
 import {
   clampRest,
@@ -65,7 +66,7 @@ export default function ExerciseScreen() {
     const next = !exercise.favourite;
     setExercise({ ...exercise, favourite: next });
     setExerciseFavourite(exercise.id, next).catch((e: any) => {
-      notify('저장 실패', e.message);
+      notify('저장 실패', explain(e));
       load();
     });
   }
@@ -77,7 +78,7 @@ export default function ExerciseScreen() {
     // the database does rather than showing a star on something put away.
     setExercise({ ...exercise, hidden: next, favourite: next ? false : exercise.favourite });
     setExerciseHidden(exercise.id, next).catch((e: any) => {
-      notify('저장 실패', e.message);
+      notify('저장 실패', explain(e));
       load();
     });
   }
@@ -87,7 +88,7 @@ export default function ExerciseScreen() {
     const next = clampRest(exercise.rest_sec + delta);
     setExercise({ ...exercise, rest_sec: next });
     setExerciseRest(exercise.id, next).catch((e: any) => {
-      notify('저장 실패', e.message);
+      notify('저장 실패', explain(e));
       load();
     });
   }
@@ -98,7 +99,7 @@ export default function ExerciseScreen() {
     try {
       setCount = await countExerciseSets(exercise.id);
     } catch (e: any) {
-      notify('확인 실패', e.message);
+      notify('확인 실패', explain(e));
       return;
     }
     const warning = setCount
@@ -109,7 +110,7 @@ export default function ExerciseScreen() {
         await deleteExercise(exercise.id);
         router.back();
       } catch (e: any) {
-        notify('삭제 실패', e.message);
+        notify('삭제 실패', explain(e));
       }
     });
   }

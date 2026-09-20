@@ -7,6 +7,7 @@ import * as Sharing from 'expo-sharing';
 import { AdviceCard } from '@/components/AdviceCard';
 import { BragCard } from '@/components/BragCard';
 import { ScreenState } from '@/components/ScreenState';
+import { explain } from '@/lib/dbError';
 import { notify } from '@/lib/confirm';
 import {
   getActiveWorkout,
@@ -213,7 +214,7 @@ export default function SummaryScreen() {
       const created = await repeatWorkout(id);
       router.replace({ pathname: '/workout/[id]', params: { id: created.id } });
     } catch (e: any) {
-      notify('다시 하기 실패', e.message);
+      notify('다시 하기 실패', explain(e));
     }
   }
 
@@ -231,7 +232,7 @@ export default function SummaryScreen() {
       if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(uri);
       else notify('공유를 쓸 수 없어요', '이미지는 저장되었어요.');
     } catch (e: any) {
-      notify('저장 실패', e.message);
+      notify('저장 실패', explain(e));
     }
   }
 

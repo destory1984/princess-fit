@@ -16,6 +16,7 @@ import { SwapSheet } from "@/components/SwapSheet";
 import { RestBar } from "@/components/RestBar";
 import { SetCard } from "@/components/SetCard";
 import { ScreenState } from "@/components/ScreenState";
+import { explain } from '@/lib/dbError';
 import { confirmAction, notify } from "@/lib/confirm";
 import {
   cancelRestAlarm,
@@ -323,7 +324,7 @@ export default function WorkoutScreen() {
       prev.map((e) => (e.id === exercise.id ? { ...e, rest_sec: next } : e)),
     );
     setExerciseRest(exercise.id, next).catch((e: any) => {
-      notify("저장 실패", e.message);
+      notify("저장 실패", explain(e));
       load();
     });
   }
@@ -563,7 +564,7 @@ export default function WorkoutScreen() {
     try {
       await reorderWorkoutBlocks(moved);
     } catch (e: any) {
-      notify("순서 바꾸기 실패", e.message);
+      notify("순서 바꾸기 실패", explain(e));
       load();
     }
   }
@@ -629,7 +630,7 @@ export default function WorkoutScreen() {
       await swapRemainingSets(ahead, replacement.id);
       load();
     } catch (e: any) {
-      notify('바꾸기 실패', e.message);
+      notify('바꾸기 실패', explain(e));
     }
   }
 
@@ -704,7 +705,7 @@ export default function WorkoutScreen() {
           try {
             await addRoutineExercise(routineId, exercise.id, already.length);
           } catch (e: any) {
-            notify('루틴에 넣지 못했어요', e.message);
+            notify('루틴에 넣지 못했어요', explain(e));
           }
         },
       );
@@ -736,7 +737,7 @@ export default function WorkoutScreen() {
         );
       });
     } catch (e: any) {
-      notify("삭제 실패", e.message);
+      notify("삭제 실패", explain(e));
       load();
     }
   }
@@ -747,7 +748,7 @@ export default function WorkoutScreen() {
       await deleteWorkout(id);
       router.back();
     } catch (e: any) {
-      notify("삭제 실패", e.message);
+      notify("삭제 실패", explain(e));
     }
   }
 
@@ -819,7 +820,7 @@ export default function WorkoutScreen() {
       else if (earned) notify(title);
       router.replace({ pathname: "/summary/[id]", params: { id } });
     } catch (e: any) {
-      notify("종료 실패", e.message);
+      notify("종료 실패", explain(e));
     }
   }
 
@@ -831,7 +832,7 @@ export default function WorkoutScreen() {
     try {
       await updateWorkout(id, { memo: next });
     } catch (e: any) {
-      notify("메모 저장 실패", e.message);
+      notify("메모 저장 실패", explain(e));
     }
   }
 

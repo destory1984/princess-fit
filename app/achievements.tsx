@@ -15,6 +15,7 @@ import {
   type Culture,
   type Enrolment,
 } from '@/lib/lessons';
+import { explain } from '@/lib/dbError';
 import { notify } from '@/lib/confirm';
 import {
   archetypeOf,
@@ -83,7 +84,7 @@ export default function TrainingLedgerScreen() {
     try {
       await setWeeklyGoal(next);
     } catch (e: any) {
-      notify('목표 저장 실패', e.message);
+      notify('목표 저장 실패', explain(e));
       setGoal(goal);
     }
   }

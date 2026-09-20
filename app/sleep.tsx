@@ -5,6 +5,7 @@ import { useFocusEffect } from 'expo-router';
 import { LineChart } from '@/components/LineChart';
 import { ScreenState } from '@/components/ScreenState';
 import { TimeField } from '@/components/TimeField';
+import { explain } from '@/lib/dbError';
 import { confirmAction, notify } from '@/lib/confirm';
 import {
   deleteSleepLog,
@@ -63,7 +64,7 @@ export default function SleepScreen() {
       await saveSleepLog(bed, wake);
       load();
     } catch (e: any) {
-      notify('저장 실패', e.message);
+      notify('저장 실패', explain(e));
     } finally {
       setSaving(false);
     }
@@ -78,7 +79,7 @@ export default function SleepScreen() {
           await deleteSleepLog(log.id);
           load();
         } catch (e: any) {
-          notify('삭제 실패', e.message);
+          notify('삭제 실패', explain(e));
         }
       }
     );
