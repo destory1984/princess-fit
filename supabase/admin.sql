@@ -20,13 +20,36 @@ create table if not exists admins (
 
 alter table admins enable row level security;
 
--- Readable by admins only, and never writable from the app. Adding one is a
--- deliberate act at the database, not something a client can talk its way
--- into — a table that grants privilege must not be editable by the thing it
--- grants privilege over.
+/*
+  Whether the caller is an admin, asked without reading the table directly.
+
+  The obvious policy — 「readable by admins」, checked by looking in admins —
+  bites its own tail: the lookup inside the policy is itself a read of the
+  table the policy guards. Postgres either refuses it as infinite recursion or
+  quietly returns nothing, and the page in front of it can only report 「이
+  계정은 관리자가 아니에요」 to someone who is.
+
+  security definer runs the check as the function's owner, outside row level
+  security, so the question can be answered once and cleanly. It reads one
+  row and returns a boolean; it cannot be used to see anything else.
+*/
+create or replace function is_admin()
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$ select exists (select 1 from admins where user_id = auth.uid()) $$;
+
+revoke all on function is_admin() from public;
+grant execute on function is_admin() to authenticated;
+
+-- Never writable from the app. Adding one is a deliberate act at the
+-- database: a table that grants privilege must not be editable by the thing
+-- it grants privilege over.
 drop policy if exists "admins read admins" on admins;
 create policy "admins read admins" on admins
-  for select using (exists (select 1 from admins a where a.user_id = auth.uid()));
+  for select using (is_admin());
 
 create table if not exists exercise_requests (
   id uuid primary key default gen_random_uuid(),
@@ -70,11 +93,10 @@ create policy "withdraw own requests" on exercise_requests
 -- The desk reads everything and answers.
 drop policy if exists "admins read requests" on exercise_requests;
 create policy "admins read requests" on exercise_requests
-  for select using (exists (select 1 from admins a where a.user_id = auth.uid()));
+  for select using (is_admin());
 
 drop policy if exists "admins answer requests" on exercise_requests;
 create policy "admins answer requests" on exercise_requests
-  for update using (exists (select 1 from admins a where a.user_id = auth.uid()))
-  with check (exists (select 1 from admins a where a.user_id = auth.uid()));
+  for update using (is_admin()) with check (is_admin());
 
 notify pgrst, 'reload schema';
