@@ -42,6 +42,7 @@ export default function ExerciseScreen() {
   // second round trip — the list is already being fetched to find this one.
   const [catalogue, setCatalogue] = useState<Exercise[]>([]);
   const [place, setPlaceState] = useState<Place | null>(null);
+  const [metric, setMetric] = useState<'top' | 'onerm'>('top');
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(() => {
@@ -126,10 +127,29 @@ export default function ExerciseScreen() {
   // Rows created before the how_to column exists come back without it.
   const steps = (exercise.how_to ?? '').split('\n').filter(Boolean);
   const alternatives = substitutesHere(exercise, catalogue, place);
-  const points = history.map((h) => ({
-    label: formatDate(h.date, 'short'),
-    value: isCardio ? Math.round(h.durationSec / 60) : h.max_weight,
-  }));
+  /*
+    Two ways to read the same sessions, and they disagree on purpose.
+
+    Top weight is what was on the bar. Estimated 1RM is what it was worth:
+    60kg×5 followed by 57.5kg×10 draws a line going down and a lifter going
+    up, and only one of those is true. Neither is right on its own — the plate
+    line is what people recognise, the estimate is what they are actually
+    asking about — so the chart says which one it is drawing and lets it be
+    changed.
+
+    Warm-ups are out of both, as they are out of the top weight above.
+  */
+  const points = history.map((h) => {
+    const working = h.sets.filter((x) => !x.warmup);
+    return {
+      label: formatDate(h.date, 'short'),
+      value: isCardio
+        ? Math.round(h.durationSec / 60)
+        : metric === 'top'
+          ? h.max_weight
+          : Math.max(0, ...working.map((x) => estimateOneRm(x.weight_kg, x.reps))),
+    };
+  });
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
@@ -249,6 +269,25 @@ export default function ExerciseScreen() {
                 </>
               )}
             </View>
+            {!isCardio && (
+              <View style={styles.metricRow}>
+                {(
+                  [
+                    ['top', '최고 무게'],
+                    ['onerm', '예상 1RM'],
+                  ] as const
+                ).map(([id, label]) => (
+                  <Pressable
+                    key={id}
+                    style={[styles.metric, metric === id && styles.metricOn]}
+                    onPress={() => setMetric(id)}>
+                    <Text style={[styles.metricText, metric === id && styles.metricTextOn]}>
+                      {label}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            )}
             <LineChart points={points} unit={isCardio ? '분' : 'kg'} />
             {[...history].reverse().slice(0, 8).map((h) => (
               <View key={h.workout_id} style={styles.row}>
@@ -338,6 +377,17 @@ const styles = StyleSheet.create({
   stepText: { color: colors.text, fontSize: 14, lineHeight: 21, flex: 1 },
   caution: { color: colors.textDim, fontSize: 11, lineHeight: 17, marginTop: spacing.sm },
   empty: { color: colors.textDim },
+  metricRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
+  metric: {
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.faint,
+  },
+  metricOn: { backgroundColor: colors.accentSoft, borderColor: colors.accent },
+  metricText: { color: colors.textDim, fontSize: 12 },
+  metricTextOn: { color: colors.accent, fontWeight: '700' },
   put: {
     flexDirection: 'row',
     alignItems: 'center',
