@@ -161,3 +161,32 @@ test('a reply that names a score is thrown away even when the numbers check out'
   assert.ok(!staysInTheFacts('활력을 높이는 데 집중하세요.', facts));
   assert.ok(staysInTheFacts('오늘 8세트 하셨어요. 다음엔 하루 쉬어 주세요.', facts));
 });
+
+test('the movements reach the model, with last time beside them', () => {
+  // The block used to be four aggregate numbers, so number soup was the only
+  // sentence available. 「벤치프레스 60kg×8 (지난번 57.5kg)」 supports advice;
+  // 「총 무게 1,167kg」 supports arithmetic.
+  const said = describeContext(
+    ctx({
+      today: fact({ id: 'w' }),
+      done: [
+        { name: '벤치프레스', sets: 4, topWeight: 60, topReps: 8, lastTop: 57.5, seconds: 0 },
+        { name: '풀업', sets: 3, topWeight: 0, topReps: 9, lastTop: null, seconds: 0 },
+        { name: '러닝', sets: 1, topWeight: 0, topReps: 0, lastTop: null, seconds: 1_800 },
+      ],
+    })
+  );
+  assert.match(said, /벤치프레스: 4세트, 최고 60kg×8회 \(지난번 최고 57.5kg\)/);
+  // Bodyweight is counted in reps, and a first outing says so rather than
+  // pretending there was a number to beat.
+  assert.match(said, /풀업: 3세트, 맨몸 9회/);
+  assert.match(said, /러닝: 30분/);
+});
+
+test('the worked example teaches no number', () => {
+  // It sits in the prompt, not the facts, so any number in it would be
+  // rejected the moment the model copied it — and a model shown one copies it.
+  const said = buildPrompt(ctx({ today: fact({ id: 'w' }) }));
+  const example = said.split('좋은 답의 예:')[1].split('오늘 운동')[0];
+  assert.ok(!/\d/.test(example), example);
+});
