@@ -60,6 +60,49 @@ export function remainingSeconds(
 }
 
 /**
+ * How long a finished session probably took, from what is on the board.
+ *
+ * For sessions recorded before each set carried the moment it was ticked, and
+ * for any whose span is unusable — left open all afternoon, or finished the
+ * next morning. The true length is gone and cannot be recovered.
+ *
+ * 「—」 was the first answer and it is not a good one: the card went from a
+ * figure nobody recognised to no figure at all, and 「걸린 시간은 여전히 -
+ * 네」 is what that earns. An estimate is honest as long as it says it is one,
+ * which is what `estimateWord` is for.
+ */
+export function estimatedSeconds(
+  sets: { duration_sec: number; exercise_id: string }[],
+  restOf: (exerciseId: string) => number
+): number {
+  if (sets.length === 0) return 0;
+  let seconds = 0;
+  for (const set of sets) {
+    seconds += set.duration_sec > 0 ? set.duration_sec : SECONDS_PER_SET;
+  }
+  for (const set of sets.slice(0, -1)) seconds += restOf(set.exercise_id);
+  return seconds;
+}
+
+/**
+ * The estimate in whole minutes, rounded coarsely.
+ *
+ * Never to the exact minute: a figure that precise is pretending to know
+ * something it does not. Null when there is nothing to reckon from.
+ */
+export function estimatedMinutes(seconds: number): number | null {
+  if (seconds <= 0) return null;
+  const minutes = Math.round(seconds / 60);
+  return minutes < 60 ? Math.round(minutes / 5) * 5 : Math.round(minutes / 10) * 10;
+}
+
+/** An estimate, said as one. Never a bare number: that would be a claim. */
+export function estimateWord(seconds: number): string | null {
+  const minutes = estimatedMinutes(seconds);
+  return minutes === null ? null : `약 ${minutes}분`;
+}
+
+/**
  * Rounded to something a person would say out loud.
  *
  * Never a number of seconds, and never 「37분」 either — the estimate is not

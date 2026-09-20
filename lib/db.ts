@@ -690,6 +690,32 @@ export async function finishWorkout(id: string) {
   if (error) throw error;
 }
 
+/**
+ * The last finished outing of the same routine before this one.
+ *
+ * Null when the session had no routine behind it, or when this is the first
+ * time it has been run — both of which mean there is nothing to compare
+ * against, which is different from comparing against nothing.
+ */
+export async function previousRoutineSession(workoutId: string) {
+  const workout = await getWorkout(workoutId);
+  if (!workout.routine_id) return null;
+
+  const { data, error } = await supabase
+    .from('workouts')
+    .select('id, started_at')
+    .eq('routine_id', workout.routine_id)
+    .not('ended_at', 'is', null)
+    .lt('started_at', workout.started_at)
+    .order('started_at', { ascending: false })
+    .limit(1);
+  if (error) throw error;
+
+  const found = (data as { id: string; started_at: string }[])[0];
+  if (!found) return null;
+  return { ...(await getWorkoutDetail(found.id)), started_at: found.started_at };
+}
+
 export async function deleteWorkout(id: string) {
   const { error } = await supabase.from('workouts').delete().eq('id', id);
   if (error) throw error;

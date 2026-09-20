@@ -190,3 +190,36 @@ test('the worked example teaches no number', () => {
   const example = said.split('좋은 답의 예:')[1].split('오늘 운동')[0];
   assert.ok(!/\d/.test(example), example);
 });
+
+test('rest, length and the last outing of the same routine all go', () => {
+  const said = describeContext(
+    ctx({
+      today: fact({ id: 'w' }),
+      minutes: 52,
+      done: [
+        { name: '벤치프레스', sets: 4, topWeight: 60, topReps: 8, lastTop: 57.5, seconds: 0, rest: 120 },
+      ],
+      previous: {
+        date: '9월 18일',
+        done: [
+          { name: '벤치프레스', sets: 4, topWeight: 57.5, topReps: 8, lastTop: null, seconds: 0 },
+          { name: '랫 풀다운', sets: 3, topWeight: 45, topReps: 10, lastTop: null, seconds: 0 },
+        ],
+      },
+    })
+  );
+  assert.match(said, /세트 사이 120초 쉼/);
+  assert.match(said, /오늘 걸린 시간: 52분/);
+  assert.match(said, /지난번 같은 루틴 \(9월 18일\)/);
+  // The whole point of listing the old board: a movement dropped today leaves
+  // no trace in any comparison that only walks through what was done.
+  assert.match(said, /랫 풀다운/);
+});
+
+test('a session with no length and no previous outing says neither', () => {
+  const said = describeContext(
+    ctx({ today: fact({ id: 'w' }), minutes: null, previous: null, done: [] })
+  );
+  assert.ok(!said.includes('걸린 시간'));
+  assert.ok(!said.includes('지난번 같은 루틴'));
+});

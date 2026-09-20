@@ -187,7 +187,7 @@ export default function PreviewScreen() {
           title: '월요일 상체',
           memo: null,
           started_at: '2026-09-20T18:00:00',
-          ended_at: '2026-09-20T19:07:00',
+          ended_at: '2026-09-20T18:00:00',
         }}
         items={benchCardItems}
         fact={{
