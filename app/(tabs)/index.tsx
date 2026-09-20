@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { notify } from '@/lib/confirm';
+import { ScreenState } from '@/components/ScreenState';
 import { Advisor } from '@/components/Advisor';
 import { ConditionPicker } from '@/components/ConditionPicker';
 import { Purse } from '@/components/Purse';
@@ -74,8 +75,10 @@ export default function TodayScreen() {
   // the two apart is the difference between greeting a newcomer and greeting
   // everyone, every launch, for as long as the query takes.
   const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(() => {
+    setError(null);
     Promise.all([
       getActiveWorkout(),
       listRoutines(),
@@ -108,7 +111,7 @@ export default function TodayScreen() {
         setRoutineSizes(Object.fromEntries(sizes));
         setLoaded(true);
       })
-      .catch((e) => notify('불러오기 실패', e.message));
+      .catch((e) => setError(e.message));
   }, [girl.name]);
 
   useFocusEffect(load);
@@ -147,6 +150,12 @@ export default function TodayScreen() {
   const factor = house ? conditionFactor(house) : 1;
   const shownStats = stats ? scaleStats(stats, factor) : null;
   const penalty = conditionPenalty(factor);
+
+  // Drawn all at once or not at all. The room, the purse and her line are all
+  // absent until the queries answer, so a first paint without them puts the
+  // start button alone at the top of the screen and then shoves it down — the
+  // "바로 운동 시작 화면" that flashes past on launch.
+  if (!loaded) return <ScreenState error={error} onRetry={load} />;
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>

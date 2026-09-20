@@ -7,7 +7,8 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { NotificationRouter } from "@/components/NotificationRouter";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { GirlProvider } from "@/lib/girl";
-import { getOnboardedAt } from "@/lib/prefs";
+import { listRoutines } from "@/lib/db";
+import { getOnboardedAt, markOnboarded } from "@/lib/prefs";
 import { colors } from "@/lib/theme";
 
 function RootNavigator() {
@@ -36,10 +37,28 @@ function RootNavigator() {
     // rather than held in state on purpose: the greeting writes it on its way
     // out, and state read at mount would still say "not yet" at the moment it
     // lands home — sending it straight back into the greeting it just left.
+    //
+    // A missing flag is not the same as a newcomer. Anyone using the app
+    // before the greeting existed has no flag either, and sending them to a
+    // screen that looks at their routines and immediately bounces them home
+    // is a visible round trip on launch — reported as a screen that "1초 정도
+    // 보였다가 그냥 없어지고, 홈 화면으로" goes. So the account is asked here,
+    // and the flag backfilled, without anyone being sent anywhere.
     let alive = true;
-    getOnboardedAt().then((at) => {
-      if (alive && at === null) router.replace("/onboarding");
-    });
+    (async () => {
+      if ((await getOnboardedAt()) !== null) return;
+      try {
+        if ((await listRoutines()).length > 0) {
+          await markOnboarded();
+          return;
+        }
+      } catch {
+        // Unreachable is not the same as new: better to greet them next
+        // launch than to greet a stranger who is not one.
+        return;
+      }
+      if (alive) router.replace("/onboarding");
+    })();
     return () => {
       alive = false;
     };
