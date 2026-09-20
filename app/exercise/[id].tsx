@@ -26,6 +26,9 @@ import { formatDate, formatDuration } from '@/lib/format';
 import { TRACK_TYPE_LABEL, type Exercise } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
 import { useGirl } from '@/lib/girl';
+import { getPlace } from '@/lib/prefs';
+import type { Place } from '@/lib/onboarding';
+import { substitutesHere, substituteWord } from '@/lib/substitute';
 
 export default function ExerciseScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -33,6 +36,10 @@ export default function ExerciseScreen() {
   const girl = useGirl();
   const [exercise, setExercise] = useState<Exercise | null>(null);
   const [history, setHistory] = useState<ExerciseHistoryPoint[]>([]);
+  // The whole catalogue, kept so substitutes can be read off it without a
+  // second round trip — the list is already being fetched to find this one.
+  const [catalogue, setCatalogue] = useState<Exercise[]>([]);
+  const [place, setPlaceState] = useState<Place | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(() => {
@@ -41,7 +48,11 @@ export default function ExerciseScreen() {
     Promise.all([listExercises(), getExerciseHistory(id)])
       .then(([list, points]) => {
         setExercise(list.find((e) => e.id === id) ?? null);
+        setCatalogue(list);
         setHistory(points);
+        // Only narrows where the substitutes are drawn from; the section is
+        // correct without it, so it is never waited on.
+        getPlace().then(setPlaceState).catch(() => {});
       })
       .catch((e) => setError(e.message));
   }, [id]);
@@ -100,6 +111,7 @@ export default function ExerciseScreen() {
   );
   // Rows created before the how_to column exists come back without it.
   const steps = (exercise.how_to ?? '').split('\n').filter(Boolean);
+  const alternatives = substitutesHere(exercise, catalogue, place);
   const points = history.map((h) => ({
     label: formatDate(h.date, 'short'),
     value: isCardio ? Math.round(h.durationSec / 60) : h.max_weight,
@@ -146,6 +158,33 @@ export default function ExerciseScreen() {
             </View>
           ))}
           <Text style={styles.caution}>아프면 멈추세요.</Text>
+        </View>
+      )}
+
+      {/*
+        Where to go when this one is not available — the machine taken, or the
+        room simply without it. Placed above 쉬는 시간 because it answers a
+        question asked standing in the gym, not one asked while planning.
+      */}
+      {alternatives.length > 0 && (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>이게 안 되면</Text>
+          {alternatives.map((alt) => (
+            <Pressable
+              key={alt.exercise.id}
+              style={styles.altRow}
+              onPress={() => router.push(`/exercise/${alt.exercise.id}`)}>
+              <View style={styles.altText}>
+                <Text style={styles.altName} numberOfLines={1}>
+                  {alt.exercise.name}
+                </Text>
+                <Text style={styles.altWhy} numberOfLines={1}>
+                  {substituteWord(alt)}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.faint} />
+            </Pressable>
+          ))}
         </View>
       )}
 
@@ -261,6 +300,15 @@ const styles = StyleSheet.create({
   stepText: { color: colors.text, fontSize: 14, lineHeight: 21, flex: 1 },
   caution: { color: colors.textDim, fontSize: 11, lineHeight: 17, marginTop: spacing.sm },
   empty: { color: colors.textDim },
+  altRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+  },
+  altText: { flex: 1 },
+  altName: { color: colors.text, fontSize: 15, fontWeight: '700' },
+  altWhy: { color: colors.textDim, fontSize: 12, marginTop: 2 },
   statRow: { flexDirection: 'row', gap: spacing.md, marginBottom: spacing.sm },
   stat: { flex: 1 },
   statValue: { color: colors.text, fontSize: 20, fontWeight: '800' },
