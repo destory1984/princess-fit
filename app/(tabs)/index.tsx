@@ -8,6 +8,7 @@ import { ConditionPicker } from '@/components/ConditionPicker';
 import { LevelCard } from '@/components/LevelCard';
 import { Purse } from '@/components/Purse';
 import { TrainingHall } from '@/components/TrainingHall';
+import { WalkCard } from '@/components/WalkCard';
 import {
   archetypeOf,
   computeStats,
@@ -187,6 +188,8 @@ export default function TodayScreen() {
               <Purse house={house} opensShop />
             </Pressable>
           )}
+          {/* The one reason to open this on a day you are not training. */}
+          <WalkCard onFed={load} />
           <Advisor name={girl.name} portrait={girl.base}>
             {house ? dailyLine(house, facts) : masterSays(stats, facts)}
           </Advisor>

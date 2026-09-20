@@ -99,6 +99,19 @@ export function afterWorkout(house: Household, w: WorkoutFact): Household {
 }
 
 /**
+ * A day on your feet, which keeps her from going as hungry.
+ *
+ * Only satiety moves. Walking pays no gold — the shop is priced against a year
+ * of steady training, and a second income would quietly pull that apart — and
+ * it does not touch her clothes, which wear by the calendar rather than by
+ * anything you do.
+ */
+export function afterWalk(house: Household, points: number): Household {
+  if (points <= 0) return house;
+  return { ...house, satiety: clamp(house.satiety + points) };
+}
+
+/**
  * How well she is doing, 0–1. Stats are shown scaled by this, so letting her go
  * hungry or ragged costs real ground rather than only looking sad.
  */
