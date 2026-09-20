@@ -35,12 +35,14 @@ const BASE = 'assets/outfit/base.png';
 const REGIONS = {
   head: [0.55, 0.8, 0.06], // to one side, where a ribbon or clip sits
   crown: [0.34, 0.66, 0.03], // straight on top: a tiara
-  neck: [0.415, 0.585, 0.345],
+  neck: [0.425, 0.575, 0.405], // below the chin; the hair silhouette sits far above it
   chest: [0.36, 0.64, 0.4],
-  sleeves: [0.19, 0.81, 0.33], // shoulders down; the arms are folded in front
+  // Waist down. Skirts and trousers share this: the hem runs off the bottom
+  // of the doll's box and is clipped, which is what the art expects.
+  bottom: [0.14, 0.86, 0.53],
   // Held against her, stems down to where the folded arms meet — not floating
   // flat on her chest, which is what centring it there looked like.
-  hand: [0.4, 0.68, 0.37],
+  hand: [0.42, 0.68, 0.44],
   feet: [0.33, 0.67, 0.84],
 };
 

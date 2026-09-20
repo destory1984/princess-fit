@@ -13,7 +13,6 @@
  */
 
 export type OutfitSlot =
-  | 'sleeves'
   | 'feet'
   | 'bottom'
   | 'top'
@@ -22,7 +21,6 @@ export type OutfitSlot =
   | 'hand';
 
 export const OUTFIT_SLOT_NAME: Record<OutfitSlot, string> = {
-  sleeves: '소매',
   feet: '신발',
   bottom: '치마',
   top: '상의',
@@ -32,15 +30,12 @@ export const OUTFIT_SLOT_NAME: Record<OutfitSlot, string> = {
 };
 
 /**
- * Back to front. Sleeves sit behind the body, what she holds sits in front.
- *
- * Shoes go on early so a long skirt falls over them. The neck sits above the
+ * Back to front. Shoes go on early so a long skirt falls over them. The neck sits above the
  * top because a choker is worn over a collar, hair above that so nothing can
  * cover a ribbon, and the hand last — a bouquet held up passes in front of her
  * face, which is what happens in life and what the drawing expects.
  */
 export const LAYER_ORDER: OutfitSlot[] = [
-  'sleeves',
   'feet',
   'bottom',
   'top',
@@ -72,30 +67,31 @@ export const GARMENTS: Garment[] = [
     detail: '누가 준 것인지는 말하지 않아요',
     price: 400,
     charm: 2,
-    // Held against her with the stems down where her folded arms meet.
-    // Centred on her chest it read as flowers pinned flat to her front.
-    fit: { x: 0.361, y: 0.369, w: 0.324 },
+    // Held against her with the stems down where her folded arms meet. Low
+    // enough to clear her chin: centred on her chest it read as flowers
+    // pinned flat to her front, and higher it covered her face.
+    fit: { x: 0.384, y: 0.439, w: 0.301 },
   },
   {
-    id: 'sleeves_orange',
-    slot: 'sleeves',
-    name: '주황 덧소매',
-    detail: '팔이 가벼워 보여요',
+    id: 'trousers_orange',
+    slot: 'bottom',
+    name: '주황 퍼프 바지',
+    detail: '움직이기 편한 쪽',
     price: 700,
     charm: 2,
-    // From the shoulders, not the waist. The two sleeve pieces share a slot
-    // but not a drawing, so they no longer share a fit either — this one sits
-    // higher on its canvas than the blue.
-    fit: { x: 0.172, y: 0.195, w: 0.641 },
+    // Waist down, like the skirts — the hem runs off the doll's box and is
+    // clipped, which is what the drawing expects. The two pairs share a slot
+    // but not a canvas, so they do not share a fit.
+    fit: { x: 0.119, y: 0.373, w: 0.745 },
   },
   {
-    id: 'sleeves_blue',
-    slot: 'sleeves',
-    name: '푸른 덧소매',
+    id: 'trousers_blue',
+    slot: 'bottom',
+    name: '푸른 퍼프 바지',
     detail: '차분한 쪽이 좋다면',
     price: 700,
     charm: 2,
-    fit: { x: 0.188, y: 0.269, w: 0.622 },
+    fit: { x: 0.138, y: 0.46, w: 0.722 },
   },
   {
     id: 'skirt_white',
@@ -141,7 +137,7 @@ export const GARMENTS: Garment[] = [
     price: 3_600,
     charm: 10,
     // A whole outfit: anything underneath would only fight with it.
-    hides: ['top', 'bottom', 'sleeves'],
+    hides: ['top', 'bottom'],
     fit: { x: 0.14, y: 0.36, w: 0.72 },
   },
   {
@@ -163,7 +159,9 @@ export const GARMENTS: Garment[] = [
     detail: '무도회에 어울리는',
     price: 1_100,
     charm: 5,
-    fit: { x: 0.41, y: 0.307, w: 0.179 },
+    // Below the chin. Her hair silhouette reaches far higher than her face,
+    // so a fit measured from the base's outline sits across her mouth.
+    fit: { x: 0.421, y: 0.371, w: 0.158 },
   },
 ];
 

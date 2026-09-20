@@ -138,13 +138,20 @@ function ItemRow({ item, shop }: { item: Item; shop: Shop }) {
       name={item.name}
       detail={item.detail}
       price={item.price}
+      /*
+        The reason comes first when there is one. This row used to print
+        「포만감 +20」 whatever was true, so a full girl left every dish greyed
+        out with nothing saying why — and 「왜 먹을건 아직 못 사는거야」 is the
+        only thing anyone can conclude from that. A row you cannot press is a
+        row that has to say why not.
+      */
       note={
-        item.restores
-          ? `포만감 +${item.restores}`
-          : item.charm
-            ? `매력 +${item.charm}`
-            : refusal === "locked"
-              ? REFUSAL_TEXT.locked
+        refusal
+          ? REFUSAL_TEXT[refusal]
+          : item.restores
+            ? `포만감 +${item.restores}`
+            : item.charm
+              ? `매력 +${item.charm}`
               : undefined
       }
       disabled={!!refusal}
@@ -165,9 +172,15 @@ function ItemRow({ item, shop }: { item: Item; shop: Shop }) {
 function LessonRow({ lesson, shop }: { lesson: Lesson; shop: Shop }) {
   const { house, culture } = shop.ledger;
   const preview = previewOf(lesson, culture);
-  const note = preview.length
-    ? preview.map((p) => `${p.name} +${p.gain}`).join(" · ")
-    : "더 배울 것이 없어요";
+  const short = house.gold < lesson.price;
+  // Same rule as the kitchen: the reason a row is dead outranks what it would
+  // have done. Listing the lessons she would gain beside a row that cannot be
+  // pressed says nothing about why not.
+  const note = short
+    ? REFUSAL_TEXT.poor
+    : preview.length
+      ? preview.map((p) => `${p.name} +${p.gain}`).join(" · ")
+      : "더 배울 것이 없어요";
   return (
     <Row
       id={lesson.id}
@@ -177,7 +190,7 @@ function LessonRow({ lesson, shop }: { lesson: Lesson; shop: Shop }) {
       detail={lesson.detail}
       price={lesson.price}
       note={note}
-      disabled={house.gold < lesson.price || preview.length === 0}
+      disabled={short || preview.length === 0}
       onPress={() =>
         shop.spend(lesson.id, lesson.name, lesson.price, "lesson", () =>
           takeLesson(lesson),
@@ -246,7 +259,15 @@ function FurnitureRow({ piece, shop }: { piece: Furniture; shop: Shop }) {
       name={piece.name}
       detail={piece.detail}
       price={piece.price}
-      note={swaps ? `${swaps.name} 대신 들어와요` : SLOT_NAME[piece.slot]}
+      note={
+        owned
+          ? REFUSAL_TEXT.owned
+          : house.gold < piece.price
+            ? REFUSAL_TEXT.poor
+            : swaps
+              ? `${swaps.name} 대신 들어와요`
+              : SLOT_NAME[piece.slot]
+      }
       disabled={owned || house.gold < piece.price}
       owned={owned}
       onPress={() =>
