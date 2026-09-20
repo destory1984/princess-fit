@@ -37,9 +37,11 @@ const REGIONS = {
   crown: [0.34, 0.66, 0.03], // straight on top: a tiara
   neck: [0.425, 0.575, 0.405], // below the chin; the hair silhouette sits far above it
   chest: [0.36, 0.64, 0.4],
-  // Waist down. Skirts and trousers share this: the hem runs off the bottom
-  // of the doll's box and is clipped, which is what the art expects.
-  bottom: [0.14, 0.86, 0.53],
+  // Waist down, and as wide as the hem actually is. A skirt flares past her
+  // hips; trousers do not, so they take a narrower box and come out shorter
+  // for it — the two drawings are not the same shape and should not pretend.
+  skirt: [0.14, 0.86, 0.5],
+  trousers: [0.275, 0.725, 0.53],
   // Held against her, stems down to where the folded arms meet — not floating
   // flat on her chest, which is what centring it there looked like.
   hand: [0.42, 0.68, 0.44],

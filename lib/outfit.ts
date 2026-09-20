@@ -79,10 +79,10 @@ export const GARMENTS: Garment[] = [
     detail: '움직이기 편한 쪽',
     price: 700,
     charm: 2,
-    // Waist down, like the skirts — the hem runs off the doll's box and is
-    // clipped, which is what the drawing expects. The two pairs share a slot
-    // but not a canvas, so they do not share a fit.
-    fit: { x: 0.119, y: 0.373, w: 0.745 },
+    // Her hips' width, not a skirt's: a skirt flares and these do not, so
+    // taking the skirt's box made them a tent. They come out shorter for it,
+    // and the blue pair is longer than the orange because it is drawn that way.
+    fit: { x: 0.262, y: 0.432, w: 0.465 },
   },
   {
     id: 'trousers_blue',
@@ -91,7 +91,7 @@ export const GARMENTS: Garment[] = [
     detail: '차분한 쪽이 좋다면',
     price: 700,
     charm: 2,
-    fit: { x: 0.138, y: 0.46, w: 0.722 },
+    fit: { x: 0.274, y: 0.486, w: 0.451 },
   },
   {
     id: 'skirt_white',
