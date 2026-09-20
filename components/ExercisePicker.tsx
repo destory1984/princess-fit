@@ -16,6 +16,7 @@ import { seedDefaultExercises } from '@/lib/catalog';
 import { notify } from '@/lib/confirm';
 import { setExerciseFavourite } from '@/lib/db';
 import { sortByUsage, SORT_NAME, type Sort, type UsageMap } from '@/lib/exerciseUsage';
+import { matchesAny } from '@/lib/hangul';
 import type { Place } from '@/lib/onboarding';
 import { byPlace } from '@/lib/plan';
 import { getPlace } from '@/lib/prefs';
@@ -67,18 +68,22 @@ export function ExercisePicker({
     [exercises, starred]
   );
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return withStars.filter(
-      (e) =>
-        (group === null || e.muscle_group === group) &&
-        (gear === null || e.equipment === gear) &&
-        (q === '' ||
-          [e.name, e.muscle_detail, e.muscle_group, e.secondary_group ?? '', e.equipment].some(
-            (field) => field.toLowerCase().includes(q)
-          ))
-    );
-  }, [withStars, query, group, gear]);
+  const filtered = useMemo(
+    () =>
+      withStars.filter(
+        (e) =>
+          (group === null || e.muscle_group === group) &&
+          (gear === null || e.equipment === gear) &&
+          // ㅂㅂㅂㅊㅍㄹㅅ finds 바벨 벤치 프레스. Nobody types sixty-seven
+          // Korean names out in full on a phone, and a box that refuses the
+          // initials reads as broken rather than as strict.
+          matchesAny(
+            [e.name, e.muscle_detail, e.muscle_group, e.secondary_group, e.equipment],
+            query
+          )
+      ),
+    [withStars, query, group, gear]
+  );
 
   // Sixty-seven movements sorted by name asks you to remember what yours are
   // called. Most sessions reuse a handful; put those within reach — and then,
@@ -157,7 +162,7 @@ export function ExercisePicker({
             <>
               <TextInput
                 style={styles.search}
-                placeholder="이름 · 부위 · 근육 · 기구로 검색"
+                placeholder="이름 · 부위 · 기구 · 초성(ㅅㅋㅌ)"
                 placeholderTextColor={colors.textDim}
                 value={query}
                 onChangeText={setQuery}
