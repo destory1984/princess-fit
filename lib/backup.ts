@@ -49,6 +49,11 @@ export const CSV_HEADER = [
   '거리km',
   '완료',
   '메모',
+  // Last, and after the memo, because it is for this app rather than for the
+  // person reading the sheet: the day column is what someone scans, and the
+  // full moment is what an import needs to tell two sessions on one day apart
+  // and to recognise a workout it has already seen.
+  '시작시각',
 ];
 
 /**
@@ -82,13 +87,27 @@ export function toCsv(workouts: BackupWorkout[]) {
     const head = [dayOf(workout.started_at), workout.title, workout.condition ?? ''];
     const tail = workout.memo ?? '';
     if (workout.exercises.length === 0) {
-      rows.push([...head, '', '', '', '', '', '', '', '', tail].map(csvField).join(','));
+      rows.push(
+        [...head, '', '', '', '', '', '', '', '', tail, workout.started_at].map(csvField).join(',')
+      );
       continue;
     }
     for (const exercise of workout.exercises) {
       if (exercise.sets.length === 0) {
         rows.push(
-          [...head, exercise.name, exercise.muscle_group, '', '', '', '', '', '', tail]
+          [
+            ...head,
+            exercise.name,
+            exercise.muscle_group,
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            tail,
+            workout.started_at,
+          ]
             .map(csvField)
             .join(',')
         );
@@ -107,6 +126,7 @@ export function toCsv(workouts: BackupWorkout[]) {
             set.distance_km,
             set.done ? '완료' : '',
             tail,
+            workout.started_at,
           ]
             .map(csvField)
             .join(',')
