@@ -42,6 +42,10 @@ const ROOM = {
   floorLeft: [0.04, 0.34, 0.66],
   floorRight: [0.62, 0.95, 0.62],
   ceiling: [0.4, 0.62, 0.0],
+  // The open floor she stands on, between the bed and the mirror. A rug goes
+  // here and nowhere else — floorLeft is the bed's corner and floorRight is
+  // where the bookshelf stands.
+  floorMid: [0.28, 0.74, 0.66],
 };
 
 /**

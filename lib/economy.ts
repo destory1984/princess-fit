@@ -1,4 +1,5 @@
 import { localDayKey } from './format.ts';
+import { withParticle } from './korean.ts';
 import type { WorkoutFact } from './gamification.ts';
 import { insightsFor } from './insight.ts';
 import { daysLeft, isFinished, lessonById, type Enrolment } from './lessons.ts';
@@ -171,8 +172,14 @@ function lessonLine(lesson: Enrolment, today: Date): string | null {
   const key = localDayKey(today);
   const left = daysLeft(lesson, today);
   if (key === lesson.startedOn) return `오늘부터 ${taught.name} 배우러 다녀요.`;
-  if (left === 1) return `${taught.name}은 오늘이 마지막이에요. 조금 아쉬워요.`;
-  if (left === 2) return `${taught.name}, 이제 이틀 남았어요.`;
+  // Said as something she is doing, not as a bare noun with a number after
+  // it. 「예의범절, 이제 이틀 남았어요」 is a calendar entry; she is a girl who
+  // has been going to a class. The particle is chosen rather than guessed,
+  // because a lesson added later may well end in a vowel.
+  if (left === 1) {
+    return `${withParticle(taught.name, '은는')} 오늘이 마지막이에요. 조금 아쉬워요.`;
+  }
+  if (left === 2) return `${taught.name} 배우는 중이에요. 이제 이틀 남았어요.`;
   return null;
 }
 

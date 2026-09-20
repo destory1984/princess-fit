@@ -13,6 +13,7 @@ type Art = { source: number; aspect: number };
 
 const ART: Record<string, Art> = {
   bed: { source: require('../assets/room/bed.png'), aspect: 1371 / 1148 },
+  rug: { source: require('../assets/room/rug.png'), aspect: 2400 / 1440 },
   curtain: { source: require('../assets/room/curtain.png'), aspect: 1536 / 1024 },
   shelf: { source: require('../assets/room/shelf.png'), aspect: 1024 / 1536 },
   mirror: { source: require('../assets/room/mirror.png'), aspect: 1024 / 1536 },
