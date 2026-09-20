@@ -76,6 +76,13 @@ export type WorkoutSet = {
   distance_km: number;
   done: boolean;
   /**
+   * Which side this set was done on, for movements done one limb at a time.
+   *
+   * Null on everything else, and on rows made before the column — both of
+   * which mean the same thing: the question does not apply here.
+   */
+  side?: 'L' | 'R' | null;
+  /**
    * Done to get warm rather than to count.
    *
    * Kept out of the volume, out of the records and out of the reading that

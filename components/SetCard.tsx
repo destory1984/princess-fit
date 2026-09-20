@@ -5,6 +5,7 @@ import { BigStepper } from '@/components/BigStepper';
 import { nextWeight } from '@/lib/weight';
 import { successFeedback, tapFeedback } from '@/lib/feedback';
 import type { TrackType, WorkoutSet } from '@/lib/types';
+import { otherSide, SIDE_LABEL } from '@/lib/sides';
 import { colors, radius, spacing } from '@/lib/theme';
 
 // react-native-web has no native animation driver, so asking for one there
@@ -58,9 +59,28 @@ export function SetCard({
     <Animated.View style={[styles.card, { transform: [{ scale }] }]}>
       <View style={styles.head}>
         <Text style={styles.label}>
+          {/*
+            The side comes first, because it is what you check before you pick
+            the dumbbell up. 「왼쪽 · 2번째 세트」 reads in the order the two
+            facts are needed.
+          */}
+          {set.side ? `${SIDE_LABEL[set.side]} · ` : ''}
           {track === 'weight_reps' ? `${index}번째 세트` : '이번 기록'}
           {total > 1 && track === 'weight_reps' ? ` · 총 ${total}세트` : ''}
         </Text>
+        {/*
+          Changing sides is one tap, not a picker. The board alternates on its
+          own, so this is only for the times it guessed wrong — starting on the
+          right because the left is sore, or losing count mid-session.
+        */}
+        {set.side && (
+          <Pressable
+            hitSlop={8}
+            style={styles.side}
+            onPress={() => onChange({ side: otherSide(set.side!) })}>
+            <Ionicons name="swap-horizontal" size={14} color={colors.textDim} />
+          </Pressable>
+        )}
         {/*
           Marked on the set itself, where the decision is made — you know a set
           was a warm-up while you are doing it, not afterwards on a settings
@@ -140,6 +160,13 @@ export function SetCard({
 }
 
 const styles = StyleSheet.create({
+  side: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.faint,
+  },
   warmup: {
     paddingHorizontal: spacing.sm,
     paddingVertical: 3,
