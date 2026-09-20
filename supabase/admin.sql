@@ -225,7 +225,6 @@ $$;
 revoke all on function admin_set_admin(uuid, boolean) from public;
 grant execute on function admin_set_admin(uuid, boolean) to authenticated;
 
-notify pgrst, 'reload schema';
 
 /*
   Setting somebody's purse from the desk.
@@ -260,5 +259,64 @@ $$;
 
 revoke all on function admin_set_gold(uuid, integer) from public;
 grant execute on function admin_set_gold(uuid, integer) to authenticated;
+
+notify pgrst, 'reload schema';
+
+/*
+  One person's last few sessions, for the desk.
+
+  Deliberately shallow: the date, what the session was called, which movements
+  were done with the heaviest set of each, and whatever was said afterwards.
+  No memos — those are where people write about pain and about themselves, and
+  reading them was never the point of this screen.
+
+  Warm-ups are left out of the weights, as everywhere else.
+*/
+create or replace function admin_user_recent(target uuid, sessions integer default 5)
+returns table (
+  workout_id uuid,
+  started_at timestamptz,
+  title text,
+  did text,
+  advice text,
+  advice_source text
+)
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  with recent as (
+    select w.id, w.started_at, w.title, w.advice, w.advice_source
+    from workouts w
+    where w.user_id = target and w.ended_at is not null and is_admin()
+    order by w.started_at desc
+    limit greatest(1, least(sessions, 20))
+  )
+  select
+    r.id,
+    r.started_at,
+    r.title,
+    coalesce(
+      string_agg(
+        e.name || case when max(s.weight_kg) > 0
+                       then ' ' || trim(trailing '.' from trim(trailing '0' from max(s.weight_kg)::text)) || 'kg'
+                       else ' ' || count(s.id) || '세트' end,
+        ', ' order by min(s.position)
+      ),
+      '기록 없음'
+    ),
+    r.advice,
+    r.advice_source
+  from recent r
+  left join workout_sets s
+    on s.workout_id = r.id and s.done and coalesce(s.warmup, false) = false
+  left join exercises e on e.id = s.exercise_id
+  group by r.id, r.started_at, r.title, r.advice, r.advice_source
+  order by r.started_at desc;
+$$;
+
+revoke all on function admin_user_recent(uuid, integer) from public;
+grant execute on function admin_user_recent(uuid, integer) to authenticated;
 
 notify pgrst, 'reload schema';

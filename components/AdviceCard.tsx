@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { requestAdvice, type AdviceContext } from '@/lib/advice';
+import { saveAdvice } from '@/lib/db';
 import { cacheAdvice, getCachedAdvice } from '@/lib/prefs';
 import { colors, paper, radius, spacing } from '@/lib/theme';
 
@@ -20,6 +21,10 @@ export function AdviceCard({ context }: { context: AdviceContext }) {
           setText(next);
           setSource(from);
           if (from === 'model') cacheAdvice(context.today.id, next);
+          // Kept with the session too, so it survives a new phone and can be
+          // read back later. Never allowed to interrupt: a sentence that did
+          // not save is not worth a message to someone who just finished.
+          void saveAdvice(context.today.id, next, from).catch(() => {});
         })
         .finally(() => {
           if (!signal?.aborted) setBusy(false);

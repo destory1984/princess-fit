@@ -780,6 +780,26 @@ export async function monthOfSessions(now = new Date()): Promise<SessionLine[]> 
   return [...byWorkout.values()].sort((a, b) => b.started_at.localeCompare(a.started_at));
 }
 
+/**
+ * Keep what was said about a session with the session it was about.
+ *
+ * It used to live only in the phone's own storage — gone on a new device, and
+ * invisible to anyone trying to see how the advice is actually turning out.
+ * Both kinds are kept, not only the model's: the rule-based line is the one
+ * most people will read, and a record of the advice that skips it is a record
+ * of the exception.
+ *
+ * Failure is ignored by the caller. Saving a sentence must never be the thing
+ * that interrupts somebody who has just finished training.
+ */
+export async function saveAdvice(workoutId: string, advice: string, source: string) {
+  const { error } = await supabase
+    .from('workouts')
+    .update({ advice, advice_source: source })
+    .eq('id', workoutId);
+  if (error) throw error;
+}
+
 export async function deleteWorkout(id: string) {
   const { error } = await supabase.from('workouts').delete().eq('id', id);
   if (error) throw error;
