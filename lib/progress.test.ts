@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { applyLabel, COLLAPSE, MIN_SETS, progressWord, readiness } from './progress.ts';
+import { COLLAPSE, MIN_SETS, RIR_CHOICES, applyLabel, progressWord, readiness } from './progress.ts';
 import { nextWeight, PLATE_THRESHOLD } from './weight.ts';
 
 const set = (weight_kg: number, reps: number) => ({ weight_kg, reps });
@@ -97,4 +97,71 @@ test('nothing is said when the suggestion is the weight already on the bar', () 
 test('the button says the weight it will set', () => {
   const read = readiness([set(60, 10), set(60, 10)])!;
   assert.ok(applyLabel(read).startsWith(String(read.weight)));
+});
+
+test('what they said outranks what the reps imply', () => {
+  // The reps collapsed, which on its own reads as too heavy — but they say
+  // there were three more in the tank, so it was a distracted set, not a hard
+  // one. Only the person in the room knows that.
+  const easy = readiness([
+    { weight_kg: 60, reps: 10 },
+    { weight_kg: 60, reps: 4, rir: 4 },
+  ]);
+  assert.equal(easy?.verdict, 'add');
+
+  // And the other way: the reps held up, which reads as room to spare, but
+  // they had nothing left.
+  const spent = readiness([
+    { weight_kg: 60, reps: 8 },
+    { weight_kg: 60, reps: 8, rir: 0 },
+  ]);
+  assert.equal(spent?.verdict, 'hold');
+});
+
+test('being spent only means too heavy when the reps fell away too', () => {
+  const held = readiness([
+    { weight_kg: 60, reps: 10 },
+    { weight_kg: 60, reps: 8, rir: 0 },
+  ]);
+  assert.equal(held?.verdict, 'hold');
+
+  const collapsed = readiness([
+    { weight_kg: 60, reps: 10 },
+    { weight_kg: 60, reps: 3, rir: 0 },
+  ]);
+  assert.equal(collapsed?.verdict, 'ease');
+});
+
+test('a set nobody was asked about still reads the old way', () => {
+  const unasked = readiness([
+    { weight_kg: 60, reps: 10 },
+    { weight_kg: 60, reps: 10 },
+  ]);
+  assert.equal(unasked?.verdict, 'add');
+  // null is "not asked", same as absent — not "zero reps left".
+  const nulled = readiness([
+    { weight_kg: 60, reps: 10 },
+    { weight_kg: 60, reps: 10, rir: null },
+  ]);
+  assert.equal(nulled?.verdict, 'add');
+});
+
+test('she speaks differently to someone who answered her', () => {
+  const said = readiness([
+    { weight_kg: 60, reps: 10 },
+    { weight_kg: 60, reps: 10, rir: 4 },
+  ]);
+  // 「보였어요」 to someone who told you themselves reads as not listening.
+  assert.match(progressWord(said, true)!, /여유가 있으셨다니/);
+  assert.match(progressWord(said, false)!, /버티셨어요/);
+});
+
+test('every offered answer is one the reading understands', () => {
+  for (const choice of RIR_CHOICES) {
+    const out = readiness([
+      { weight_kg: 60, reps: 10 },
+      { weight_kg: 60, reps: 9, rir: choice.rir },
+    ]);
+    assert.ok(out, choice.label);
+  }
 });

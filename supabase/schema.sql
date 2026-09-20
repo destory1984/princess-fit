@@ -190,3 +190,5 @@ create policy "own sleep logs" on sleep_logs
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 alter table exercises add column if not exists hidden boolean not null default false;
+
+alter table workout_sets add column if not exists rir int;

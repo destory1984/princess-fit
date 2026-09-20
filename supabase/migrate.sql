@@ -58,3 +58,5 @@ alter table household add column if not exists lesson_started_on date;
 alter table household add column if not exists lesson_ends_on    date;
 
 alter table exercises add column if not exists hidden boolean not null default false;
+
+alter table workout_sets add column if not exists rir int;

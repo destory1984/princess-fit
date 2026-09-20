@@ -31,6 +31,7 @@ export type SetPatch = {
   duration_sec?: number;
   distance_km?: number;
   done?: boolean;
+  rir?: number | null;
 };
 
 /** The columns a set needs before it can exist at all. */
