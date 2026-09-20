@@ -5,6 +5,7 @@ import { Advisor } from '@/components/Advisor';
 import { BigStepper } from '@/components/BigStepper';
 import { BragCard } from '@/components/BragCard';
 import { Cheer } from '@/components/Cheer';
+import { ConditionPicker } from '@/components/ConditionPicker';
 import { ExercisePicker } from '@/components/ExercisePicker';
 import { TimeField } from '@/components/TimeField';
 import { DEFAULT_EXERCISES } from '@/lib/exerciseCatalog';
@@ -13,6 +14,7 @@ import { MonthCalendar } from '@/components/MonthCalendar';
 import GirlScreen from '@/app/settings/girl';
 import OneRmScreen from '@/app/onerm';
 import RoutinePresetsScreen from '@/app/routine/presets';
+import OnboardingScreen from '@/app/onboarding';
 import PhotosScreen from '@/app/photos';
 import SleepScreen from '@/app/sleep';
 import { OneRmChart } from '@/components/OneRmChart';
@@ -73,6 +75,7 @@ const benchUsage = new Map([
 
 export default function PreviewScreen() {
   const [picking, setPicking] = useState(false);
+  const [asking, setAsking] = useState(false);
   if (!__DEV__) return <Redirect href="/" />;
 
   const stats = { strength: 62, stamina: 40, vitality: 55, balance: 30, discipline: 48 };
@@ -122,6 +125,7 @@ export default function PreviewScreen() {
           id: 'w',
           user_id: 'u',
           routine_id: null,
+    condition: 'normal' as const,
           title: '월요일 상체',
           memo: null,
           started_at: '2026-09-20T18:00:00',
@@ -158,6 +162,21 @@ export default function PreviewScreen() {
       <View style={styles.framedTall}>
         <GirlScreen />
       </View>
+
+      <Text style={styles.heading}>첫 인사 (화면 전체)</Text>
+      <View style={styles.framedTall}>
+        <OnboardingScreen />
+      </View>
+
+      <Text style={styles.heading}>오늘 몸 상태</Text>
+      <Pressable style={styles.openPicker} onPress={() => setAsking(true)}>
+        <Text style={styles.openPickerText}>물어보는 창 열기</Text>
+      </Pressable>
+      <ConditionPicker
+        visible={asking}
+        onPick={() => setAsking(false)}
+        onClose={() => setAsking(false)}
+      />
 
       <Text style={styles.heading}>사진 기록 (화면 전체)</Text>
       <View style={styles.framed}>

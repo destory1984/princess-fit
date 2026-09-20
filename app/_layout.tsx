@@ -6,21 +6,42 @@ import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { NotificationRouter } from "@/components/NotificationRouter";
 import { AuthProvider, useAuth } from "@/lib/auth";
+import { getOnboardedAt } from "@/lib/prefs";
 import { colors } from "@/lib/theme";
 
 function RootNavigator() {
   const { session, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
-
   useEffect(() => {
     if (loading) return;
     const onLoginScreen = segments[0] === "login";
+    const onOnboarding = segments[0] === "onboarding";
     // The development bench needs no account: it renders components against
     // made-up data, and sending it to the login screen would defeat it.
     const onPreview = __DEV__ && segments[0] === "preview";
-    if (!session && !onLoginScreen && !onPreview) router.replace("/login");
-    if (session && onLoginScreen) router.replace("/");
+
+    if (!session && !onLoginScreen && !onPreview) {
+      router.replace("/login");
+      return;
+    }
+    if (session && onLoginScreen) {
+      router.replace("/");
+      return;
+    }
+    if (!session || onOnboarding || onPreview) return;
+
+    // She introduces herself before the empty room does. The flag is read here
+    // rather than held in state on purpose: the greeting writes it on its way
+    // out, and state read at mount would still say "not yet" at the moment it
+    // lands home — sending it straight back into the greeting it just left.
+    let alive = true;
+    getOnboardedAt().then((at) => {
+      if (alive && at === null) router.replace("/onboarding");
+    });
+    return () => {
+      alive = false;
+    };
   }, [session, loading, segments, router]);
 
   if (loading) {
@@ -72,6 +93,7 @@ function RootNavigator() {
       >
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="login" options={{ headerShown: false }} />
+        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="workout/[id]" options={{ title: "운동 기록" }} />
         <Stack.Screen name="routine/[id]" options={{ title: "루틴" }} />
         <Stack.Screen

@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DEFAULT_QUIET_FROM, DEFAULT_QUIET_TO } from './quiet';
+import { GOALS, PLACES, type Goal, type Place } from './onboarding';
 
 const WEEKLY_GOAL = 'refit.weeklyGoal';
 export const DEFAULT_WEEKLY_GOAL = 3;
@@ -16,6 +17,65 @@ export async function getWeeklyGoal() {
 
 export async function setWeeklyGoal(goal: number) {
   await AsyncStorage.setItem(WEEKLY_GOAL, String(Math.max(1, Math.min(7, goal))));
+}
+
+const GOAL = 'refit.goal';
+const PLACE = 'refit.place';
+const ONBOARDED = 'refit.onboardedAt';
+
+/** What they said they were after. Null until they have been asked. */
+export async function getGoal(): Promise<Goal | null> {
+  try {
+    const raw = await AsyncStorage.getItem(GOAL);
+    return GOALS.some((g) => g.id === raw) ? (raw as Goal) : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function setGoal(goal: Goal) {
+  await AsyncStorage.setItem(GOAL, goal);
+}
+
+/** Where they train, which decides what can be recommended. */
+export async function getPlace(): Promise<Place | null> {
+  try {
+    const raw = await AsyncStorage.getItem(PLACE);
+    return PLACES.some((p) => p.id === raw) ? (raw as Place) : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function setPlace(place: Place) {
+  await AsyncStorage.setItem(PLACE, place);
+}
+
+/**
+ * Whether the first conversation has happened.
+ *
+ * Stored on the device rather than on the account, because what it guards is a
+ * screen, not data: being asked again after reinstalling is a small annoyance,
+ * and the onboarding screen bows out by itself when it finds an account that
+ * already has routines. Losing a server round trip on every cold start to
+ * avoid that annoyance is the worse trade.
+ */
+export async function getOnboardedAt() {
+  try {
+    return await AsyncStorage.getItem(ONBOARDED);
+  } catch {
+    // Unreadable storage should not lock anyone out of their own app, so this
+    // reads as "already done" rather than sending them round the loop again.
+    return new Date().toISOString();
+  }
+}
+
+export async function markOnboarded() {
+  try {
+    await AsyncStorage.setItem(ONBOARDED, new Date().toISOString());
+  } catch {
+    // Worst case they are greeted twice.
+  }
 }
 
 const QUIET = 'refit.quietHours';

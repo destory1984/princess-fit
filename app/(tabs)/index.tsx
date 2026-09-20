@@ -4,6 +4,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { notify } from '@/lib/confirm';
 import { Advisor } from '@/components/Advisor';
+import { ConditionPicker } from '@/components/ConditionPicker';
 import { LevelCard } from '@/components/LevelCard';
 import { Purse } from '@/components/Purse';
 import { TrainingHall } from '@/components/TrainingHall';
@@ -15,6 +16,7 @@ import {
   masterSays,
   scaleStats,
 } from '@/lib/character';
+import type { Condition } from '@/lib/condition';
 import { GIRL_NAME } from '@/lib/girl';
 import { BASE_GIRL } from '@/lib/outfitArt';
 import { roomMood } from '@/lib/room';
@@ -64,6 +66,8 @@ export default function TodayScreen() {
   const [house, setHouse] = useState<Household | null>(null);
   const [furniture, setFurniture] = useState<string[]>([]);
   const [worn, setWorn] = useState<string[]>([]);
+  // The routine waiting on an answer about today's body, if one is.
+  const [pending, setPending] = useState<{ routine: Routine | null } | null>(null);
 
   const load = useCallback(() => {
     Promise.all([
@@ -101,13 +105,28 @@ export default function TodayScreen() {
 
   useFocusEffect(load);
 
-  async function begin(routine: Routine | null) {
+  /**
+   * Starting asks one question first. A session already under way does not:
+   * the body was asked about when it began, and asking again would be asking
+   * about a different day than the one being recorded.
+   */
+  function begin(routine: Routine | null) {
     if (active) {
       router.push(`/workout/${active.id}`);
       return;
     }
+    setPending({ routine });
+  }
+
+  async function beginWith(condition: Condition) {
+    const routine = pending?.routine ?? null;
+    setPending(null);
     try {
-      const w = await startWorkout(routine?.name ?? '오늘의 운동', routine?.id ?? null);
+      const w = await startWorkout(
+        routine?.name ?? '오늘의 운동',
+        routine?.id ?? null,
+        condition
+      );
       router.push(`/workout/${w.id}`);
     } catch (e: any) {
       notify('시작 실패', e.message);
@@ -254,6 +273,12 @@ export default function TodayScreen() {
           </Pressable>
         ))
       )}
+
+      <ConditionPicker
+        visible={pending !== null}
+        onPick={beginWith}
+        onClose={() => setPending(null)}
+      />
     </ScrollView>
   );
 }

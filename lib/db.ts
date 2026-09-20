@@ -11,6 +11,7 @@ import {
   type Household,
 } from './economy';
 import { buy, type Item } from './shop';
+import { DEFAULT_CONDITION, shapePlan, type Condition } from './condition';
 import { resolvePreset, type RoutinePreset } from './routinePresets';
 import type { BodyLog } from './body';
 import type { UsageMap } from './exerciseUsage';
@@ -373,11 +374,15 @@ export async function getWorkout(id: string) {
   return data as Workout;
 }
 
-export async function startWorkout(title: string, routineId: string | null) {
+export async function startWorkout(
+  title: string,
+  routineId: string | null,
+  condition: Condition = DEFAULT_CONDITION
+) {
   const user_id = await requireUserId();
   const { data, error } = await supabase
     .from('workouts')
-    .insert({ user_id, title, routine_id: routineId })
+    .insert({ user_id, title, routine_id: routineId, condition })
     .select()
     .single();
   if (error) throw error;
@@ -405,18 +410,23 @@ export async function startWorkout(title: string, routineId: string | null) {
       const weighted = trackTypes.get(re.exercise_id) === 'weight_reps';
       const count = weighted ? re.target_sets : 1;
       const lastSets = past.get(re.exercise_id)?.sets ?? [];
-      return Array.from({ length: count }, (_, i) => {
+      const planned = Array.from({ length: count }, (_, i) => {
         // Past a shorter history, keep repeating its final set.
         const before = lastSets[Math.min(i, lastSets.length - 1)];
         return {
-          workout_id: workout.id,
-          exercise_id: re.exercise_id,
-          position,
-          set_no: i + 1,
           reps: weighted ? (before?.reps ?? re.target_reps) : 0,
-          weight_kg: weighted ? (before?.weight_kg ?? 0) : 0,
+          weight: weighted ? (before?.weight_kg ?? 0) : 0,
         };
       });
+      // The routine says what an ordinary day looks like; today may not be one.
+      return shapePlan(planned, condition).map((s, i) => ({
+        workout_id: workout.id,
+        exercise_id: re.exercise_id,
+        position,
+        set_no: i + 1,
+        reps: s.reps,
+        weight_kg: s.weight,
+      }));
     });
     if (sets.length) {
       const { error: setsError } = await supabase.from('workout_sets').insert(sets);
@@ -425,6 +435,25 @@ export async function startWorkout(title: string, routineId: string | null) {
   }
 
   return workout;
+}
+
+/**
+ * How the last few finished sessions felt, newest first.
+ *
+ * Only finished ones count. A session that was started and abandoned says
+ * nothing about the body that day — and on a heavy day abandoning is exactly
+ * what happens, so counting those would find a run of heavy days in every
+ * stretch of not training.
+ */
+export async function listRecentConditions(limit = 5): Promise<(Condition | null)[]> {
+  const { data, error } = await supabase
+    .from('workouts')
+    .select('condition')
+    .not('ended_at', 'is', null)
+    .order('started_at', { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return (data as { condition: Condition | null }[]).map((w) => w.condition);
 }
 
 /**
