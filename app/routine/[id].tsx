@@ -5,6 +5,7 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { BodyMap, workedParts } from '@/components/BodyMap';
 import { ExercisePicker } from '@/components/ExercisePicker';
 import { MuscleTag } from '@/components/MuscleTag';
+import { ScreenState } from '@/components/ScreenState';
 import { confirmAction, notify } from '@/lib/confirm';
 import {
   addRoutineExercise,
@@ -24,19 +25,21 @@ export default function RoutineScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const [routine, setRoutine] = useState<Routine | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [items, setItems] = useState<RoutineExercise[]>([]);
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [picking, setPicking] = useState(false);
 
   const load = useCallback(() => {
     if (!id) return;
+    setError(null);
     Promise.all([getRoutine(id), listRoutineExercises(id), listExercises()])
       .then(([r, re, ex]) => {
         setRoutine(r);
         setItems(re);
         setExercises(ex);
       })
-      .catch((e) => notify('불러오기 실패', e.message));
+      .catch((e) => setError(e.message));
   }, [id]);
 
   useFocusEffect(load);
@@ -116,10 +119,15 @@ export default function RoutineScreen() {
     });
   }
 
+  // Until the routine is known this screen would show a blank title over an
+  // empty body map captioned "종목을 담으면…" — a routine full of exercises
+  // announcing itself as empty for as long as the query takes.
+  if (!routine) return <ScreenState error={error} onRetry={load} />;
+
   return (
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>{routine?.name ?? ''}</Text>
+        <Text style={styles.title}>{routine.name}</Text>
 
         <View style={styles.bodyCard}>
           <BodyMap data={worked} />
