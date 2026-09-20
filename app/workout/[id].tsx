@@ -46,6 +46,13 @@ import {
 } from "@/lib/db";
 import type { Exercise, Workout, WorkoutSet } from "@/lib/types";
 import { followOn, planFor } from "@/lib/setPlan";
+import {
+  conditionLabel,
+  conditionLine,
+  conditionNote,
+  DEFAULT_CONDITION,
+  shapePlan,
+} from "@/lib/condition";
 import type { UsageMap } from "@/lib/exerciseUsage";
 import { colors, muscleColor, radius, spacing } from "@/lib/theme";
 
@@ -326,7 +333,12 @@ export default function WorkoutScreen() {
       }
     }
 
-    const plan = planFor(exercise.track_type, past);
+    // An exercise added halfway through gets the same adjustment the routine
+    // got at the start, or the day would be half eased and half not.
+    const plan = shapePlan(
+      planFor(exercise.track_type, past),
+      workout?.condition ?? DEFAULT_CONDITION
+    );
     const position = sets.reduce((m, x) => Math.max(m, x.position), -1) + 1;
     try {
       const created = await Promise.all(
@@ -480,6 +492,34 @@ export default function WorkoutScreen() {
           {worked.length > 0 && (
             <View style={styles.bodyWrap}>
               <BodyMap data={worked} scale={0.55} labels={false} />
+            </View>
+          )}
+
+          {/*
+            An adjusted board with nothing said about it reads as the app
+            having forgotten last week's weights. One line, and only when
+            something was actually changed.
+          */}
+          {!done && workout.condition && workout.condition !== "normal" && (
+            <View style={styles.condition}>
+              <Ionicons
+                name={
+                  workout.condition === "heavy"
+                    ? "cloudy-outline"
+                    : "sunny-outline"
+                }
+                size={16}
+                color={colors.gold}
+              />
+              <Text style={styles.conditionText}>
+                오늘 · {conditionLabel(workout.condition)}
+                {(() => {
+                  const note = conditionNote(workout.condition, sets.length);
+                  return note ? ` · ${note}` : "";
+                })()}
+                {"\n"}
+                {conditionLine(workout.condition)}
+              </Text>
             </View>
           )}
 
@@ -800,6 +840,17 @@ const styles = StyleSheet.create({
   summaryTitle: { color: colors.text, fontSize: 20, fontWeight: "800" },
   summarySub: { color: colors.textDim, marginTop: spacing.xs, fontSize: 13 },
   bodyWrap: { marginTop: spacing.md },
+  condition: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.sm,
+    marginTop: spacing.md,
+    padding: spacing.md,
+    borderRadius: radius.sm,
+    borderColor: colors.gold,
+    borderWidth: 1,
+  },
+  conditionText: { color: colors.text, fontSize: 12, lineHeight: 19, flex: 1 },
   progressTrack: {
     height: 8,
     borderRadius: 4,

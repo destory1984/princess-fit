@@ -50,3 +50,5 @@ alter table sleep_logs enable row level security;
 drop policy if exists "own sleep logs" on sleep_logs;
 create policy "own sleep logs" on sleep_logs
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+alter table workouts add column if not exists condition text;

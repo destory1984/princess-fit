@@ -1,3 +1,5 @@
+import type { Condition } from './condition.ts';
+
 /** weight_reps: kg × 횟수 · duration: 시간만 · cardio: 시간 + 거리 */
 export type TrackType = 'weight_reps' | 'duration' | 'cardio';
 
@@ -49,6 +51,8 @@ export type Workout = {
   started_at: string;
   ended_at: string | null;
   memo: string | null;
+  /** How the body felt that day, or null for a session recorded before asking. */
+  condition: Condition | null;
 };
 
 export type WorkoutSet = {

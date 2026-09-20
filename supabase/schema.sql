@@ -31,7 +31,11 @@ create table if not exists workouts (
   title text not null default '운동',
   started_at timestamptz not null default now(),
   ended_at timestamptz,
-  memo text
+  memo text,
+  -- How the body turned up that day: light / normal / heavy. Null for every
+  -- session recorded before the question was asked, which is not the same as
+  -- an ordinary day and must not be read as one.
+  condition text
 );
 
 create table if not exists workout_sets (
