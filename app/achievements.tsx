@@ -6,7 +6,6 @@ import { BodyMap, workedParts } from '@/components/BodyMap';
 import { Scroll } from '@/components/Scroll';
 import { StatBar } from '@/components/StatBar';
 import { ScreenState } from '@/components/ScreenState';
-import { GIRL_NAME } from '@/lib/girl';
 import {
   CULTURE_META,
   CULTURE_ORDER,
@@ -35,8 +34,10 @@ import {
   type WorkoutFact,
 } from '@/lib/gamification';
 import { colors, paper, radius, spacing } from '@/lib/theme';
+import { useGirl } from '@/lib/girl';
 
 export default function TrainingLedgerScreen() {
+  const girl = useGirl();
   const [facts, setFacts] = useState<WorkoutFact[] | null>(null);
   const [goal, setGoal] = useState(3);
   const [error, setError] = useState<string | null>(null);
@@ -128,7 +129,7 @@ export default function TrainingLedgerScreen() {
 
         <View style={styles.speech}>
           <View style={styles.speaker}>
-            <Text style={styles.speakerText}>{GIRL_NAME}</Text>
+            <Text style={styles.speakerText}>{girl.name}</Text>
           </View>
           <Text style={styles.speechText}>{saying}</Text>
         </View>

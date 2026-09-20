@@ -30,9 +30,8 @@ import { TrainingHall } from '@/components/TrainingHall';
 import { FURNITURE } from '@/lib/room';
 import { GARMENTS } from '@/lib/outfit';
 import { summarise } from '@/lib/gamification';
-import { BASE_GIRL } from '@/lib/outfitArt';
-import { GIRL_NAME } from '@/lib/girl';
 import { colors, spacing } from '@/lib/theme';
+import { useGirl } from '@/lib/girl';
 
 /**
  * A development-only bench for the pieces that are hard to judge from code.
@@ -76,6 +75,7 @@ const benchUsage = new Map([
 export default function PreviewScreen() {
   const [picking, setPicking] = useState(false);
   const [asking, setAsking] = useState(false);
+  const girl = useGirl();
   if (!__DEV__) return <Redirect href="/" />;
 
   const stats = { strength: 62, stamina: 40, vitality: 55, balance: 30, discipline: 48 };
@@ -112,7 +112,7 @@ export default function PreviewScreen() {
       />
 
       <Text style={styles.heading}>말풍선</Text>
-      <Advisor name={GIRL_NAME} portrait={BASE_GIRL.source}>
+      <Advisor name={girl.name} portrait={girl.base}>
         오늘은 오시려나 했어요.
       </Advisor>
 

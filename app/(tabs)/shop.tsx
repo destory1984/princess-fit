@@ -5,9 +5,9 @@ import { ShopShelves, type Spend } from "@/components/ShopShelves";
 import { notify } from "@/lib/confirm";
 import { getLedger, type Ledger } from "@/lib/db";
 import { thanksFor } from "@/lib/economy";
-import { GIRL_NAME } from "@/lib/girl";
 import { tripTimes } from "@/lib/lessons";
 import { scheduleLessonTrip } from "@/lib/notify";
+import { useGirl } from '@/lib/girl';
 
 /**
  * The shop screen: reads the ledger and carries out purchases. What it looks
@@ -15,6 +15,7 @@ import { scheduleLessonTrip } from "@/lib/notify";
  * bench without an account.
  */
 export default function ShopScreen() {
+  const girl = useGirl();
   const [ledger, setLedger] = useState<Ledger | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
@@ -42,7 +43,7 @@ export default function ShopScreen() {
       // how it went when she is back. Booking that must not look like a failed
       // purchase, so it is deliberately kept out of the catch above.
       if (kind === "lesson") {
-        void scheduleLessonTrip(GIRL_NAME, label, tripTimes()).catch(() => {});
+        void scheduleLessonTrip(girl.name, label, tripTimes()).catch(() => {});
       }
     } catch (e: any) {
       notify("사지 못했어요", e.message);

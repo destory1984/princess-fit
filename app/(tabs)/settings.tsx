@@ -4,18 +4,19 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { NudgeSetting } from '@/components/NudgeSetting';
 import { Portrait } from '@/components/Portrait';
-import { GIRL_NAME } from '@/lib/girl';
-import { BASE_GIRL } from '@/lib/outfitArt';
 import { notify } from '@/lib/confirm';
 import { listExercises } from '@/lib/db';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { colors, radius, spacing } from '@/lib/theme';
+import { useGirl } from '@/lib/girl';
 
 export default function SettingsScreen() {
   const { session } = useAuth();
   const router = useRouter();
   const [count, setCount] = useState<number | null>(null);
+
+  const girl = useGirl();
 
   useFocusEffect(
     useCallback(() => {
@@ -28,10 +29,10 @@ export default function SettingsScreen() {
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <Pressable style={styles.row} onPress={() => router.push('/settings/girl')}>
-        <Portrait source={BASE_GIRL.source} size={48} />
+        <Portrait source={girl.base} size={48} />
         <View style={styles.body}>
           <Text style={styles.title}>함께 지낼 아이</Text>
-          <Text style={styles.sub}>{GIRL_NAME} · 다른 아이는 준비 중</Text>
+          <Text style={styles.sub}>{girl.name}</Text>
         </View>
         <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
       </Pressable>
