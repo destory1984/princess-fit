@@ -168,7 +168,20 @@ create policy "admins read profiles" on profiles for select using (is_admin());
 
   Totals only. Nobody's sets, weights or memos are returned.
 */
-create or replace function admin_users()
+/*
+  Dropped before it is made, not replaced.
+
+  create or replace cannot change a function's return type, and adding a
+  column to a returns table() list is exactly that. The first run of this file
+  succeeded and every run after it failed on this line — which took down
+  everything below it, so the missing piece reported on screen was never the
+  one that broke.
+
+  is_admin() is left alone: policies depend on it, dropping it would fail, and
+  its shape has no reason to change.
+*/
+drop function if exists admin_users();
+create function admin_users()
 returns table (
   user_id uuid,
   email text,
@@ -211,7 +224,8 @@ grant execute on function admin_users() to authenticated;
   single mis-tap otherwise, and it cannot be undone from the app — only from
   the SQL editor, by someone who knows that is where to go.
 */
-create or replace function admin_set_admin(target uuid, make_admin boolean)
+drop function if exists admin_set_admin(uuid, boolean);
+create function admin_set_admin(target uuid, make_admin boolean)
 returns void
 language plpgsql
 security definer
@@ -248,7 +262,8 @@ grant execute on function admin_set_admin(uuid, boolean) to authenticated;
   Creates the row when there is none, because an account that has never opened
   the app has no household yet and 「그 사람은 못 준다」 would be a strange rule.
 */
-create or replace function admin_set_gold(target uuid, amount integer)
+drop function if exists admin_set_gold(uuid, integer);
+create function admin_set_gold(target uuid, amount integer)
 returns void
 language plpgsql
 security definer
@@ -283,7 +298,8 @@ notify pgrst, 'reload schema';
 
   Warm-ups are left out of the weights, as everywhere else.
 */
-create or replace function admin_user_recent(target uuid, sessions integer default 5)
+drop function if exists admin_user_recent(uuid, integer);
+create function admin_user_recent(target uuid, sessions integer default 5)
 returns table (
   workout_id uuid,
   started_at timestamptz,
