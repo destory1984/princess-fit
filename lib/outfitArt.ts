@@ -14,6 +14,25 @@ export const BASE_GIRL: Art = {
   aspect: 1086 / 1448,
 };
 
+/**
+ * Each girl's gym-clothes base, keyed by advisor id.
+ *
+ * A girl is playable exactly when she has one of these: garments are drawn to
+ * layer over this body, so a portrait alone can be shown in the roster but
+ * never dressed. `advisors.ts` carries the matching `playable` flag — it stays
+ * free of `require` so the tests can import it, which is why the two have to
+ * be kept in step by hand.
+ */
+const BASE_ART: Record<string, Art> = {
+  geumhwa: BASE_GIRL,
+};
+
+export function baseArt(advisorId: string): Art {
+  const art = BASE_ART[advisorId];
+  if (!art) throw new Error(`no gym-clothes base for ${advisorId}`);
+  return art;
+}
+
 const GARMENT_ART: Record<string, Art> = {
   bouquet: { source: require('../assets/outfit/bouquet.png'), aspect: 1086 / 1448 },
   sleeves_orange: { source: require('../assets/outfit/sleeves_orange.png'), aspect: 1086 / 1448 },

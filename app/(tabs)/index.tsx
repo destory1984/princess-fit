@@ -17,8 +17,6 @@ import {
   scaleStats,
 } from '@/lib/character';
 import type { Condition } from '@/lib/condition';
-import { GIRL_NAME } from '@/lib/girl';
-import { BASE_GIRL } from '@/lib/outfitArt';
 import { roomMood } from '@/lib/room';
 import {
   conditionFactor,
@@ -42,12 +40,13 @@ import {
 import { summarise, type WorkoutFact } from '@/lib/gamification';
 import type { Routine, Workout } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
+import { useGirl } from '@/lib/girl';
 
-async function armDailyMessage(house: Household, facts: WorkoutFact[]) {
+async function armDailyMessage(name: string, house: Household, facts: WorkoutFact[]) {
   try {
     const hour = await getNudgeHour();
     if (hour === null) return;
-    await scheduleDailyMessage(GIRL_NAME, tomorrowsMessage(house, facts), hour);
+    await scheduleDailyMessage(name, tomorrowsMessage(house, facts), hour);
   } catch {
     // She will try again the next time the app is opened.
   }
@@ -55,6 +54,7 @@ async function armDailyMessage(house: Household, facts: WorkoutFact[]) {
 
 export default function TodayScreen() {
   const router = useRouter();
+  const girl = useGirl();
   const [active, setActive] = useState<Workout | null>(null);
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [routineSizes, setRoutineSizes] = useState<Record<string, number>>({});
@@ -90,7 +90,7 @@ export default function TodayScreen() {
             setWorn(dressed);
             // Re-arm her daily message with the mood she will be in by then.
             // A failure here is never worth interrupting the screen for.
-            void armDailyMessage(h, facts);
+            void armDailyMessage(girl.name, h, facts);
           })
           .catch(() => setHouse(null));
         setSummary(summarise(facts));
@@ -101,7 +101,7 @@ export default function TodayScreen() {
         setRoutineSizes(Object.fromEntries(sizes));
       })
       .catch((e) => notify('불러오기 실패', e.message));
-  }, []);
+  }, [girl.name]);
 
   useFocusEffect(load);
 
@@ -187,7 +187,7 @@ export default function TodayScreen() {
               <Purse house={house} opensShop />
             </Pressable>
           )}
-          <Advisor name={GIRL_NAME} portrait={BASE_GIRL.source}>
+          <Advisor name={girl.name} portrait={girl.base}>
             {house ? dailyLine(house, facts) : masterSays(stats, facts)}
           </Advisor>
           <LevelCard

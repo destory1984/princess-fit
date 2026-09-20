@@ -14,7 +14,6 @@ import { Advisor } from '@/components/Advisor';
 import { seedDefaultExercises } from '@/lib/catalog';
 import { notify } from '@/lib/confirm';
 import { createRoutineFromPreset, listRoutines } from '@/lib/db';
-import { GIRL_NAME } from '@/lib/girl';
 import { ensureNotificationPermission } from '@/lib/notify';
 import {
   GOALS,
@@ -31,7 +30,6 @@ import {
   type Place,
   type Step,
 } from '@/lib/onboarding';
-import { BASE_GIRL } from '@/lib/outfitArt';
 import {
   DEFAULT_NUDGE_HOUR,
   DEFAULT_WEEKLY_GOAL,
@@ -43,6 +41,7 @@ import {
 } from '@/lib/prefs';
 import type { RoutinePreset } from '@/lib/routinePresets';
 import { colors, radius, spacing } from '@/lib/theme';
+import { useGirl } from '@/lib/girl';
 
 /** Hours worth offering, matching the ones the settings screen uses. */
 const HOURS = [8, 12, 18, 20, 22];
@@ -62,6 +61,7 @@ const HOURS = [8, 12, 18, 20, 22];
  */
 export default function OnboardingScreen() {
   const router = useRouter();
+  const girl = useGirl();
   const [step, setStep] = useState<Step>('meet');
   const [perWeek, setPerWeek] = useState(DEFAULT_WEEKLY_GOAL);
   const [goal, setChosenGoal] = useState<Goal>('habit');
@@ -186,8 +186,8 @@ export default function OnboardingScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        <Advisor name={GIRL_NAME} portrait={BASE_GIRL.source}>
-          {said(step, { perWeek, goal, place, preset, hour })}
+        <Advisor name={girl.name} portrait={girl.base}>
+          {said(step, girl.name, { perWeek, goal, place, preset, hour })}
         </Advisor>
 
         {step === 'meet' && (
@@ -341,6 +341,7 @@ export default function OnboardingScreen() {
  */
 function said(
   step: Step,
+  name: string,
   answers: {
     perWeek: number;
     goal: Goal;
@@ -351,7 +352,7 @@ function said(
 ): string {
   switch (step) {
     case 'meet':
-      return `저는 ${GIRL_NAME}예요. 여기서 기다리고 있을게요. 몇 가지만 여쭤봐도 될까요?`;
+      return `저는 ${name}예요. 여기서 기다리고 있을게요. 몇 가지만 여쭤봐도 될까요?`;
     case 'often':
       return perWeekWord(answers.perWeek);
     case 'goal':

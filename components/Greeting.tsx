@@ -2,9 +2,8 @@ import { useState } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { Advisor } from "@/components/Advisor";
 import { PaperDoll } from "@/components/PaperDoll";
-import { GIRL_NAME } from "@/lib/girl";
-import { BASE_GIRL } from "@/lib/outfitArt";
 import { colors, paper, radius, spacing } from "@/lib/theme";
+import { useGirl } from '@/lib/girl';
 
 const ROOM = require("../assets/room.png");
 
@@ -24,6 +23,7 @@ type Props = {
  * drawing her again, and drift costs nothing.
  */
 export function Greeting({ worn, line, onDone }: Props) {
+  const girl = useGirl();
   const [stage, setStage] = useState({ width: 0, height: 0 });
   const height = stage.height * 0.96;
 
@@ -45,7 +45,7 @@ export function Greeting({ worn, line, onDone }: Props) {
         )}
       </View>
 
-      <Advisor name={GIRL_NAME} portrait={BASE_GIRL.source}>
+      <Advisor name={girl.name} portrait={girl.base}>
         {line}
       </Advisor>
 

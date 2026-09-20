@@ -6,6 +6,7 @@ import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { NotificationRouter } from "@/components/NotificationRouter";
 import { AuthProvider, useAuth } from "@/lib/auth";
+import { GirlProvider } from "@/lib/girl";
 import { getOnboardedAt } from "@/lib/prefs";
 import { colors } from "@/lib/theme";
 
@@ -123,8 +124,10 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <AuthProvider>
-        <StatusBar style="light" />
-        <RootNavigator />
+        <GirlProvider>
+          <StatusBar style="light" />
+          <RootNavigator />
+        </GirlProvider>
       </AuthProvider>
     </SafeAreaProvider>
   );

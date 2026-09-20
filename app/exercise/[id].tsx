@@ -8,8 +8,6 @@ import { Advisor } from '@/components/Advisor';
 import { MuscleTag } from '@/components/MuscleTag';
 import { OrnateFrame } from '@/components/OrnateFrame';
 import { ScreenState } from '@/components/ScreenState';
-import { GIRL_NAME } from '@/lib/girl';
-import { BASE_GIRL } from '@/lib/outfitArt';
 import { confirmAction, notify } from '@/lib/confirm';
 import {
   clampRest,
@@ -27,10 +25,12 @@ import { coachTipOf, introOf } from '@/lib/exerciseCopy';
 import { formatDate, formatDuration } from '@/lib/format';
 import { TRACK_TYPE_LABEL, type Exercise } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
+import { useGirl } from '@/lib/girl';
 
 export default function ExerciseScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const girl = useGirl();
   const [exercise, setExercise] = useState<Exercise | null>(null);
   const [history, setHistory] = useState<ExerciseHistoryPoint[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -134,7 +134,7 @@ export default function ExerciseScreen() {
         <Text style={styles.intro}>{introOf(exercise)}</Text>
       </OrnateFrame>
 
-      <Advisor name={GIRL_NAME} portrait={BASE_GIRL.source}>{coachTipOf(exercise)}</Advisor>
+      <Advisor name={girl.name} portrait={girl.base}>{coachTipOf(exercise)}</Advisor>
 
       {steps.length > 0 && (
         <View style={styles.card}>

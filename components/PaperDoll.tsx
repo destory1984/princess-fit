@@ -8,8 +8,9 @@ import {
   type StyleProp,
   type ViewStyle,
 } from "react-native";
-import { BASE_GIRL, garmentArt } from "@/lib/outfitArt";
+import { garmentArt } from "@/lib/outfitArt";
 import { layersOf } from "@/lib/outfit";
+import { useGirl } from '@/lib/girl';
 
 // react-native-web has no native animation driver, so asking for one there
 // only produces a warning and the same JS-driven animation.
@@ -37,6 +38,7 @@ type Props = {
  * Give the box a width, or both dimensions.
  */
 export function PaperDoll({ worn, style, idle }: Props) {
+  const girl = useGirl();
   // Percentages and aspectRatio both lose to an image's intrinsic size here,
   // so the box is measured and every garment placed in real pixels.
   const [box, setBox] = useState({ width: 0, height: 0 });
@@ -84,7 +86,7 @@ export function PaperDoll({ worn, style, idle }: Props) {
       onLayout={(e) => setBox(e.nativeEvent.layout)}
     >
       <Image
-        source={BASE_GIRL.source}
+        source={girl.base}
         style={styles.base}
         resizeMode="contain"
       />
