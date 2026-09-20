@@ -6,6 +6,7 @@ import { BigStepper } from '@/components/BigStepper';
 import { BragCard } from '@/components/BragCard';
 import { Cheer } from '@/components/Cheer';
 import { ConditionPicker } from '@/components/ConditionPicker';
+import { WalkCard } from '@/components/WalkCard';
 import { ExercisePicker } from '@/components/ExercisePicker';
 import { TimeField } from '@/components/TimeField';
 import { DEFAULT_EXERCISES } from '@/lib/exerciseCatalog';
@@ -167,6 +168,9 @@ export default function PreviewScreen() {
       <View style={styles.framedTall}>
         <OnboardingScreen />
       </View>
+
+      <Text style={styles.heading}>오늘 걸음</Text>
+      <WalkCard onFed={() => {}} />
 
       <Text style={styles.heading}>오늘 몸 상태</Text>
       <Pressable style={styles.openPicker} onPress={() => setAsking(true)}>

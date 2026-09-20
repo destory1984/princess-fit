@@ -3,6 +3,7 @@ import type { Exercise, Routine, RoutineExercise, Workout, WorkoutSet } from './
 import { localDayKey } from './format';
 import type { WorkoutFact } from './gamification';
 import {
+  afterWalk,
   afterWorkout,
   FULL,
   newHousehold,
@@ -646,6 +647,23 @@ export async function getLedger(today = new Date()): Promise<Ledger> {
   const settled = settle(stored, today);
   if (!data || settled !== stored) await saveHousehold(settled);
   return { house: settled, wardrobe, worn, furniture, culture };
+}
+
+/**
+ * Feed her for today's walking, and report what was actually paid.
+ *
+ * Reads and writes rather than incrementing blind: `getLedger` is what charges
+ * the days that have gone by, so going through it means a top-up can never be
+ * applied to a ledger that has not been settled yet — which would credit
+ * satiety that is about to be taken away again.
+ */
+export async function creditWalk(points: number, today = new Date()) {
+  if (points <= 0) return 0;
+  const { house } = await getLedger(today);
+  const fed = afterWalk(house, points);
+  if (fed.satiety === house.satiety) return 0;
+  await saveHousehold(fed);
+  return fed.satiety - house.satiety;
 }
 
 export async function saveHousehold(house: Household, extra: Partial<Omit<Ledger, 'house'>> = {}) {

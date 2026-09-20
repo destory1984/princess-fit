@@ -27,7 +27,13 @@
     "plugins": [
       "expo-router",
       "expo-font",
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-sensors",
+        {
+          "motionPermission": "걸음 수를 세어 리나에게 알려 주려고 해요."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

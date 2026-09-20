@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DEFAULT_QUIET_FROM, DEFAULT_QUIET_TO } from './quiet';
 import { GOALS, PLACES, type Goal, type Place } from './onboarding';
+import { clampGoal, DEFAULT_STEP_GOAL } from './steps';
 
 const WEEKLY_GOAL = 'refit.weeklyGoal';
 export const DEFAULT_WEEKLY_GOAL = 3;
@@ -75,6 +76,53 @@ export async function markOnboarded() {
     await AsyncStorage.setItem(ONBOARDED, new Date().toISOString());
   } catch {
     // Worst case they are greeted twice.
+  }
+}
+
+const STEP_GOAL = 'refit.stepGoal';
+
+/** How far a day's walking is measured against. */
+export async function getStepGoal() {
+  try {
+    const raw = await AsyncStorage.getItem(STEP_GOAL);
+    const parsed = Number(raw);
+    return raw !== null && Number.isFinite(parsed) ? clampGoal(parsed) : DEFAULT_STEP_GOAL;
+  } catch {
+    return DEFAULT_STEP_GOAL;
+  }
+}
+
+export async function setStepGoal(goal: number) {
+  await AsyncStorage.setItem(STEP_GOAL, String(clampGoal(goal)));
+}
+
+const WALK = 'refit.walk';
+
+/**
+ * How much today's walking has already fed her.
+ *
+ * Walking carries on after the app is closed, so the credit is topped up each
+ * time rather than paid once. Keyed by day so yesterday's payment cannot be
+ * claimed again this morning, and kept on the device because it is a receipt
+ * for something the device measured.
+ */
+export async function getWalkCredit(dayKey: string) {
+  try {
+    const raw = await AsyncStorage.getItem(WALK);
+    if (!raw) return 0;
+    const [day, credited] = raw.split(',');
+    const parsed = Number(credited);
+    return day === dayKey && Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+export async function setWalkCredit(dayKey: string, credited: number) {
+  try {
+    await AsyncStorage.setItem(WALK, `${dayKey},${credited}`);
+  } catch {
+    // Worst case she is fed twice for one walk, which is not worth guarding.
   }
 }
 
