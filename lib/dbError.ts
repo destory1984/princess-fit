@@ -14,8 +14,30 @@
 
 const MISSING_COLUMN = /Could not find the '(\w+)' column of '(\w+)'/;
 
+/**
+ * The sentence inside whatever was thrown.
+ *
+ * Checking `instanceof Error` alone was not enough and made things worse:
+ * PostgREST rejections arrive as plain objects — { message, details, hint,
+ * code } — so a readable complaint turned into 「[object Object]」, which is
+ * less use than the raw text it replaced.
+ */
+function textOf(error: unknown): string {
+  if (error === null || error === undefined) return '';
+  if (typeof error === 'string') return error;
+  if (error instanceof Error) return error.message;
+  // An object says its message or says nothing. Falling through to String()
+  // would print 「[object Object]」, which is the shape of the thing rather
+  // than anything about what went wrong.
+  if (typeof error === 'object') {
+    const message = (error as { message?: unknown }).message;
+    return message === undefined || message === null ? '' : String(message);
+  }
+  return String(error);
+}
+
 export function explain(error: unknown): string {
-  const raw = error instanceof Error ? error.message : String(error ?? '');
+  const raw = textOf(error);
   const missing = MISSING_COLUMN.exec(raw);
   if (missing) {
     const [, column, table] = missing;
