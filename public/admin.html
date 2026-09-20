@@ -224,6 +224,9 @@
         for (const b of body.querySelectorAll('[data-admin]')) {
           b.onclick = () => setAdmin(b.dataset.admin, b.dataset.on === 'true');
         }
+        for (const b of body.querySelectorAll('[data-gold]')) {
+          b.onclick = () => setGold(b.dataset.gold);
+        }
       }
 
       async function usersView() {
@@ -240,15 +243,46 @@
                 ${u.admin ? '<span class="tag added">관리자</span>' : ''}
                 <span class="meta" style="margin-left:auto">가입 ${day(u.joined)}</span>
               </div>
-              <div class="meta">운동 ${u.workouts}회 · 마지막 ${day(u.last_workout)}</div>
+              <div class="meta">
+                운동 ${u.workouts}회 · 마지막 ${day(u.last_workout)} ·
+                골드 ${u.gold === null ? '아직 없음' : Number(u.gold).toLocaleString()}
+              </div>
               <div class="row" style="margin-top:10px">
-                <button data-admin="${u.user_id}" data-on="${!u.admin}">
+                <!--
+                  Pre-filled with what they have, so the field reads as the
+                  number it is about to become rather than as an amount to add.
+                  Nothing is written until 저장 is pressed.
+                -->
+                <input
+                  type="number"
+                  min="0"
+                  style="width:140px"
+                  id="gold-${u.user_id}"
+                  value="${u.gold ?? 0}"
+                />
+                <button data-gold="${u.user_id}">골드 저장</button>
+                <button data-admin="${u.user_id}" data-on="${!u.admin}" style="margin-left:auto">
                   ${u.admin ? '관리자에서 내리기' : '관리자로 올리기'}
                 </button>
               </div>
             </div>`
           )
           .join('');
+      }
+
+      async function setGold(target) {
+        const raw = document.getElementById(`gold-${target}`)?.value;
+        const amount = Number(raw);
+        if (!Number.isInteger(amount) || amount < 0) {
+          alert('0 이상의 숫자를 넣어 주세요.');
+          return;
+        }
+        const { error } = await db.rpc('admin_set_gold', { target, amount });
+        if (error) {
+          alert(error.message);
+          return;
+        }
+        await render();
       }
 
       async function setAdmin(target, on) {
