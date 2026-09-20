@@ -328,6 +328,9 @@ as $$
       s.workout_id,
       e.name,
       max(s.weight_kg) as top,
+      -- The reps at the heaviest set, not the most reps done: 11kg for 8 is
+      -- the sentence, and 11kg beside a 15 from the warm-down is not.
+      (array_agg(s.reps order by s.weight_kg desc, s.reps desc))[1] as top_reps,
       count(*) as sets,
       min(s.position) as pos
     from workout_sets s
@@ -345,9 +348,10 @@ as $$
       (
         select string_agg(
           p.name || case
-            when p.top > 0 then ' ' || trim_scale(p.top)::text || 'kg'
-            else ' ' || p.sets || '세트'
-          end,
+            when p.top > 0 then ' ' || trim_scale(p.top)::text || 'kg×' || p.top_reps
+            when p.top_reps > 0 then ' ' || p.top_reps || '회'
+            else ''
+          end || ' (' || p.sets || '세트)',
           ', ' order by p.pos
         )
         from per_exercise p
