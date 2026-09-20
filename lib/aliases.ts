@@ -63,6 +63,12 @@ export const ALIASES: Record<string, string[]> = {
   '점프 스쿼트': ['jump squat', '점프스쿼트'],
   '월 싯': ['wall sit', '월싯', '벽 스쿼트'],
   '케틀벨 스윙': ['kettlebell swing', '케틀벨', '스윙'],
+  '글루트 브릿지': ['glute bridge', '브릿지', '엉덩이 들기'],
+  '케이블 킥백': ['cable kickback', '글루트 킥백', '킥백', '엉덩이 킥'],
+  '힙 어브덕션 머신': ['hip abduction', '어브덕션', '힙 어브덕션', '다리 벌리기'],
+  '덩키 킥': ['donkey kick', '동키 킥', '엉덩이 차기'],
+  '스모 데드리프트': ['sumo deadlift', '스모 데드', '와이드 데드'],
+  굿모닝: ['good morning', '굿모닝 엑서사이즈'],
 
   '바벨 컬': ['barbell curl', '바벨컬', '이두'],
   '덤벨 컬': ['dumbbell curl', '덤벨컬'],
