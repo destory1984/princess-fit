@@ -47,6 +47,8 @@ const GARMENT_ART: Record<string, Art> = {
   skirt_blue: { source: require('../assets/outfit/skirt_blue.png'), aspect: 1371 / 1148 },
   blouse: { source: require('../assets/outfit/blouse.png'), aspect: 1148 / 1371 },
   gown: { source: require('../assets/outfit/gown.png'), aspect: 1086 / 1448 },
+  ribbon: { source: require('../assets/outfit/ribbon.png'), aspect: 1086 / 1448 },
+  necklace: { source: require('../assets/outfit/necklace.png'), aspect: 1086 / 1448 },
 };
 
 export function garmentArt(garmentId: string): Art {

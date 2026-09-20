@@ -42,10 +42,8 @@ export const FOOD: Item[] = [
  * charm a little, so they are not purely decorative.
  */
 export const ACCESSORIES: Item[] = [
-  { id: 'ribbon', kind: 'accessory', name: '머리 리본', detail: '작지만 눈에 띄는', price: 150, charm: 2, icon: 'flower-outline' },
   { id: 'brooch', kind: 'accessory', name: '은 브로치', detail: '어머니에게 받은 듯한', price: 400, charm: 3, icon: 'ellipse-outline' },
   { id: 'gloves', kind: 'accessory', name: '레이스 장갑', detail: '손끝까지 단정하게', price: 600, charm: 3, icon: 'hand-left-outline' },
-  { id: 'necklace', kind: 'accessory', name: '진주 목걸이', detail: '무도회에 어울리는', price: 1_100, charm: 5, icon: 'ellipse-outline' },
   { id: 'tiara', kind: 'accessory', name: '작은 티아라', detail: '언젠가의 예고처럼', price: 1_600, charm: 6, icon: 'diamond-outline' },
 ];
 

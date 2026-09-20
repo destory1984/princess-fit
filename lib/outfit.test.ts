@@ -17,8 +17,13 @@ test('an empty wardrobe leaves her in her gym clothes', () => {
 });
 
 test('layers come back back-to-front', () => {
-  const slots = layersOf(['blouse', 'skirt_blue', 'sleeves_orange', 'bouquet']).map((g) => g.slot);
-  assert.deepEqual(slots, LAYER_ORDER);
+  // One from every slot that has a garment, deliberately out of order going
+  // in. Slots still waiting on art are skipped rather than faked.
+  const worn = ['bouquet', 'blouse', 'ribbon', 'necklace', 'skirt_blue', 'sleeves_orange'];
+  const slots = layersOf(worn).map((g) => g.slot);
+  const filled = LAYER_ORDER.filter((slot) => slots.includes(slot));
+  assert.deepEqual(slots, filled);
+  assert.equal(slots.length, worn.length, 'a garment went missing');
 });
 
 test('a second skirt replaces the first rather than joining it', () => {

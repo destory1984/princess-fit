@@ -12,17 +12,42 @@
  * no entry at all.
  */
 
-export type OutfitSlot = 'sleeves' | 'bottom' | 'top' | 'hand';
+export type OutfitSlot =
+  | 'sleeves'
+  | 'feet'
+  | 'bottom'
+  | 'top'
+  | 'neck'
+  | 'head'
+  | 'hand';
 
 export const OUTFIT_SLOT_NAME: Record<OutfitSlot, string> = {
   sleeves: '소매',
+  feet: '신발',
   bottom: '치마',
   top: '상의',
+  neck: '목',
+  head: '머리',
   hand: '손에 든 것',
 };
 
-/** Back to front. Sleeves sit behind the body, what she holds sits in front. */
-export const LAYER_ORDER: OutfitSlot[] = ['sleeves', 'bottom', 'top', 'hand'];
+/**
+ * Back to front. Sleeves sit behind the body, what she holds sits in front.
+ *
+ * Shoes go on early so a long skirt falls over them. The neck sits above the
+ * top because a choker is worn over a collar, hair above that so nothing can
+ * cover a ribbon, and the hand last — a bouquet held up passes in front of her
+ * face, which is what happens in life and what the drawing expects.
+ */
+export const LAYER_ORDER: OutfitSlot[] = [
+  'sleeves',
+  'feet',
+  'bottom',
+  'top',
+  'neck',
+  'head',
+  'hand',
+];
 
 export type Fit = { x: number; y: number; w: number };
 
@@ -113,6 +138,27 @@ export const GARMENTS: Garment[] = [
     // A whole outfit: anything underneath would only fight with it.
     hides: ['top', 'bottom', 'sleeves'],
     fit: { x: 0.14, y: 0.36, w: 0.72 },
+  },
+  {
+    id: 'ribbon',
+    slot: 'head',
+    name: '머리 리본',
+    detail: '작지만 눈에 띄는',
+    price: 150,
+    charm: 2,
+    // Shares the base's canvas size without being registered to it, so it
+    // still needs placing. Solved rather than eyeballed: the art's own alpha
+    // box was measured and the fit computed to land it where it belongs.
+    fit: { x: 0.499, y: 0.044, w: 0.306 },
+  },
+  {
+    id: 'necklace',
+    slot: 'neck',
+    name: '금빛 목걸이',
+    detail: '무도회에 어울리는',
+    price: 1_100,
+    charm: 5,
+    fit: { x: 0.41, y: 0.307, w: 0.179 },
   },
 ];
 

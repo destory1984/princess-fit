@@ -57,12 +57,12 @@ test('a year of steady training pays for meals, the wardrobe and schooling', () 
 });
 
 test('accessories are kept but do not mend a ragged outfit', () => {
-  const ribbon = ACCESSORIES[0];
+  const trinket = ACCESSORIES[0];
   const ragged: Household = { ...rich, attire: 10 };
-  const { house, wardrobe } = buy(ribbon, ragged, []);
-  assert.equal(house.attire, 10, 'a ribbon is not a change of clothes');
-  assert.deepEqual(wardrobe, ['ribbon']);
-  assert.equal(wornCharm(wardrobe), ribbon.charm);
+  const { house, wardrobe } = buy(trinket, ragged, []);
+  assert.equal(house.attire, 10, 'a brooch is not a change of clothes');
+  assert.deepEqual(wardrobe, [trinket.id]);
+  assert.equal(wornCharm(wardrobe), trinket.charm);
 });
 
 test('the gem shelf is locked, however much gold she has', () => {
@@ -72,9 +72,20 @@ test('the gem shelf is locked, however much gold she has', () => {
 
 test('the charm an accessory promises actually shows up', () => {
   const taught = { grace: 10, learning: 10, charm: 20 };
-  const worn = effectiveCulture(taught, ['ribbon', 'tiara']);
-  assert.equal(worn.charm, 20 + 2 + 6);
+  const brooch = ACCESSORIES.find((a) => a.id === 'brooch')!;
+  const tiara = ACCESSORIES.find((a) => a.id === 'tiara')!;
+  const worn = effectiveCulture(taught, [brooch.id, tiara.id]);
+  assert.equal(worn.charm, 20 + brooch.charm! + tiara.charm!);
   assert.equal(worn.grace, 10, 'nothing else is touched');
+});
+
+test('the ribbon moved to the wardrobe and is a garment now, not a trinket', () => {
+  // It has art, so it is drawn on her rather than counted from a list — which
+  // means its charm counts only while she has it on, like every other garment.
+  assert.ok(!ACCESSORIES.some((a) => a.id === 'ribbon'));
+  const ribbon = GARMENTS.find((g) => g.id === 'ribbon')!;
+  assert.equal(ribbon.slot, 'head');
+  assert.equal(wornCharm(['ribbon']), 0, 'owning it is not wearing it');
 });
 
 test('what she wears cannot push her past the cap', () => {
