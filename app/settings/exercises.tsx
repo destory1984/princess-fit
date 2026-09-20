@@ -239,41 +239,52 @@ export default function ExercisesScreen() {
           </View>
         }
         renderItem={({ item }) => (
-          <Pressable
-            style={styles.row}
-            onPress={() => router.push({ pathname: '/exercise/[id]', params: { id: item.id } })}
-            onLongPress={() => confirmDelete(item)}>
-            <View style={styles.rowBody}>
-              <Text style={[styles.rowTitle, item.hidden && styles.putAway]}>{item.name}</Text>
-              <Text style={styles.rowSub}>
-                {/*
-                  This list is the whole catalogue, hidden ones included —
-                  it is where someone comes to find what they put away and
-                  take it back out. The picker is where they stay out of sight.
-                */}
-                {item.muscle_detail ? `${item.muscle_detail} · ` : ''}
-                {item.equipment}
-              </Text>
-            </View>
-            <MuscleTag group={item.muscle_group} />
+          /*
+            The row is a plain View and only its left half is pressable.
+
+            It used to be one Pressable wrapping everything, switch included,
+            so a tap meant for the switch travelled on to the row underneath
+            and opened 걷기's how-to instead. Nesting one pressable inside
+            another does not reliably stop that on the web, where a click
+            bubbles; separating them does, on every platform.
+          */
+          <View style={styles.row}>
+            <Pressable
+              style={styles.rowTap}
+              onPress={() => router.push({ pathname: '/exercise/[id]', params: { id: item.id } })}
+              onLongPress={() => confirmDelete(item)}>
+              <View style={styles.rowBody}>
+                <Text style={[styles.rowTitle, item.hidden && styles.putAway]}>{item.name}</Text>
+                <Text style={styles.rowSub}>
+                  {/*
+                    This list is the whole catalogue, hidden ones included —
+                    it is where someone comes to find what they put away and
+                    take it back out. The picker is where they stay out of sight.
+                  */}
+                  {item.muscle_detail ? `${item.muscle_detail} · ` : ''}
+                  {item.equipment}
+                </Text>
+              </View>
+              <MuscleTag group={item.muscle_group} />
+            </Pressable>
             {/*
               On or off, here, where the whole catalogue is in front of you.
               Putting a movement away was buried at the bottom of its own
-              detail screen, which is three taps from the place someone
-              actually decides they never want to see a cable movement again.
+              detail screen, three taps from the place someone actually decides
+              they never want to see a cable movement again.
 
               The bin used to sit here too and does not any more. Turning a
-              movement off is the thing people want from this list; deleting
-              takes every set ever logged with it, which is a different and
-              much rarer intention. It is still reachable by holding the row,
-              and stated plainly on the movement's own screen.
+              movement off is what this list is for; deleting takes every set
+              ever logged with it, which is a different and much rarer
+              intention. It is still reachable by holding the row, and stated
+              plainly on the movement's own screen.
             */}
             <Switch
               value={!item.hidden}
               onValueChange={(on) => toggleHidden(item, !on)}
               trackColor={{ true: colors.accent }}
             />
-          </Pressable>
+          </View>
         )}
       />
     </View>
@@ -337,6 +348,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
   },
+  rowTap: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   rowBody: { flex: 1 },
   rowTitle: { color: colors.text, fontSize: 15, fontWeight: '600' },
   putAway: { color: colors.textDim },
