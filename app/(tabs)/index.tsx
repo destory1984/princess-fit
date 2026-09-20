@@ -34,6 +34,7 @@ import {
   listRoutineExercises,
   listRoutines,
   getLedger,
+  lastUsedRoutineId,
   listWorkoutFacts,
   startWorkout,
   type WeeklyStats,
@@ -75,6 +76,7 @@ export default function TodayScreen() {
   // the two apart is the difference between greeting a newcomer and greeting
   // everyone, every launch, for as long as the query takes.
   const [loaded, setLoaded] = useState(false);
+  const [lastRoutineId, setLastRoutineId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   /**
@@ -110,6 +112,12 @@ export default function TodayScreen() {
             void armDailyMessage(girl.name, h, facts);
           })
           .catch(() => setHouse(null));
+
+        // Which routine the second start button offers. Off the critical path:
+        // the button has a sensible thing to say without it.
+        lastUsedRoutineId()
+          .then(setLastRoutineId)
+          .catch(() => {});
 
         // Only decides whether the newcomer guide's first step is ticked.
         listExercises()
@@ -159,6 +167,11 @@ export default function TodayScreen() {
       notify('시작 실패', e.message);
     }
   }
+
+  // Falls back to the newest routine, so the button is useful before the first
+  // routine session has ever been finished.
+  const lastRoutine =
+    routines.find((r) => r.id === lastRoutineId) ?? routines[0] ?? null;
 
   const isNew = loaded && weekly.workouts === 0 && routines.length === 0 && !active;
 
@@ -229,22 +242,52 @@ export default function TodayScreen() {
       )}
 
 
-      <Pressable
-        style={styles.primary}
-        onPress={() => (active ? router.push(`/workout/${active.id}`) : begin(null))}>
-        <View style={styles.primaryIcon}>
-          <Ionicons name={active ? 'play' : 'add'} size={26} color="#fff" />
+      {/*
+        A session under way is one thing to do, not two: offering to start a
+        routine on top of one already running is offering to lose it.
+      */}
+      {active ? (
+        <Pressable style={styles.primary} onPress={() => router.push(`/workout/${active.id}`)}>
+          <View style={styles.primaryIcon}>
+            <Ionicons name="play" size={26} color="#fff" />
+          </View>
+          <View style={styles.primaryBody}>
+            <Text style={styles.primaryText}>진행 중인 운동 이어하기</Text>
+            <Text style={styles.primarySub}>{active.title}</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.accentSoft} />
+        </Pressable>
+      ) : (
+        <View style={styles.starters}>
+          <Pressable style={styles.starter} onPress={() => begin(null)}>
+            <Ionicons name="add" size={22} color="#fff" />
+            <Text style={styles.starterText}>바로 운동 시작</Text>
+            <Text style={styles.starterSub}>종목은 나중에 골라요</Text>
+          </Pressable>
+
+          {/*
+            The last routine rather than a list of them: "지난번 그거" is the
+            commonest intent, the list below already handles the others, and a
+            second button that only opens that list would be a longer way to
+            the same place. Named, so it is never a surprise which one starts.
+          */}
+          <Pressable
+            style={[styles.starter, styles.starterGhost]}
+            onPress={() => (lastRoutine ? begin(lastRoutine) : router.push('/routines'))}>
+            <Ionicons
+              name={lastRoutine ? 'repeat' : 'add-circle-outline'}
+              size={22}
+              color={colors.accent}
+            />
+            <Text style={[styles.starterText, styles.starterTextGhost]} numberOfLines={1}>
+              {lastRoutine ? '루틴으로 시작' : '루틴 만들기'}
+            </Text>
+            <Text style={styles.starterSub} numberOfLines={1}>
+              {lastRoutine?.name ?? '자주 하는 운동을 묶어요'}
+            </Text>
+          </Pressable>
         </View>
-        <View style={styles.primaryBody}>
-          <Text style={styles.primaryText}>
-            {active ? '진행 중인 운동 이어하기' : '바로 운동 시작'}
-          </Text>
-          <Text style={styles.primarySub}>
-            {active ? active.title : '종목은 시작한 뒤 골라도 돼요'}
-          </Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color={colors.accentSoft} />
-      </Pressable>
+      )}
 
       <Pressable style={styles.weekly} onPress={() => router.push('/achievements')}>
         <Ionicons name="flag-outline" size={15} color={colors.textDim} />
@@ -380,6 +423,22 @@ const styles = StyleSheet.create({
   primaryBody: { flex: 1 },
   primaryText: { color: '#fff', fontSize: 17, fontWeight: '800' },
   primarySub: { color: colors.accentSoft, marginTop: 2, fontSize: 13 },
+  starters: { flexDirection: 'row', gap: spacing.sm },
+  starter: {
+    flex: 1,
+    minWidth: 0,
+    backgroundColor: colors.accent,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.accent,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    gap: 2,
+  },
+  starterGhost: { backgroundColor: colors.surface },
+  starterText: { color: '#fff', fontSize: 15, fontWeight: '800', marginTop: 2 },
+  starterTextGhost: { color: colors.accent },
+  starterSub: { color: colors.textDim, fontSize: 11 },
   weekly: {
     flexDirection: 'row',
     alignItems: 'center',

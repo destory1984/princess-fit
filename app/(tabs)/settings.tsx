@@ -37,6 +37,17 @@ export default function SettingsScreen() {
         <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
       </Pressable>
 
+      <Pressable style={styles.row} onPress={() => router.push('/settings/plan')}>
+        <View style={styles.icon}>
+          <Ionicons name="flag-outline" size={22} color={colors.accent} />
+        </View>
+        <View style={styles.body}>
+          <Text style={styles.title}>내 계획</Text>
+          <Text style={styles.sub}>주당 횟수 · 운동하는 곳 · 목표</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
+      </Pressable>
+
       <Pressable style={styles.row} onPress={() => router.push('/settings/exercises')}>
         <View style={styles.icon}>
           <Ionicons name="barbell-outline" size={22} color={colors.accent} />

@@ -17,6 +17,7 @@ import OneRmScreen from '@/app/onerm';
 import RoutinePresetsScreen from '@/app/routine/presets';
 import OnboardingScreen from '@/app/onboarding';
 import PhotosScreen from '@/app/photos';
+import PlanScreen from '@/app/settings/plan';
 import RecoveryScreen from '@/app/recovery';
 import SleepScreen from '@/app/sleep';
 import { OneRmChart } from '@/components/OneRmChart';
@@ -168,6 +169,11 @@ export default function PreviewScreen() {
       <Text style={styles.heading}>첫 인사 (화면 전체)</Text>
       <View style={styles.framedTall}>
         <OnboardingScreen />
+      </View>
+
+      <Text style={styles.heading}>내 계획 (화면 전체)</Text>
+      <View style={styles.framedTall}>
+        <PlanScreen />
       </View>
 
       <Text style={styles.heading}>회복 (화면 전체)</Text>
