@@ -37,8 +37,17 @@ export function BigStepper({
   const set = (next: number) =>
     onChange(Math.max(0, Number(next.toFixed(decimals))));
 
-  const fineDown = nextAt ? nextAt(value, -1) - value : -step;
   const fineUp = nextAt ? nextAt(value, 1) - value : step;
+  const moveDown = nextAt ? nextAt(value, -1) - value : -step;
+  /*
+    At zero there is nowhere down to go, and `nextAt` says so by returning
+    zero — but a button labelled 「−0」 or 「−」 is not what a person needs to
+    see there. What they need is the row keeping its shape, with the step that
+    *would* apply written on a button that plainly cannot be pressed. So the
+    label falls back to the size of the step going the other way, which at the
+    bottom of the scale is the same size.
+  */
+  const fineDown = moveDown !== 0 ? moveDown : -Math.abs(fineUp || step);
 
   // Coarse outside, fine inside, so the two sizes never sit next to each other
   // and the row reads outward from the middle in both directions.
@@ -56,9 +65,18 @@ export function BigStepper({
       </View>
       <View style={styles.buttons}>
         {amounts.map((amount, i) => {
-          // At zero there is nothing below to offer: the button would read
-          // "+0" and do nothing, which looks like a bug because it is one.
-          const dead = amount === 0;
+          /*
+            Dead when pressing it would land on the number already showing.
+
+            It used to be only the fine step that could go dead, so at 0kg the
+            −10 next to it stayed lit and did nothing at all: the weight is
+            clamped at zero, so the press was swallowed. A button that looks
+            live and answers nothing is worse than one that is plainly out of
+            reach — the first time it reads as the app being broken, and after
+            that as the tap not having registered.
+          */
+          const target = Math.max(0, Number((value + amount).toFixed(decimals)));
+          const dead = target === value;
           return (
             <Pressable
               key={i}
@@ -68,7 +86,7 @@ export function BigStepper({
               onPress={() => set(value + amount)}
             >
               <Text style={styles.buttonText} numberOfLines={1}>
-                {dead ? "−" : label(amount)}
+                {label(amount)}
               </Text>
             </Pressable>
           );
