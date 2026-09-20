@@ -682,6 +682,29 @@ export default function WorkoutScreen() {
                     </Text>
                   )}
                 </View>
+                {/*
+                  The one place you actually want the how-to is standing in
+                  front of the machine, and until now it lived only in
+                  설정 → 운동 종목 — three taps away and out of the workout.
+                */}
+                {exercise && (
+                  <Pressable
+                    hitSlop={10}
+                    style={styles.cardInfo}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/exercise/[id]",
+                        params: { id: exercise.id },
+                      })
+                    }
+                  >
+                    <Ionicons
+                      name="information-circle-outline"
+                      size={19}
+                      color={colors.textDim}
+                    />
+                  </Pressable>
+                )}
                 <Ionicons
                   name={expanded ? "chevron-up" : "chevron-down"}
                   size={18}
@@ -1042,6 +1065,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
   },
   recordText: { color: colors.accent, fontSize: 12, fontWeight: "800" },
+  cardInfo: { paddingHorizontal: spacing.xs },
   previous: { color: colors.textDim, fontSize: 12, marginTop: spacing.xs },
   suggest: {
     flexDirection: "row",
