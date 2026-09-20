@@ -37,6 +37,7 @@ import {
   swapRemainingSets,
   listWorkoutFacts,
   listWorkoutSets,
+  reorderWorkoutExercises,
   updateWorkout,
   clampRest,
   DEFAULT_REST_SEC,
@@ -74,6 +75,7 @@ import {
   watchPending,
 } from "@/lib/outboxStore";
 import { remainingSeconds, remainingWord } from "@/lib/duration";
+import { bringForward, canBringForward } from "@/lib/order";
 import { colors, muscleColor, radius, spacing } from "@/lib/theme";
 
 export default function WorkoutScreen() {
@@ -282,12 +284,29 @@ export default function WorkoutScreen() {
       list.push(s);
       map.set(s.exercise_id, list);
     }
-    return [...map.entries()].map(([exerciseId, list]) => ({
-      exerciseId,
-      exercise: byId.get(exerciseId) ?? null,
-      sets: [...list].sort((a, b) => a.set_no - b.set_no),
-    }));
+    return [...map.entries()]
+      .map(([exerciseId, list]) => ({
+        exerciseId,
+        exercise: byId.get(exerciseId) ?? null,
+        sets: [...list].sort((a, b) => a.set_no - b.set_no),
+      }))
+      // Ordered by the stored position rather than by whatever order the rows
+      // arrived in. Those matched until the board could be reordered — after
+      // which the numbers changed and nothing on screen moved, which looks
+      // exactly like the tap being missed.
+      .sort(
+        (a, b) =>
+          Math.min(...a.sets.map((x) => x.position)) -
+          Math.min(...b.sets.map((x) => x.position))
+      );
   }, [sets, byId]);
+
+  // What the reorder button asks about: which movements are behind which, and
+  // which of them are finished.
+  const boardOrder = grouped.map((g) => ({
+    exerciseId: g.exerciseId,
+    done: g.sets.every((x) => x.done),
+  }));
 
   const worked = useMemo(
     () => workedParts(grouped.flatMap((g) => g.exercise ?? [])),
@@ -444,6 +463,37 @@ export default function WorkoutScreen() {
     setSets((prev) => [...prev, set]);
     await saveSet(row.id, { weight_kg: weight, reps }, row);
     return set;
+  }
+
+  /**
+   * 「이거 먼저 할게요」 — the rack is free now, or the machine is taken.
+   *
+   * The screen moves first and the write follows. A reorder that waits on the
+   * network before anything visibly happens feels like the tap was missed,
+   * and it is exactly the tap someone makes while walking across a gym.
+   */
+  async function bringForwardTo(exerciseId: string) {
+    if (!id) return;
+    const board = grouped.map((g) => ({
+      exerciseId: g.exerciseId,
+      done: g.sets.every((x) => x.done),
+    }));
+    const next = bringForward(board, exerciseId);
+    if (next === board) return;
+
+    const order = new Map(next.map((e, i) => [e.exerciseId, i]));
+    setSets((prev) =>
+      prev.map((x) => ({ ...x, position: order.get(x.exercise_id) ?? x.position })),
+    );
+    try {
+      await reorderWorkoutExercises(
+        id,
+        next.map((e) => e.exerciseId),
+      );
+    } catch (e: any) {
+      notify("순서 바꾸기 실패", e.message);
+      load();
+    }
   }
 
   async function addSet(exerciseId: string) {
@@ -837,6 +887,27 @@ export default function WorkoutScreen() {
                   >
                     <Ionicons
                       name="swap-horizontal"
+                      size={19}
+                      color={colors.textDim}
+                    />
+                  </Pressable>
+                )}
+                {/*
+                  Not dragging. One tap that means 「이거 먼저 할게요」, which is
+                  the only thing anyone wants while standing in a gym — and the
+                  app this borrows from had dragging, which is what its own
+                  users complained was slow. Hidden on the one already next,
+                  because a button that visibly does nothing teaches people to
+                  stop trusting the buttons.
+                */}
+                {!done && canBringForward(boardOrder, exerciseId) && (
+                  <Pressable
+                    hitSlop={10}
+                    style={styles.cardInfo}
+                    onPress={() => bringForwardTo(exerciseId)}
+                  >
+                    <Ionicons
+                      name="arrow-up-circle-outline"
                       size={19}
                       color={colors.textDim}
                     />
