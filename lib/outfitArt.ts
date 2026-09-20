@@ -40,8 +40,8 @@ export function baseArt(advisorId: string): Art {
 
 const GARMENT_ART: Record<string, Art> = {
   bouquet: { source: require('../assets/outfit/bouquet.png'), aspect: 1086 / 1448 },
-  sleeves_orange: { source: require('../assets/outfit/sleeves_orange.png'), aspect: 1086 / 1448 },
-  sleeves_blue: { source: require('../assets/outfit/sleeves_blue.png'), aspect: 1312 / 1199 },
+  trousers_orange: { source: require('../assets/outfit/sleeves_orange.png'), aspect: 1086 / 1448 },
+  trousers_blue: { source: require('../assets/outfit/sleeves_blue.png'), aspect: 1312 / 1199 },
   skirt_white: { source: require('../assets/outfit/skirt_white.png'), aspect: 1371 / 1148 },
   skirt_orange: { source: require('../assets/outfit/skirt_orange.png'), aspect: 1148 / 1371 },
   skirt_blue: { source: require('../assets/outfit/skirt_blue.png'), aspect: 1371 / 1148 },

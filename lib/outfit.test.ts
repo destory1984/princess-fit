@@ -19,7 +19,7 @@ test('an empty wardrobe leaves her in her gym clothes', () => {
 test('layers come back back-to-front', () => {
   // One from every slot that has a garment, deliberately out of order going
   // in. Slots still waiting on art are skipped rather than faked.
-  const worn = ['bouquet', 'blouse', 'ribbon', 'necklace', 'skirt_blue', 'sleeves_orange'];
+  const worn = ['bouquet', 'blouse', 'ribbon', 'necklace', 'skirt_blue'];
   const slots = layersOf(worn).map((g) => g.slot);
   const filled = LAYER_ORDER.filter((slot) => slots.includes(slot));
   assert.deepEqual(slots, filled);
@@ -33,11 +33,12 @@ test('a second skirt replaces the first rather than joining it', () => {
 });
 
 test('the gown hides what would fight with it', () => {
-  const worn = ['blouse', 'skirt_blue', 'sleeves_orange', 'bouquet', 'gown'];
+  const worn = ['blouse', 'skirt_blue', 'trousers_orange', 'ribbon', 'bouquet', 'gown'];
   const shown = layersOf(worn).map((g) => g.id);
-  assert.deepEqual(shown, ['bouquet', 'gown'].sort((a, b) => shown.indexOf(a) - shown.indexOf(b)));
+  assert.deepEqual([...shown].sort(), ['bouquet', 'gown', 'ribbon'].sort());
   assert.ok(!shown.includes('skirt_blue'), 'no skirt pokes out from under the gown');
   assert.ok(shown.includes('bouquet'), 'she can still carry flowers');
+  assert.ok(shown.includes('ribbon'), 'a gown is not a reason to take a ribbon out');
 });
 
 test('a hidden garment stops counting toward charm', () => {

@@ -83,6 +83,11 @@ export default function PreviewScreen() {
 
   const stats = { strength: 62, stamina: 40, vitality: 55, balance: 30, discipline: 48 };
   const house = { gold: 1_240, satiety: 74, attire: 22, settledOn: '2026-09-20' };
+  // The other half of the shop: enough gold for a meal she does not need, and
+  // not enough for anything else. Refusal has a precedence — being broke is
+  // checked before being full — so this is the household that shows both
+  // reasons at once, which is the only half worth a bench.
+  const fullUp = { gold: 200, satiety: 100, attire: 100, settledOn: '2026-09-20' };
   const allFurniture = FURNITURE.map((f) => f.id);
 
   return (
@@ -344,13 +349,26 @@ export default function PreviewScreen() {
         onSpend={() => {}}
       />
 
+      <Text style={styles.heading}>상점 · 배부를 때와 골드가 모자랄 때</Text>
+      <ShopShelves
+        ledger={{
+          house: fullUp,
+          wardrobe: ['blouse'],
+          worn: ['blouse'],
+          furniture: ['bed'],
+          culture: { grace: 100, learning: 100, charm: 100 },
+        }}
+        busy={null}
+        onSpend={() => {}}
+      />
+
       <Text style={styles.heading}>옷 한 벌씩</Text>
       <View style={styles.dolls}>
         {[
           [],
           ['ribbon', 'necklace'],
-          ['blouse', 'skirt_orange', 'ribbon'],
-          ['sleeves_blue', 'blouse', 'skirt_blue'],
+          ['blouse', 'trousers_orange', 'ribbon'],
+          ['trousers_blue', 'blouse'],
           ['gown', 'bouquet', 'ribbon', 'necklace'],
         ].map(
           (worn, i) => (
