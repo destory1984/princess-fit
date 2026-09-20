@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Refit 관리</title>
+    <!--
+      The desk, as one page.
+
+      Deliberately not a second app. Refit is Expo and React Native; standing
+      up Next.js beside it to read one table would double the toolchain that
+      has to keep working, for a screen one person opens. This is a file you
+      can double-click, and it talks to the same Supabase the app does.
+
+      There is no secret in here. The anon key is public by design and every
+      question of who may read what is answered by row level security — the
+      admins table decides, and the database enforces it whatever this page
+      believes about itself.
+    -->
+    <style>
+      :root {
+        --bg: #f4ece0;
+        --surface: #fbf6ee;
+        --border: #e2d5c2;
+        --text: #3b2f26;
+        --dim: #8a7a6a;
+        --accent: #9c2b2b;
+        --good: #3f7d54;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font: 15px/1.6 system-ui, -apple-system, 'Segoe UI', sans-serif;
+      }
+      header {
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+      }
+      h1 { font-size: 18px; margin: 0; }
+      .who { color: var(--dim); font-size: 13px; margin-left: auto; }
+      main { max-width: 900px; margin: 0 auto; padding: 24px; }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 16px 18px;
+        margin-bottom: 12px;
+      }
+      label { display: block; font-size: 13px; color: var(--dim); margin-bottom: 4px; }
+      input, textarea, select, button {
+        font: inherit;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        padding: 9px 12px;
+        background: #fff;
+        color: var(--text);
+      }
+      input, textarea { width: 100%; }
+      button { cursor: pointer; background: var(--surface); }
+      button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+      button:disabled { opacity: 0.5; cursor: default; }
+      .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+      .grow { flex: 1; min-width: 200px; }
+      .name { font-size: 16px; font-weight: 700; }
+      .meta { color: var(--dim); font-size: 13px; }
+      .tag {
+        font-size: 12px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        color: var(--dim);
+      }
+      .tag.new { border-color: var(--accent); color: var(--accent); }
+      .tag.added { border-color: var(--good); color: var(--good); }
+      .note { margin-top: 6px; white-space: pre-wrap; }
+      .empty { color: var(--dim); padding: 24px 0; }
+      .error { color: var(--accent); }
+      .filters { margin-bottom: 16px; }
+      .filters button[aria-pressed='true'] { border-color: var(--accent); color: var(--accent); }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Refit 관리</h1>
+      <span class="who" id="who"></span>
+    </header>
+    <main id="main"><p class="empty">불러오는 중…</p></main>
+
+    <script type="module">
+      import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+      /*
+        Read from the page's own query string on first run and then kept, so
+        the file stays free of one project's details and can be opened against
+        another without editing it:
+
+          admin/index.html?url=https://xxx.supabase.co&key=eyJ...
+      */
+      const params = new URLSearchParams(location.search);
+      const url = params.get('url') || localStorage.getItem('refit.url');
+      const key = params.get('key') || localStorage.getItem('refit.key');
+      if (params.get('url')) localStorage.setItem('refit.url', params.get('url'));
+      if (params.get('key')) localStorage.setItem('refit.key', params.get('key'));
+
+      const main = document.getElementById('who');
+      const body = document.getElementById('main');
+
+      // Everything below is inside a function so a missing key can simply
+      // return. Throwing at the top level stops the script just as well and
+      // leaves a red line in the console, which reads as a fault rather than
+      // as the page waiting to be told where to look.
+      if (!url || !key) {
+        body.innerHTML = `<div class="card">
+          <p>Supabase 주소와 anon key가 필요해요. 주소창에 한 번만 붙여 주세요:</p>
+          <p class="meta">admin/index.html?url=https://xxx.supabase.co&amp;key=eyJ...</p>
+          <p class="meta">앱의 .env에 있는 EXPO_PUBLIC_SUPABASE_URL / EXPO_PUBLIC_SUPABASE_ANON_KEY 예요.</p>
+        </div>`;
+      } else {
+        run(url, key);
+      }
+
+      function run(url, key) {
+      const db = createClient(url, key);
+      const STATUS = {
+        new: '기다리는 중',
+        seen: '읽음',
+        added: '넣었음',
+        declined: '안 넣음',
+      };
+      let filter = 'new';
+
+      const escape = (s) =>
+        String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+
+      async function start() {
+        const { data } = await db.auth.getSession();
+        if (!data.session) return signIn();
+
+        // Asked of the database, not assumed: this page has no authority of
+        // its own and should say so rather than render an empty desk.
+        const { data: rows, error } = await db
+          .from('admins')
+          .select('user_id')
+          .eq('user_id', data.session.user.id)
+          .limit(1);
+        if (error || !rows?.length) {
+          main.textContent = data.session.user.email;
+          body.innerHTML = `<div class="card">
+            <p>이 계정은 관리자가 아니에요.</p>
+            <p class="meta">supabase/admin.sql을 실행한 뒤, admins 표에 본인 user_id를 한 줄 넣어 주세요.</p>
+            <p><button id="out">로그아웃</button></p>
+          </div>`;
+          document.getElementById('out').onclick = async () => {
+            await db.auth.signOut();
+            location.reload();
+          };
+          return;
+        }
+
+        main.textContent = data.session.user.email;
+        await list();
+      }
+
+      function signIn() {
+        body.innerHTML = `<div class="card">
+          <label for="email">이메일</label>
+          <input id="email" type="email" autocomplete="username" />
+          <label for="pw" style="margin-top:10px">비밀번호</label>
+          <input id="pw" type="password" autocomplete="current-password" />
+          <p><button class="primary" id="go">로그인</button> <span id="msg" class="error"></span></p>
+        </div>`;
+        const go = document.getElementById('go');
+        go.onclick = async () => {
+          go.disabled = true;
+          const { error } = await db.auth.signInWithPassword({
+            email: document.getElementById('email').value.trim(),
+            password: document.getElementById('pw').value,
+          });
+          if (error) {
+            document.getElementById('msg').textContent = error.message;
+            go.disabled = false;
+            return;
+          }
+          location.reload();
+        };
+      }
+
+      async function list() {
+        const query = db
+          .from('exercise_requests')
+          .select('*')
+          .order('created_at', { ascending: false });
+        if (filter !== 'all') query.eq('status', filter);
+
+        const { data, error } = await query;
+        if (error) {
+          body.innerHTML = `<p class="error">${escape(error.message)}</p>`;
+          return;
+        }
+
+        const tabs = ['new', 'seen', 'added', 'declined', 'all']
+          .map(
+            (s) =>
+              `<button data-filter="${s}" aria-pressed="${s === filter}">${
+                s === 'all' ? '전체' : STATUS[s]
+              }</button>`
+          )
+          .join(' ');
+
+        const cards = data.length
+          ? data.map(card).join('')
+          : '<p class="empty">여기엔 아무것도 없어요.</p>';
+
+        body.innerHTML = `<div class="row filters">${tabs}</div>${cards}`;
+
+        for (const b of body.querySelectorAll('[data-filter]')) {
+          b.onclick = () => {
+            filter = b.dataset.filter;
+            list();
+          };
+        }
+        for (const b of body.querySelectorAll('[data-act]')) {
+          b.onclick = () => answer(b.dataset.id, b.dataset.act);
+        }
+      }
+
+      function card(r) {
+        const guesses = [r.muscle_group, r.equipment].filter(Boolean).join(' · ');
+        return `<div class="card">
+          <div class="row">
+            <span class="name">${escape(r.name)}</span>
+            ${guesses ? `<span class="tag">${escape(guesses)}</span>` : ''}
+            <span class="tag ${r.status}">${STATUS[r.status] ?? escape(r.status)}</span>
+            <span class="meta" style="margin-left:auto">${new Date(r.created_at).toLocaleDateString('ko-KR')}</span>
+          </div>
+          ${r.note ? `<div class="note">${escape(r.note)}</div>` : ''}
+          ${r.reply ? `<div class="note meta">답: ${escape(r.reply)}</div>` : ''}
+          <div class="row" style="margin-top:10px">
+            <input class="grow" id="reply-${r.id}" placeholder="답 한마디 (그대로 보여요)" value="${escape(r.reply ?? '')}" />
+            <button data-act="seen" data-id="${r.id}">읽음</button>
+            <button class="primary" data-act="added" data-id="${r.id}">넣었음</button>
+            <button data-act="declined" data-id="${r.id}">안 넣음</button>
+          </div>
+        </div>`;
+      }
+
+      async function answer(id, status) {
+        const reply = document.getElementById(`reply-${id}`)?.value.trim() || null;
+        const { error } = await db
+          .from('exercise_requests')
+          .update({ status, reply, handled_at: new Date().toISOString() })
+          .eq('id', id);
+        if (error) {
+          alert(error.message);
+          return;
+        }
+        await list();
+      }
+
+      start();
+      }
+    </script>
+  </body>
+</html>
