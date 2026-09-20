@@ -46,6 +46,26 @@ export const LAYER_ORDER: OutfitSlot[] = [
 
 export type Fit = { x: number; y: number; w: number };
 
+/*
+  Every `fit` below was produced by `scripts/garment-fit.mjs`, and the comment
+  on each one names the doll region it was measured against. That note is the
+  point of this block.
+
+  Without it there is no way to tell a value that is deliberately unusual from
+  one that has gone stale — and the difference matters. The three skirts shared
+  one hand-written number for months because they looked like they should; the
+  orange one's art sits differently in its canvas and its waist was off, which
+  is what 「주황 치마는 위치가 살짝 안 맞네」 was. Checking that meant measuring
+  all ten garments and then working backwards from the ones that disagreed to
+  find out whether the value was wrong or the region was.
+
+  The answer was: the region, twice. A blouse reaches past the shoulders, and a
+  gown covers chest to hem — neither is `chest`, and fitting them to it would
+  have "corrected" two good placements into bad ones. Both regions now exist
+  and reproduce those numbers exactly. Re-measure anything here by running the
+  script with the named region; if it disagrees, one of the two is wrong and
+  the drawing decides which.
+*/
 export type Garment = {
   id: string;
   slot: OutfitSlot;
@@ -70,6 +90,7 @@ export const GARMENTS: Garment[] = [
     // Held against her with the stems down where her folded arms meet. Low
     // enough to clear her chin: centred on her chest it read as flowers
     // pinned flat to her front, and higher it covered her face.
+    // hand
     fit: { x: 0.384, y: 0.439, w: 0.301 },
   },
   {
@@ -82,6 +103,7 @@ export const GARMENTS: Garment[] = [
     // Her hips' width, not a skirt's: a skirt flares and these do not, so
     // taking the skirt's box made them a tent. They come out shorter for it,
     // and the blue pair is longer than the orange because it is drawn that way.
+    // trousers
     fit: { x: 0.262, y: 0.432, w: 0.465 },
   },
   {
@@ -91,6 +113,7 @@ export const GARMENTS: Garment[] = [
     detail: '차분한 쪽이 좋다면',
     price: 700,
     charm: 2,
+    // trousers
     fit: { x: 0.274, y: 0.486, w: 0.451 },
   },
   {
@@ -100,6 +123,7 @@ export const GARMENTS: Garment[] = [
     detail: '무엇에나 어울려요',
     price: 900,
     charm: 3,
+    // skirt
     fit: { x: 0.123, y: 0.468, w: 0.743 },
   },
   {
@@ -109,6 +133,7 @@ export const GARMENTS: Garment[] = [
     detail: '멀리서도 눈에 띄어요',
     price: 900,
     charm: 3,
+    // skirt
     fit: { x: 0.135, y: 0.394, w: 0.741 },
   },
   {
@@ -118,6 +143,7 @@ export const GARMENTS: Garment[] = [
     detail: '단정하게 보이고 싶은 날',
     price: 900,
     charm: 3,
+    // skirt
     fit: { x: 0.122, y: 0.467, w: 0.744 },
   },
   {
@@ -127,6 +153,7 @@ export const GARMENTS: Garment[] = [
     detail: '처음으로 제대로 갖춰 입는 옷',
     price: 1_200,
     charm: 4,
+    // shoulders
     fit: { x: 0.26, y: 0.36, w: 0.5 },
   },
   {
@@ -138,6 +165,7 @@ export const GARMENTS: Garment[] = [
     charm: 10,
     // A whole outfit: anything underneath would only fight with it.
     hides: ['top', 'bottom'],
+    // full
     fit: { x: 0.14, y: 0.36, w: 0.72 },
   },
   {
@@ -150,6 +178,7 @@ export const GARMENTS: Garment[] = [
     // Shares the base's canvas size without being registered to it, so it
     // still needs placing. Solved rather than eyeballed: the art's own alpha
     // box was measured and the fit computed to land it where it belongs.
+    // head
     fit: { x: 0.499, y: 0.044, w: 0.306 },
   },
   {
@@ -161,6 +190,7 @@ export const GARMENTS: Garment[] = [
     charm: 5,
     // Below the chin. Her hair silhouette reaches far higher than her face,
     // so a fit measured from the base's outline sits across her mouth.
+    // neck
     fit: { x: 0.421, y: 0.371, w: 0.158 },
   },
 ];
