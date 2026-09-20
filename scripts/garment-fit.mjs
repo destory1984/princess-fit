@@ -26,6 +26,21 @@ import { inflateSync } from 'node:zlib';
 const BASE = 'assets/outfit/base.png';
 
 /**
+ * Where things sit in the room, as [x0, x1, top] fractions of the scene.
+ *
+ * Read off the room art. The scene and the furniture art share the 3:2 of the
+ * room painting, so the same solve works here as on the doll — only the field
+ * it fills in is called `place` rather than `fit`.
+ */
+const ROOM = {
+  window: [0.42, 0.81, 0.045],
+  wallLeft: [0.06, 0.3, 0.1],
+  floorLeft: [0.04, 0.34, 0.66],
+  floorRight: [0.62, 0.95, 0.62],
+  ceiling: [0.4, 0.62, 0.0],
+};
+
+/**
  * Where each region sits on the base, as [x0, x1, top] fractions.
  *
  * Read off a row-by-row scan of the base's alpha — she is a chibi, so the head
@@ -149,6 +164,9 @@ function main(argv) {
     process.exit(2);
   }
 
+  const room = rest.includes('--room');
+  const regions = room ? ROOM : REGIONS;
+
   let target;
   if (rest[0] === '--box') {
     target = rest.slice(1, 4).map(Number);
@@ -158,25 +176,28 @@ function main(argv) {
     }
   } else {
     const region = rest[0];
-    if (!(region in REGIONS)) {
-      console.error(`unknown region ${region}; try one of ${Object.keys(REGIONS).join(', ')}`);
+    if (!(region in regions)) {
+      console.error(`unknown region ${region}; try one of ${Object.keys(regions).join(', ')}`);
       process.exit(2);
     }
-    target = REGIONS[region];
+    target = regions[region];
   }
 
   const art = alphaBox(file);
-  const base = alphaBox(BASE);
+  const base = room ? null : alphaBox(BASE);
   const fit = solve(art, ...target);
   const bottom = target[2] + fit.w * (art[3] - art[1]);
 
   console.log(`art      ${file}`);
   console.log(`  fills  x ${round(art[0])}..${round(art[2])}  y ${round(art[1])}..${round(art[3])} of its canvas`);
-  console.log(`base     x ${round(base[0])}..${round(base[2])}  y ${round(base[1])}..${round(base[3])}`);
+  if (base) {
+    console.log(`base     x ${round(base[0])}..${round(base[2])}  y ${round(base[1])}..${round(base[3])}`);
+  }
   console.log(`target   x ${target[0]}..${target[1]}  from y ${target[2]}`);
-  console.log(`  lands  y ${round(target[2])}..${round(bottom)} on the doll`);
+  console.log(`  lands  y ${round(target[2])}..${round(bottom)} on the ${room ? 'room' : 'doll'}`);
   console.log('');
-  console.log(`    fit: { x: ${round(fit.x)}, y: ${round(fit.y)}, w: ${round(fit.w)} },`);
+  const field = room ? 'place' : 'fit';
+  console.log(`    ${field}: { x: ${round(fit.x)}, y: ${round(fit.y)}, w: ${round(fit.w)} },`);
 
   if (bottom > 1.02) console.log('\n  note: this runs off the bottom of the doll.');
   if (fit.w > 1.2) console.log('\n  note: the art is mostly empty canvas; it will be scaled up a lot.');
