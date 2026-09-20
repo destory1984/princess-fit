@@ -12,6 +12,7 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { BodyMap, workedParts } from "@/components/BodyMap";
 import { Cheer } from "@/components/Cheer";
 import { ExercisePicker } from "@/components/ExercisePicker";
+import { SwapSheet } from "@/components/SwapSheet";
 import { RestBar } from "@/components/RestBar";
 import { SetCard } from "@/components/SetCard";
 import { ScreenState } from "@/components/ScreenState";
@@ -34,6 +35,7 @@ import {
   getExerciseUsage,
   getWorkout,
   listExercises,
+  swapRemainingSets,
   listWorkoutFacts,
   listWorkoutSets,
   updateWorkout,
@@ -73,6 +75,8 @@ export default function WorkoutScreen() {
   );
   const [bests, setBests] = useState<Map<string, number>>(new Map());
   const [picking, setPicking] = useState(false);
+  // The movement whose remaining sets are being handed to something else.
+  const [swapping, setSwapping] = useState<Exercise | null>(null);
   // Which exercise the rest bar is speaking for: the one whose set just
   // finished, or the one coming up before anything has been done.
   const [restFor, setRestFor] = useState<string | null>(null);
@@ -402,6 +406,26 @@ export default function WorkoutScreen() {
    * it ended on last time, or a plain preset if it has never been done. Adding
    * a single empty set meant typing the whole thing out again every session.
    */
+  /**
+   * Hand the sets still ahead to a different movement.
+   *
+   * Reloaded afterwards rather than patched in place: the swap regroups the
+   * board, moves the history line and changes what 「지난번」 means for two
+   * cards at once, and reproducing all of that by hand is how the screen and
+   * the table drift apart.
+   */
+  async function swapTo(replacement: Exercise) {
+    const from = swapping;
+    setSwapping(null);
+    if (!id || !from) return;
+    try {
+      await swapRemainingSets(id, from.id, replacement.id);
+      load();
+    } catch (e: any) {
+      notify('바꾸기 실패', e.message);
+    }
+  }
+
   async function addExercise(exercise: Exercise) {
     if (!id) return;
     let past = last.get(exercise.id)?.sets;
@@ -705,6 +729,25 @@ export default function WorkoutScreen() {
                     />
                   </Pressable>
                 )}
+                {/*
+                  Offered only while sets remain, and only once the session is
+                  still open: swapping a card with nothing left ahead of it
+                  would do nothing, and an offer that does nothing is worse
+                  than no offer.
+                */}
+                {exercise && !done && exDone.length < exerciseSets.length && (
+                  <Pressable
+                    hitSlop={10}
+                    style={styles.cardInfo}
+                    onPress={() => setSwapping(exercise)}
+                  >
+                    <Ionicons
+                      name="swap-horizontal"
+                      size={19}
+                      color={colors.textDim}
+                    />
+                  </Pressable>
+                )}
                 <Ionicons
                   name={expanded ? "chevron-up" : "chevron-down"}
                   size={18}
@@ -962,6 +1005,14 @@ export default function WorkoutScreen() {
         onSelect={(e) => addExercise(e)}
         onClose={() => setPicking(false)}
         onSeeded={load}
+      />
+
+      <SwapSheet
+        target={swapping}
+        exercises={exercises}
+        doneCount={sets.filter((s) => s.done && s.exercise_id === swapping?.id).length}
+        onPick={swapTo}
+        onClose={() => setSwapping(null)}
       />
     </View>
   );

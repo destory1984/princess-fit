@@ -678,6 +678,31 @@ export async function updateWorkoutSet(
   if (error) throw error;
 }
 
+/**
+ * Move the sets still ahead of you onto a different movement.
+ *
+ * Only the undone ones. Sets already marked done are what happened, and
+ * rewriting them would be the app editing the record of an afternoon that is
+ * over — the same line `readiness` draws when it applies a weight change.
+ *
+ * The weights come along unchanged. A dumbbell press is not a bench press at
+ * the same load, and she says so on the sheet; silently guessing a number
+ * would be worse than leaving one you can see and correct.
+ */
+export async function swapRemainingSets(
+  workoutId: string,
+  fromExerciseId: string,
+  toExerciseId: string
+) {
+  const { error } = await supabase
+    .from('workout_sets')
+    .update({ exercise_id: toExerciseId })
+    .eq('workout_id', workoutId)
+    .eq('exercise_id', fromExerciseId)
+    .eq('done', false);
+  if (error) throw error;
+}
+
 export async function deleteWorkoutSet(id: string) {
   const { error } = await supabase.from('workout_sets').delete().eq('id', id);
   if (error) throw error;
