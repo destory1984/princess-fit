@@ -33,6 +33,7 @@ import {
 import type { Furniture } from './room';
 import { SPLIT_WINDOW_DAYS, type RoutineUse } from './split';
 import type { BackupWorkout } from './backup';
+import { unseen } from './restore';
 import {
   groupHistory,
   streakDays,
@@ -701,6 +702,80 @@ export async function listBackup(): Promise<BackupWorkout[]> {
     memo: w.memo ?? null,
     exercises: [...(byWorkout.get(w.id)?.values() ?? [])],
   }));
+}
+
+/**
+ * Put a backup back, without paying anyone twice.
+ *
+ * Deliberately silent about gold. Importing is recovering what was already
+ * earned, not earning it again — a restore that paid out for a year of past
+ * training would hand someone the whole wardrobe for owning a file, and the
+ * shop is priced against turning up.
+ *
+ * Exercises are matched by name and created when missing, so a history that
+ * mentions a movement this account never had comes back with it rather than
+ * arriving as 「삭제된 종목」.
+ */
+export async function restoreBackup(workouts: BackupWorkout[]) {
+  const user_id = await requireUserId();
+
+  const { data: seen, error: seenError } = await supabase.from('workouts').select('started_at');
+  if (seenError) throw seenError;
+  const fresh = unseen(
+    workouts,
+    (seen as { started_at: string }[]).map((w) => w.started_at)
+  );
+  if (fresh.length === 0) return { added: 0, already: workouts.length };
+
+  const catalogue = await listExercises();
+  const byName = new Map(catalogue.map((e) => [e.name, e]));
+
+  for (const workout of fresh) {
+    const { data: created, error } = await supabase
+      .from('workouts')
+      .insert({
+        user_id,
+        title: workout.title,
+        routine_id: null,
+        started_at: workout.started_at,
+        ended_at: workout.ended_at,
+        condition: workout.condition,
+        memo: workout.memo,
+      })
+      .select()
+      .single();
+    if (error) throw error;
+
+    const rows: Record<string, unknown>[] = [];
+    let position = 0;
+    for (const entry of workout.exercises) {
+      let exercise = byName.get(entry.name);
+      if (!exercise) {
+        exercise = await createExercise(entry.name, entry.muscle_group, '기타', 'weight_reps');
+        byName.set(entry.name, exercise);
+      }
+      for (const set of entry.sets) {
+        rows.push({
+          workout_id: (created as Workout).id,
+          exercise_id: exercise.id,
+          position,
+          set_no: set.set_no,
+          weight_kg: set.weight_kg,
+          reps: set.reps,
+          duration_sec: set.duration_sec,
+          distance_km: set.distance_km,
+          done: set.done,
+        });
+      }
+      position += 1;
+    }
+    if (rows.length) {
+      const { error: setsError } = await supabase.from('workout_sets').insert(rows);
+      if (setsError) throw setsError;
+    }
+  }
+
+  return { added: fresh.length, already: workouts.length - fresh.length };
 }
 
 export async function addWorkoutSet(input: {

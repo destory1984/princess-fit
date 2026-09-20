@@ -5,9 +5,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { NudgeSetting } from '@/components/NudgeSetting';
 import { Portrait } from '@/components/Portrait';
 import { notify } from '@/lib/confirm';
-import { getLedger, listBackup, listExercises, saveHousehold } from '@/lib/db';
-import { backupWord, fileNameFor, toCsv } from '@/lib/backup';
-import { saveAndShare } from '@/lib/exportFile';
+import { getLedger, listExercises, saveHousehold } from '@/lib/db';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { GOALS, PLACES, type Goal, type Place } from '@/lib/onboarding';
@@ -26,7 +24,6 @@ export default function SettingsScreen() {
   // these, and nothing on screen said so — the picker quietly went unordered
   // and the findings quietly went unranked. The row says which it is.
   const [granting, setGranting] = useState<string | null>(null);
-  const [exporting, setExporting] = useState<string | null>(null);
   const [plan, setPlan] = useState<{
     days: number;
     goal: Goal | null;
@@ -45,31 +42,6 @@ export default function SettingsScreen() {
       );
     }, [])
   );
-
-  /**
-   * Write the whole history out, as a file that leaves with you.
-   *
-   * CSV rather than JSON for the one button: a spreadsheet opens it, and the
-   * person reaching for this is usually someone who wants to see their own
-   * numbers somewhere that is not an app. The JSON shape exists in `backup`
-   * for the day an import is written.
-   */
-  async function exportBackup() {
-    setExporting('모으는 중…');
-    try {
-      const workouts = await listBackup();
-      if (workouts.length === 0) {
-        setExporting(null);
-        notify('내보낼 기록이 없어요', '운동을 한 번 마치고 나면 받아 두실 수 있어요.');
-        return;
-      }
-      await saveAndShare(fileNameFor('csv'), toCsv(workouts), 'text/csv');
-      setExporting(backupWord(workouts));
-    } catch (e: any) {
-      setExporting(null);
-      notify('내보내지 못했어요', e.message);
-    }
-  }
 
   /** Dev-only: top the purse up so the shop can be exercised. */
   async function grant() {
@@ -143,15 +115,13 @@ export default function SettingsScreen() {
         not hidden under anything: the people who need it most are the ones
         who have not yet had the bad day that teaches them to look.
       */}
-      <Pressable style={styles.row} disabled={!!exporting} onPress={exportBackup}>
+      <Pressable style={styles.row} onPress={() => router.push('/settings/backup')}>
         <View style={styles.icon}>
-          <Ionicons name="download-outline" size={22} color={colors.accent} />
+          <Ionicons name="save-outline" size={22} color={colors.accent} />
         </View>
         <View style={styles.body}>
-          <Text style={styles.title}>기록 내보내기</Text>
-          <Text style={styles.sub}>
-            {exporting ?? '운동 기록 전부를 파일 하나로 받아 두세요.'}
-          </Text>
+          <Text style={styles.title}>기록 백업</Text>
+          <Text style={styles.sub}>받아 두고, 필요하면 다시 넣어요</Text>
         </View>
         <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
       </Pressable>
