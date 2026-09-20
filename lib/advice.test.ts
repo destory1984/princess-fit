@@ -223,3 +223,38 @@ test('a session with no length and no previous outing says neither', () => {
   assert.ok(!said.includes('걸린 시간'));
   assert.ok(!said.includes('지난번 같은 루틴'));
 });
+
+test('the plan they set at the start goes with it', () => {
+  // A coach who does not know whether someone came to get stronger or to stop
+  // being out of breath is guessing at every sentence.
+  const said = describeContext(
+    ctx({
+      today: fact({ id: 'w' }),
+      plan: { goal: '체중을 줄이고 싶어요', place: '집', perWeek: 4 },
+    })
+  );
+  assert.match(said, /본인이 정한 계획: 체중을 줄이고 싶어요, 집에서, 주 4회/);
+});
+
+test('a month of sessions goes, one line each', () => {
+  const said = describeContext(
+    ctx({
+      today: fact({ id: 'w' }),
+      month: [
+        { date: '9월 18일', title: '상체 날', did: '벤치프레스 60kg, 바벨 컬 20kg' },
+        { date: '9월 16일', title: '하체 날', did: '스쿼트 80kg' },
+      ],
+    })
+  );
+  assert.match(said, /최근 한 달:/);
+  assert.match(said, /- 9월 18일 상체 날: 벤치프레스 60kg, 바벨 컬 20kg/);
+  // Compact on purpose: thirteen sessions listed set by set would bury the
+  // two lines above them that describe today.
+  assert.ok(said.split('\n').filter((l) => l.startsWith('- 9월')).length === 2);
+});
+
+test('no plan and no month means neither is mentioned', () => {
+  const said = describeContext(ctx({ today: fact({ id: 'w' }), plan: null, month: [] }));
+  assert.ok(!said.includes('본인이 정한 계획'));
+  assert.ok(!said.includes('최근 한 달'));
+});

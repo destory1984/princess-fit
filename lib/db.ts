@@ -716,6 +716,70 @@ export async function previousRoutineSession(workoutId: string) {
   return { ...(await getWorkoutDetail(found.id)), started_at: found.started_at };
 }
 
+/** One finished session, compact enough that a month of them still reads. */
+export type SessionLine = {
+  started_at: string;
+  title: string;
+  /** Movement name and the heaviest working set, in the order they were done. */
+  did: { name: string; topWeight: number; sets: number }[];
+};
+
+/**
+ * A month of finished sessions, movement by movement.
+ *
+ * One query rather than one per workout: thirteen sessions is thirteen round
+ * trips the other way, on a screen that already waits on three.
+ *
+ * Warm-ups are skipped, as everywhere else — a month of history is for seeing
+ * a trend, and a trend read through warm-up weights is not the trend.
+ */
+export async function monthOfSessions(now = new Date()): Promise<SessionLine[]> {
+  const since = new Date(now);
+  since.setDate(since.getDate() - 30);
+
+  const [{ data, error }, exercises] = await Promise.all([
+    supabase
+      .from('workout_sets')
+      .select('workout_id, exercise_id, weight_kg, done, warmup, workouts!inner(started_at, title, ended_at)')
+      .gte('workouts.started_at', since.toISOString())
+      .not('workouts.ended_at', 'is', null)
+      .order('position')
+      .order('set_no'),
+    listExercises(),
+  ]);
+  if (error) throw error;
+  const named = new Map(exercises.map((e) => [e.id, e.name]));
+
+  type Row = {
+    workout_id: string;
+    exercise_id: string;
+    weight_kg: number;
+    done: boolean;
+    warmup: boolean | null;
+    workouts: { started_at: string; title: string };
+  };
+
+  const byWorkout = new Map<string, SessionLine>();
+  for (const row of data as unknown as Row[]) {
+    if (!row.done || row.warmup) continue;
+    let session = byWorkout.get(row.workout_id);
+    if (!session) {
+      session = { started_at: row.workouts.started_at, title: row.workouts.title, did: [] };
+      byWorkout.set(row.workout_id, session);
+    }
+    const name = named.get(row.exercise_id) ?? '삭제된 종목';
+    const seen = session.did.find((d) => d.name === name);
+    if (seen) {
+      seen.sets += 1;
+      seen.topWeight = Math.max(seen.topWeight, row.weight_kg);
+    } else {
+      session.did.push({ name, topWeight: row.weight_kg, sets: 1 });
+    }
+  }
+
+  return [...byWorkout.values()].sort((a, b) => b.started_at.localeCompare(a.started_at));
+}
+
 export async function deleteWorkout(id: string) {
   const { error } = await supabase.from('workouts').delete().eq('id', id);
   if (error) throw error;
