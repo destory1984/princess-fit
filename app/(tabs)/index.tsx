@@ -27,7 +27,7 @@ import {
   type Household,
 } from '@/lib/economy';
 import { DEFAULT_WEEKLY_GOAL, getNudgeHour, getWeeklyGoal } from '@/lib/prefs';
-import { scheduleDailyMessage } from '@/lib/notify';
+import { cancelStrayRestAlarms, scheduleDailyMessage } from '@/lib/notify';
 import {
   getActiveWorkout,
   getWeeklyStats,
@@ -103,6 +103,10 @@ export default function TodayScreen() {
     Promise.all([getActiveWorkout(), listRoutines(), getWeeklyStats(), listWorkoutFacts()])
       .then(([a, r, w, facts]) => {
         setActive(a);
+        // Nobody is resting if nobody is mid-workout, so anything still booked
+        // is a bell the app was killed before it could call off. This is the
+        // only place that knows both facts at once.
+        if (!a) void cancelStrayRestAlarms();
         setRoutines(r);
         setWeekly(w);
         setFacts(facts);
