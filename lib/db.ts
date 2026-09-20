@@ -1404,12 +1404,20 @@ export async function setExerciseHidden(exerciseId: string, hidden: boolean) {
  * single version does — a favourite that is not offered is a contradiction
  * waiting to surface the moment it comes back.
  */
-export async function setAllExercisesHidden(hidden: boolean) {
+export async function setAllExercisesHidden(hidden: boolean, ids?: string[]) {
   const user_id = await requireUserId();
-  const { error } = await supabase
-    .from('exercises')
-    .update(hidden ? { hidden, favourite: false } : { hidden })
-    .eq('user_id', user_id);
+  const patch = hidden ? { hidden, favourite: false } : { hidden };
+  // Narrowed to what is on screen when the list is filtered, because that is
+  // what 「전부」 means to someone looking at eight cable movements. Nothing
+  // rather than everything when the filter matches none: a sweep over an
+  // empty list must not quietly become a sweep over the whole catalogue.
+  if (ids) {
+    if (ids.length === 0) return;
+    const { error } = await supabase.from('exercises').update(patch).in('id', ids);
+    if (error) throw error;
+    return;
+  }
+  const { error } = await supabase.from('exercises').update(patch).eq('user_id', user_id);
   if (error) throw error;
 }
 
