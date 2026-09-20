@@ -37,6 +37,8 @@ import {
   swapRemainingSets,
   listWorkoutFacts,
   listWorkoutSets,
+  listRoutineExercises,
+  addRoutineExercise,
   reorderWorkoutExercises,
   updateWorkout,
   clampRest,
@@ -58,7 +60,7 @@ import {
 import type { UsageMap } from "@/lib/exerciseUsage";
 import { listMuscleLoad } from "@/lib/db";
 import type { Place } from "@/lib/onboarding";
-import { getPlace } from "@/lib/prefs";
+import { getAskRoutine, getPlace } from "@/lib/prefs";
 import { recoveryOf, type Muscle } from "@/lib/recovery";
 import { suggestExercise } from "@/lib/suggest";
 import * as Crypto from "expo-crypto";
@@ -577,6 +579,48 @@ export default function WorkoutScreen() {
     // the queue they may end up in has to keep the order they were planned in.
     for (const [i, planned] of plan.entries()) {
       await newSet(exercise.id, position, i + 1, planned.weight, planned.reps);
+    }
+    void offerToRoutine(exercise);
+  }
+
+  /**
+   * 「이 종목, 루틴에도 넣어둘까요?」 — asked after the fact, never before.
+   *
+   * Adding something to today is a decision about today. Asking first would
+   * put a question about next week between someone and the set they came to
+   * do, so the movement goes on the board immediately and the question comes
+   * afterwards, where it can be ignored.
+   *
+   * Not asked at all when the answer cannot matter: no routine behind this
+   * session, the movement already in it, or the person has said stop asking.
+   * That last one is why the switch exists — from a review of the app this
+   * borrows from, 「바꾸고 싶지 않던 기존 플랜 변경 버튼이 눌립니다」. A
+   * question asked often enough becomes a trap.
+   */
+  async function offerToRoutine(exercise: Exercise) {
+    const routineId = workout?.routine_id;
+    if (!routineId) return;
+    try {
+      if (!(await getAskRoutine())) return;
+      const already = await listRoutineExercises(routineId);
+      if (already.some((r) => r.exercise_id === exercise.id)) return;
+
+      confirmAction(
+        '루틴에도 넣을까요?',
+        `"${exercise.name}"을(를) 이 루틴에 넣어두면 다음에도 같이 나와요.
+
+` +
+          '오늘 기록은 이미 저장됐으니, 넣지 않으셔도 괜찮아요.',
+        async () => {
+          try {
+            await addRoutineExercise(routineId, exercise.id, already.length);
+          } catch (e: any) {
+            notify('루틴에 넣지 못했어요', e.message);
+          }
+        },
+      );
+    } catch {
+      // The set is on the board either way; a failure here costs only the ask.
     }
   }
 

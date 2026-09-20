@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { NudgeSetting } from '@/components/NudgeSetting';
@@ -9,7 +9,7 @@ import { getLedger, listExercises, saveHousehold } from '@/lib/db';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { GOALS, PLACES, type Goal, type Place } from '@/lib/onboarding';
-import { getGoal, getPlace, getWeeklyGoal } from '@/lib/prefs';
+import { getAskRoutine, getGoal, getPlace, getWeeklyGoal, setAskRoutine } from '@/lib/prefs';
 import { colors, radius, spacing } from '@/lib/theme';
 import { useGirl } from '@/lib/girl';
 
@@ -24,6 +24,7 @@ export default function SettingsScreen() {
   // these, and nothing on screen said so — the picker quietly went unordered
   // and the findings quietly went unranked. The row says which it is.
   const [granting, setGranting] = useState<string | null>(null);
+  const [askRoutine, setAskRoutineState] = useState(true);
   const [plan, setPlan] = useState<{
     days: number;
     goal: Goal | null;
@@ -40,6 +41,7 @@ export default function SettingsScreen() {
       Promise.all([getWeeklyGoal(), getGoal(), getPlace()]).then(([days, goal, place]) =>
         setPlan({ days, goal, place })
       );
+      getAskRoutine().then(setAskRoutineState).catch(() => {});
     }, [])
   );
 
@@ -115,6 +117,34 @@ export default function SettingsScreen() {
         not hidden under anything: the people who need it most are the ones
         who have not yet had the bad day that teaches them to look.
       */}
+      {/*
+        The switch exists because the question exists. From a review of the app
+        this borrows from: 「알림 때문에 바꾸고 싶지 않던 기존 플랜 변경 버튼이
+        눌립니다」. Someone with a plan they are happy with, who occasionally
+        trains something else, is asked something they never want — and one day
+        mis-taps it. A question asked often enough becomes a trap, so 「그만
+        물어봐」 has to be one of the answers.
+      */}
+      <View style={styles.row}>
+        <View style={styles.icon}>
+          <Ionicons name="help-circle-outline" size={22} color={colors.accent} />
+        </View>
+        <View style={styles.body}>
+          <Text style={styles.title}>루틴에도 넣을지 묻기</Text>
+          <Text style={styles.sub}>
+            루틴 운동 중에 종목을 더하면 물어봐요. 끄면 오늘만 하고 말아요.
+          </Text>
+        </View>
+        <Switch
+          value={askRoutine}
+          onValueChange={(next) => {
+            setAskRoutineState(next);
+            setAskRoutine(next).catch(() => setAskRoutineState(!next));
+          }}
+          trackColor={{ true: colors.accent }}
+        />
+      </View>
+
       <Pressable style={styles.row} onPress={() => router.push('/settings/backup')}>
         <View style={styles.icon}>
           <Ionicons name="save-outline" size={22} color={colors.accent} />

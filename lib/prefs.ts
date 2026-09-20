@@ -214,3 +214,30 @@ export async function cacheAdvice(workoutId: string, text: string) {
     // A missing cache only costs a regeneration.
   }
 }
+
+const ASK_ROUTINE = 'refit.askRoutine';
+
+/**
+ * Whether to ask about folding a new movement into the routine it was added
+ * during.
+ *
+ * On by default, and switchable, because a review of a much larger app is very
+ * clear about why this needs the switch: 「알림+앱 버벅임 때문에 바꾸고 싶지
+ * 않던 기존 플랜 변경 버튼이 눌립니다. 그럼 다시 제 플랜을 원래대로 수정해야
+ * 되는데」. Someone with a plan they are happy with, who occasionally trains
+ * something else, gets a question they never want and eventually mis-taps it.
+ *
+ * A question asked often enough becomes a trap, so the answer 「그만 물어봐」
+ * has to be one of the answers.
+ */
+export async function getAskRoutine() {
+  try {
+    return (await AsyncStorage.getItem(ASK_ROUTINE)) !== 'off';
+  } catch {
+    return true;
+  }
+}
+
+export async function setAskRoutine(ask: boolean) {
+  await AsyncStorage.setItem(ASK_ROUTINE, ask ? 'on' : 'off');
+}
