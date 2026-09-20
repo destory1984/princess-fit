@@ -248,6 +248,14 @@ export default function PreviewScreen() {
       <NudgeSetting />
 
       <Text style={styles.heading}>리나의 응원</Text>
+      <Cheer
+        doneSets={0}
+        totalSets={0}
+        suggestion={{ id: 'x', name: '랫 풀다운', why: '광배근을 4일째 안 하셨어요.' }}
+        onAccept={() => {}}
+        onInvite={() => {}}
+      />
+      <Cheer doneSets={0} totalSets={0} onInvite={() => {}} />
       <Cheer doneSets={0} totalSets={12} />
       <Cheer doneSets={7} totalSets={12} />
       <Cheer doneSets={11} totalSets={12} />

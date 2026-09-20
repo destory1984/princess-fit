@@ -54,6 +54,11 @@ import {
   shapePlan,
 } from "@/lib/condition";
 import type { UsageMap } from "@/lib/exerciseUsage";
+import { listMuscleLoad } from "@/lib/db";
+import type { Place } from "@/lib/onboarding";
+import { getPlace } from "@/lib/prefs";
+import { recoveryOf, type Muscle } from "@/lib/recovery";
+import { suggestExercise } from "@/lib/suggest";
 import { colors, muscleColor, radius, spacing } from "@/lib/theme";
 
 export default function WorkoutScreen() {
@@ -78,6 +83,22 @@ export default function WorkoutScreen() {
   const [now, setNow] = useState(() => Date.now());
   const [error, setError] = useState<string | null>(null);
   const [usage, setUsage] = useState<UsageMap>(new Map());
+  // For the movement she offers on an empty board: what has rested, and where
+  // they said they train. Both optional — without either she still suggests,
+  // just with less to go on.
+  const [muscles, setMuscles] = useState<Muscle[]>([]);
+  const [place, setPlace] = useState<Place | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    listMuscleLoad()
+      .then((sessions) => alive && setMuscles(recoveryOf(sessions)))
+      .catch(() => {});
+    getPlace().then((stored) => alive && stored && setPlace(stored));
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const load = useCallback(() => {
     if (!id) return;
@@ -203,6 +224,21 @@ export default function WorkoutScreen() {
   );
   const done = Boolean(workout?.ended_at);
   const progress = sets.length ? doneSets.length / sets.length : 0;
+
+  // Only worth working out for an empty board, which is the only time she asks.
+  const suggestion = useMemo(
+    () =>
+      sets.length > 0
+        ? null
+        : suggestExercise(exercises, muscles, {
+            place,
+            // Familiarity is a count; the map also carries when it was last
+            // done, which the picker orders by and this does not need.
+            usage: new Map([...usage].map(([id, u]) => [id, u.count])),
+            exclude: new Set(sets.map((s) => s.exercise_id)),
+          }),
+    [sets, exercises, muscles, place, usage]
+  );
   const upNext = grouped.find((g) => g.sets.some((s) => !s.done));
   // A long workout is mostly finished exercises; those collapse to one line so
   // the set you are actually on is never three screens down.
@@ -525,7 +561,16 @@ export default function WorkoutScreen() {
 
           {/* Otherwise this screen is a spreadsheet you sweat next to. */}
           {!done && (
-            <Cheer doneSets={doneSets.length} totalSets={sets.length} />
+            <Cheer
+              doneSets={doneSets.length}
+              totalSets={sets.length}
+              suggestion={suggestion}
+              onAccept={(picked) => {
+                const exercise = exercises.find((e) => e.id === picked.id);
+                if (exercise) void addExercise(exercise);
+              }}
+              onInvite={() => setPicking(true)}
+            />
           )}
         </View>
 
