@@ -3,9 +3,32 @@ import { formatDuration, formatKm } from './format.ts';
 import type { WorkoutFact } from './gamification.ts';
 import type { Stats } from './character.ts';
 
+/** One movement as it was actually done, and what it was last time. */
+export type DoneExercise = {
+  name: string;
+  sets: number;
+  /** Heaviest working set, and the reps at it. 0 for bodyweight or timed work. */
+  topWeight: number;
+  topReps: number;
+  /** The same movement's heaviest set last time, if there was a last time. */
+  lastTop: number | null;
+  /** Seconds, for movements timed rather than counted. */
+  seconds: number;
+};
+
 export type AdviceContext = {
   /** The session just finished. */
   today: WorkoutFact;
+  /**
+   * What was done, movement by movement.
+   *
+   * The block used to hold four aggregate numbers and nothing else — no name,
+   * no weight, no rep — and then asked for a coach's instruction. There was
+   * nothing to build a sentence out of but the numbers, so that is what came
+   * back: 「최근 평균을 넘어선 꾸준함 30을 잘 살렸습니다」. The app knew all of
+   * this and was not sending it.
+   */
+  done?: DoneExercise[];
   /** Earlier finished sessions, newest first. */
   history: WorkoutFact[];
   stats: Stats;
@@ -32,6 +55,24 @@ export function describeContext(c: AdviceContext) {
         (c.today.distanceKm > 0 ? `, ${formatKm(c.today.distanceKm)}km` : '')
     );
   }
+  /*
+    Movement by movement, with last time's best beside it.
+
+    This is the only part a coach can actually say anything about. 「벤치프레스
+    60kg×8 (지난번 57.5kg)」 supports a real sentence; 「총 무게 1,167kg」
+    supports arithmetic.
+  */
+  for (const e of c.done ?? []) {
+    if (e.seconds > 0) {
+      lines.push(`- ${e.name}: ${formatDuration(e.seconds)}`);
+    } else if (e.topWeight > 0) {
+      const before = e.lastTop ? ` (지난번 최고 ${e.lastTop}kg)` : ' (지난번 기록 없음)';
+      lines.push(`- ${e.name}: ${e.sets}세트, 최고 ${e.topWeight}kg×${e.topReps}회${before}`);
+    } else {
+      lines.push(`- ${e.name}: ${e.sets}세트, 맨몸 ${e.topReps}회`);
+    }
+  }
+
   if (past.length) {
     lines.push(`최근 ${past.length}회 평균: 세트 ${avgSets}개, 총 무게 ${avgVolume.toLocaleString()}kg`);
     lines.push(`최근 쓴 부위: ${[...new Set(past.flatMap((w) => w.groups))].join(', ') || '없음'}`);
@@ -73,6 +114,15 @@ export function buildPrompt(c: AdviceContext) {
     // thing the block cannot enforce: a sentence somebody can act on.
     '마지막 문장은 다음 운동에서 할 수 있는 한 가지 행동이어야 합니다.',
     '통증이나 부상 이야기가 있으면 병원에 가보라고만 하세요.',
+    // A worked answer, because every other line here is a prohibition and
+    // none of them says what a good reply looks like. Named movements and a
+    // change you could make tomorrow — no aggregates, no scores.
+    '',
+    '좋은 답의 예:',
+    // Deliberately without weights. The example lives in the prompt, not in
+    // the facts, so any number it taught would be rejected by the guard the
+    // moment the model copied it — and a model shown a number will copy it.
+    '「벤치프레스가 지난번보다 올랐네요. 다음엔 바벨 컬도 한 세트 더 해보세요.」',
     '',
     describeContext(c),
   ].join('\n');

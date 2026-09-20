@@ -10,6 +10,7 @@ import { ScreenState } from '@/components/ScreenState';
 import { notify } from '@/lib/confirm';
 import {
   getActiveWorkout,
+  getLastPerformance,
   getWorkoutDetail,
   listWorkoutFacts,
   repeatWorkout,
@@ -30,6 +31,8 @@ export default function SummaryScreen() {
   const [fact, setFact] = useState<WorkoutFact | null>(null);
   const [summary, setSummary] = useState<ReturnType<typeof summarise> | null>(null);
   const [facts, setFacts] = useState<WorkoutFact[]>([]);
+  // The heaviest set of each movement last time, for 「지난번보다」.
+  const [lastTime, setLastTime] = useState<Map<string, number>>(new Map());
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(() => {
@@ -42,19 +45,69 @@ export default function SummaryScreen() {
         setFact(facts.find((f) => f.id === id) ?? null);
         setFacts(facts);
         setSummary(summarise(facts));
+
+        // Only feeds the adviser's 「지난번보다」, so the screen never waits.
+        const ids = [...new Set(detail.items.map((i) => i.exercise_id))];
+        getLastPerformance(ids, id)
+          .then((seen) =>
+            setLastTime(
+              new Map(
+                [...seen].map(([exerciseId, point]) => [
+                  exerciseId,
+                  Math.max(0, ...point.sets.map((s) => s.weight_kg)),
+                ])
+              )
+            )
+          )
+          .catch(() => {});
       })
       .catch((e) => setError(e.message));
   }, [id]);
 
   useFocusEffect(load);
 
+  /*
+    What was actually done, for the adviser.
+
+    Built here because this screen already holds the detail, and without it the
+    facts block is four aggregate numbers — which is all the advice could ever
+    be made of. Last time's best comes from one extra query rather than the
+    session totals, because 「지난번보다 올랐다」 is the thing worth saying and
+    nothing in the totals can tell you that about one movement.
+  */
+  const done = useMemo(
+    () =>
+      items.map((item) => {
+        const finished = item.sets.filter((s) => s.done && !s.warmup);
+        const top = finished.reduce(
+          (best, s) => (s.weight_kg > best.weight_kg ? s : best),
+          finished[0] ?? { weight_kg: 0, reps: 0 }
+        );
+        return {
+          name: item.exercise?.name ?? '삭제된 종목',
+          sets: finished.length,
+          topWeight: item.topWeight,
+          topReps: top.reps,
+          lastTop: lastTime.get(item.exercise_id) ?? null,
+          seconds: finished.reduce((sum, s) => sum + s.duration_sec, 0),
+        };
+      }),
+    [items, lastTime]
+  );
+
   // Must be stable: AdviceCard refetches whenever this object's identity changes.
   const adviceContext = useMemo(
     () =>
       fact && summary
-        ? { today: fact, history: facts, stats: computeStats(facts), streak: summary.streak }
+        ? {
+            today: fact,
+            done,
+            history: facts,
+            stats: computeStats(facts),
+            streak: summary.streak,
+          }
         : null,
-    [fact, facts, summary]
+    [fact, done, facts, summary]
   );
 
   async function repeat() {
