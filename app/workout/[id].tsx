@@ -1060,15 +1060,51 @@ function MemoField({
   onCommit: (value: string) => void;
 }) {
   const [text, setText] = useState(value);
+  // Whether there is typing here that the workout has not been told about.
+  // State rather than a ref: it is read while deciding what to render.
+  const [dirty, setDirty] = useState(false);
 
-  // Adopt a memo that changed underneath us — reloaded, or saved elsewhere —
-  // during render rather than in an effect, which would paint the stale text
-  // first and then replace it.
+  /*
+    Adopt a memo that changed underneath us — reloaded, or saved elsewhere —
+    during render rather than in an effect, which would paint the stale text
+    first and then replace it.
+
+    Unless something is being typed. Returning to this screen reloads it, and
+    the reload used to hand back the server's older memo, which landed here and
+    replaced the sentence half written in the box. That is how a memo goes
+    missing without anything reporting an error.
+  */
   const [seen, setSeen] = useState(value);
   if (value !== seen) {
     setSeen(value);
-    setText(value);
+    if (!dirty) setText(value);
   }
+
+  /*
+    Saved while typing, not only when the box is let go of.
+
+    Blur is not a promise. The app is backgrounded mid-sentence, the phone is
+    put in a pocket, the session is ended from the button above — and on none
+    of those paths is the field guaranteed to be told it lost focus. A memo is
+    usually written in exactly those moments, which is why it was the thing
+    that kept disappearing.
+  */
+  // Held in a ref because the parent rebuilds it on every render, and the rest
+  // countdown re-renders twice a second — a timer that restarted with it would
+  // never once reach the end of its wait.
+  const commit = useRef(onCommit);
+  useEffect(() => {
+    commit.current = onCommit;
+  });
+
+  useEffect(() => {
+    if (!dirty) return;
+    const timer = setTimeout(() => {
+      setDirty(false);
+      commit.current(text);
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, [text, dirty]);
 
   return (
     <TextInput
@@ -1078,8 +1114,14 @@ function MemoField({
       value={text}
       editable={editable}
       multiline
-      onChangeText={setText}
-      onBlur={() => onCommit(text)}
+      onChangeText={(next) => {
+        setDirty(true);
+        setText(next);
+      }}
+      onBlur={() => {
+        setDirty(false);
+        onCommit(text);
+      }}
     />
   );
 }
