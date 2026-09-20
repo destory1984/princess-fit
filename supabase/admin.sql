@@ -17,6 +17,13 @@
 -- Nobody is an admin until that row exists, including whoever created the
 -- project.
 
+-- Columns this file's functions read. Kept here as well as in migrate.sql so
+-- the file stands on its own: admin_user_recent selects workouts.advice, and
+-- creating a function against a column that does not exist yet fails outright
+-- — which takes down everything after it in the same run.
+alter table workouts add column if not exists advice        text;
+alter table workouts add column if not exists advice_source text;
+
 create table if not exists admins (
   user_id uuid primary key references auth.users on delete cascade,
   added_at timestamptz not null default now()
