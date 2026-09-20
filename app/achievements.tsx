@@ -10,8 +10,10 @@ import {
   CULTURE_META,
   CULTURE_ORDER,
   EMPTY_CULTURE,
+  enrolmentWord,
   refinementTitle,
   type Culture,
+  type Enrolment,
 } from '@/lib/lessons';
 import { notify } from '@/lib/confirm';
 import {
@@ -48,6 +50,7 @@ export default function TrainingLedgerScreen() {
   // Whether the household answered. Empty arrays are also what this screen
   // holds before it asks, and after it fails.
   const [ledgerKnown, setLedgerKnown] = useState(false);
+  const [lesson, setLesson] = useState<Enrolment | null>(null);
 
   const load = useCallback(() => {
     setError(null);
@@ -65,6 +68,7 @@ export default function TrainingLedgerScreen() {
             setWardrobe(l.wardrobe);
             setWearing(l.worn);
             setFurniture(l.furniture);
+            setLesson(l.lesson);
             setLedgerKnown(true);
           })
           .catch(() => setLedgerKnown(false));
@@ -198,6 +202,11 @@ export default function TrainingLedgerScreen() {
         <Text style={styles.refineTitle}>
           {ledgerKnown ? refinementTitle(standing) : '아직 불러오지 못했어요.'}
         </Text>
+        {/* What she is in the middle of belongs beside what she has finished:
+            this is the page anyone opens to see her schooling. */}
+        {ledgerKnown && lesson && (
+          <Text style={styles.enrolled}>{enrolmentWord(lesson)}</Text>
+        )}
         {ledgerKnown && CULTURE_ORDER.map((key) => (
           <View key={key} style={styles.cultureRow}>
             <Ionicons name={CULTURE_META[key].icon as any} size={15} color={paper.line} />
@@ -279,6 +288,7 @@ const styles = StyleSheet.create({
   yearHint: { color: paper.inkDim, fontSize: 11, lineHeight: 16, marginBottom: spacing.sm },
   yearLabel: { color: paper.inkDim, fontSize: 12, width: 32 },
   yearValue: { color: paper.inkDim, fontSize: 11, width: 44, textAlign: 'right' },
+  enrolled: { color: colors.gold, fontSize: 12, lineHeight: 18, marginTop: 2 },
   refineTitle: { color: paper.ink, fontSize: 14, fontWeight: '700', marginBottom: spacing.sm },
   cultureRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: 6 },
   cultureName: { color: paper.inkDim, fontSize: 12, width: 32 },

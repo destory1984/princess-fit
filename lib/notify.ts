@@ -106,15 +106,16 @@ function said(speaker: string, body: string) {
 }
 
 const goodbye = (speaker: string, lesson: string) =>
-  said(speaker, `${lesson} 배우러 다녀올게요.`);
+  said(speaker, `오늘부터 ${lesson} 배우러 다녀요.`);
 
 const welcome = (speaker: string, lesson: string) =>
-  said(speaker, `다녀왔어요. ${lesson}, 생각보다 재미있었어요.`);
+  said(speaker, `${lesson}, 오늘로 끝났어요. 배운 건 어디 안 가니까요.`);
 
 /**
- * A lesson is a day out: she says goodbye in the morning and tells you how it
- * went when she is back. Two one-off messages, booked when the lesson is paid
- * for — nothing checks in later, so what she says on her return is written now.
+ * A course is days of going every morning: she says so on the first and tells
+ * you it is over on the last. Two one-off messages, booked when the course is
+ * paid for — nothing checks in between, so what she says at the end is written
+ * at the start.
  */
 export async function scheduleLessonTrip(speaker: string, lesson: string, trip: Trip) {
   if (!supported) return false;
