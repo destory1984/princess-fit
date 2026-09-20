@@ -479,14 +479,30 @@ export default function WorkoutScreen() {
       const facts = await listWorkoutFacts();
       const after = summarise(facts);
 
-      // Pay her for the session. A failure here must not swallow the workout,
-      // which is already safely saved.
+      /*
+        Pay her for the session. A failure here must not swallow the workout,
+        which is already safely saved — but it must not be swallowed either.
+        `settle` only ever charges the days that have passed; it has no notion
+        of a session it still owes for, so gold that fails to land is gone and
+        nothing would ever have said so.
+
+        Retried once, because the realistic failure is a blip between two
+        queries that had just succeeded. If it still will not go through, it is
+        said out loud rather than left to a recovery that does not exist.
+      */
       let earned = 0;
-      try {
-        const fact = facts.find((f) => f.id === id);
-        if (fact) earned = (await payForWorkout(fact)).gold;
-      } catch {
-        // The purse can catch up on the next settle.
+      let unpaid = false;
+      const fact = facts.find((f) => f.id === id);
+      if (fact) {
+        try {
+          earned = (await payForWorkout(fact)).gold;
+        } catch {
+          try {
+            earned = (await payForWorkout(fact)).gold;
+          } catch {
+            unpaid = true;
+          }
+        }
       }
 
       const gained = after.xp - before.xp;
@@ -506,7 +522,12 @@ export default function WorkoutScreen() {
       const title = earned ? `+${gained} XP · +${earned} G` : `+${gained} XP`;
 
       celebrateFeedback();
-      if (lines.length) notify(title, lines.join("\n"));
+      if (unpaid) {
+        notify(
+          "골드를 넣지 못했어요",
+          "운동 기록은 저장됐어요. 이번 골드만 들어가지 않았어요.",
+        );
+      } else if (lines.length) notify(title, lines.join("\n"));
       else if (earned) notify(title);
       router.replace({ pathname: "/summary/[id]", params: { id } });
     } catch (e: any) {
