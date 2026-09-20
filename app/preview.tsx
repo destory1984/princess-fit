@@ -13,6 +13,8 @@ import { MonthCalendar } from '@/components/MonthCalendar';
 import GirlScreen from '@/app/settings/girl';
 import OneRmScreen from '@/app/onerm';
 import RoutinePresetsScreen from '@/app/routine/presets';
+import PhotosScreen from '@/app/photos';
+import SleepScreen from '@/app/sleep';
 import { OneRmChart } from '@/components/OneRmChart';
 import { NudgeSetting } from '@/components/NudgeSetting';
 import { nextWeight } from '@/lib/weight';
@@ -155,6 +157,16 @@ export default function PreviewScreen() {
       <Text style={styles.heading}>함께 지낼 아이 (화면 전체)</Text>
       <View style={styles.framedTall}>
         <GirlScreen />
+      </View>
+
+      <Text style={styles.heading}>사진 기록 (화면 전체)</Text>
+      <View style={styles.framed}>
+        <PhotosScreen />
+      </View>
+
+      <Text style={styles.heading}>수면 기록 (화면 전체)</Text>
+      <View style={styles.framedTall}>
+        <SleepScreen />
       </View>
 
       <Text style={styles.heading}>잠든 · 일어난 시각</Text>
