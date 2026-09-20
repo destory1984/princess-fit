@@ -4,7 +4,15 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { ScreenState } from '@/components/ScreenState';
 import { confirmAction, notify } from '@/lib/confirm';
-import { createRoutine, deleteRoutine, listRoutineExercises, listRoutines } from '@/lib/db';
+import {
+  createRoutine,
+  deleteRoutine,
+  lastDoneByRoutine,
+  listRoutineExercises,
+  listRoutines,
+} from '@/lib/db';
+import { formatDate } from '@/lib/format';
+import { byLastUsed } from '@/lib/split';
 import type { Routine } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
 
@@ -12,6 +20,7 @@ export default function RoutinesScreen() {
   const router = useRouter();
   const [routines, setRoutines] = useState<Routine[] | null>(null);
   const [sizes, setSizes] = useState<Record<string, number>>({});
+  const [lastDone, setLastDone] = useState<Map<string, string>>(new Map());
   const [name, setName] = useState('');
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -21,6 +30,11 @@ export default function RoutinesScreen() {
     listRoutines()
       .then((list) => {
         setRoutines(list);
+        // Only reorders the list and adds a date under each name, so it is
+        // never waited on — the routines are readable without it.
+        lastDoneByRoutine()
+          .then(setLastDone)
+          .catch(() => {});
         // The counts only decide a subtitle, so the list does not wait on one
         // query per routine before it is allowed to appear.
         Promise.all(
@@ -33,6 +47,10 @@ export default function RoutinesScreen() {
   }, []);
 
   useFocusEffect(load);
+
+  // Most recently used first, with one never used counting as used the day it
+  // was made — so a routine created a minute ago is where its owner is looking.
+  const ordered = routines ? byLastUsed(routines, lastDone) : null;
 
   async function add() {
     const trimmed = name.trim();
@@ -73,7 +91,7 @@ export default function RoutinesScreen() {
   return (
     <View style={styles.screen}>
       <FlatList
-        data={routines}
+        data={ordered}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         ListHeaderComponent={
@@ -132,6 +150,15 @@ export default function RoutinesScreen() {
                   : sizes[item.id] > 0
                     ? `종목 ${sizes[item.id]}개`
                     : '아직 종목이 없어요'}
+                {/*
+                  When it was last done, which is what tells two routines
+                  apart at a glance. 「아직」 rather than nothing for one never
+                  used — an empty space reads as a date that failed to load.
+                */}
+                {sizes[item.id] !== undefined &&
+                  (lastDone.has(item.id)
+                    ? ` · 지난번 ${formatDate(lastDone.get(item.id)!, 'short')}`
+                    : ' · 아직 안 해봤어요')}
               </Text>
             </View>
             <Pressable hitSlop={8} onPress={() => confirmDelete(item)}>
