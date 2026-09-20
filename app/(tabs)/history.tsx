@@ -148,14 +148,18 @@ export default function HistoryScreen() {
         <Ionicons name="chevron-forward" size={18} color={colors.textDim} />
       </Pressable>
 
-      <Pressable style={styles.tool} onPress={() => router.push('/sleep')}>
-        <Ionicons name="moon-outline" size={18} color={colors.accent} />
-        <View style={styles.toolBody}>
-          <Text style={styles.toolTitle}>수면 기록</Text>
-          <Text style={styles.toolSub}>운동한 날과 쉰 날, 얼마나 잤는지</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={18} color={colors.textDim} />
-      </Pressable>
+      {/*
+        Sleep is not offered until the phone can supply it.
+
+        Typing last night's hours in by hand is a chore nobody keeps up for a
+        week, and a chart built from three entered nights says nothing true
+        about whether rest and training line up — which is the only question
+        the screen exists to answer. The screen and its table stay; it is
+        reachable at /sleep and from the bench, so the work is waiting rather
+        than deleted, and what is already recorded is untouched.
+
+        The door opens when Apple 건강 does.
+      */}
 
       <Insights workouts={facts} limit={2} />
 
