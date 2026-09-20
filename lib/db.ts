@@ -1393,6 +1393,26 @@ export async function setExerciseHidden(exerciseId: string, hidden: boolean) {
   if (error) throw error;
 }
 
+/**
+ * Turn the whole catalogue on or off at once.
+ *
+ * One statement rather than seventy: row level security already scopes it to
+ * this account, and 「전부 끄기」 that takes a visible minute is one nobody
+ * presses twice.
+ *
+ * Turning everything off also unstars everything, for the same reason the
+ * single version does — a favourite that is not offered is a contradiction
+ * waiting to surface the moment it comes back.
+ */
+export async function setAllExercisesHidden(hidden: boolean) {
+  const user_id = await requireUserId();
+  const { error } = await supabase
+    .from('exercises')
+    .update(hidden ? { hidden, favourite: false } : { hidden })
+    .eq('user_id', user_id);
+  if (error) throw error;
+}
+
 export async function setExerciseFavourite(exerciseId: string, favourite: boolean) {
   const { error } = await supabase
     .from('exercises')
