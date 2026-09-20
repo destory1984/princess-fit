@@ -6,6 +6,7 @@ import {
   mergedPatch,
   overlay,
   parse,
+  pendingRows,
   pendingWord,
   queue,
   settle,
@@ -132,4 +133,65 @@ test('a basement stops the drain rather than burning the battery on it', async (
 
 test('nothing waiting is not an error', async () => {
   assert.deepEqual(await drain([], async () => {}), []);
+});
+
+const ROW = {
+  id: 'new1',
+  workout_id: 'w1',
+  exercise_id: 'e1',
+  position: 0,
+  set_no: 3,
+};
+
+test('a set added offline stays an insert, however many edits land on it', () => {
+  let pending = queue([], 'new1', { weight_kg: 40 }, NOW, ROW);
+  pending = queue(pending, 'new1', { reps: 10 }, NOW);
+  pending = queue(pending, 'new1', { done: true }, NOW);
+  assert.equal(pending.length, 1);
+  assert.deepEqual(pending[0].row, ROW);
+  // One insert carrying every number, not an insert plus three updates each
+  // of which could fail on its own.
+  assert.deepEqual(pending[0].patch, { weight_kg: 40, reps: 10, done: true });
+});
+
+test('a set added offline still shows on the board after a reload', () => {
+  // There is no server row to lay the edit over — this is the same bug in a
+  // new place, and the answer is to append rather than to overlay.
+  const pending = queue([], 'new1', { weight_kg: 40, reps: 10 }, NOW, ROW);
+  assert.deepEqual(pendingRows(pending), [
+    {
+      ...ROW,
+      weight_kg: 40,
+      reps: 10,
+      duration_sec: 0,
+      distance_km: 0,
+      done: false,
+    },
+  ]);
+});
+
+test('edits to sets that do exist add no rows of their own', () => {
+  const pending = queue([], 's1', { done: true }, NOW);
+  assert.deepEqual(pendingRows(pending), []);
+});
+
+test('the whole row goes out for an insert, and only the patch for an edit', async () => {
+  const pending = [
+    { setId: 'new1', patch: { reps: 5 }, at: NOW, row: ROW },
+    { setId: 's1', patch: { done: true }, at: NOW },
+  ];
+  const seen: (string | undefined)[] = [];
+  await drain(pending, async (_id, _patch, row) => {
+    seen.push(row?.id);
+  });
+  assert.deepEqual(seen, ['new1', undefined]);
+});
+
+test('a half-written row in storage is dropped, not retried forever', () => {
+  const good = JSON.stringify([{ setId: 'new1', patch: {}, at: NOW, row: ROW }]);
+  assert.equal(parse(good).length, 1);
+  // Without the columns to insert with, the database would refuse it on every
+  // flush for as long as the app is installed.
+  const bad = JSON.stringify([{ setId: 'new1', patch: {}, at: NOW, row: { id: 'new1' } }]);
+  assert.deepEqual(parse(bad), []);
 });

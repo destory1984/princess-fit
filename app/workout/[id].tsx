@@ -24,7 +24,6 @@ import { formatDate, formatDuration } from "@/lib/format";
 import { warmUpAdvice } from "@/lib/advice";
 import { summarise } from "@/lib/gamification";
 import {
-  addWorkoutSet,
   deleteWorkout,
   deleteWorkoutSet,
   estimateOneRm,
@@ -61,8 +60,19 @@ import type { Place } from "@/lib/onboarding";
 import { getPlace } from "@/lib/prefs";
 import { recoveryOf, type Muscle } from "@/lib/recovery";
 import { suggestExercise } from "@/lib/suggest";
-import { overlay, pendingWord, type PendingWrite } from "@/lib/outbox";
-import { flushOutbox, saveSet, watchPending } from "@/lib/outboxStore";
+import * as Crypto from "expo-crypto";
+import {
+  overlay,
+  pendingRows,
+  pendingWord,
+  type PendingWrite,
+} from "@/lib/outbox";
+import {
+  flushOutbox,
+  forgetSet,
+  saveSet,
+  watchPending,
+} from "@/lib/outboxStore";
 import { colors, muscleColor, radius, spacing } from "@/lib/theme";
 
 export default function WorkoutScreen() {
@@ -148,7 +158,15 @@ export default function WorkoutScreen() {
         setWorkout(w);
         // The server's rows, with anything that has not reached it laid back
         // on top. Without this a reload is what loses the set you just typed.
-        setSets(overlay(s, unsentRef.current));
+        // Server rows with unsent edits laid over them, then the sets that
+        // exist only in the queue — those have no row underneath to lay over.
+        const mine = unsentRef.current;
+        setSets([
+          ...overlay(s, mine),
+          ...(pendingRows(mine).filter(
+            (r) => r.workout_id === id && !s.some((x) => x.id === r.id),
+          ) as WorkoutSet[]),
+        ]);
         setExercises(e);
         const ids = [...new Set(s.map((x) => x.exercise_id))];
         const [lastSeen, personalBests] = await Promise.all([
@@ -386,6 +404,41 @@ export default function WorkoutScreen() {
     await Promise.all(pending.map((s) => saveSet(s.id, { done: true })));
   }
 
+  /**
+   * Put a set on the board, named here rather than by the server.
+   *
+   * The id is made before anything is sent, so the set exists as far as this
+   * screen and the queue are concerned whether or not the write lands. Every
+   * edit that follows has something to point at, which is the whole reason a
+   * set can now be added in a basement.
+   */
+  async function newSet(
+    exerciseId: string,
+    position: number,
+    setNo: number,
+    weight: number,
+    reps: number,
+  ) {
+    const row = {
+      id: Crypto.randomUUID(),
+      workout_id: id!,
+      exercise_id: exerciseId,
+      position,
+      set_no: setNo,
+    };
+    const set = {
+      ...row,
+      weight_kg: weight,
+      reps,
+      duration_sec: 0,
+      distance_km: 0,
+      done: false,
+    } as WorkoutSet;
+    setSets((prev) => [...prev, set]);
+    await saveSet(row.id, { weight_kg: weight, reps }, row);
+    return set;
+  }
+
   async function addSet(exerciseId: string) {
     if (!id) return;
     const existing = sets.filter((s) => s.exercise_id === exerciseId);
@@ -401,22 +454,20 @@ export default function WorkoutScreen() {
     const position =
       previous?.position ??
       sets.reduce((m, s) => Math.max(m, s.position), -1) + 1;
-    try {
-      const created = await addWorkoutSet({
-        workoutId: id,
-        exerciseId,
-        position,
-        setNo: existing.length + 1,
-        weight: template?.weight_kg ?? 0,
-        reps: template?.reps ?? 10,
-      });
-      setSets((prev) => [...prev, created]);
-      if (!last.has(exerciseId)) {
+    await newSet(
+      exerciseId,
+      position,
+      existing.length + 1,
+      template?.weight_kg ?? 0,
+      template?.reps ?? 10,
+    );
+    if (!last.has(exerciseId)) {
+      try {
         const fetched = await getLastPerformance([exerciseId], id);
         if (fetched.size) setLast((prev) => new Map([...prev, ...fetched]));
+      } catch {
+        // Only the 「지난번」 line; the set itself is already on the board.
       }
-    } catch (e: any) {
-      notify("세트 추가 실패", e.message);
     }
   }
 
@@ -465,23 +516,10 @@ export default function WorkoutScreen() {
       workout?.condition ?? DEFAULT_CONDITION
     );
     const position = sets.reduce((m, x) => Math.max(m, x.position), -1) + 1;
-    try {
-      const created = await Promise.all(
-        plan.map((planned, i) =>
-          addWorkoutSet({
-            workoutId: id,
-            exerciseId: exercise.id,
-            position,
-            setNo: i + 1,
-            weight: planned.weight,
-            reps: planned.reps,
-          }),
-        ),
-      );
-      setSets((prev) => [...prev, ...created]);
-    } catch (e: any) {
-      notify("종목 추가 실패", e.message);
-      load();
+    // Sequential rather than in parallel: each one appends to the board, and
+    // the queue they may end up in has to keep the order they were planned in.
+    for (const [i, planned] of plan.entries()) {
+      await newSet(exercise.id, position, i + 1, planned.weight, planned.reps);
     }
   }
 
@@ -492,7 +530,11 @@ export default function WorkoutScreen() {
    */
   async function removeSet(setId: string) {
     try {
-      await deleteWorkoutSet(setId);
+      // Taken out of the queue first, or a set added offline would be brought
+      // back by its own unsent insert the moment the signal returned. When it
+      // was only ever in the queue there is nothing on the server to delete.
+      const neverSent = await forgetSet(setId);
+      if (!neverSent) await deleteWorkoutSet(setId);
       setSets((prev) => {
         const next = prev.filter((s) => s.id !== setId);
         // Renumber what is left, or the remaining sets read 1, 3, 4.
