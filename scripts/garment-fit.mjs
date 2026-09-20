@@ -45,7 +45,10 @@ const ROOM = {
   // The open floor she stands on, between the bed and the mirror. A rug goes
   // here and nowhere else — floorLeft is the bed's corner and floorRight is
   // where the bookshelf stands.
-  floorMid: [0.28, 0.74, 0.66],
+  // Her feet land near 0.94, so a rug that stops above that is a rug she is
+  // standing behind rather than on — 「나르는 양탄자야?」. It has to bracket
+  // her feet, not sit between them and the window.
+  floorMid: [0.26, 0.76, 0.74],
 };
 
 /**
