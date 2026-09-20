@@ -183,3 +183,37 @@ export async function cancelRestAlarm(id: string | null) {
   if (!supported || !id) return;
   await Notifications.cancelScheduledNotificationAsync(id);
 }
+
+/**
+ * Call off any rest bell left booked with nobody resting.
+ *
+ * The screen cancels its own alarm when it goes away, and that covers every
+ * ordinary exit. What it does not cover is the app being killed — a cleanup
+ * function does not run when the process is gone, and force-quitting on the
+ * way out of the gym is how a great many sessions actually end. The bell was
+ * already handed to the OS by then, so it rings in the car park.
+ *
+ * That is the complaint this comes from, about the app this one is measured
+ * against: 「앱 실행중인것도 아니고 운동을 하는 중도 아닌데 갑자기 띵띵띵 하는
+ * 휴식시간 끝나가는 알림이 혼자 울려요. 자다가 갑자기 울려서 깜짝 놀라서
+ * 잠깨기도 하고」.
+ *
+ * So the check happens from the other end: when the app opens and nobody is
+ * mid-workout, anything still booked is an orphan. Identified by the `alarm`
+ * flag put on it when it was scheduled, so her daily message is never caught
+ * up in this.
+ */
+export async function cancelStrayRestAlarms() {
+  if (!supported) return;
+  try {
+    const booked = await Notifications.getAllScheduledNotificationsAsync();
+    await Promise.all(
+      booked
+        .filter((n) => n.content.data?.alarm === true)
+        .map((n) => Notifications.cancelScheduledNotificationAsync(n.identifier))
+    );
+  } catch {
+    // A phone that will not list its notifications will not ring a wrong one
+    // any more often for our having failed to ask.
+  }
+}

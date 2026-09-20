@@ -241,3 +241,39 @@ export async function getAskRoutine() {
 export async function setAskRoutine(ask: boolean) {
   await AsyncStorage.setItem(ASK_ROUTINE, ask ? 'on' : 'off');
 }
+
+const REST_END = 'refit.restEnd';
+
+/**
+ * The moment a rest is due to end, kept where a closed app cannot lose it.
+ *
+ * The bell was always safe — it is booked with the OS and rings whether or not
+ * this app is running. The countdown was not: it lived in a screen's state, so
+ * glancing at another app and coming back showed a rest that was never
+ * happening. From the reviews of a much larger app: 「휴식타이머 켜져있을때
+ * 아이폰 화면 들어가면 타이머 꺼져버림」.
+ *
+ * Stored against the workout so a stale one cannot leak into tomorrow's
+ * session, and read back as null once it is in the past — a rest that ran out
+ * while the app was closed is over, not owed.
+ */
+export async function getRestEnd(workoutId: string): Promise<number | null> {
+  try {
+    const raw = await AsyncStorage.getItem(REST_END);
+    if (!raw) return null;
+    const saved = JSON.parse(raw) as { workoutId: string; at: number };
+    if (saved.workoutId !== workoutId) return null;
+    return saved.at > Date.now() ? saved.at : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function setRestEnd(workoutId: string, at: number | null) {
+  try {
+    if (at === null) await AsyncStorage.removeItem(REST_END);
+    else await AsyncStorage.setItem(REST_END, JSON.stringify({ workoutId, at }));
+  } catch {
+    // The countdown on screen is still right; only surviving a restart is lost.
+  }
+}

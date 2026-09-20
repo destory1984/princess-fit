@@ -17,7 +17,11 @@ import { RestBar } from "@/components/RestBar";
 import { SetCard } from "@/components/SetCard";
 import { ScreenState } from "@/components/ScreenState";
 import { confirmAction, notify } from "@/lib/confirm";
-import { cancelRestAlarm, scheduleRestAlarm } from "@/lib/notify";
+import {
+  cancelRestAlarm,
+  cancelStrayRestAlarms,
+  scheduleRestAlarm,
+} from "@/lib/notify";
 import { celebrateFeedback, successFeedback } from "@/lib/feedback";
 
 import { formatDate, formatDuration } from "@/lib/format";
@@ -66,7 +70,12 @@ import {
 import type { UsageMap } from "@/lib/exerciseUsage";
 import { listMuscleLoad } from "@/lib/db";
 import type { Place } from "@/lib/onboarding";
-import { getAskRoutine, getPlace } from "@/lib/prefs";
+import {
+  getAskRoutine,
+  getPlace,
+  getRestEnd,
+  setRestEnd as rememberRestEnd,
+} from "@/lib/prefs";
 import { recoveryOf, type Muscle } from "@/lib/recovery";
 import { suggestExercise } from "@/lib/suggest";
 import * as Crypto from "expo-crypto";
@@ -232,6 +241,42 @@ export default function WorkoutScreen() {
     }, 500);
     return () => clearInterval(timer);
   }, [restEnd]);
+
+  /*
+    A rest survives the app being closed.
+
+    The bell always did — it is booked with the OS. The countdown did not: it
+    lived here, so glancing at another app and coming back showed a rest that
+    was never happening. 「휴식타이머 켜져있을때 아이폰 화면 들어가면 타이머
+    꺼져버림」, from the reviews of the app this is measured against.
+
+    Restored before it is mirrored, and the mirror waits for that — otherwise
+    the first render's null would wipe the stored value a moment before the
+    read that was going to recover it.
+  */
+  const [restRestored, setRestRestored] = useState(false);
+
+  useEffect(() => {
+    if (!id) return;
+    let alive = true;
+    getRestEnd(id)
+      .then(async (at) => {
+        if (!alive || !at) return;
+        // The bell booked before the app was killed is still with the OS, and
+        // setting the end below books another. Two rings for one rest.
+        await cancelStrayRestAlarms();
+        if (alive) setRestEnd(at);
+      })
+      .finally(() => alive && setRestRestored(true));
+    return () => {
+      alive = false;
+    };
+  }, [id]);
+
+  useEffect(() => {
+    if (!id || !restRestored) return;
+    void rememberRestEnd(id, restEnd);
+  }, [id, restEnd, restRestored]);
 
   /**
    * Book the bell for when the rest runs out, and re-book it whenever the end
