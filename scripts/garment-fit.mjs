@@ -159,13 +159,17 @@ const round = (n) => Math.round(n * 1000) / 1000;
 function main(argv) {
   const [file, ...rest] = argv;
   if (!file) {
-    console.error('usage: garment-fit.mjs <art.png> <region|--box x0 x1 top>');
+    console.error(
+      'usage: garment-fit.mjs <art.png> <region|--box x0 x1 top|--stand x0 x1 bottom> [--room]'
+    );
     console.error(`regions: ${Object.keys(REGIONS).join(', ')}`);
     process.exit(2);
   }
 
   const room = rest.includes('--room');
   const regions = room ? ROOM : REGIONS;
+
+  const art0 = alphaBox(file);
 
   let target;
   if (rest[0] === '--box') {
@@ -174,6 +178,17 @@ function main(argv) {
       console.error('--box needs three numbers: x0 x1 top');
       process.exit(2);
     }
+  } else if (rest[0] === '--stand') {
+    // Furniture is placed by where it meets the floor, not by where its top
+    // happens to fall — a wardrobe hovering two inches up is the kind of thing
+    // that looks wrong without anyone being able to say why.
+    const [x0, x1, bottom] = rest.slice(1, 4).map(Number);
+    if ([x0, x1, bottom].some(Number.isNaN)) {
+      console.error('--stand needs three numbers: x0 x1 bottom');
+      process.exit(2);
+    }
+    const w = (x1 - x0) / (art0[2] - art0[0]);
+    target = [x0, x1, bottom - w * (art0[3] - art0[1])];
   } else {
     const region = rest[0];
     if (!(region in regions)) {
@@ -183,7 +198,7 @@ function main(argv) {
     target = regions[region];
   }
 
-  const art = alphaBox(file);
+  const art = art0;
   const base = room ? null : alphaBox(BASE);
   const fit = solve(art, ...target);
   const bottom = target[2] + fit.w * (art[3] - art[1]);
