@@ -440,6 +440,26 @@ export async function startWorkout(
   return workout;
 }
 
+/**
+ * The routine used most recently, if any is still around.
+ *
+ * "지난번 그거" is the commonest intent on opening the app, and it is one tap
+ * away only if the app knows which one that was. Deleted routines leave their
+ * workouts behind with a null routine_id, so this looks past those rather than
+ * returning nothing.
+ */
+export async function lastUsedRoutineId(): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('workouts')
+    .select('routine_id')
+    .not('routine_id', 'is', null)
+    .not('ended_at', 'is', null)
+    .order('started_at', { ascending: false })
+    .limit(1);
+  if (error) throw error;
+  return (data as { routine_id: string | null }[])[0]?.routine_id ?? null;
+}
+
 /** Which muscles a routine sets out to work, as body-map slugs. */
 export async function routineSlugs(routineId: string): Promise<string[]> {
   const [items, exercises] = await Promise.all([
