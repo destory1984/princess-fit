@@ -18,6 +18,9 @@ import { colors, radius, spacing } from '@/lib/theme';
  * a spreadsheet opens it and the numbers are yours to sort and chart. JSON is
  * for the bad day: it keeps the shape, so this screen can put it back.
  *
+ * Both come back in, though. Being told the wrong file was kept, a year later,
+ * is the sentence this whole screen exists to prevent.
+ *
  * Given its own screen rather than a row in settings because the difference
  * between those two files is worth one sentence, and a row has no room for a
  * sentence. Someone who picks the wrong one finds out months later.
@@ -60,7 +63,7 @@ export default function BackupScreen() {
     let text: string;
     try {
       const picked = await DocumentPicker.getDocumentAsync({
-        type: ['application/json', 'text/plain', '*/*'],
+        type: ['application/json', 'text/csv', 'text/plain', '*/*'],
         copyToCacheDirectory: true,
       });
       if (picked.canceled) return;
@@ -113,7 +116,7 @@ export default function BackupScreen() {
         </View>
         <View style={styles.body}>
           <Text style={styles.title}>보기용으로 받기 · CSV</Text>
-          <Text style={styles.sub}>엑셀이나 구글 시트에서 바로 열려요.</Text>
+          <Text style={styles.sub}>엑셀이나 구글 시트에서 바로 열려요. 이것도 다시 넣을 수 있어요.</Text>
         </View>
         <Ionicons name="download-outline" size={20} color={colors.textDim} />
       </Pressable>
@@ -124,7 +127,7 @@ export default function BackupScreen() {
         </View>
         <View style={styles.body}>
           <Text style={styles.title}>복구용으로 받기 · JSON</Text>
-          <Text style={styles.sub}>나중에 아래에서 다시 넣을 수 있는 파일이에요.</Text>
+          <Text style={styles.sub}>빠짐없이 담겨요. 나중에 아래에서 그대로 넣을 수 있어요.</Text>
         </View>
         <Ionicons name="download-outline" size={20} color={colors.textDim} />
       </Pressable>
@@ -135,7 +138,7 @@ export default function BackupScreen() {
         </View>
         <View style={styles.body}>
           <Text style={styles.title}>가져오기</Text>
-          <Text style={styles.sub}>복구용으로 받아 둔 .json 파일을 고르세요.</Text>
+          <Text style={styles.sub}>받아 두신 .json 이나 .csv 파일을 고르세요.</Text>
         </View>
         <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
       </Pressable>

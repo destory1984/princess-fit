@@ -15,6 +15,12 @@
  * a set that says 「무게 없음」 is a lie about an afternoon, and the person
  * reading their own history later has no way to know it was invented here.
  *
+ * Both formats are read, because the file someone still has is not always the
+ * one they were told to keep. The CSV was written for a spreadsheet, so a
+ * spreadsheet is what it comes back from — columns moved, columns added,
+ * numbers retyped with thousands separators. It is read by column name rather
+ * than by position for that reason.
+ *
  * The second is that importing twice must not double anything. People import
  * when they are frightened, and frightened people press buttons more than
  * once. A workout is recognised by the moment it started, which is the one
@@ -97,6 +103,168 @@ function readWorkout(raw: unknown): BackupWorkout | null {
 }
 
 /**
+ * A CSV file split into rows of fields.
+ *
+ * Written by hand rather than reached for from a library because the rule
+ * that matters is small and specific: a quoted field may hold a comma, a
+ * newline and a doubled quote, and a memo in this app holds all three. Line
+ * endings are whatever the machine that last saved it used.
+ */
+export function csvRows(raw: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let field = '';
+  let quoted = false;
+  let i = 0;
+  // A byte-order mark is what a Windows spreadsheet leaves on the first
+  // header name, and an unrecognised first column is a refused file.
+  const body = raw.charCodeAt(0) === 0xfeff ? raw.slice(1) : raw;
+  const endRow = () => {
+    row.push(field);
+    field = '';
+    rows.push(row);
+    row = [];
+  };
+  while (i < body.length) {
+    const c = body[i];
+    if (quoted) {
+      if (c === '"' && body[i + 1] === '"') {
+        field += '"';
+        i += 2;
+      } else if (c === '"') {
+        quoted = false;
+        i += 1;
+      } else {
+        field += c;
+        i += 1;
+      }
+      continue;
+    }
+    if (c === '"') {
+      quoted = true;
+      i += 1;
+    } else if (c === ',') {
+      row.push(field);
+      field = '';
+      i += 1;
+    } else if (c === '\n' || c === '\r') {
+      endRow();
+      i += c === '\r' && body[i + 1] === '\n' ? 2 : 1;
+    } else {
+      field += c;
+      i += 1;
+    }
+  }
+  if (field !== '' || row.length > 0) endRow();
+  // A row of nothing is what a trailing newline leaves behind.
+  return rows.filter((r) => r.some((f) => f.trim() !== ''));
+}
+
+/**
+ * A number as a spreadsheet may have left it.
+ *
+ * `1,200` and `60 kg` are what comes back from a sheet someone tidied, and
+ * both are readable. Anything else is not guessed at — an unreadable weight
+ * drops the set rather than calling it zero.
+ */
+function cell(value: string | undefined): number | null {
+  const t = (value ?? '').replace(/[,\s]/g, '').replace(/kg$|km$|초$/i, '');
+  if (t === '') return 0;
+  const n = Number(t);
+  return Number.isFinite(n) && n >= 0 ? n : null;
+}
+
+const DAY = /^\d{4}-\d{2}-\d{2}/;
+
+/**
+ * The same workouts, out of the sheet.
+ *
+ * Rows are gathered into workouts by the start time when the export wrote one,
+ * and by day and title when it did not — an older file, or one where the
+ * column was deleted. A day-only workout is given midnight, and a second
+ * workout on the same day the minute after it: the clock time is invented, and
+ * that is said out loud here because nothing downstream can tell. It is the
+ * cost of the format, and it is smaller than losing the day.
+ */
+export function readCsv(raw: string): Reading {
+  const rows = csvRows(raw);
+  const header = rows[0]?.map((h) => h.trim()) ?? [];
+  const at = (row: string[], name: string) => {
+    const index = header.indexOf(name);
+    return index < 0 ? undefined : row[index];
+  };
+  if (!header.includes('날짜') && !header.includes('시작시각')) {
+    throw new Error('이 파일은 리핏이 만든 파일이 아닌 것 같아요.');
+  }
+
+  type Group = { workout: BackupWorkout; sameDay: number };
+  const groups = new Map<string, Group>();
+  const dayCount = new Map<string, number>();
+  let skipped = 0;
+
+  for (const row of rows.slice(1)) {
+    const started = (at(row, '시작시각') ?? '').trim();
+    const day = (at(row, '날짜') ?? '').trim().slice(0, 10);
+    const exact = started !== '' && !Number.isNaN(Date.parse(started));
+    if (!exact && !DAY.test(day)) {
+      skipped += 1;
+      continue;
+    }
+    const title = (at(row, '운동') ?? '').trim() || '가져온 운동';
+    const key = exact ? started : `${day}\u0000${title}`;
+
+    let group = groups.get(key);
+    if (!group) {
+      const onThisDay = dayCount.get(day) ?? 0;
+      if (!exact) dayCount.set(day, onThisDay + 1);
+      const minute = String(onThisDay).padStart(2, '0');
+      group = {
+        workout: {
+          started_at: exact ? started : `${day}T00:${minute}:00.000Z`,
+          ended_at: null,
+          title,
+          condition: text(at(row, '컨디션')),
+          memo: text(at(row, '메모')),
+          exercises: [],
+        },
+        sameDay: onThisDay,
+      };
+      groups.set(key, group);
+    }
+
+    const name = (at(row, '종목') ?? '').trim();
+    if (name === '') continue; // a day that was turned up for, with nothing under it
+    const muscle = (at(row, '부위') ?? '').trim() || '기타';
+    let exercise = group.workout.exercises.find((e) => e.name === name);
+    if (!exercise) {
+      exercise = { name, muscle_group: muscle, sets: [] };
+      group.workout.exercises.push(exercise);
+    }
+
+    const setNo = at(row, '세트');
+    const weight = cell(at(row, '무게kg'));
+    const reps = cell(at(row, '횟수'));
+    const seconds = cell(at(row, '시간초'));
+    const distance = cell(at(row, '거리km'));
+    if ((setNo ?? '').trim() === '' && weight === 0 && reps === 0) continue; // the exercise alone
+    if (weight === null || reps === null || seconds === null || distance === null) {
+      skipped += 1;
+      continue;
+    }
+    exercise.sets.push({
+      set_no: cell(setNo) || exercise.sets.length + 1,
+      weight_kg: weight,
+      reps,
+      duration_sec: seconds,
+      distance_km: distance,
+      done: (at(row, '완료') ?? '').trim() !== '',
+    });
+  }
+
+  return { workouts: [...groups.values()].map((g) => g.workout), skipped };
+}
+
+/**
  * What is in this file, as far as it can be believed.
  *
  * Throws only when the file is not a Refit backup at all. A file with some
@@ -105,6 +273,12 @@ function readWorkout(raw: unknown): BackupWorkout | null {
  * out loud instead of quietly swallowed.
  */
 export function read(raw: string): Reading {
+  // Which format this is, decided by the file rather than by its name: a
+  // mail client renames things, and a person who exported CSV and pressed
+  // import should be told what happened to their numbers, not what their
+  // extension was.
+  const first = raw.trimStart()[0];
+  if (first !== '{' && first !== '[') return readCsv(raw);
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw);
@@ -114,7 +288,9 @@ export function read(raw: string): Reading {
   const body = parsed as Record<string, unknown> | null;
   const list = body && Array.isArray(body.workouts) ? body.workouts : null;
   if (!list) {
-    throw new Error('운동 기록이 들어 있지 않아요. 내보내기로 받은 .json 파일을 골라 주세요.');
+    throw new Error(
+      '운동 기록이 들어 있지 않아요. 내보내기로 받은 .json 이나 .csv 파일을 골라 주세요.'
+    );
   }
 
   const workouts: BackupWorkout[] = [];
