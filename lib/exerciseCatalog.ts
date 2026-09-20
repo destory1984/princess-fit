@@ -83,6 +83,18 @@ const ENTRIES: Omit<CatalogEntry, 'how_to'>[] = [
   { name: '월 싯', muscle_group: '하체', secondary_group: null, equipment: '맨몸', muscle_detail: '대퇴사두', body_parts: 'quadriceps' , track_type: 'duration' },
   { name: '케틀벨 스윙', muscle_group: '하체', secondary_group: '등', equipment: '기타', muscle_detail: '둔근, 햄스트링', body_parts: 'gluteal,hamstring,lower-back' , track_type: 'weight_reps' },
 
+  // The glutes had exactly one movement that named them as the target — 힙
+  // 쓰러스트 — and everything else reached them on the way to the quads. A
+  // review of a much larger app put it plainly: 「엉덩이 관련 운동이 하나도
+  // 없어요. 넣어주세요」. Six that train them on purpose, one for each place
+  // someone might be standing: a floor, a cable tower, a machine, a bar.
+  { name: '글루트 브릿지', muscle_group: '하체', secondary_group: null, equipment: '맨몸', muscle_detail: '둔근', body_parts: 'gluteal' , track_type: 'weight_reps' },
+  { name: '케이블 킥백', muscle_group: '하체', secondary_group: null, equipment: '케이블', muscle_detail: '둔근', body_parts: 'gluteal' , track_type: 'weight_reps' },
+  { name: '힙 어브덕션 머신', muscle_group: '하체', secondary_group: null, equipment: '머신', muscle_detail: '둔근', body_parts: 'gluteal' , track_type: 'weight_reps' },
+  { name: '덩키 킥', muscle_group: '하체', secondary_group: null, equipment: '맨몸', muscle_detail: '둔근', body_parts: 'gluteal' , track_type: 'weight_reps' },
+  { name: '스모 데드리프트', muscle_group: '하체', secondary_group: '등', equipment: '바벨', muscle_detail: '둔근, 햄스트링, 내측 대퇴', body_parts: 'gluteal,hamstring,quadriceps' , track_type: 'weight_reps' },
+  { name: '굿모닝', muscle_group: '하체', secondary_group: '등', equipment: '바벨', muscle_detail: '햄스트링, 둔근, 척추기립근', body_parts: 'hamstring,gluteal,lower-back' , track_type: 'weight_reps' },
+
   { name: '프리처 컬', muscle_group: '팔', secondary_group: null, equipment: '바벨', muscle_detail: '이두', body_parts: 'biceps' , track_type: 'weight_reps' },
   { name: '케이블 컬', muscle_group: '팔', secondary_group: null, equipment: '케이블', muscle_detail: '이두', body_parts: 'biceps' , track_type: 'weight_reps' },
   { name: '트라이셉스 킥백', muscle_group: '팔', secondary_group: null, equipment: '덤벨', muscle_detail: '삼두', body_parts: 'triceps' , track_type: 'weight_reps' },
