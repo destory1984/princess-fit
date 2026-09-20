@@ -46,6 +46,7 @@ import {
 } from "@/lib/db";
 import type { Exercise, Workout, WorkoutSet } from "@/lib/types";
 import { followOn, planFor } from "@/lib/setPlan";
+import { applyLabel, progressWord, readiness } from "@/lib/progress";
 import {
   conditionLabel,
   conditionLine,
@@ -256,6 +257,30 @@ export default function WorkoutScreen() {
     upNext?.exercise ??
     null;
   const restLength = restExercise?.rest_sec ?? DEFAULT_REST_SEC;
+
+  /**
+   * Put a suggested weight on this exercise's remaining sets.
+   *
+   * Only the ones not yet done: a set already finished is a record of what was
+   * lifted, and rewriting it to match a suggestion would turn the log into a
+   * plan. Screen first, then the server — the board is the only sign the tap
+   * landed.
+   */
+  function applyWeight(exerciseId: string, weight: number) {
+    const waiting = sets.filter((x) => x.exercise_id === exerciseId && !x.done);
+    if (waiting.length === 0) return;
+    setSets((prev) =>
+      prev.map((x) =>
+        waiting.some((w) => w.id === x.id) ? { ...x, weight_kg: weight } : x,
+      ),
+    );
+    Promise.all(waiting.map((x) => updateWorkoutSet(x.id, { weight_kg: weight })))
+      .then(() => successFeedback())
+      .catch((e: any) => {
+        notify("저장 실패", e.message);
+        load();
+      });
+  }
 
   async function persist(setId: string, patch: Partial<WorkoutSet>) {
     setSets((prev) =>
@@ -652,6 +677,43 @@ export default function WorkoutScreen() {
                     </Text>
                   )}
 
+                  {/*
+                    The board already carries last time's weight forward, and
+                    said nothing about whether it had been earned — so the
+                    number that got you here could sit there for months. Only
+                    shown when there is something to change: staying put is
+                    what already happens, and a line every session saying
+                    nothing changed is one people learn to look past.
+                  */}
+                  {(() => {
+                    if (done || !expanded || track !== "weight_reps") return null;
+                    const read = previous ? readiness(previous.sets) : null;
+                    const word = progressWord(read);
+                    if (!word || !read) return null;
+                    return (
+                      <View style={styles.suggest}>
+                        <Ionicons
+                          name={
+                            read.verdict === "add"
+                              ? "trending-up-outline"
+                              : "trending-down-outline"
+                          }
+                          size={15}
+                          color={colors.gold}
+                        />
+                        <Text style={styles.suggestText}>{word}</Text>
+                        <Pressable
+                          style={styles.suggestButton}
+                          onPress={() => applyWeight(exerciseId, read.weight)}
+                        >
+                          <Text style={styles.suggestButtonText}>
+                            {applyLabel(read)}
+                          </Text>
+                        </Pressable>
+                      </View>
+                    );
+                  })()}
+
                   {done ? (
                     <View style={styles.circleRow}>
                       {exDone.map((s) => (
@@ -939,6 +1001,24 @@ const styles = StyleSheet.create({
   },
   recordText: { color: colors.accent, fontSize: 12, fontWeight: "800" },
   previous: { color: colors.textDim, fontSize: 12, marginTop: spacing.xs },
+  suggest: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+    padding: spacing.sm,
+    borderRadius: radius.sm,
+    borderColor: colors.gold,
+    borderWidth: 1,
+  },
+  suggestText: { color: colors.text, fontSize: 12, lineHeight: 18, flex: 1 },
+  suggestButton: {
+    backgroundColor: colors.accent,
+    borderRadius: radius.sm,
+    paddingVertical: 6,
+    paddingHorizontal: spacing.md,
+  },
+  suggestButtonText: { color: "#fff", fontWeight: "800", fontSize: 12 },
   circleRow: {
     flexDirection: "row",
     flexWrap: "wrap",
