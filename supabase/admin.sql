@@ -1,5 +1,9 @@
 -- Asking for a movement the catalogue has not got, and the desk that reads it.
 --
+-- Safe to run again at any time. Every statement is create-if-not-exists,
+-- create-or-replace or drop-then-create, so re-running it after a change is
+-- the normal way to apply one.
+--
 -- Run this once, then add yourself by email:
 --
 --   insert into admins (user_id)
@@ -292,27 +296,45 @@ as $$
     where w.user_id = target and w.ended_at is not null and is_admin()
     order by w.started_at desc
     limit greatest(1, least(sessions, 20))
+  ),
+  -- Grouped per movement first. Doing it in one pass would mean an aggregate
+  -- inside string_agg, which Postgres refuses — and refuses partway through
+  -- the script, taking everything after it down with it.
+  per_exercise as (
+    select
+      s.workout_id,
+      e.name,
+      max(s.weight_kg) as top,
+      count(*) as sets,
+      min(s.position) as pos
+    from workout_sets s
+    join exercises e on e.id = s.exercise_id
+    where s.workout_id in (select id from recent)
+      and s.done
+      and coalesce(s.warmup, false) = false
+    group by s.workout_id, e.name
   )
   select
     r.id,
     r.started_at,
     r.title,
     coalesce(
-      string_agg(
-        e.name || case when max(s.weight_kg) > 0
-                       then ' ' || trim(trailing '.' from trim(trailing '0' from max(s.weight_kg)::text)) || 'kg'
-                       else ' ' || count(s.id) || '세트' end,
-        ', ' order by min(s.position)
+      (
+        select string_agg(
+          p.name || case
+            when p.top > 0 then ' ' || trim_scale(p.top)::text || 'kg'
+            else ' ' || p.sets || '세트'
+          end,
+          ', ' order by p.pos
+        )
+        from per_exercise p
+        where p.workout_id = r.id
       ),
       '기록 없음'
     ),
     r.advice,
     r.advice_source
   from recent r
-  left join workout_sets s
-    on s.workout_id = r.id and s.done and coalesce(s.warmup, false) = false
-  left join exercises e on e.id = s.exercise_id
-  group by r.id, r.started_at, r.title, r.advice, r.advice_source
   order by r.started_at desc;
 $$;
 
