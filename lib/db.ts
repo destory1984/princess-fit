@@ -787,21 +787,23 @@ export async function restoreBackup(workouts: BackupWorkout[]) {
  * forever. Writing the same row twice is the same row.
  */
 /**
- * Rewrite the order the exercises sit in on one workout's board.
+ * Rewrite the order the blocks sit in on one workout's board.
  *
- * Position is per exercise rather than per set, so every set of a movement
- * moves together — the sets keep their own set_no and only the block they
- * belong to slides. One update per exercise, in parallel: a board has a
- * handful of movements on it, not a hundred.
+ * Addressed by set id rather than by the position being replaced. Writing
+ * 「everything at position 3 becomes 0」 while something else is moving from 0
+ * to 1 is a race with itself — the second update finds rows the first one has
+ * already moved. Ids do not move.
+ *
+ * One update per block, in parallel: a board holds a handful of movements.
  */
-export async function reorderWorkoutExercises(workoutId: string, exerciseIds: string[]) {
+export async function reorderWorkoutBlocks(blocks: { setIds: string[]; position: number }[]) {
   await Promise.all(
-    exerciseIds.map(async (exerciseId, position) => {
+    blocks.map(async ({ setIds, position }) => {
+      if (setIds.length === 0) return;
       const { error } = await supabase
         .from('workout_sets')
         .update({ position })
-        .eq('workout_id', workoutId)
-        .eq('exercise_id', exerciseId);
+        .in('id', setIds);
       if (error) throw error;
     })
   );
@@ -833,17 +835,12 @@ export async function updateWorkoutSet(
  * the same load, and she says so on the sheet; silently guessing a number
  * would be worse than leaving one you can see and correct.
  */
-export async function swapRemainingSets(
-  workoutId: string,
-  fromExerciseId: string,
-  toExerciseId: string
-) {
+export async function swapRemainingSets(setIds: string[], toExerciseId: string) {
+  if (setIds.length === 0) return;
   const { error } = await supabase
     .from('workout_sets')
     .update({ exercise_id: toExerciseId })
-    .eq('workout_id', workoutId)
-    .eq('exercise_id', fromExerciseId)
-    .eq('done', false);
+    .in('id', setIds);
   if (error) throw error;
 }
 
