@@ -173,6 +173,11 @@ export default function TodayScreen() {
   const lastRoutine =
     routines.find((r) => r.id === lastRoutineId) ?? routines[0] ?? null;
 
+  // The one on the button is already on screen; listing it again below made
+  // the same routine appear twice, above and below, on one screen. A session
+  // under way hides the button, so then the list shows everything again.
+  const otherRoutines = active ? routines : routines.filter((r) => r.id !== lastRoutine?.id);
+
   const isNew = loaded && weekly.workouts === 0 && routines.length === 0 && !active;
 
   // What she can show today, not what she once managed. Neglect dims it.
@@ -321,8 +326,12 @@ export default function TodayScreen() {
           </Text>
           <Text style={styles.emptyAction}>루틴 만들러 가기 →</Text>
         </Pressable>
+      ) : otherRoutines.length === 0 ? (
+        <Text style={styles.onlyOne}>
+          루틴이 하나뿐이에요. 위 버튼으로 바로 시작할 수 있어요.
+        </Text>
       ) : (
-        routines.map((r) => (
+        otherRoutines.map((r) => (
           <Pressable key={r.id} style={styles.row} onPress={() => begin(r)}>
             <View style={styles.rowBody}>
               <Text style={styles.rowTitle}>{r.name}</Text>
@@ -423,6 +432,7 @@ const styles = StyleSheet.create({
   primaryBody: { flex: 1 },
   primaryText: { color: '#fff', fontSize: 17, fontWeight: '800' },
   primarySub: { color: colors.accentSoft, marginTop: 2, fontSize: 13 },
+  onlyOne: { color: colors.textDim, fontSize: 12, lineHeight: 18, paddingHorizontal: spacing.xs },
   starters: { flexDirection: 'row', gap: spacing.sm },
   starter: {
     flex: 1,
