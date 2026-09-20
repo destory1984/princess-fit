@@ -76,6 +76,14 @@ export type WorkoutSet = {
   distance_km: number;
   done: boolean;
   /**
+   * Done to get warm rather than to count.
+   *
+   * Kept out of the volume, out of the records and out of the reading that
+   * decides next week's weight. Optional, so rows made before the column
+   * exists read as working sets — which is what they were.
+   */
+  warmup?: boolean;
+  /**
    * Reps they felt were left when the set was racked, if they were asked.
    *
    * Optional and nullable, and those mean the same thing here: nobody said.

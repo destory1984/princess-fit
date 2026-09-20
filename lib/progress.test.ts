@@ -165,3 +165,33 @@ test('every offered answer is one the reading understands', () => {
     assert.ok(out, choice.label);
   }
 });
+
+test('a warm-up does not make the working sets look like a collapse', () => {
+  // Fifteen easy reps in front of three hard sixes. Read together, the last
+  // set looks like it fell apart, and she tells someone who was never
+  // struggling to take weight off.
+  const withWarmup = readiness([
+    { weight_kg: 20, reps: 15, warmup: true },
+    { weight_kg: 60, reps: 6 },
+    { weight_kg: 60, reps: 6 },
+  ]);
+  assert.equal(withWarmup?.verdict, 'add');
+  assert.equal(withWarmup?.from, 60);
+
+  const asItWas = readiness([
+    { weight_kg: 20, reps: 15 },
+    { weight_kg: 60, reps: 6 },
+    { weight_kg: 60, reps: 6 },
+  ]);
+  assert.equal(asItWas?.verdict, 'ease');
+});
+
+test('warm-ups alone leave nothing to read', () => {
+  assert.equal(
+    readiness([
+      { weight_kg: 20, reps: 15, warmup: true },
+      { weight_kg: 30, reps: 12, warmup: true },
+    ]),
+    null
+  );
+});

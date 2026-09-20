@@ -165,7 +165,7 @@ export async function getWeeklyStats(): Promise<WeeklyStats> {
   const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const { data, error } = await supabase
     .from('workouts')
-    .select('id, started_at, workout_sets(weight_kg, reps, done)')
+    .select('id, started_at, workout_sets(weight_kg, reps, done, warmup)')
     .not('ended_at', 'is', null)
     .order('started_at', { ascending: false })
     .limit(60);
@@ -184,14 +184,18 @@ export type WorkoutSummary = Workout & { setCount: number; volume: number };
 export async function listWorkouts(limit = 50): Promise<WorkoutSummary[]> {
   const { data, error } = await supabase
     .from('workouts')
-    .select('*, workout_sets(weight_kg, reps, done)')
+    .select('*, workout_sets(weight_kg, reps, done, warmup)')
     .order('started_at', { ascending: false })
     .limit(limit);
   if (error) throw error;
-  return (data as (Workout & { workout_sets: Pick<WorkoutSet, 'weight_kg' | 'reps' | 'done'>[] })[]).map(
+  return (data as (Workout & { workout_sets: Pick<WorkoutSet, 'weight_kg' | 'reps' | 'done' | 'warmup'>[] })[]).map(
     ({ workout_sets, ...workout }) => {
       const done = workout_sets.filter((s) => s.done);
-      return { ...workout, setCount: done.length, volume: volumeOf(done) };
+      // Warm-ups do not count as sets done either: 「12세트」 that is really
+      // eight working sets and four with an empty bar is a number nobody
+      // would recognise as their own afternoon.
+      const working = done.filter((s) => !s.warmup);
+      return { ...workout, setCount: working.length, volume: volumeOf(working) };
     }
   );
 }
@@ -256,7 +260,7 @@ export async function listWorkoutFacts(limit = 500): Promise<WorkoutFact[]> {
     supabase
       .from('workouts')
       .select(
-        'id, started_at, workout_sets(exercise_id, weight_kg, reps, duration_sec, distance_km, done)'
+        'id, started_at, workout_sets(exercise_id, weight_kg, reps, duration_sec, distance_km, done, warmup)'
       )
       .not('ended_at', 'is', null)
       .order('started_at', { ascending: false })
@@ -272,11 +276,14 @@ export async function listWorkoutFacts(limit = 500): Promise<WorkoutFact[]> {
       started_at: string;
       workout_sets: (Pick<
         WorkoutSet,
-        'exercise_id' | 'weight_kg' | 'reps' | 'duration_sec' | 'distance_km' | 'done'
+        'exercise_id' | 'weight_kg' | 'reps' | 'duration_sec' | 'distance_km' | 'done' | 'warmup'
       >)[];
     }[]
   ).map((w) => {
-    const done = w.workout_sets.filter((s) => s.done);
+    // Warm-ups are done and are not the work. Gold and XP are both paid
+    // against these numbers, so counting them would mean an empty bar buys
+    // dresses — and the shop is priced against a year of turning up.
+    const done = w.workout_sets.filter((s) => s.done && !s.warmup);
     return {
       id: w.id,
       started_at: w.started_at,
@@ -879,7 +886,7 @@ export async function getLastPerformance(exerciseIds: string[], excludeWorkoutId
 
   const { data, error } = await supabase
     .from('workout_sets')
-    .select('workout_id, exercise_id, set_no, weight_kg, reps, rir, workouts!inner(started_at)')
+    .select('workout_id, exercise_id, set_no, weight_kg, reps, rir, warmup, workouts!inner(started_at)')
     .in('exercise_id', exerciseIds)
     .in('workout_id', recentIds)
     .eq('done', true)

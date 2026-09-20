@@ -924,12 +924,15 @@ export default function WorkoutScreen() {
         {grouped.map(({ blockId, position, exerciseId, exercise, sets: exerciseSets }) => {
           const previous = last.get(exerciseId);
           const exDone = exerciseSets.filter((s) => s.done);
+          // What counts as the session's work. Warm-ups are done and real and
+          // still not what the top weight, the record or the question is about.
+          const exWorking = exDone.filter((s) => !s.warmup);
           const current = exerciseSets.find((s) => !s.done) ?? null;
           const track = exercise?.track_type ?? "weight_reps";
-          const top = Math.max(0, ...exDone.map((s) => s.weight_kg));
+          const top = Math.max(0, ...exWorking.map((s) => s.weight_kg));
           const oneRm = Math.max(
             0,
-            ...exDone.map((s) => estimateOneRm(s.weight_kg, s.reps)),
+            ...exWorking.map((s) => estimateOneRm(s.weight_kg, s.reps)),
           );
           const totalSec = exDone.reduce((sum, s) => sum + s.duration_sec, 0);
           const totalKm = exDone.reduce((sum, s) => sum + s.distance_km, 0);
@@ -1178,7 +1181,10 @@ export default function WorkoutScreen() {
                             card reads the same whether or not anyone does.
                           */}
                           {(() => {
-                            const lastSet = exerciseSets[exerciseSets.length - 1];
+                            // The last working set, not the last row: asking
+                            // how much was left in a warm-up answers nothing.
+                            const working = exerciseSets.filter((x) => !x.warmup);
+                            const lastSet = working[working.length - 1];
                             if (!lastSet || track !== "weight_reps") return null;
                             if (lastSet.weight_kg <= 0) return null;
                             if (typeof lastSet.rir === "number") {

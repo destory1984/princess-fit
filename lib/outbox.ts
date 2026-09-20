@@ -32,6 +32,7 @@ export type SetPatch = {
   distance_km?: number;
   done?: boolean;
   rir?: number | null;
+  warmup?: boolean;
 };
 
 /** The columns a set needs before it can exist at all. */

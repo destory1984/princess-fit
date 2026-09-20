@@ -61,6 +61,21 @@ export function SetCard({
           {track === 'weight_reps' ? `${index}번째 세트` : '이번 기록'}
           {total > 1 && track === 'weight_reps' ? ` · 총 ${total}세트` : ''}
         </Text>
+        {/*
+          Marked on the set itself, where the decision is made — you know a set
+          was a warm-up while you are doing it, not afterwards on a settings
+          screen. Weighted work only: there is no warming up to a plank.
+        */}
+        {track === 'weight_reps' && (
+          <Pressable
+            hitSlop={8}
+            style={[styles.warmup, set.warmup && styles.warmupOn]}
+            onPress={() => onChange({ warmup: !set.warmup })}>
+            <Text style={[styles.warmupText, set.warmup && styles.warmupTextOn]}>
+              워밍업
+            </Text>
+          </Pressable>
+        )}
         <Pressable hitSlop={8} onPress={onRemove}>
           <Ionicons name="close" size={18} color={colors.textDim} />
         </Pressable>
@@ -125,6 +140,16 @@ export function SetCard({
 }
 
 const styles = StyleSheet.create({
+  warmup: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.faint,
+  },
+  warmupOn: { borderColor: colors.gold, backgroundColor: colors.goldSoft },
+  warmupText: { color: colors.textDim, fontSize: 11, fontWeight: '700' },
+  warmupTextOn: { color: colors.text },
   card: {
     backgroundColor: colors.surfaceAlt,
     borderRadius: radius.lg,

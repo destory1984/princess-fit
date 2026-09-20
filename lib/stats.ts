@@ -1,9 +1,17 @@
 import { localDayKey } from './format.ts';
 
-export type SetRow = { weight_kg: number; reps: number };
+export type SetRow = { weight_kg: number; reps: number; warmup?: boolean };
 
+/**
+ * Total weight moved, counting only the sets that were the point.
+ *
+ * Warm-ups are skipped here rather than at each call site, because this is
+ * where the word 「볼륨」 gets its meaning and there is only one meaning worth
+ * having. Gold is paid against this number too, so counting the warm-ups
+ * would let anyone earn a wardrobe with an empty bar.
+ */
 export function volumeOf(sets: SetRow[]) {
-  return sets.reduce((sum, s) => sum + s.weight_kg * s.reps, 0);
+  return sets.reduce((sum, s) => (s.warmup ? sum : sum + s.weight_kg * s.reps), 0);
 }
 
 export function streakDays(workoutDays: Iterable<string>, today: Date = new Date()) {
@@ -27,6 +35,7 @@ export type HistoryRow = {
   duration_sec?: number;
   distance_km?: number;
   rir?: number | null;
+  warmup?: boolean;
   workouts: { started_at: string };
 };
 
@@ -37,7 +46,7 @@ export type ExerciseHistoryPoint = {
   volume: number;
   durationSec: number;
   distanceKm: number;
-  sets: { set_no: number; weight_kg: number; reps: number; rir?: number | null }[];
+  sets: { set_no: number; weight_kg: number; reps: number; rir?: number | null; warmup?: boolean }[];
 };
 
 export function groupHistory(rows: HistoryRow[]) {
@@ -59,8 +68,11 @@ export function groupHistory(rows: HistoryRow[]) {
       // Carried through so the next session's reading can use what they said
       // rather than only what the reps did.
       rir: row.rir ?? null,
+      warmup: row.warmup ?? false,
     });
-    point.max_weight = Math.max(point.max_weight, row.weight_kg);
+    // A warm-up never sets a record and never counts toward the session's
+    // top weight, however honestly it was lifted.
+    if (!row.warmup) point.max_weight = Math.max(point.max_weight, row.weight_kg);
     point.volume += row.weight_kg * row.reps;
     point.durationSec += row.duration_sec ?? 0;
     point.distanceKm += row.distance_km ?? 0;

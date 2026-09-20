@@ -24,6 +24,15 @@ export type PastSet = {
   weight_kg: number;
   reps: number;
   /**
+   * A set done to get warm rather than to count.
+   *
+   * It has to be known here, because the shape this file reads is the shape of
+   * the working sets. A warm-up of fifteen easy reps sitting in front of three
+   * hard sets of six makes the last set look like a collapse, and the advice
+   * that comes out is 「내려도 괜찮아요」 to someone who was never struggling.
+   */
+  warmup?: boolean;
+  /**
    * Reps left in the tank when the set was racked, if they were asked.
    *
    * A review of a much larger app, about a feature it had quietly dropped:
@@ -64,7 +73,8 @@ export type Readiness = {
  * correct — there is no next plate for a plank.
  */
 export function readiness(sets: PastSet[]): Readiness | null {
-  const weighted = sets.filter((s) => s.weight_kg > 0 && s.reps > 0);
+  // Working sets only. What was lifted to get warm is not part of the shape.
+  const weighted = sets.filter((s) => !s.warmup && s.weight_kg > 0 && s.reps > 0);
   if (weighted.length < MIN_SETS) return null;
 
   const first = weighted[0];
