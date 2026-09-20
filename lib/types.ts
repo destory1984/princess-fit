@@ -62,6 +62,16 @@ export type Workout = {
   memo: string | null;
   /** How the body felt that day, or null for a session recorded before asking. */
   condition: Condition | null;
+  /**
+   * What was said after this session, kept with the session it was about.
+   *
+   * It used to live only in the phone's own storage, which meant it was gone
+   * on a new device and invisible to anyone looking at how the advice is
+   * actually turning out. Whether it came from the model or the rules is kept
+   * beside it, because the two are worth telling apart when reading them back.
+   */
+  advice?: string | null;
+  advice_source?: string | null;
 };
 
 export type WorkoutSet = {

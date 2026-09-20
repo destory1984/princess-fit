@@ -138,6 +138,9 @@
       };
       let filter = 'new';
       let tab = 'requests';
+      // Which person's card is open. One at a time: the point is to read one
+      // person's last few sessions, not to skim everybody's at once.
+      let opened = null;
 
       const escape = (s) =>
         String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -227,6 +230,12 @@
         for (const b of body.querySelectorAll('[data-gold]')) {
           b.onclick = () => setGold(b.dataset.gold);
         }
+        for (const b of body.querySelectorAll('[data-open]')) {
+          b.onclick = () => {
+            opened = opened === b.dataset.open ? null : b.dataset.open;
+            render();
+          };
+        }
       }
 
       async function usersView() {
@@ -235,6 +244,39 @@
         if (!data.length) return '<p class="empty">아직 아무도 없어요.</p>';
 
         const day = (v) => (v ? new Date(v).toLocaleDateString('ko-KR') : '—');
+
+        // Fetched only for the card that is open, so a hundred users is still
+        // one query for the list and one for whoever is being looked at.
+        let recentHtml = '';
+        if (opened) {
+          const { data: rows, error: recentError } = await db.rpc('admin_user_recent', {
+            target: opened,
+            sessions: 5,
+          });
+          recentHtml = recentError
+            ? `<p class="error">${escape(recentError.message)}</p>`
+            : rows.length
+              ? rows
+                  .map(
+                    (w) => `<div class="card" style="margin:10px 0 0">
+                      <div class="row">
+                        <span style="font-weight:700">${escape(w.title)}</span>
+                        <span class="meta" style="margin-left:auto">${day(w.started_at)}</span>
+                      </div>
+                      <div class="meta">${escape(w.did)}</div>
+                      ${
+                        w.advice
+                          ? `<div class="note">${escape(w.advice)}
+                              <span class="tag">${w.advice_source === 'model' ? '모델' : '규칙'}</span>
+                             </div>`
+                          : '<div class="meta">조언 없음</div>'
+                      }
+                    </div>`
+                  )
+                  .join('')
+              : '<p class="empty">마친 운동이 없어요.</p>';
+        }
+
         return data
           .map(
             (u) => `<div class="card">
@@ -261,10 +303,14 @@
                   value="${u.gold ?? 0}"
                 />
                 <button data-gold="${u.user_id}">골드 저장</button>
+                <button data-open="${u.user_id}">
+                  ${opened === u.user_id ? '최근 운동 닫기' : '최근 운동 보기'}
+                </button>
                 <button data-admin="${u.user_id}" data-on="${!u.admin}" style="margin-left:auto">
                   ${u.admin ? '관리자에서 내리기' : '관리자로 올리기'}
                 </button>
               </div>
+              ${opened === u.user_id ? recentHtml : ''}
             </div>`
           )
           .join('');
