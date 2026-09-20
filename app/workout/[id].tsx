@@ -73,6 +73,7 @@ import {
   saveSet,
   watchPending,
 } from "@/lib/outboxStore";
+import { remainingSeconds, remainingWord } from "@/lib/duration";
 import { colors, muscleColor, radius, spacing } from "@/lib/theme";
 
 export default function WorkoutScreen() {
@@ -149,6 +150,12 @@ export default function WorkoutScreen() {
   }, []);
 
   const unsentWord = pendingWord(unsent);
+
+  // Rest comes from the exercise, which is where it was set; a movement that
+  // has gone missing falls back to the default rather than counting as zero.
+  const restOfExercise = (exerciseId: string) =>
+    exercises.find((e) => e.id === exerciseId)?.rest_sec ?? DEFAULT_REST_SEC;
+  const leftWord = remainingWord(remainingSeconds(sets, restOfExercise));
 
   const load = useCallback(() => {
     if (!id) return;
@@ -708,6 +715,19 @@ export default function WorkoutScreen() {
                 {"\n"}
                 {conditionLine(workout.condition)}
               </Text>
+            </View>
+          )}
+
+          {/*
+            The answer to 「이거 오늘 안에 끝나나」, which is a question asked in
+            a doorway with a coat on. Counted from what is left rather than the
+            original total, or it would go on announcing the same number all
+            session and stop being read by the third set.
+          */}
+          {!done && leftWord && (
+            <View style={styles.condition}>
+              <Ionicons name="time-outline" size={16} color={colors.gold} />
+              <Text style={styles.conditionText}>{leftWord}</Text>
             </View>
           )}
 
