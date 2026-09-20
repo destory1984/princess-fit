@@ -121,6 +121,17 @@ export default function StatsScreen() {
         <Pressable style={styles.picker} onPress={() => setPicking(true)}>
           <Text style={styles.pickerLabel}>종목</Text>
           <Text style={styles.pickerValue}>{selected?.name ?? '종목을 선택하세요'}</Text>
+          {/* Looking at one movement's numbers is the other moment you want
+              to read about the movement itself. */}
+          {selected && (
+            <Pressable
+              hitSlop={10}
+              onPress={() =>
+                router.push({ pathname: '/exercise/[id]', params: { id: selected.id } })
+              }>
+              <Ionicons name="information-circle-outline" size={18} color={colors.textDim} />
+            </Pressable>
+          )}
           <Ionicons name="chevron-down" size={16} color={colors.accent} />
         </Pressable>
 
