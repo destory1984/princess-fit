@@ -31,6 +31,11 @@ export default function TabLayout() {
         name="index"
         options={{
           title: '오늘',
+          // The bar says 집, the tab says 오늘. The screen is her room, and
+          // 「오늘」 above a plaque already reading 「9월 20일」 got asked about
+          // rather than read. Taking the bar away entirely left the room
+          // sitting oddly against the top of the screen, so it stayed.
+          headerTitle: '집',
           tabBarIcon: ({ color, size }) => <Ionicons name="flame" size={size} color={color} />,
         }}
       />

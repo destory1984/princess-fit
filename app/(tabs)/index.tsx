@@ -313,7 +313,7 @@ export default function TodayScreen() {
           이번 주 <Text style={styles.weeklyStrong}>{weekly.workouts}</Text>/{weeklyGoal}회
           {weekly.workouts >= weeklyGoal ? ' · 약속 지키셨어요' : ''}
         </Text>
-        <Text style={styles.weeklyLink}>연대기 →</Text>
+        <Text style={styles.weeklyLink}>지금까지 →</Text>
       </Pressable>
 
       <View style={styles.sectionHeader}>
