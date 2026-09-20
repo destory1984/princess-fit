@@ -94,7 +94,10 @@ export default function WorkoutScreen() {
     let alive = true;
     listMuscleLoad()
       .then((sessions) => alive && setMuscles(recoveryOf(sessions)))
-      .catch(() => {});
+      .catch(() => {
+        // Without it she offers no particular movement and falls back to
+        // 「종목을 하나 골라볼까요?」, which is a smaller loss than a wrong pick.
+      });
     getPlace().then((stored) => alive && stored && setPlace(stored));
     return () => {
       alive = false;
@@ -162,7 +165,12 @@ export default function WorkoutScreen() {
         booked = id;
         if (cancelled) void cancelRestAlarm(id);
       })
-      .catch(() => {});
+      .catch(() => {
+        // Said out loud, once. The countdown on screen keeps running, so
+        // nothing looks broken — and the whole point of the bell is the phone
+        // that is already back in a pocket by now.
+        if (!cancelled) notify('쉬는 시간 알림을 걸지 못했어요', '이 화면을 켜 두시면 시간은 보여요.');
+      });
 
     return () => {
       cancelled = true;

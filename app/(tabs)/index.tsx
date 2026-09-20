@@ -77,6 +77,7 @@ export default function TodayScreen() {
   // everyone, every launch, for as long as the query takes.
   const [loaded, setLoaded] = useState(false);
   const [lastRoutineId, setLastRoutineId] = useState<string | null>(null);
+  const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   /**
@@ -154,7 +155,12 @@ export default function TodayScreen() {
   }
 
   async function beginWith(condition: Condition) {
+    // Two taps on the sheet before the insert lands would start two sessions,
+    // and the second would be the one you end up in while the first sits
+    // half-finished in the history.
+    if (starting) return;
     const routine = pending?.routine ?? null;
+    setStarting(true);
     setPending(null);
     try {
       const w = await startWorkout(
@@ -165,6 +171,8 @@ export default function TodayScreen() {
       router.push(`/workout/${w.id}`);
     } catch (e: any) {
       notify('시작 실패', e.message);
+    } finally {
+      setStarting(false);
     }
   }
 

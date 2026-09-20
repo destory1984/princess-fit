@@ -45,6 +45,9 @@ export default function TrainingLedgerScreen() {
   const [wardrobe, setWardrobe] = useState<string[]>([]);
   const [wearing, setWearing] = useState<string[]>([]);
   const [furniture, setFurniture] = useState<string[]>([]);
+  // Whether the household answered. Empty arrays are also what this screen
+  // holds before it asks, and after it fails.
+  const [ledgerKnown, setLedgerKnown] = useState(false);
 
   const load = useCallback(() => {
     setError(null);
@@ -52,16 +55,19 @@ export default function TrainingLedgerScreen() {
       .then(([list, savedGoal]) => {
         setFacts(list);
         setGoal(savedGoal);
-        // Her schooling is a side note here, so a failure to read it leaves
-        // the bars at zero rather than blocking the whole chronicle.
+        // Her wardrobe and schooling are a side note here, so a failure to
+        // read them must not block the chronicle — but it must not be drawn
+        // as zero either. Someone who owns every dress would be told they own
+        // none, which is worse than being told nothing.
         getLedger()
           .then((l) => {
             setCulture(l.culture);
             setWardrobe(l.wardrobe);
             setWearing(l.worn);
             setFurniture(l.furniture);
+            setLedgerKnown(true);
           })
-          .catch(() => {});
+          .catch(() => setLedgerKnown(false));
       })
       .catch((e) => setError(e.message));
   }, []);
@@ -167,9 +173,11 @@ export default function TrainingLedgerScreen() {
 
       <Scroll title="일 년의 길">
         <Text style={styles.yearHint}>
-          꾸준히 일 년이면 옷장을 채울 수 있어요. 방은 그 다음이에요.
+          {ledgerKnown
+            ? '꾸준히 일 년이면 옷장을 채울 수 있어요. 방은 그 다음이에요.'
+            : '옷장과 방은 지금 불러오지 못했어요. 잠시 뒤에 다시 열어 주세요.'}
         </Text>
-        {[
+        {ledgerKnown && [
           { label: '옷장', done: clothes.count, total: clothes.total, ratio: clothes.ratio, unit: '벌' },
           { label: '방', done: room.count, total: room.total, ratio: room.ratio, unit: '개' },
         ].map((line) => (
@@ -187,8 +195,10 @@ export default function TrainingLedgerScreen() {
       </Scroll>
 
       <Scroll title="배운 것">
-        <Text style={styles.refineTitle}>{refinementTitle(standing)}</Text>
-        {CULTURE_ORDER.map((key) => (
+        <Text style={styles.refineTitle}>
+          {ledgerKnown ? refinementTitle(standing) : '아직 불러오지 못했어요.'}
+        </Text>
+        {ledgerKnown && CULTURE_ORDER.map((key) => (
           <View key={key} style={styles.cultureRow}>
             <Ionicons name={CULTURE_META[key].icon as any} size={15} color={paper.line} />
             <Text style={styles.cultureName}>{CULTURE_META[key].name}</Text>
