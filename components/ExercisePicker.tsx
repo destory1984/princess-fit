@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import {
   ActivityIndicator,
@@ -16,6 +16,9 @@ import { seedDefaultExercises } from '@/lib/catalog';
 import { notify } from '@/lib/confirm';
 import { setExerciseFavourite } from '@/lib/db';
 import { sortByUsage, SORT_NAME, type Sort, type UsageMap } from '@/lib/exerciseUsage';
+import type { Place } from '@/lib/onboarding';
+import { byPlace } from '@/lib/plan';
+import { getPlace } from '@/lib/prefs';
 import { EQUIPMENT, MUSCLE_GROUPS, type Exercise } from '@/lib/types';
 import { colors, muscleColor, radius, spacing } from '@/lib/theme';
 
@@ -44,6 +47,17 @@ export function ExercisePicker({
   const [group, setGroup] = useState<string | null>(null);
   const [gear, setGear] = useState<string | null>(null);
   const [seeding, setSeeding] = useState(false);
+  // Where they said they train. Null until storage answers, and null means the
+  // list is left exactly as it was — no guess, no flicker into a new order.
+  const [place, setPlace] = useState<Place | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    getPlace().then((stored) => alive && stored && setPlace(stored));
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const withStars = useMemo(
     () =>
@@ -67,10 +81,14 @@ export function ExercisePicker({
   }, [withStars, query, group, gear]);
 
   // Sixty-seven movements sorted by name asks you to remember what yours are
-  // called. Most sessions reuse a handful; put those within reach.
+  // called. Most sessions reuse a handful; put those within reach — and then,
+  // for someone who said 집, put what a room without a rack can do above what
+  // it cannot. Reordered rather than filtered: a picker that has quietly
+  // forgotten the squat rack is one you stop trusting the first time you
+  // visit a gym.
   const shown = useMemo(
-    () => sortByUsage(filtered, usage ?? new Map(), sort),
-    [filtered, usage, sort]
+    () => byPlace(sortByUsage(filtered, usage ?? new Map(), sort), place),
+    [filtered, usage, sort, place]
   );
 
   /**
