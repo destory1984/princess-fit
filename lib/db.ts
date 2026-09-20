@@ -786,6 +786,27 @@ export async function restoreBackup(workouts: BackupWorkout[]) {
  * must not come back as a duplicate key error that blocks the queue behind it
  * forever. Writing the same row twice is the same row.
  */
+/**
+ * Rewrite the order the exercises sit in on one workout's board.
+ *
+ * Position is per exercise rather than per set, so every set of a movement
+ * moves together — the sets keep their own set_no and only the block they
+ * belong to slides. One update per exercise, in parallel: a board has a
+ * handful of movements on it, not a hundred.
+ */
+export async function reorderWorkoutExercises(workoutId: string, exerciseIds: string[]) {
+  await Promise.all(
+    exerciseIds.map(async (exerciseId, position) => {
+      const { error } = await supabase
+        .from('workout_sets')
+        .update({ position })
+        .eq('workout_id', workoutId)
+        .eq('exercise_id', exerciseId);
+      if (error) throw error;
+    })
+  );
+}
+
 export async function insertWorkoutSet(row: Record<string, unknown>) {
   const { error } = await supabase.from('workout_sets').upsert(row, { onConflict: 'id' });
   if (error) throw error;
