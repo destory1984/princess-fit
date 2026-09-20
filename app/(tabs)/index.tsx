@@ -18,6 +18,7 @@ import {
   scaleStats,
 } from '@/lib/character';
 import type { Condition } from '@/lib/condition';
+import type { Enrolment } from '@/lib/lessons';
 import { roomMood } from '@/lib/room';
 import {
   conditionFactor,
@@ -44,11 +45,16 @@ import type { Routine, Workout } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
 import { useGirl } from '@/lib/girl';
 
-async function armDailyMessage(name: string, house: Household, facts: WorkoutFact[]) {
+async function armDailyMessage(
+  name: string,
+  house: Household,
+  facts: WorkoutFact[],
+  lesson: Enrolment | null
+) {
   try {
     const hour = await getNudgeHour();
     if (hour === null) return;
-    await scheduleDailyMessage(name, tomorrowsMessage(house, facts), hour);
+    await scheduleDailyMessage(name, tomorrowsMessage(house, facts, new Date(), lesson), hour);
   } catch {
     // She will try again the next time the app is opened.
   }
@@ -68,6 +74,7 @@ export default function TodayScreen() {
   const [house, setHouse] = useState<Household | null>(null);
   const [furniture, setFurniture] = useState<string[]>([]);
   const [worn, setWorn] = useState<string[]>([]);
+  const [lesson, setLesson] = useState<Enrolment | null>(null);
   // The routine waiting on an answer about today's body, if one is.
   const [pending, setPending] = useState<{ routine: Routine | null } | null>(null);
   const [weeklyGoal, setWeeklyGoalState] = useState(DEFAULT_WEEKLY_GOAL);
@@ -104,13 +111,14 @@ export default function TodayScreen() {
 
         getWeeklyGoal().then(setWeeklyGoalState);
         getLedger()
-          .then(({ house: h, furniture: mine, worn: dressed }) => {
+          .then(({ house: h, furniture: mine, worn: dressed, lesson: course }) => {
             setHouse(h);
             setFurniture(mine);
             setWorn(dressed);
+            setLesson(course);
             // Re-arm her daily message with the mood she will be in by then.
             // A failure here is never worth interrupting the screen for.
-            void armDailyMessage(girl.name, h, facts);
+            void armDailyMessage(girl.name, h, facts, course);
           })
           .catch(() => setHouse(null));
 
@@ -249,7 +257,7 @@ export default function TodayScreen() {
           {/* The one reason to open this on a day you are not training. */}
           <WalkCard onFed={load} dense />
           <Advisor name={girl.name} portrait={girl.base}>
-            {house ? dailyLine(house, facts) : masterSays(stats, facts)}
+            {house ? dailyLine(house, facts, new Date(), lesson) : masterSays(stats, facts)}
           </Advisor>
         </>
       )}

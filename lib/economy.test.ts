@@ -17,6 +17,7 @@ import {
   type Household,
 } from './economy.ts';
 import type { WorkoutFact } from './gamification.ts';
+import { enrol, LESSONS } from './lessons.ts';
 
 function fact(partial: Partial<WorkoutFact> = {}): WorkoutFact {
   return {
@@ -151,4 +152,46 @@ test('with nothing to report she just says hello', () => {
   const line = dailyLine(settled, [], new Date(2026, 8, 20));
   assert.ok(line.length > 0);
   assert.doesNotMatch(line, /한 달째/);
+});
+
+test('she mentions a course on the days worth mentioning, and not the rest', () => {
+  const happy: Household = { gold: 500, satiety: 90, attire: 90, settledOn: '2026-09-20' };
+  // One session on each day being checked: otherwise she is four days alone
+  // by the end of the week, and being lonely rightly outranks a dance class.
+  const trained = ['09-20', '09-21', '09-23', '09-24'].map((day) => ({
+    started_at: `2026-${day}T09:00:00`,
+    volume: 1000,
+    doneSets: 10,
+    durationSec: 0,
+    groups: ['가슴'],
+  })) as any;
+  const lesson = enrol(LESSONS.find((l) => l.days === 5)!, new Date(2026, 8, 20));
+
+  const first = dailyLine(happy, trained, new Date(2026, 8, 20), lesson);
+  assert.ok(first.includes('오늘부터'), first);
+
+  // The middle of a course: she has nothing new to say about it, so she says
+  // something else rather than repeating herself every evening for a week.
+  const middle = dailyLine(happy, trained, new Date(2026, 8, 21), lesson);
+  assert.ok(!middle.includes('오늘부터'), middle);
+
+  const lastButOne = dailyLine(happy, trained, new Date(2026, 8, 23), lesson);
+  assert.ok(lastButOne.includes('이틀'), lastButOne);
+
+  const last = dailyLine(happy, trained, new Date(2026, 8, 24), lesson);
+  assert.ok(last.includes('마지막'), last);
+});
+
+test('a course never speaks over hunger or rags', () => {
+  const hungry: Household = { gold: 0, satiety: 10, attire: 90, settledOn: '2026-09-20' };
+  const lesson = enrol(LESSONS[0], new Date(2026, 8, 20));
+  const said = dailyLine(hungry, [], new Date(2026, 8, 20), lesson);
+  assert.ok(!said.includes('배우러'), said);
+});
+
+test("tomorrow's message drops a course that will be over by then", () => {
+  const happy: Household = { gold: 500, satiety: 90, attire: 90, settledOn: '2026-09-20' };
+  const oneDay = enrol({ ...LESSONS[0], days: 1 }, new Date(2026, 8, 20));
+  const said = tomorrowsMessage(happy, [], new Date(2026, 8, 20), oneDay);
+  assert.ok(!said.includes('배우러'), said);
 });
