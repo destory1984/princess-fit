@@ -346,7 +346,13 @@ export default function PreviewScreen() {
 
       <Text style={styles.heading}>옷 한 벌씩</Text>
       <View style={styles.dolls}>
-        {[[], ['blouse'], ['blouse', 'skirt_orange'], ['sleeves_blue', 'blouse', 'skirt_blue'], ['gown', 'bouquet']].map(
+        {[
+          [],
+          ['ribbon', 'necklace'],
+          ['blouse', 'skirt_orange', 'ribbon'],
+          ['sleeves_blue', 'blouse', 'skirt_blue'],
+          ['gown', 'bouquet', 'ribbon', 'necklace'],
+        ].map(
           (worn, i) => (
             <View key={i} style={styles.dollCell}>
               <PaperDoll worn={worn} style={styles.doll} />
