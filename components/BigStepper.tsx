@@ -34,8 +34,16 @@ export function BigStepper({
   decimals = 0,
   onChange,
 }: Props) {
-  const set = (next: number) =>
-    onChange(Math.max(0, Number(next.toFixed(decimals))));
+  /*
+    Two decimals, not `decimals`.
+
+    `decimals` says how to *write* the number; rounding the value to it threw
+    away half a kilo on the way past. A weight showing 21 has no decimal place
+    on screen, so 21 + 2.5 was saved as 24 — and from there the numbers drift
+    off the rack and never come back. What may be stored is the caller's rule,
+    not the formatter's.
+  */
+  const set = (next: number) => onChange(Math.max(0, Number(next.toFixed(2))));
 
   const fineUp = nextAt ? nextAt(value, 1) - value : step;
   const moveDown = nextAt ? nextAt(value, -1) - value : -step;
@@ -75,7 +83,7 @@ export function BigStepper({
             reach — the first time it reads as the app being broken, and after
             that as the tap not having registered.
           */
-          const target = Math.max(0, Number((value + amount).toFixed(decimals)));
+          const target = Math.max(0, Number((value + amount).toFixed(2)));
           const dead = target === value;
           return (
             <Pressable
