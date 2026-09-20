@@ -95,6 +95,7 @@ import {
 import { remainingSeconds, remainingWord } from "@/lib/duration";
 import { bringForward, canBringForward } from "@/lib/order";
 import { balanceOf, balanceWord, isUnilateral, nextSide, type Side } from "@/lib/sides";
+import { warmupFor, warmupWord, workingWeightOf } from "@/lib/warmup";
 import { colors, muscleColor, radius, spacing } from "@/lib/theme";
 
 export default function WorkoutScreen() {
@@ -517,6 +518,7 @@ export default function WorkoutScreen() {
     weight: number,
     reps: number,
     side: Side | null = null,
+    warmup = false,
   ) {
     const row = {
       id: Crypto.randomUUID(),
@@ -533,9 +535,10 @@ export default function WorkoutScreen() {
       distance_km: 0,
       done: false,
       side,
+      warmup,
     } as WorkoutSet;
     setSets((prev) => [...prev, set]);
-    await saveSet(row.id, { weight_kg: weight, reps, side }, row);
+    await saveSet(row.id, { weight_kg: weight, reps, side, warmup }, row);
     return set;
   }
 
@@ -720,6 +723,36 @@ export default function WorkoutScreen() {
    * removing the last one removes the exercise too — which is the only way to
    * drop an exercise now, and needs no separate button or confirmation.
    */
+  /**
+   * Put the ramp in front of the work.
+   *
+   * Created first in the list and the sets already there pushed back, because
+   * a warmup after the working sets is not a warmup. The new numbers are
+   * written rather than only shown: the board sorts by set_no on every load,
+   * so a renumbering that lived on the phone alone would come back undone.
+   *
+   * The weights are the ones the offer showed. Somebody read them and said
+   * yes to those, and quietly recomputing here would make the button a
+   * different button from the one that was pressed.
+   */
+  async function addWarmup(
+    exerciseId: string,
+    position: number,
+    existing: WorkoutSet[],
+    ramp: { weight: number; reps: number }[],
+  ) {
+    if (ramp.length === 0) return;
+    const shifted = [...existing].sort((a, b) => a.set_no - b.set_no);
+    // The existing sets move first, so nothing ever holds two set 1s — a
+    // duplicate number is what the board sorts by, and it shows.
+    for (let i = 0; i < shifted.length; i += 1) {
+      await persist(shifted[i].id, { set_no: ramp.length + i + 1 });
+    }
+    for (let i = 0; i < ramp.length; i += 1) {
+      await newSet(exerciseId, position, i + 1, ramp[i].weight, ramp[i].reps, null, true);
+    }
+  }
+
   async function removeSet(setId: string) {
     try {
       // Taken out of the queue first, or a set added offline would be brought
@@ -1198,6 +1231,44 @@ export default function WorkoutScreen() {
                         </View>
                       )}
 
+                      {/*
+                        The ramp, offered with its weights written out.
+
+                        Only before anything has been done, because a warmup
+                        after the first working set is a contradiction, and
+                        only once — a movement that already has a 워밍업 row on
+                        it has been answered. Light movements are never asked
+                        (see `lib/warmup.ts`): three preparatory sets for a
+                        15kg curl is how a suggestion teaches people to dismiss
+                        suggestions.
+
+                        A row rather than a dialog. This is a question about
+                        the next ten minutes, asked by something that can be
+                        ignored by looking past it.
+                      */}
+                      {(() => {
+                        if (track !== "weight_reps") return null;
+                        if (exerciseSets.some((x) => x.warmup)) return null;
+                        if (exerciseSets.some((x) => x.done)) return null;
+                        const ramp = warmupFor(workingWeightOf(exerciseSets));
+                        if (ramp.length === 0) return null;
+                        return (
+                          <Pressable
+                            style={styles.warmupOffer}
+                            onPress={() =>
+                              addWarmup(exerciseId, position, exerciseSets, ramp)
+                            }
+                          >
+                            <Ionicons name="flame-outline" size={16} color={colors.gold} />
+                            <View style={styles.warmupOfferBody}>
+                              <Text style={styles.warmupOfferTitle}>워밍업 넣기</Text>
+                              <Text style={styles.warmupOfferSub}>{warmupWord(ramp)}</Text>
+                            </View>
+                            <Ionicons name="add" size={18} color={colors.gold} />
+                          </Pressable>
+                        );
+                      })()}
+
                       {current ? (
                         <SetCard
                           set={current}
@@ -1631,6 +1702,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   doneChipText: { fontWeight: "700", fontSize: 13 },
+  // Framed in gold rather than in the accent: it is an offer, and it sits
+  // directly above the set someone came here to do. It must be legible and
+  // easy to ignore in the same glance.
+  warmupOffer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.goldSoft,
+    borderRadius: radius.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  warmupOfferBody: { flex: 1, minWidth: 0 },
+  warmupOfferTitle: { color: colors.text, fontSize: 13, fontWeight: "700" },
+  warmupOfferSub: { color: colors.textDim, fontSize: 11, marginTop: 1 },
   allDone: {
     color: colors.textDim,
     textAlign: "center",

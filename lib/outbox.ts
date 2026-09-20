@@ -26,6 +26,15 @@
  */
 
 export type SetPatch = {
+  /**
+   * Where the set sits in its exercise.
+   *
+   * Only ever written when sets are inserted in front of others — a warmup
+   * ramp added under a movement already laid out. Without it the renumbering
+   * would live only on the phone, and the board would sort itself back into
+   * 워밍업-last on the next load.
+   */
+  set_no?: number;
   weight_kg?: number;
   reps?: number;
   duration_sec?: number;
