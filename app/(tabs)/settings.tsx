@@ -107,8 +107,8 @@ export default function SettingsScreen() {
           <Ionicons name="trophy-outline" size={22} color={colors.accent} />
         </View>
         <View style={styles.body}>
-          <Text style={styles.title}>지금까지</Text>
-          <Text style={styles.sub}>성장 기록과 업적 보기</Text>
+          <Text style={styles.title}>품계와 업적</Text>
+          <Text style={styles.sub}>지금까지 오른 품계와 얻은 업적</Text>
         </View>
         <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
       </Pressable>
