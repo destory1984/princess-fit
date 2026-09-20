@@ -42,6 +42,7 @@ import {
 import type { RoutinePreset } from '@/lib/routinePresets';
 import { colors, radius, spacing } from '@/lib/theme';
 import { useGirl } from '@/lib/girl';
+import { withParticle } from '@/lib/korean';
 
 /** Hours worth offering, matching the ones the settings screen uses. */
 const HOURS = [8, 12, 18, 20, 22];
@@ -123,7 +124,7 @@ export default function OnboardingScreen() {
         if (missing.length) {
           notify(
             '루틴을 만들었어요',
-            `${missing.join(', ')}은(는) 종목에 없어서 빠졌어요. 나중에 더하실 수 있어요.`
+            `${withParticle(missing.join(', '), '은는')} 종목에 없어서 빠졌어요. 나중에 더하실 수 있어요.`
           );
         }
       }

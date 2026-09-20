@@ -47,6 +47,7 @@ import {
   type Item,
 } from "@/lib/shop";
 import { colors, paper, radius, spacing } from "@/lib/theme";
+import { withParticle } from "@/lib/korean";
 
 const SHELVES = ["부엌", "옷장", "장신구", "수업", "방", "특별"] as const;
 type Shelf = (typeof SHELVES)[number];
@@ -186,8 +187,18 @@ function LessonRow({ lesson, shop }: { lesson: Lesson; shop: Shop }) {
   );
 }
 
-function GarmentRow({ garment, shop }: { garment: Garment; shop: Shop }) {
-  const { house, wardrobe, worn } = shop.ledger;
+function GarmentRow({
+  garment,
+  shop,
+  tryingOn,
+  onTryOn,
+}: {
+  garment: Garment;
+  shop: Shop;
+  tryingOn: boolean;
+  onTryOn: () => void;
+}) {
+  const { wardrobe, worn } = shop.ledger;
   const owned = wardrobe.includes(garment.id);
   const on = layersOf(worn).some((g) => g.id === garment.id);
   const covered = owned && worn.includes(garment.id) && !on;
@@ -195,7 +206,7 @@ function GarmentRow({ garment, shop }: { garment: Garment; shop: Shop }) {
     <Row
       id={garment.id}
       busy={shop.busy}
-      icon={on ? "checkmark" : "shirt-outline"}
+      icon={on ? "checkmark" : tryingOn ? "eye-outline" : "shirt-outline"}
       name={garment.name}
       detail={garment.detail}
       price={garment.price}
@@ -204,18 +215,20 @@ function GarmentRow({ garment, shop }: { garment: Garment; shop: Shop }) {
           ? "드레스에 가려져 있어요"
           : owned
             ? `${OUTFIT_SLOT_NAME[garment.slot]} · ${on ? "입는 중" : "눌러서 입기"}`
-            : `${OUTFIT_SLOT_NAME[garment.slot]} · 매력 +${garment.charm}`
+            : `${OUTFIT_SLOT_NAME[garment.slot]} · 매력 +${garment.charm} · ${
+                tryingOn ? "입혀보는 중" : "눌러서 입혀보기"
+              }`
       }
-      disabled={!owned && house.gold < garment.price}
-      owned={on}
+      // Never disabled for want of gold: looking is free, and a row you
+      // cannot even press is a row that cannot tell you why.
+      disabled={false}
+      owned={on || tryingOn}
       onPress={() =>
         owned
           ? shop.spend(garment.id, garment.name, 0, "clothes", () =>
               setWorn(on ? takingOff(worn, garment.id) : wearing(worn, garment)),
             )
-          : shop.spend(garment.id, garment.name, garment.price, "clothes", () =>
-              buyGarment(garment),
-            )
+          : onTryOn()
       }
     />
   );
@@ -263,11 +276,20 @@ function Bar({ ratio, label }: { ratio: number; label: string }) {
  */
 export function ShopShelves({ ledger, busy, onSpend }: Props) {
   const [shelf, setShelf] = useState<Shelf>("부엌");
+  // A garment she does not own, held up against her.
+  //
+  // Everything on this shelf costs a fortnight of training, and until now the
+  // only way to see one on her was to buy it — which is a strange way to sell
+  // clothes and the reason "어떻게 봐? 안 보이는데" was a fair question.
+  const [tryingOn, setTryingOn] = useState<string | null>(null);
   const shop: Shop = { ledger, busy, onSpend, spend: onSpend };
 
   const { house, wardrobe, worn, furniture, culture } = ledger;
   // What the bars show: lessons plus whatever she has on.
   const standing = effectiveCulture(culture, wardrobe, worn);
+
+  const previewed = tryingOn ? GARMENTS.find((g) => g.id === tryingOn) ?? null : null;
+  const shownWorn = previewed ? wearing(worn, previewed) : worn;
 
   const clothes = outfitProgress(wardrobe);
   const room = roomProgress(furniture);
@@ -296,21 +318,65 @@ export function ShopShelves({ ledger, busy, onSpend }: Props) {
       {shelf === "옷장" && (
         <>
           <View style={styles.dollRow}>
-            <PaperDoll worn={worn} style={styles.doll} />
+            <PaperDoll worn={shownWorn} style={styles.doll} />
             <View style={styles.dollBody}>
               <Bar
                 ratio={clothes.ratio}
                 label={`${clothes.count}/${clothes.total}벌`}
               />
               <Text style={styles.hint}>
-                {clothes.complete
-                  ? "옷장이 가득 찼어요. 일 년을 걸어온 값이에요."
-                  : "사면 바로 입어요. 가진 옷은 눌러서 갈아입을 수 있어요."}
+                {previewed
+                  ? `${withParticle(previewed.name, '을를')} 입혀 봤어요. 아직 산 건 아니에요.`
+                  : clothes.complete
+                    ? "옷장이 가득 찼어요. 일 년을 걸어온 값이에요."
+                    : "안 가진 옷은 눌러서 입혀만 볼 수 있어요. 가진 옷은 눌러서 갈아입어요."}
               </Text>
+              {previewed && (
+                <View style={styles.tryRow}>
+                  <Pressable
+                    style={[
+                      styles.buy,
+                      house.gold < previewed.price && styles.buyOff,
+                    ]}
+                    disabled={!!busy || house.gold < previewed.price}
+                    onPress={() =>
+                      shop.spend(
+                        previewed.id,
+                        previewed.name,
+                        previewed.price,
+                        "clothes",
+                        async () => {
+                          const next = await buyGarment(previewed);
+                          setTryingOn(null);
+                          return next;
+                        },
+                      )
+                    }
+                  >
+                    <Text style={styles.buyText}>
+                      {house.gold < previewed.price
+                        ? "골드가 모자라요"
+                        : `사기 · ${previewed.price.toLocaleString()} G`}
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    style={styles.tryOff}
+                    onPress={() => setTryingOn(null)}
+                  >
+                    <Text style={styles.tryOffText}>벗기</Text>
+                  </Pressable>
+                </View>
+              )}
             </View>
           </View>
           {GARMENTS.map((garment) => (
-            <GarmentRow key={garment.id} garment={garment} shop={shop} />
+            <GarmentRow
+              key={garment.id}
+              garment={garment}
+              shop={shop}
+              tryingOn={tryingOn === garment.id}
+              onTryOn={() => setTryingOn(tryingOn === garment.id ? null : garment.id)}
+            />
           ))}
         </>
       )}
@@ -415,6 +481,18 @@ const styles = StyleSheet.create({
   },
   doll: { width: 96 },
   dollBody: { flex: 1 },
+  tryRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, marginTop: spacing.sm },
+  buy: {
+    flex: 1,
+    backgroundColor: colors.accent,
+    borderRadius: radius.sm,
+    paddingVertical: spacing.sm,
+    alignItems: "center",
+  },
+  buyOff: { backgroundColor: colors.faint },
+  buyText: { color: "#fff", fontWeight: "800", fontSize: 13 },
+  tryOff: { paddingVertical: spacing.sm, paddingHorizontal: spacing.sm },
+  tryOffText: { color: colors.textDim, fontWeight: "700", fontSize: 12 },
   barWrap: { gap: 4, marginTop: spacing.sm },
   track: {
     flex: 1,

@@ -6,6 +6,7 @@ import { notify } from '@/lib/confirm';
 import { createRoutineFromPreset } from '@/lib/db';
 import { ROUTINE_PRESETS, type RoutinePreset } from '@/lib/routinePresets';
 import { colors, radius, spacing } from '@/lib/theme';
+import { withParticle } from '@/lib/korean';
 
 /**
  * Ready-made routines, for the moment a blank routine screen asks a beginner
@@ -27,7 +28,7 @@ export default function RoutinePresetsScreen() {
       if (missing.length) {
         notify(
           `${preset.name} 루틴을 만들었어요`,
-          `${missing.join(', ')}은(는) 종목에 없어서 빠졌어요.`
+          `${withParticle(missing.join(', '), '은는')} 종목에 없어서 빠졌어요.`
         );
       }
       router.replace(`/routine/${routine.id}`);

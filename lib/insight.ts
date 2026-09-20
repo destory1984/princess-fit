@@ -1,5 +1,6 @@
 import { localDayKey } from './format.ts';
 import { bestWeeklyCoverage, streakOf, type WorkoutFact } from './gamification.ts';
+import { withParticle } from './korean.ts';
 
 /**
  * Reading the numbers so you do not have to.
@@ -90,7 +91,7 @@ export function insightsFor(workouts: WorkoutFact[], today = new Date()): Insigh
       title:
         rest > 0
           ? `${named} 외 ${rest}개 부위를 한 달째 안 했어요`
-          : `${named}은(는) 한 달째 안 했어요`,
+          : `${withParticle(named, '은는')} 한 달째 안 했어요`,
       detail: '다음 운동에 하나만 끼워 넣어도 균형이 달라져요.',
     });
   }

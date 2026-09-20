@@ -1,3 +1,5 @@
+import { withParticle } from './korean.ts';
+
 /**
  * How rested each muscle is, estimated from what was done to it and when.
  *
@@ -148,7 +150,8 @@ export function todaysWord(muscles: Muscle[]): string {
   if (tired.length >= Object.keys(MUSCLE_LABELS).length - 2) {
     return '거의 다 지쳐 있어요. 오늘은 쉬거나 가볍게만 하세요.';
   }
-  return `${tired.slice(0, 3).join(' · ')}${tired.length > 3 ? ' 외' : ''}은(는) 아직 덜 쉬었어요.`;
+  const named = `${tired.slice(0, 3).join(' · ')}${tired.length > 3 ? ' 외' : ''}`;
+  return `${withParticle(named, '은는')} 아직 덜 쉬었어요.`;
 }
 
 /**
@@ -187,5 +190,5 @@ export function clashWord(slugs: string[], muscles: Muscle[]): string | null {
   if (sore.length === 0) return null;
   const worst = sore[0];
   const others = sore.length > 1 ? ` 외 ${sore.length - 1}곳` : '';
-  return `${worst.label}${others}은(는) 아직 ${worst.recovery}%예요. 가볍게 가시거나 다른 곳부터 하셔도 좋아요.`;
+  return `${withParticle(`${worst.label}${others}`, '은는')} 아직 ${worst.recovery}%예요. 가볍게 가시거나 다른 곳부터 하셔도 좋아요.`;
 }
