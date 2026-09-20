@@ -31,6 +31,7 @@ import {
   type Lesson,
 } from './lessons';
 import type { Furniture } from './room';
+import { SPLIT_WINDOW_DAYS, type RoutineUse } from './split';
 import {
   groupHistory,
   streakDays,
@@ -457,16 +458,27 @@ export async function startWorkout(
  * workouts behind with a null routine_id, so this looks past those rather than
  * returning nothing.
  */
-export async function lastUsedRoutineId(): Promise<string | null> {
+/**
+ * When each routine was last finished, within the window `nextInSplit` cares
+ * about. Sorted newest first so the first sighting of a routine is its latest.
+ */
+export async function recentRoutineUse(now = new Date()): Promise<RoutineUse[]> {
+  const since = new Date(now);
+  since.setDate(since.getDate() - SPLIT_WINDOW_DAYS);
   const { data, error } = await supabase
     .from('workouts')
-    .select('routine_id')
+    .select('routine_id, started_at')
     .not('routine_id', 'is', null)
     .not('ended_at', 'is', null)
-    .order('started_at', { ascending: false })
-    .limit(1);
+    .gte('started_at', localDayKey(since))
+    .order('started_at', { ascending: false });
   if (error) throw error;
-  return (data as { routine_id: string | null }[])[0]?.routine_id ?? null;
+
+  const seen = new Map<string, string>();
+  for (const row of data as { routine_id: string; started_at: string }[]) {
+    if (!seen.has(row.routine_id)) seen.set(row.routine_id, row.started_at.slice(0, 10));
+  }
+  return [...seen].map(([routineId, lastOn]) => ({ routineId, lastOn }));
 }
 
 /** Which muscles a routine sets out to work, as body-map slugs. */

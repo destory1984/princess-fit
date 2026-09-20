@@ -35,7 +35,7 @@ import {
   listRoutineExercises,
   listRoutines,
   getLedger,
-  lastUsedRoutineId,
+  recentRoutineUse,
   listWorkoutFacts,
   startWorkout,
   type WeeklyStats,
@@ -44,6 +44,7 @@ import { summarise, type WorkoutFact } from '@/lib/gamification';
 import type { Routine, Workout } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
 import { useGirl } from '@/lib/girl';
+import { isRotation, nextInSplit, type RoutineUse } from '@/lib/split';
 
 async function armDailyMessage(
   name: string,
@@ -83,7 +84,7 @@ export default function TodayScreen() {
   // the two apart is the difference between greeting a newcomer and greeting
   // everyone, every launch, for as long as the query takes.
   const [loaded, setLoaded] = useState(false);
-  const [lastRoutineId, setLastRoutineId] = useState<string | null>(null);
+  const [routineUse, setRoutineUse] = useState<RoutineUse[]>([]);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -124,8 +125,8 @@ export default function TodayScreen() {
 
         // Which routine the second start button offers. Off the critical path:
         // the button has a sensible thing to say without it.
-        lastUsedRoutineId()
-          .then(setLastRoutineId)
+        recentRoutineUse()
+          .then(setRoutineUse)
           .catch(() => {});
 
         // Only decides whether the newcomer guide's first step is ticked.
@@ -186,13 +187,15 @@ export default function TodayScreen() {
 
   // Falls back to the newest routine, so the button is useful before the first
   // routine session has ever been finished.
-  const lastRoutine =
-    routines.find((r) => r.id === lastRoutineId) ?? routines[0] ?? null;
+  const ids = routines.map((r) => r.id);
+  const nextRoutine =
+    routines.find((r) => r.id === nextInSplit(routineUse, ids)) ?? routines[0] ?? null;
+  const rotating = isRotation(routineUse, ids);
 
   // The one on the button is already on screen; listing it again below made
   // the same routine appear twice, above and below, on one screen. A session
   // under way hides the button, so then the list shows everything again.
-  const otherRoutines = active ? routines : routines.filter((r) => r.id !== lastRoutine?.id);
+  const otherRoutines = active ? routines : routines.filter((r) => r.id !== nextRoutine?.id);
 
   const isNew = loaded && weekly.workouts === 0 && routines.length === 0 && !active;
 
@@ -287,24 +290,25 @@ export default function TodayScreen() {
           </Pressable>
 
           {/*
-            The last routine rather than a list of them: "지난번 그거" is the
-            commonest intent, the list below already handles the others, and a
-            second button that only opens that list would be a longer way to
-            the same place. Named, so it is never a surprise which one starts.
+            One routine rather than a list of them: the list below already
+            handles the others, and a second button that only opened that list
+            would be a longer way to the same place. Which one is `nextInSplit`
+            — the same routine for someone who has one, the other one for
+            someone alternating. Named, so it is never a surprise which starts.
           */}
           <Pressable
             style={[styles.starter, styles.starterGhost]}
-            onPress={() => (lastRoutine ? begin(lastRoutine) : router.push('/routines'))}>
+            onPress={() => (nextRoutine ? begin(nextRoutine) : router.push('/routines'))}>
             <Ionicons
-              name={lastRoutine ? 'repeat' : 'add-circle-outline'}
+              name={nextRoutine ? (rotating ? 'swap-horizontal' : 'repeat') : 'add-circle-outline'}
               size={22}
               color={colors.accent}
             />
             <Text style={[styles.starterText, styles.starterTextGhost]} numberOfLines={1}>
-              {lastRoutine ? '루틴으로 시작' : '루틴 만들기'}
+              {nextRoutine ? (rotating ? '다음 차례' : '루틴으로 시작') : '루틴 만들기'}
             </Text>
             <Text style={styles.starterSub} numberOfLines={1}>
-              {lastRoutine?.name ?? '자주 하는 운동을 묶어요'}
+              {nextRoutine?.name ?? '자주 하는 운동을 묶어요'}
             </Text>
           </Pressable>
         </View>
