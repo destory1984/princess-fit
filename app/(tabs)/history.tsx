@@ -112,6 +112,15 @@ export default function HistoryScreen() {
         ))}
       </View>
 
+      <Pressable style={styles.tool} onPress={() => router.push('/sleep')}>
+        <Ionicons name="moon-outline" size={18} color={colors.accent} />
+        <View style={styles.toolBody}>
+          <Text style={styles.toolTitle}>수면 기록</Text>
+          <Text style={styles.toolSub}>운동한 날과 쉰 날, 얼마나 잤는지</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color={colors.textDim} />
+      </Pressable>
+
       <Insights workouts={facts} limit={2} />
 
       <View style={styles.listHeader}>

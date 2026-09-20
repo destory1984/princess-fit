@@ -14,6 +14,7 @@ import { buy, type Item } from './shop';
 import { resolvePreset, type RoutinePreset } from './routinePresets';
 import type { BodyLog } from './body';
 import type { UsageMap } from './exerciseUsage';
+import type { SleepLog } from './sleep';
 import { wearing, type Garment } from './outfit';
 import { attend, EMPTY_CULTURE, type Culture, type Lesson } from './lessons';
 import type { Furniture } from './room';
@@ -837,5 +838,38 @@ export async function setExerciseFavourite(exerciseId: string, favourite: boolea
     .from('exercises')
     .update({ favourite })
     .eq('id', exerciseId);
+  if (error) throw error;
+}
+
+export async function listSleepLogs(limit = 180): Promise<SleepLog[]> {
+  const userId = await requireUserId();
+  const { data, error } = await supabase
+    .from('sleep_logs')
+    .select('id, slept_on, bed_minute, wake_minute')
+    .eq('user_id', userId)
+    .order('slept_on', { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data as SleepLog[];
+}
+
+/** One night per morning: correcting a night replaces it rather than adding. */
+export async function saveSleepLog(
+  bedMinute: number,
+  wakeMinute: number,
+  day = localDayKey(new Date())
+) {
+  const userId = await requireUserId();
+  const { error } = await supabase
+    .from('sleep_logs')
+    .upsert(
+      { user_id: userId, slept_on: day, bed_minute: bedMinute, wake_minute: wakeMinute },
+      { onConflict: 'user_id,slept_on' }
+    );
+  if (error) throw error;
+}
+
+export async function deleteSleepLog(id: string) {
+  const { error } = await supabase.from('sleep_logs').delete().eq('id', id);
   if (error) throw error;
 }

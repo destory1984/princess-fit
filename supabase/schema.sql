@@ -157,3 +157,24 @@ create policy "own body logs" on body_logs
 
 -- Starred exercises, which sort to the top of the picker.
 alter table exercises add column if not exists favourite boolean not null default false;
+
+-- Sleep, written down by hand. Times are minutes past midnight so a night
+-- that crosses midnight needs no timezone reasoning; `slept_on` is the
+-- morning you woke, which is how a night is named.
+create table if not exists sleep_logs (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users on delete cascade,
+  slept_on date not null default current_date,
+  bed_minute int not null,
+  wake_minute int not null,
+  created_at timestamptz not null default now(),
+  unique (user_id, slept_on)
+);
+
+create index if not exists sleep_logs_user_day_idx on sleep_logs (user_id, slept_on desc);
+
+alter table sleep_logs enable row level security;
+
+drop policy if exists "own sleep logs" on sleep_logs;
+create policy "own sleep logs" on sleep_logs
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
