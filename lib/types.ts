@@ -76,6 +76,14 @@ export type WorkoutSet = {
   distance_km: number;
   done: boolean;
   /**
+   * When this set was marked done.
+   *
+   * The session's real end, because pressing 운동 종료 is something people do
+   * on the way out of the building — or the next morning. Null on rows made
+   * before the column, and on sets not yet done.
+   */
+  done_at?: string | null;
+  /**
    * Which side this set was done on, for movements done one limb at a time.
    *
    * Null on everything else, and on rows made before the column — both of

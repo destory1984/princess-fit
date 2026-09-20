@@ -494,8 +494,11 @@ export default function WorkoutScreen() {
   async function completeAll() {
     const pending = sets.filter((s) => !s.done);
     if (pending.length === 0) return;
-    setSets((prev) => prev.map((s) => ({ ...s, done: true })));
-    await Promise.all(pending.map((s) => saveSet(s.id, { done: true })));
+    // One stamp for the lot: they were all finished at the moment this was
+    // pressed, which is the honest reading of 「전부 완료」.
+    const at = new Date().toISOString();
+    setSets((prev) => prev.map((s) => ({ ...s, done: true, done_at: s.done_at ?? at })));
+    await Promise.all(pending.map((s) => saveSet(s.id, { done: true, done_at: at })));
   }
 
   /**
@@ -1201,7 +1204,15 @@ export default function WorkoutScreen() {
                           total={exerciseSets.length}
                           tint={tint}
                           onChange={(patch) => persist(current.id, patch)}
-                          onComplete={() => persist(current.id, { done: true })}
+                          onComplete={() =>
+                            // Stamped here rather than on the server, because
+                            // the set may be finished in a basement and land
+                            // an hour later — and it happened now.
+                            persist(current.id, {
+                              done: true,
+                              done_at: new Date().toISOString(),
+                            })
+                          }
                           onRemove={() => removeSet(current.id)}
                         />
                       ) : (
