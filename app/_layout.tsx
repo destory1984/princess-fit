@@ -17,7 +17,9 @@ function RootNavigator() {
   const router = useRouter();
   useEffect(() => {
     if (loading) return;
-    const onLoginScreen = segments[0] === "login";
+    // Both are doors, not rooms: the gate must let a signed-out person reach
+    // them or forgetting a password is the end of the account.
+    const onLoginScreen = segments[0] === "login" || segments[0] === "reset";
     const onOnboarding = segments[0] === "onboarding";
     // The development bench needs no account: it renders components against
     // made-up data, and sending it to the login screen would defeat it.
@@ -27,7 +29,10 @@ function RootNavigator() {
       router.replace("/login");
       return;
     }
-    if (session && onLoginScreen) {
+    // Only the login screen sends a signed-in person away. Finishing a reset
+    // signs them in, and bouncing them out of it mid-flow would look like the
+    // new password did not take.
+    if (session && segments[0] === "login") {
       router.replace("/");
       return;
     }
@@ -131,6 +136,7 @@ function RootNavigator() {
         <Stack.Screen name="onerm" options={{ title: "1RM 계산기" }} />
         <Stack.Screen name="settings/girl" options={{ title: "함께 지낼 아이" }} />
         <Stack.Screen name="settings/plan" options={{ title: "내 운동 계획" }} />
+        <Stack.Screen name="reset" options={{ headerShown: false }} />
         <Stack.Screen name="settings/backup" options={{ title: "기록 백업" }} />
         <Stack.Screen name="settings/requests" options={{ title: "운동 넣어달라고 하기" }} />
         <Stack.Screen name="preview" options={{ title: "미리보기" }} />

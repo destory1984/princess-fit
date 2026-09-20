@@ -8,11 +8,13 @@ import {
   Text,
   TextInput,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { notify } from '@/lib/confirm';
 import { supabase } from '@/lib/supabase';
 import { colors, radius, spacing } from '@/lib/theme';
 
 export default function LoginScreen() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
@@ -79,6 +81,15 @@ export default function LoginScreen() {
 
       <Pressable disabled={busy} onPress={() => submit('signUp')}>
         <Text style={styles.link}>처음이신가요? 회원가입</Text>
+      </Pressable>
+
+      {/*
+        There was no way back in before this. An account whose password was
+        forgotten was a year of training gone, and nothing on this screen
+        admitted it.
+      */}
+      <Pressable disabled={busy} onPress={() => router.push('/reset')}>
+        <Text style={styles.link}>비밀번호를 잊으셨나요?</Text>
       </Pressable>
 
       <Pressable disabled={busy} onPress={resendConfirmation}>
