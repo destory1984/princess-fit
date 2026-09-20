@@ -14,7 +14,12 @@ export type DoneExercise = {
   lastTop: number | null;
   /** Seconds, for movements timed rather than counted. */
   seconds: number;
+  /** Rest set for this movement, in seconds. */
+  rest?: number;
 };
+
+/** The last time this same routine was done, movement by movement. */
+export type PastSession = { date: string; done: DoneExercise[] };
 
 export type AdviceContext = {
   /** The session just finished. */
@@ -29,6 +34,20 @@ export type AdviceContext = {
    * this and was not sending it.
    */
   done?: DoneExercise[];
+  /**
+   * How long the session took, in minutes, or null when nobody recorded it —
+   * a backdated entry, or one left open so long the number means nothing.
+   */
+  minutes?: number | null;
+  /**
+   * The last outing of the same routine.
+   *
+   * Different from the `lastTop` beside each movement, which looks for that
+   * movement in any session. This is the whole board as it stood last time,
+   * which is the only way to notice what is missing today — a movement
+   * dropped leaves no trace in a comparison that only walks what was done.
+   */
+  previous?: PastSession | null;
   /** Earlier finished sessions, newest first. */
   history: WorkoutFact[];
   stats: Stats;
@@ -67,9 +86,31 @@ export function describeContext(c: AdviceContext) {
       lines.push(`- ${e.name}: ${formatDuration(e.seconds)}`);
     } else if (e.topWeight > 0) {
       const before = e.lastTop ? ` (지난번 최고 ${e.lastTop}kg)` : ' (지난번 기록 없음)';
-      lines.push(`- ${e.name}: ${e.sets}세트, 최고 ${e.topWeight}kg×${e.topReps}회${before}`);
+      const rest = e.rest ? `, 세트 사이 ${e.rest}초 쉼` : '';
+      lines.push(
+        `- ${e.name}: ${e.sets}세트, 최고 ${e.topWeight}kg×${e.topReps}회${rest}${before}`
+      );
     } else {
-      lines.push(`- ${e.name}: ${e.sets}세트, 맨몸 ${e.topReps}회`);
+      const rest = e.rest ? `, 세트 사이 ${e.rest}초 쉼` : '';
+      lines.push(`- ${e.name}: ${e.sets}세트, 맨몸 ${e.topReps}회${rest}`);
+    }
+  }
+  if (c.minutes) lines.push(`오늘 걸린 시간: ${c.minutes}분`);
+
+  /*
+    The same routine, last time.
+
+    Listed in full rather than summarised, because the useful observation is
+    often about what is not there — a movement that was on the board a week
+    ago and is not on it today leaves no trace in any comparison that only
+    walks through what was done.
+  */
+  if (c.previous && c.previous.done.length) {
+    lines.push(`지난번 같은 루틴 (${c.previous.date}):`);
+    for (const e of c.previous.done) {
+      if (e.seconds > 0) lines.push(`- ${e.name}: ${formatDuration(e.seconds)}`);
+      else if (e.topWeight > 0) lines.push(`- ${e.name}: ${e.sets}세트, 최고 ${e.topWeight}kg`);
+      else lines.push(`- ${e.name}: ${e.sets}세트, 맨몸 ${e.topReps}회`);
     }
   }
 

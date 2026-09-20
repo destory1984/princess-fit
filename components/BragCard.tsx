@@ -4,7 +4,9 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { BodyMap, workedParts } from '@/components/BodyMap';
 import { OrnateFrame } from '@/components/OrnateFrame';
 import type { WorkoutDetailExercise } from '@/lib/db';
+import { DEFAULT_REST_SEC } from '@/lib/db';
 import { workoutGold } from '@/lib/economy';
+import { estimatedMinutes, estimatedSeconds } from '@/lib/duration';
 import { formatDate, formatDuration, formatKm } from '@/lib/format';
 import { workoutXp, type summarise, type WorkoutFact } from '@/lib/gamification';
 import type { Workout } from '@/lib/types';
@@ -49,6 +51,26 @@ export const BragCard = forwardRef<View, Props>(function BragCard(
   */
   const ABSURD_MS = 4 * 60 * 60 * 1000;
   const minutes = span >= 60000 && span < ABSURD_MS ? Math.round(span / 60000) : null;
+
+  /*
+    When the real length is gone, an estimate rather than a blank.
+
+    「—」 was the first answer to 487분, and it earned 「걸린 시간은 여전히 - 네」
+    — which is fair. The card went from a figure nobody recognised to no
+    figure at all. Reckoned from the sets and the rest each movement is set
+    to, and labelled 약, because an estimate that does not say so is a claim.
+  */
+  const restOf = (exerciseId: string) =>
+    items.find((i) => i.exercise_id === exerciseId)?.exercise?.rest_sec ?? DEFAULT_REST_SEC;
+  const reckoned =
+    minutes === null
+      ? estimatedMinutes(
+          estimatedSeconds(
+            items.flatMap((i) => i.sets.filter((s) => s.done)),
+            restOf
+          )
+        )
+      : null;
   /*
     One phrase per movement, in the order they were done.
 
@@ -95,8 +117,10 @@ export const BragCard = forwardRef<View, Props>(function BragCard(
           <Stat value={fact.volume.toLocaleString()} unit="kg" label="총 무게" />
           <Stat value={String(doneSets)} unit="세트" label="완료" />
           <Stat
-            value={minutes === null ? '—' : String(minutes)}
-            unit={minutes === null ? '' : '분'}
+            value={
+              minutes !== null ? String(minutes) : reckoned !== null ? `약 ${reckoned}` : '—'
+            }
+            unit={minutes !== null || reckoned !== null ? '분' : ''}
             label="걸린 시간"
           />
         </View>

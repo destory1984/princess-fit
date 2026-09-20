@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  estimatedSeconds,
+  estimateWord,
   remainingSeconds,
   remainingWord,
   SECONDS_PER_SET,
@@ -62,4 +64,28 @@ test('minutes are rounded to something a person would say', () => {
 test('an hour reads as an hour', () => {
   assert.equal(remainingWord(60 * 60), '1시간쯤 남았어요');
   assert.equal(remainingWord(85 * 60), '1시간 30분쯤 남았어요');
+});
+
+test('a session with no recorded length can still be estimated', () => {
+  // The true length is gone. 「—」 was the first answer and it earned
+  // 「걸린 시간은 여전히 - 네」 — an estimate is honest as long as it says so.
+  const sets = [set(), set(), set(), set()];
+  const seconds = estimatedSeconds(sets, rest60);
+  assert.equal(seconds, SECONDS_PER_SET * 4 + 60 * 3);
+  // Rounded to five, so 6분 reads as 약 5분 — an estimate that names a
+  // precise minute is pretending to know something it does not.
+  assert.equal(estimateWord(seconds), '약 5분');
+});
+
+test('an estimate always says it is one', () => {
+  assert.match(estimateWord(25 * 60)!, /^약 /);
+  assert.equal(estimateWord(0), null);
+});
+
+test('a cardio session is estimated from its own minutes', () => {
+  assert.equal(estimatedSeconds([set({ duration_sec: 1800 })], rest60), 1800);
+});
+
+test('nothing on the board is nothing to estimate', () => {
+  assert.equal(estimatedSeconds([], rest60), 0);
 });

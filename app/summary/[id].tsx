@@ -12,6 +12,7 @@ import {
   getActiveWorkout,
   getLastPerformance,
   getWorkoutDetail,
+  previousRoutineSession,
   listWorkoutFacts,
   repeatWorkout,
   type WorkoutDetailExercise,
@@ -33,6 +34,11 @@ export default function SummaryScreen() {
   const [facts, setFacts] = useState<WorkoutFact[]>([]);
   // The heaviest set of each movement last time, for 「지난번보다」.
   const [lastTime, setLastTime] = useState<Map<string, number>>(new Map());
+  // The last outing of this same routine, for reading the two boards against
+  // each other — including what is missing from today's.
+  const [previous, setPrevious] = useState<Awaited<
+    ReturnType<typeof previousRoutineSession>
+  > | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(() => {
@@ -59,6 +65,11 @@ export default function SummaryScreen() {
               )
             )
           )
+          .catch(() => {});
+
+        // Only feeds the adviser's 「지난번 같은 루틴」, so it is never waited on.
+        previousRoutineSession(id)
+          .then(setPrevious)
           .catch(() => {});
       })
       .catch((e) => setError(e.message));
@@ -90,10 +101,45 @@ export default function SummaryScreen() {
           topReps: top.reps,
           lastTop: lastTime.get(item.exercise_id) ?? null,
           seconds: finished.reduce((sum, s) => sum + s.duration_sec, 0),
+          rest: item.exercise?.rest_sec,
         };
       }),
     [items, lastTime]
   );
+
+  // The same board as it stood last time, described the same way — the point
+  // is that the two lists can be read against each other.
+  const previousSession = useMemo(
+    () =>
+      previous
+        ? {
+            date: formatDate(previous.started_at, 'short'),
+            done: previous.items.map((item) => {
+              const finished = item.sets.filter((x) => x.done && !x.warmup);
+              const top = finished.reduce(
+                (best, x) => (x.weight_kg > best.weight_kg ? x : best),
+                finished[0] ?? { weight_kg: 0, reps: 0 }
+              );
+              return {
+                name: item.exercise?.name ?? '삭제된 종목',
+                sets: finished.length,
+                topWeight: item.topWeight,
+                topReps: top.reps,
+                lastTop: null,
+                seconds: finished.reduce((sum, x) => sum + x.duration_sec, 0),
+              };
+            }),
+          }
+        : null,
+    [previous]
+  );
+
+  // Null when nobody recorded it, which is what the card shows as 「—」.
+  const minutes = useMemo(() => {
+    if (!workout?.ended_at) return null;
+    const span = +new Date(workout.ended_at) - +new Date(workout.started_at);
+    return span >= 60_000 && span < 4 * 60 * 60 * 1000 ? Math.round(span / 60_000) : null;
+  }, [workout]);
 
   // Must be stable: AdviceCard refetches whenever this object's identity changes.
   const adviceContext = useMemo(
@@ -102,12 +148,14 @@ export default function SummaryScreen() {
         ? {
             today: fact,
             done,
+            minutes,
+            previous: previousSession,
             history: facts,
             stats: computeStats(facts),
             streak: summary.streak,
           }
         : null,
-    [fact, done, facts, summary]
+    [fact, done, minutes, previousSession, facts, summary]
   );
 
   async function repeat() {
