@@ -169,8 +169,9 @@ export default function PreviewScreen() {
         <OnboardingScreen />
       </View>
 
-      <Text style={styles.heading}>오늘 걸음</Text>
+      <Text style={styles.heading}>오늘 걸음 · 펼친 것과 홈에 놓이는 한 줄</Text>
       <WalkCard onFed={() => {}} />
+      <WalkCard onFed={() => {}} dense />
 
       <Text style={styles.heading}>오늘 몸 상태</Text>
       <Pressable style={styles.openPicker} onPress={() => setAsking(true)}>

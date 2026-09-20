@@ -22,6 +22,15 @@ import { colors, radius, spacing } from '@/lib/theme';
 type Props = {
   /** Called when the walk actually fed her, so the purse can be re-read. */
   onFed: () => void;
+  /**
+   * Start as a single row, opening on a tap.
+   *
+   * The home screen has one screenful to spend and the room, her line and the
+   * start button have first claim on it. A step count pushed below the fold is
+   * a step count nobody sees — which is how this arrived as a bug report —
+   * so on home it earns one line until asked for more.
+   */
+  dense?: boolean;
 };
 
 /**
@@ -35,12 +44,13 @@ type Props = {
  * against a year of steady training; a second income would pull that apart
  * quietly.
  */
-export function WalkCard({ onFed }: Props) {
+export function WalkCard({ onFed, dense = false }: Props) {
   const [steps, setSteps] = useState<number | null>(null);
   const [why, setWhy] = useState<string | null>(null);
   const [goal, setGoal] = useState(DEFAULT_STEP_GOAL);
   const [fed, setFed] = useState(0);
   const [editing, setEditing] = useState(false);
+  const [open, setOpen] = useState(!dense);
 
   const load = useCallback(() => {
     let alive = true;
@@ -94,6 +104,31 @@ export function WalkCard({ onFed }: Props) {
   const share = steps === null ? 0 : walkShare(steps, goal);
   const note = walkNote(fed);
 
+  if (!open) {
+    return (
+      <Pressable style={styles.row} onPress={() => setOpen(true)}>
+        <Ionicons name="walk-outline" size={17} color={colors.accent} />
+        {steps === null ? (
+          <Text style={styles.rowWhy} numberOfLines={1}>
+            {why ?? '걸음을 세는 중이에요…'}
+          </Text>
+        ) : (
+          <>
+            <Text style={styles.rowValue}>
+              {steps.toLocaleString()}
+              <Text style={styles.rowUnit}> / {goal.toLocaleString()}</Text>
+            </Text>
+            <View style={styles.rowTrack}>
+              <View style={[styles.fill, { width: `${Math.round(share * 100)}%` }]} />
+            </View>
+            {fed > 0 && <Text style={styles.rowFed}>포만감 +{fed}</Text>}
+          </>
+        )}
+        <Ionicons name="chevron-down" size={16} color={colors.faint} />
+      </Pressable>
+    );
+  }
+
   return (
     <View style={styles.wrap}>
       <View style={styles.head}>
@@ -102,6 +137,11 @@ export function WalkCard({ onFed }: Props) {
         <Pressable hitSlop={8} onPress={() => setEditing(!editing)}>
           <Text style={styles.goal}>목표 {goal.toLocaleString()}</Text>
         </Pressable>
+        {dense && (
+          <Pressable hitSlop={8} onPress={() => setOpen(false)}>
+            <Ionicons name="chevron-up" size={16} color={colors.faint} />
+          </Pressable>
+        )}
       </View>
 
       {steps === null ? (
@@ -156,6 +196,26 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   head: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+  },
+  rowValue: { color: colors.text, fontSize: 15, fontWeight: '800' },
+  rowUnit: { color: colors.textDim, fontSize: 12, fontWeight: '600' },
+  rowTrack: {
+    flex: 1,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.surfaceAlt,
+    overflow: 'hidden',
+  },
+  rowFed: { color: colors.gold, fontSize: 12, fontWeight: '700' },
+  rowWhy: { color: colors.textDim, fontSize: 12, flex: 1 },
   title: { color: colors.text, fontSize: 14, fontWeight: '700', flex: 1 },
   goal: { color: colors.textDim, fontSize: 12 },
   value: { color: colors.text, fontSize: 26, fontWeight: '800' },
