@@ -10,11 +10,18 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { notify } from '@/lib/confirm';
+import {
+  enabledProviders,
+  PROVIDER_LABEL,
+  signInWith,
+  type Provider,
+} from '@/lib/oauth';
 import { supabase } from '@/lib/supabase';
 import { colors, radius, spacing } from '@/lib/theme';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const providers = enabledProviders();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
@@ -33,6 +40,13 @@ export default function LoginScreen() {
     if (error) notify(mode === 'signIn' ? '로그인 실패' : '가입 실패', error.message);
     else if (mode === 'signUp' && !data.session)
       notify('가입 완료', '이메일로 온 인증 링크를 누른 뒤 로그인해 주세요.');
+  }
+
+  async function social(provider: Provider) {
+    setBusy(true);
+    const problem = await signInWith(provider);
+    setBusy(false);
+    if (problem) notify('로그인 실패', problem);
   }
 
   async function resendConfirmation() {
@@ -84,6 +98,20 @@ export default function LoginScreen() {
       </Pressable>
 
       {/*
+        Shown only when this build offers any. Empty by default, so the screen
+        is the one it has always been and none of the code behind it runs.
+      */}
+      {providers.map((provider) => (
+        <Pressable
+          key={provider}
+          style={[styles.social, busy && styles.buttonDisabled]}
+          disabled={busy}
+          onPress={() => social(provider)}>
+          <Text style={styles.socialText}>{PROVIDER_LABEL[provider]}</Text>
+        </Pressable>
+      ))}
+
+      {/*
         There was no way back in before this. An account whose password was
         forgotten was a year of training gone, and nothing on this screen
         admitted it.
@@ -131,5 +159,14 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: { opacity: 0.6 },
   buttonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  social: {
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: radius.md,
+    padding: spacing.lg,
+    alignItems: 'center',
+    marginTop: spacing.sm,
+  },
+  socialText: { color: colors.text, fontWeight: '700' },
   link: { color: colors.textDim, textAlign: 'center', marginTop: spacing.lg, padding: spacing.xs },
 });
