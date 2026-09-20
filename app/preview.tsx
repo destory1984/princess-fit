@@ -6,6 +6,7 @@ import { BigStepper } from '@/components/BigStepper';
 import { BragCard } from '@/components/BragCard';
 import { Cheer } from '@/components/Cheer';
 import { ConditionPicker } from '@/components/ConditionPicker';
+import { SwapSheet } from '@/components/SwapSheet';
 import { WalkCard } from '@/components/WalkCard';
 import { ExercisePicker } from '@/components/ExercisePicker';
 import { TimeField } from '@/components/TimeField';
@@ -73,6 +74,17 @@ const benchExercises = DEFAULT_EXERCISES.filter((_, i) => i % 6 === 0).map((e, i
   created_at: '2026-09-01T00:00:00',
 }));
 
+// The swap sheet needs the whole catalogue to have anything to offer: every
+// sixth movement leaves most of them with no neighbour to be swapped for.
+const benchAll = DEFAULT_EXERCISES.map((e, i) => ({
+  ...e,
+  id: `a${i}`,
+  user_id: 'u',
+  rest_sec: 60,
+  favourite: false,
+  created_at: '2026-09-01T00:00:00',
+}));
+
 const benchUsage = new Map([
   ['x1', { count: 9, lastOn: '2026-09-19' }],
   ['x3', { count: 2, lastOn: '2026-09-12' }],
@@ -81,6 +93,7 @@ const benchUsage = new Map([
 export default function PreviewScreen() {
   const [picking, setPicking] = useState(false);
   const [asking, setAsking] = useState(false);
+  const [swapping, setSwapping] = useState<(typeof benchAll)[number] | null>(null);
   const girl = useGirl();
   if (!__DEV__) return <Redirect href="/" />;
 
@@ -201,6 +214,18 @@ export default function PreviewScreen() {
         visible={asking}
         onPick={() => setAsking(false)}
         onClose={() => setAsking(false)}
+      />
+
+      <Text style={styles.heading}>이게 안 되면 · 대체 종목</Text>
+      <Pressable style={styles.openPicker} onPress={() => setSwapping(benchAll[0])}>
+        <Text style={styles.openPickerText}>{benchAll[0].name} 바꾸는 창 열기</Text>
+      </Pressable>
+      <SwapSheet
+        target={swapping}
+        exercises={benchAll}
+        doneCount={2}
+        onPick={() => setSwapping(null)}
+        onClose={() => setSwapping(null)}
       />
 
       <Text style={styles.heading}>사진 기록 (화면 전체)</Text>
