@@ -38,7 +38,35 @@ export const BragCard = forwardRef<View, Props>(function BragCard(
   const span = workout.ended_at
     ? +new Date(workout.ended_at) - +new Date(workout.started_at)
     : 0;
-  const minutes = span >= 60000 ? Math.round(span / 60000) : null;
+  /*
+    A session left open all afternoon is not an eight-hour workout.
+
+    487분 appeared on a card for eight sets, because the finish button was
+    pressed hours after the last one. The honest answer to how long it took is
+    that nobody recorded it, which is the same thing a backdated entry says —
+    so it says that, rather than putting a number nobody would recognise on
+    the thing people screenshot.
+  */
+  const ABSURD_MS = 4 * 60 * 60 * 1000;
+  const minutes = span >= 60000 && span < ABSURD_MS ? Math.round(span / 60000) : null;
+  /*
+    One phrase per movement, in the order they were done.
+
+    Cardio counts in minutes and weights in sets, because that is how each is
+    remembered — 「러닝 30분」 and 「덤벨 컬 3세트」, never the other way round.
+    Movements with nothing finished are left out: a card is a record of what
+    happened, not of what was planned.
+  */
+  const didWhat = items
+    .map((item) => {
+      const done = item.sets.filter((s) => s.done);
+      if (done.length === 0) return null;
+      const name = item.exercise?.name ?? '삭제된 종목';
+      const seconds = done.reduce((sum, s) => sum + s.duration_sec, 0);
+      return seconds > 0 ? `${name} ${Math.round(seconds / 60)}분` : `${name} ${done.length}세트`;
+    })
+    .filter((line): line is string => line !== null);
+
   const cheer = CHEERS[new Date(workout.started_at).getDate() % CHEERS.length];
   const best = items
     .filter((i) => i.topWeight > 0)
@@ -50,6 +78,18 @@ export const BragCard = forwardRef<View, Props>(function BragCard(
         <Text style={styles.date}>{formatDate(workout.started_at)}</Text>
         <Text style={styles.cheer}>💪 {cheer}</Text>
         <Text style={styles.title}>{workout.title}</Text>
+
+        {/*
+          What was actually done. The card had the weight, the sets, the
+          minutes and a body map, and no way to answer 「뭐 한거야」 — the one
+          thing the person remembers doing. Names first, counts after, in the
+          order they were done.
+        */}
+        {didWhat.length > 0 && (
+          <Text style={styles.did} numberOfLines={3}>
+            {didWhat.join(' · ')}
+          </Text>
+        )}
 
         <View style={styles.statRow}>
           <Stat value={fact.volume.toLocaleString()} unit="kg" label="총 무게" />
@@ -129,6 +169,7 @@ const styles = StyleSheet.create({
   stat: { flex: 1 },
   statValue: { color: colors.text, fontSize: 26, fontWeight: '800' },
   statUnit: { color: colors.textDim, fontSize: 13, fontWeight: '600' },
+  did: { color: colors.textDim, fontSize: 13, lineHeight: 20, marginTop: spacing.xs },
   statLabel: { color: colors.textDim, fontSize: 12, marginTop: 2 },
   body: { marginVertical: spacing.md },
   badgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },

@@ -85,6 +85,40 @@ const benchAll = DEFAULT_EXERCISES.map((e, i) => ({
   created_at: '2026-09-01T00:00:00',
 }));
 
+/**
+ * A finished session for the card, because an empty one hid the very line the
+ * card exists to show: 「뭐 한거야」 has no answer when nothing was done.
+ */
+const benchCardItems = [
+  { name: '벤치프레스', group: '가슴', top: 60, sets: 4 },
+  { name: '덤벨 프레스', group: '가슴', top: 22, sets: 3 },
+  { name: '바벨 컬', group: '팔', top: 30, sets: 3 },
+].map((e, i) => ({
+  exercise_id: `c${i}`,
+  exercise: {
+    ...(DEFAULT_EXERCISES.find((x) => x.name === e.name) ?? DEFAULT_EXERCISES[0]),
+    id: `c${i}`,
+    user_id: 'u',
+    rest_sec: 90,
+    favourite: false,
+    created_at: '2026-09-01T00:00:00',
+  },
+  sets: Array.from({ length: e.sets }, (_, n) => ({
+    id: `c${i}s${n}`,
+    workout_id: 'w',
+    exercise_id: `c${i}`,
+    position: i,
+    set_no: n + 1,
+    weight_kg: e.top,
+    reps: 8,
+    duration_sec: 0,
+    distance_km: 0,
+    done: true,
+  })),
+  topWeight: e.top,
+  estimatedOneRm: Math.round(e.top * 1.27),
+})) as any;
+
 const benchUsage = new Map([
   ['x1', { count: 9, lastOn: '2026-09-19' }],
   ['x3', { count: 2, lastOn: '2026-09-12' }],
@@ -155,7 +189,7 @@ export default function PreviewScreen() {
           started_at: '2026-09-20T18:00:00',
           ended_at: '2026-09-20T19:07:00',
         }}
-        items={[]}
+        items={benchCardItems}
         fact={{
           id: 'w',
           started_at: '2026-09-20T18:00:00',
