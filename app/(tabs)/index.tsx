@@ -5,7 +5,6 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { notify } from '@/lib/confirm';
 import { Advisor } from '@/components/Advisor';
 import { ConditionPicker } from '@/components/ConditionPicker';
-import { LevelCard } from '@/components/LevelCard';
 import { Purse } from '@/components/Purse';
 import { TrainingHall } from '@/components/TrainingHall';
 import { WalkCard } from '@/components/WalkCard';
@@ -25,7 +24,7 @@ import {
   tomorrowsMessage,
   type Household,
 } from '@/lib/economy';
-import { getNudgeHour } from '@/lib/prefs';
+import { DEFAULT_WEEKLY_GOAL, getNudgeHour, getWeeklyGoal } from '@/lib/prefs';
 import { scheduleDailyMessage } from '@/lib/notify';
 import {
   getActiveWorkout,
@@ -69,6 +68,7 @@ export default function TodayScreen() {
   const [worn, setWorn] = useState<string[]>([]);
   // The routine waiting on an answer about today's body, if one is.
   const [pending, setPending] = useState<{ routine: Routine | null } | null>(null);
+  const [weeklyGoal, setWeeklyGoalState] = useState(DEFAULT_WEEKLY_GOAL);
 
   const load = useCallback(() => {
     Promise.all([
@@ -84,6 +84,7 @@ export default function TodayScreen() {
         setWeekly(w);
         setExerciseCount(ex.length);
         setFacts(facts);
+        getWeeklyGoal().then(setWeeklyGoalState);
         getLedger()
           .then(({ house: h, furniture: mine, worn: dressed }) => {
             setHouse(h);
@@ -189,43 +190,13 @@ export default function TodayScreen() {
             </Pressable>
           )}
           {/* The one reason to open this on a day you are not training. */}
-          <WalkCard onFed={load} />
+          <WalkCard onFed={load} dense />
           <Advisor name={girl.name} portrait={girl.base}>
             {house ? dailyLine(house, facts) : masterSays(stats, facts)}
           </Advisor>
-          <LevelCard
-            level={summary.level}
-            title={summary.title}
-            xp={summary.xp}
-            progress={summary.progress}
-            toNext={summary.toNext}
-            streak={summary.streak}
-            earnedCount={summary.earnedCount}
-            badgeCount={summary.badges.length}
-            onPress={() => router.push('/achievements')}
-          />
         </>
       )}
 
-      <View style={styles.statRow}>
-        <StatCard
-          icon="barbell"
-          value={String(weekly.workouts)}
-          label="이번 주 운동"
-          suffix="회"
-        />
-        <StatCard
-          icon="trending-up"
-          value={
-            weekly.volume >= 10000
-              ? (weekly.volume / 1000).toFixed(1)
-              : weekly.volume.toLocaleString()
-          }
-          label="주간 총 무게"
-          suffix={weekly.volume >= 10000 ? '톤' : 'kg'}
-        />
-        <StatCard icon="flame" value={String(weekly.streakDays)} label="연속 운동" suffix="일" />
-      </View>
 
       <Pressable
         style={styles.primary}
@@ -242,6 +213,15 @@ export default function TodayScreen() {
           </Text>
         </View>
         <Ionicons name="chevron-forward" size={20} color={colors.accentSoft} />
+      </Pressable>
+
+      <Pressable style={styles.weekly} onPress={() => router.push('/achievements')}>
+        <Ionicons name="flag-outline" size={15} color={colors.textDim} />
+        <Text style={styles.weeklyText}>
+          이번 주 <Text style={styles.weeklyStrong}>{weekly.workouts}</Text>/{weeklyGoal}회
+          {summary ? ` · ${summary.title}` : ''}
+        </Text>
+        <Text style={styles.weeklyLink}>연대기 →</Text>
       </Pressable>
 
       <View style={styles.sectionHeader}>
@@ -286,28 +266,6 @@ export default function TodayScreen() {
   );
 }
 
-function StatCard({
-  icon,
-  value,
-  label,
-  suffix,
-}: {
-  icon: keyof typeof Ionicons.glyphMap;
-  value: string;
-  label: string;
-  suffix: string;
-}) {
-  return (
-    <View style={styles.statCard}>
-      <Ionicons name={icon} size={16} color={colors.textDim} />
-      <Text style={styles.statValue}>
-        {value}
-        <Text style={styles.statSuffix}> {suffix}</Text>
-      </Text>
-      <Text style={styles.statLabel}>{label}</Text>
-    </View>
-  );
-}
 
 function Step({ n, done, title, body }: { n: number; done: boolean; title: string; body: string }) {
   return (
@@ -354,17 +312,6 @@ const styles = StyleSheet.create({
   stepBody: { flex: 1 },
   stepTitle: { color: colors.text, fontWeight: '700' },
   stepText: { color: colors.textDim, marginTop: 2, lineHeight: 19 },
-  statRow: { flexDirection: 'row', gap: spacing.sm },
-  statCard: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    gap: 2,
-  },
-  statValue: { color: colors.text, fontSize: 22, fontWeight: '800' },
-  statSuffix: { color: colors.textDim, fontSize: 12, fontWeight: '600' },
-  statLabel: { color: colors.textDim, fontSize: 11 },
   primary: {
     backgroundColor: colors.accent,
     borderRadius: radius.lg,
@@ -384,6 +331,16 @@ const styles = StyleSheet.create({
   primaryBody: { flex: 1 },
   primaryText: { color: '#fff', fontSize: 17, fontWeight: '800' },
   primarySub: { color: colors.accentSoft, marginTop: 2, fontSize: 13 },
+  weekly: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  weeklyText: { color: colors.textDim, fontSize: 12, flex: 1 },
+  weeklyStrong: { color: colors.text, fontWeight: '800', fontSize: 13 },
+  weeklyLink: { color: colors.accent, fontSize: 12, fontWeight: '700' },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
