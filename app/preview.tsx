@@ -176,7 +176,7 @@ export default function PreviewScreen() {
         <OnboardingScreen />
       </View>
 
-      <Text style={styles.heading}>내 계획 (화면 전체)</Text>
+      <Text style={styles.heading}>내 운동 계획 (화면 전체)</Text>
       <View style={styles.framedTall}>
         <PlanScreen />
       </View>

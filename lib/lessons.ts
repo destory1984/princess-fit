@@ -31,6 +31,16 @@ export type Lesson = {
   name: string;
   detail: string;
   price: number;
+  /**
+   * How many days of going every morning it takes.
+   *
+   * A lesson used to be paid for and learned in the same instant, while a
+   * notification told you she had set off — the points were already banked
+   * before she left the house. Time is what makes the choice a choice: while
+   * she is learning one thing she is not learning another, and the longer
+   * courses teach more for it.
+   */
+  days: number;
   /** Raw points, before the diminishing return near the cap. */
   teaches: Partial<Record<CultureKey, number>>;
   icon: string;
@@ -42,6 +52,7 @@ export const LESSONS: Lesson[] = [
     name: '예의범절',
     detail: '앉고 서고 인사하는 법부터',
     price: 120,
+    days: 3,
     teaches: { grace: 8 },
     icon: 'hand-left-outline',
   },
@@ -50,6 +61,7 @@ export const LESSONS: Lesson[] = [
     name: '무용',
     detail: '무도회에서 굳지 않으려면',
     price: 160,
+    days: 4,
     teaches: { grace: 5, charm: 5 },
     icon: 'musical-notes-outline',
   },
@@ -58,6 +70,7 @@ export const LESSONS: Lesson[] = [
     name: '성악',
     detail: '목소리도 차림새예요',
     price: 160,
+    days: 4,
     teaches: { charm: 8 },
     icon: 'mic-outline',
   },
@@ -66,6 +79,7 @@ export const LESSONS: Lesson[] = [
     name: '회화',
     detail: '보는 눈이 먼저 자라요',
     price: 190,
+    days: 5,
     teaches: { learning: 5, charm: 4 },
     icon: 'color-palette-outline',
   },
@@ -74,6 +88,7 @@ export const LESSONS: Lesson[] = [
     name: '문학',
     detail: '남의 삶을 한 권씩',
     price: 210,
+    days: 5,
     teaches: { learning: 8 },
     icon: 'book-outline',
   },
@@ -82,6 +97,7 @@ export const LESSONS: Lesson[] = [
     name: '수학',
     detail: '셈이 밝으면 속지 않아요',
     price: 210,
+    days: 6,
     teaches: { learning: 9 },
     icon: 'calculator-outline',
   },
@@ -90,6 +106,7 @@ export const LESSONS: Lesson[] = [
     name: '신학',
     detail: '묻기를 배우는 시간',
     price: 260,
+    days: 7,
     teaches: { grace: 6, learning: 6 },
     icon: 'moon-outline',
   },
@@ -163,4 +180,77 @@ export function tripTimes(now = new Date()): Trip {
   const returns = new Date(leaves);
   returns.setHours(returns.getHours() + LESSON_HOURS);
   return { leaves, returns };
+}
+
+/**
+ * A course she is part-way through.
+ *
+ * Kept as two day keys rather than timestamps: a lesson is measured in
+ * mornings she went, and "three days" should mean the same whether it was
+ * bought at eight in the morning or at midnight.
+ */
+export type Enrolment = {
+  lessonId: string;
+  /** Local YYYY-MM-DD. */
+  startedOn: string;
+  /** Local YYYY-MM-DD, inclusive: the last morning she goes. */
+  endsOn: string;
+};
+
+function dayKeyOf(date: Date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function shiftDays(key: string, days: number) {
+  const at = new Date(`${key}T00:00:00`);
+  at.setDate(at.getDate() + days);
+  return dayKeyOf(at);
+}
+
+/** Sign her up, starting today. */
+export function enrol(lesson: Lesson, today = new Date()): Enrolment {
+  const startedOn = dayKeyOf(today);
+  return {
+    lessonId: lesson.id,
+    startedOn,
+    // Inclusive, so a one-day course starts and ends on the same morning.
+    endsOn: shiftDays(startedOn, Math.max(1, lesson.days) - 1),
+  };
+}
+
+/** Mornings still to go, counting today. Zero once the course is over. */
+export function daysLeft(enrolment: Enrolment, today = new Date()) {
+  const from = new Date(`${dayKeyOf(today)}T00:00:00`).getTime();
+  const to = new Date(`${enrolment.endsOn}T00:00:00`).getTime();
+  return Math.max(0, Math.round((to - from) / 86_400_000) + 1);
+}
+
+/**
+ * Whether the course has run its course.
+ *
+ * Checked against the day rather than the hour, so what she learned lands on
+ * the morning after the last lesson however late the app is opened.
+ */
+export function isFinished(enrolment: Enrolment, today = new Date()) {
+  return dayKeyOf(today) > enrolment.endsOn;
+}
+
+/** How long a course takes, in words for the shelf. */
+export function lengthWord(lesson: Lesson) {
+  if (lesson.days % 7 === 0) return `${lesson.days / 7}주`;
+  return `${lesson.days}일`;
+}
+
+/** What she is doing and until when, for the banner above the shelf. */
+export function enrolmentWord(enrolment: Enrolment, today = new Date()) {
+  const lesson = lessonById(enrolment.lessonId);
+  const left = daysLeft(enrolment, today);
+  const until = enrolment.endsOn.slice(5).replace('-', '월 ');
+  const name = lesson?.name ?? '수업';
+  return left <= 1
+    ? `${name} · 오늘이 마지막 날이에요`
+    : `${name} · ${until}일까지, ${left}일 남았어요`;
 }

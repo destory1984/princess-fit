@@ -14,6 +14,12 @@
  *
  * It is never a meal. A full day of walking is worth less than half a day of
  * hunger, so it softens a gap and cannot replace turning up.
+ *
+ * What it buys, in her words, is the errand: a day spent on your feet is a day
+ * you passed the market, so something came home with you. That story matters.
+ * The screen used to say only 「대신 덜 배고파해요」 — what happens, with no
+ * reason why — and the first question it got was 「음식을 주기 때문인가?」. A
+ * rule nobody can explain is a rule nobody trusts.
  */
 
 export const DEFAULT_STEP_GOAL = 8000;
@@ -72,5 +78,9 @@ export function walkWord(steps: number, goal = DEFAULT_STEP_GOAL): string {
 /** Worth saying out loud only when walking actually stood in for a rest day. */
 export function walkNote(points: number): string | null {
   if (points <= 0) return null;
-  return `걸음 덕분에 포만감 +${points}`;
+  return `오는 길에 장을 봐 오셨어요 · 포만감 +${points}`;
 }
+
+/** Why walking feeds her at all, for the line under the card. */
+export const WALK_REASON =
+  '걷다 보면 장도 보게 되니까요. 골드는 들지 않아요.';
