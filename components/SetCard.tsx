@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react';
 import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { BigStepper } from '@/components/BigStepper';
-import { nextWeight } from '@/lib/weight';
+import { nextWeight, onRack } from '@/lib/weight';
 import { successFeedback, tapFeedback } from '@/lib/feedback';
 import type { TrackType, WorkoutSet } from '@/lib/types';
 import { otherSide, SIDE_LABEL } from '@/lib/sides';
@@ -112,7 +112,10 @@ export function SetCard({
               nextAt={nextWeight}
               bigStep={10}
               decimals={set.weight_kg % 1 === 0 ? 0 : 1}
-              onChange={(v) => change({ weight_kg: v })}
+              // Snapped on the way in, because ±10 does not know the grid the
+              // fine steps live on: from 11kg it landed on 21, and 2.5 at a
+              // time from there is 23.5, 26, 28.5 — arithmetic, not weights.
+              onChange={(v) => change({ weight_kg: onRack(v) })}
             />
             <View style={styles.divider} />
             <BigStepper
