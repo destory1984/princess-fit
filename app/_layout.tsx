@@ -126,6 +126,7 @@ function RootNavigator() {
         <Stack.Screen name="greeting" options={{ title: "" }} />
         <Stack.Screen name="body" options={{ title: "신체 기록" }} />
         <Stack.Screen name="sleep" options={{ title: "수면 기록" }} />
+        <Stack.Screen name="recovery" options={{ title: "회복" }} />
         <Stack.Screen name="photos" options={{ title: "사진 기록" }} />
         <Stack.Screen name="onerm" options={{ title: "1RM 계산기" }} />
         <Stack.Screen name="settings/girl" options={{ title: "함께 지낼 아이" }} />

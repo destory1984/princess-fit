@@ -17,6 +17,7 @@ import OneRmScreen from '@/app/onerm';
 import RoutinePresetsScreen from '@/app/routine/presets';
 import OnboardingScreen from '@/app/onboarding';
 import PhotosScreen from '@/app/photos';
+import RecoveryScreen from '@/app/recovery';
 import SleepScreen from '@/app/sleep';
 import { OneRmChart } from '@/components/OneRmChart';
 import { NudgeSetting } from '@/components/NudgeSetting';
@@ -167,6 +168,11 @@ export default function PreviewScreen() {
       <Text style={styles.heading}>첫 인사 (화면 전체)</Text>
       <View style={styles.framedTall}>
         <OnboardingScreen />
+      </View>
+
+      <Text style={styles.heading}>회복 (화면 전체)</Text>
+      <View style={styles.framedTall}>
+        <RecoveryScreen />
       </View>
 
       <Text style={styles.heading}>오늘 걸음 · 펼친 것과 홈에 놓이는 한 줄</Text>

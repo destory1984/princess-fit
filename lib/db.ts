@@ -13,6 +13,8 @@ import {
 } from './economy';
 import { buy, type Item } from './shop';
 import { DEFAULT_CONDITION, shapePlan, type Condition } from './condition';
+import { slugsOf } from './muscles';
+import type { Session as RecoverySession } from './recovery';
 import { resolvePreset, type RoutinePreset } from './routinePresets';
 import type { BodyLog } from './body';
 import type { UsageMap } from './exerciseUsage';
@@ -436,6 +438,42 @@ export async function startWorkout(
   }
 
   return workout;
+}
+
+/**
+ * Completed sets per muscle, per session, over the recent past.
+ *
+ * Counted from the sets rather than from the exercises: three sets of squats
+ * and nine are not the same thing for a pair of legs, and an exercise that was
+ * added to the board and never done is not work. The window is short because
+ * nothing older still counts — the longest a session is owed is three days.
+ */
+export async function listMuscleLoad(days = 7): Promise<RecoverySession[]> {
+  const since = new Date(Date.now() - days * 86_400_000).toISOString();
+  const [{ data, error }, exercises] = await Promise.all([
+    supabase
+      .from('workouts')
+      .select('started_at, workout_sets(exercise_id, done)')
+      .not('ended_at', 'is', null)
+      .gte('started_at', since)
+      .order('started_at', { ascending: false }),
+    listExercises(),
+  ]);
+  if (error) throw error;
+  const byId = new Map(exercises.map((e) => [e.id, e]));
+
+  return (
+    data as { started_at: string; workout_sets: { exercise_id: string; done: boolean }[] }[]
+  ).map((w) => {
+    const sets: Record<string, number> = {};
+    for (const row of w.workout_sets) {
+      if (!row.done) continue;
+      const exercise = byId.get(row.exercise_id);
+      if (!exercise) continue;
+      for (const slug of slugsOf(exercise)) sets[slug] = (sets[slug] ?? 0) + 1;
+    }
+    return { startedAt: w.started_at, sets };
+  });
 }
 
 /**

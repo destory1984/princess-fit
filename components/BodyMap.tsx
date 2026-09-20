@@ -1,53 +1,20 @@
 import { StyleSheet, Text, View } from 'react-native';
 import Body, { type Slug } from 'react-native-body-highlighter';
+import { slugsOf, workedParts, type WorkedExercise } from '@/lib/muscles';
 import { colors, intensityRamp, spacing } from '@/lib/theme';
+
+// Re-exported so callers that draw a body and work out what to draw keep one
+// import. The logic itself lives in lib, where node can run it.
+export { slugsOf, workedParts, type WorkedExercise };
 
 const SKIN = '#C9B89A';
 
-/** Fallback when an exercise has no explicit slugs stored. */
-const GROUP_SLUGS: Record<string, Slug[]> = {
-  가슴: ['chest'],
-  등: ['upper-back', 'lower-back', 'trapezius'],
-  어깨: ['deltoids'],
-  하체: ['quadriceps', 'hamstring', 'gluteal', 'calves'],
-  팔: ['biceps', 'triceps', 'forearm'],
-  복근: ['abs', 'obliques'],
-  유산소: ['quadriceps', 'calves'],
-};
-
-export type WorkedExercise = {
-  muscle_group: string;
-  secondary_group: string | null;
-  body_parts?: string;
-};
-
-/** Slugs worked by an exercise: explicit list if stored, else derived from its groups. */
-export function slugsOf(exercise: WorkedExercise): Slug[] {
-  const explicit = (exercise.body_parts ?? '')
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean) as Slug[];
-  if (explicit.length) return explicit;
-  return [
-    ...(GROUP_SLUGS[exercise.muscle_group] ?? []),
-    ...(exercise.secondary_group ? GROUP_SLUGS[exercise.secondary_group] ?? [] : []),
-  ];
-}
-
-/** Counts how often each slug is worked; more exercises hitting it read stronger. */
-export function workedParts(exercises: WorkedExercise[]) {
-  const counts = new Map<Slug, number>();
-  for (const e of exercises) {
-    for (const slug of slugsOf(e)) counts.set(slug, (counts.get(slug) ?? 0) + 1);
-  }
-  return [...counts.entries()].map(([slug, n]) => ({
-    slug,
-    intensity: Math.min(n, intensityRamp.length),
-  }));
-}
-
 type Props = {
-  data: { slug: Slug; intensity: number }[];
+  // Plain strings in, cast at the one place the library is actually called:
+  // the slug vocabulary lives in the drawing library, and `lib` computes these
+  // without importing it. An unknown slug is drawn as nothing, which is the
+  // same thing the typed version would do with a muscle the body has not got.
+  data: { slug: string; intensity: number }[];
   onPartPress?: (slug: Slug) => void;
   scale?: number;
   labels?: boolean;
@@ -63,7 +30,7 @@ export function BodyMap({ data, onPartPress, scale = 0.75, labels = true, fill }
     : undefined;
 
   const common = {
-    data,
+    data: data as { slug: Slug; intensity: number }[],
     gender: 'male',
     scale,
     colors: intensityRamp,
