@@ -81,6 +81,15 @@ export default function StatsScreen() {
   return (
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
+        <Pressable style={styles.tool} onPress={() => router.push('/recovery')}>
+          <Ionicons name="pulse-outline" size={18} color={colors.accent} />
+          <View style={styles.toolBody}>
+            <Text style={styles.toolTitle}>회복</Text>
+            <Text style={styles.toolSub}>어디가 쉬었고 어디가 아직인지</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={colors.textDim} />
+        </Pressable>
+
         <Text style={styles.sectionTitle}>이번 달, 이렇게 하고 계세요</Text>
         <Insights workouts={facts} />
 

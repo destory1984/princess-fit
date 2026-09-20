@@ -35,10 +35,25 @@ index 2715b0b..018f0dc 100644
        {children}
      </react_native_svg_1.default>);
 diff --git a/node_modules/react-native-body-highlighter/dist/index.js b/node_modules/react-native-body-highlighter/dist/index.js
-index c390729..fd92974 100644
+index c390729..527aaeb 100644
 --- a/node_modules/react-native-body-highlighter/dist/index.js
 +++ b/node_modules/react-native-body-highlighter/dist/index.js
-@@ -106,7 +106,7 @@ const Body = ({ colors = ["#0984e3", "#74b9ff"], data, scale = 1, side = "front"
+@@ -66,8 +66,12 @@ const Body = ({ colors = ["#0984e3", "#74b9ff"], data, scale = 1, side = "front"
+             var _a;
+             const userPart = userDataMap.get(assetPart.slug);
+             if (!userPart) {
+-                // No user data for this part, return as-is
+-                return assetPart;
++                // Every asset part ships with color: "#3f3f3f" baked in, and
++                // getColorToFill prefers it over defaultFill — so the
++                // defaultFill prop had no effect on any untouched muscle and
++                // every body rendered as a black silhouette. Dropping the
++                // baked colour lets the caller's defaultFill through.
++                return Object.assign(Object.assign({}, assetPart), { color: undefined });
+             }
+             // Merge asset part (has path) with user part (has styles, color, etc.)
+             const merged = Object.assign(Object.assign({}, assetPart), { 
+@@ -106,7 +110,7 @@ const Body = ({ colors = ["#0984e3", "#74b9ff"], data, scale = 1, side = "front"
                  const commonPaths = (((_a = bodyPart.path) === null || _a === void 0 ? void 0 : _a.common) || []).map((path) => {
                      const partStyles = getPartStyles(bodyPart);
                      const fillColor = getColorToFill(bodyPart);
@@ -47,7 +62,7 @@ index c390729..fd92974 100644
                              ? undefined
                              : () => onBodyPartPress === null || onBodyPartPress === void 0 ? void 0 : onBodyPartPress(bodyPart)} aria-disabled={isPartDisabled(bodyPart.slug)} id={bodyPart.slug} fill={fillColor !== null && fillColor !== void 0 ? fillColor : partStyles.fill} stroke={partStyles.stroke} strokeWidth={partStyles.strokeWidth} d={path}/>);
                  });
-@@ -115,7 +115,7 @@ const Body = ({ colors = ["#0984e3", "#74b9ff"], data, scale = 1, side = "front"
+@@ -115,7 +119,7 @@ const Body = ({ colors = ["#0984e3", "#74b9ff"], data, scale = 1, side = "front"
                      const isOnlyRight = ((_a = data.find((d) => d.slug === bodyPart.slug)) === null || _a === void 0 ? void 0 : _a.side) === "right";
                      const partStyles = getPartStyles(bodyPart);
                      const fillColor = isOnlyRight ? defaultFill : getColorToFill(bodyPart);
@@ -56,7 +71,7 @@ index c390729..fd92974 100644
                              ? undefined
                              : () => onBodyPartPress === null || onBodyPartPress === void 0 ? void 0 : onBodyPartPress(bodyPart, "left")} id={bodyPart.slug} fill={fillColor !== null && fillColor !== void 0 ? fillColor : partStyles.fill} stroke={partStyles.stroke} strokeWidth={partStyles.strokeWidth} d={path}/>);
                  });
-@@ -124,7 +124,7 @@ const Body = ({ colors = ["#0984e3", "#74b9ff"], data, scale = 1, side = "front"
+@@ -124,7 +128,7 @@ const Body = ({ colors = ["#0984e3", "#74b9ff"], data, scale = 1, side = "front"
                      const isOnlyLeft = ((_a = data.find((d) => d.slug === bodyPart.slug)) === null || _a === void 0 ? void 0 : _a.side) === "left";
                      const partStyles = getPartStyles(bodyPart);
                      const fillColor = isOnlyLeft ? defaultFill : getColorToFill(bodyPart);
