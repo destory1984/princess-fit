@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as DocumentPicker from 'expo-document-picker';
 import { backupWord, fileNameFor, toCsv, toJson } from '@/lib/backup';
+import { explain } from '@/lib/dbError';
 import { confirmAction, notify } from '@/lib/confirm';
 import { listBackup, restoreBackup } from '@/lib/db';
 import { saveAndShare } from '@/lib/exportFile';
@@ -42,7 +43,7 @@ export default function BackupScreen() {
       );
       setSaid(backupWord(workouts));
     } catch (e: any) {
-      notify('내보내지 못했어요', e.message);
+      notify('내보내지 못했어요', explain(e));
     } finally {
       setBusy(null);
     }
@@ -65,7 +66,7 @@ export default function BackupScreen() {
       if (picked.canceled) return;
       text = await readPickedText(picked.assets[0]);
     } catch (e: any) {
-      notify('파일을 열지 못했어요', e.message);
+      notify('파일을 열지 못했어요', explain(e));
       return;
     }
 
@@ -73,7 +74,7 @@ export default function BackupScreen() {
     try {
       found = read(text);
     } catch (e: any) {
-      notify('가져오지 못했어요', e.message);
+      notify('가져오지 못했어요', explain(e));
       return;
     }
     if (found.workouts.length === 0) {
@@ -92,7 +93,7 @@ export default function BackupScreen() {
           const { added, already } = await restoreBackup(found.workouts);
           setSaid(restoreWord(added, already, found.skipped));
         } catch (e: any) {
-          notify('넣지 못했어요', e.message);
+          notify('넣지 못했어요', explain(e));
         } finally {
           setBusy(null);
         }

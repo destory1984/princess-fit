@@ -5,6 +5,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { Insights } from '@/components/Insights';
 import { ScreenState } from '@/components/ScreenState';
 import { MonthCalendar } from '@/components/MonthCalendar';
+import { explain } from '@/lib/dbError';
 import { confirmAction, notify } from '@/lib/confirm';
 import {
   deleteWorkout,
@@ -83,7 +84,7 @@ export default function HistoryScreen() {
       const w = await startWorkoutOn(day, '기록하지 못한 운동');
       router.push(`/workout/${w.id}`);
     } catch (e: any) {
-      notify('만들지 못했어요', e.message);
+      notify('만들지 못했어요', explain(e));
     }
   }
 
@@ -96,7 +97,7 @@ export default function HistoryScreen() {
           await deleteWorkout(workout.id);
           load();
         } catch (e: any) {
-          notify('삭제 실패', e.message);
+          notify('삭제 실패', explain(e));
         }
       }
     );

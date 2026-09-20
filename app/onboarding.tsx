@@ -12,6 +12,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { Advisor } from '@/components/Advisor';
 import { seedDefaultExercises } from '@/lib/catalog';
+import { explain } from '@/lib/dbError';
 import { notify } from '@/lib/confirm';
 import { createRoutineFromPreset, listRoutines } from '@/lib/db';
 import { ensureNotificationPermission } from '@/lib/notify';
@@ -144,7 +145,7 @@ export default function OnboardingScreen() {
       router.replace('/');
     } catch (e: any) {
       setBusy(null);
-      notify('준비하지 못했어요', e.message);
+      notify('준비하지 못했어요', explain(e));
     }
   }
 

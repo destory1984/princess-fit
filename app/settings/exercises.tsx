@@ -4,6 +4,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { MuscleTag } from '@/components/MuscleTag';
 import { ScreenState } from '@/components/ScreenState';
 import { seedDefaultExercises } from '@/lib/catalog';
+import { explain } from '@/lib/dbError';
 import { confirmAction, notify } from '@/lib/confirm';
 import {
   countExerciseSets,
@@ -50,7 +51,7 @@ export default function ExercisesScreen() {
       setName('');
       load();
     } catch (e: any) {
-      notify('추가 실패', e.message);
+      notify('추가 실패', explain(e));
     }
   }
 
@@ -65,7 +66,7 @@ export default function ExercisesScreen() {
       notify(parts.length ? parts.join(' · ') : '이미 최신 상태예요.');
       load();
     } catch (e: any) {
-      notify('불러오기 실패', e.message);
+      notify('불러오기 실패', explain(e));
     } finally {
       setSeeding(false);
     }
@@ -89,7 +90,7 @@ export default function ExercisesScreen() {
     try {
       await setAllExercisesHidden(hidden);
     } catch (e: any) {
-      notify('저장 실패', e.message);
+      notify('저장 실패', explain(e));
       load();
     } finally {
       setSweeping(false);
@@ -114,7 +115,7 @@ export default function ExercisesScreen() {
         : prev
     );
     setExerciseHidden(exercise.id, hidden).catch((e: any) => {
-      notify('저장 실패', e.message);
+      notify('저장 실패', explain(e));
       load();
     });
   }
@@ -124,7 +125,7 @@ export default function ExercisesScreen() {
     try {
       setCount = await countExerciseSets(exercise.id);
     } catch (e: any) {
-      notify('확인 실패', e.message);
+      notify('확인 실패', explain(e));
       return;
     }
     const warning = setCount
@@ -135,7 +136,7 @@ export default function ExercisesScreen() {
         await deleteExercise(exercise.id);
         load();
       } catch (e: any) {
-        notify('삭제 실패', e.message);
+        notify('삭제 실패', explain(e));
       }
     });
   }

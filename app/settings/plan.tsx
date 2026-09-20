@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect } from 'expo-router';
 import { ScreenState } from '@/components/ScreenState';
+import { explain } from '@/lib/dbError';
 import { notify } from '@/lib/confirm';
 import {
   GOALS,
@@ -62,7 +63,7 @@ export default function PlanScreen() {
     try {
       await setWeeklyGoal(clamped);
     } catch (e: any) {
-      notify('저장 실패', e.message);
+      notify('저장 실패', explain(e));
       setPerWeek(previous);
     }
   }
@@ -73,7 +74,7 @@ export default function PlanScreen() {
     try {
       await setGoal(next);
     } catch (e: any) {
-      notify('저장 실패', e.message);
+      notify('저장 실패', explain(e));
       setChosenGoal(previous);
     }
   }
@@ -84,7 +85,7 @@ export default function PlanScreen() {
     try {
       await setPlace(next);
     } catch (e: any) {
-      notify('저장 실패', e.message);
+      notify('저장 실패', explain(e));
       setChosenPlace(previous);
     }
   }

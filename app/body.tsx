@@ -13,6 +13,7 @@ import {
   type BodyLog,
   type BodyMetric,
 } from '@/lib/body';
+import { explain } from '@/lib/dbError';
 import { confirmAction, notify } from '@/lib/confirm';
 import { deleteBodyLog, listBodyLogs, saveBodyLog } from '@/lib/db';
 import { colors, paper, radius, spacing } from '@/lib/theme';
@@ -52,7 +53,7 @@ export default function BodyScreen() {
       setDraft('');
       load();
     } catch (e: any) {
-      notify('저장 실패', e.message);
+      notify('저장 실패', explain(e));
     } finally {
       setSaving(false);
     }
@@ -69,7 +70,7 @@ export default function BodyScreen() {
           await deleteBodyLog(log.id);
           load();
         } catch (e: any) {
-          notify('삭제 실패', e.message);
+          notify('삭제 실패', explain(e));
         }
       }
     );

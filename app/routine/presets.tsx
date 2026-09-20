@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
+import { explain } from '@/lib/dbError';
 import { notify } from '@/lib/confirm';
 import { createRoutineFromPreset } from '@/lib/db';
 import { ROUTINE_PRESETS, type RoutinePreset } from '@/lib/routinePresets';
@@ -33,7 +34,7 @@ export default function RoutinePresetsScreen() {
       }
       router.replace(`/routine/${routine.id}`);
     } catch (e: any) {
-      notify('만들지 못했어요', e.message);
+      notify('만들지 못했어요', explain(e));
     } finally {
       setBusy(null);
     }

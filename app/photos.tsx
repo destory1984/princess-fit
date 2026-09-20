@@ -3,6 +3,7 @@ import { Image, Platform, Pressable, ScrollView, StyleSheet, Text, View } from '
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect } from 'expo-router';
 import { ScreenState } from '@/components/ScreenState';
+import { explain } from '@/lib/dbError';
 import { confirmAction, notify } from '@/lib/confirm';
 import { bookends, byMonth, spanDays, type Photo } from '@/lib/photos';
 import { addPhoto, exportPhoto, listPhotos, removePhoto } from '@/lib/photoStore';
@@ -31,7 +32,7 @@ export default function PhotosScreen() {
       const added = await addPhoto(source);
       if (added) load();
     } catch (e: any) {
-      notify('사진을 남기지 못했어요', e.message);
+      notify('사진을 남기지 못했어요', explain(e));
     } finally {
       setBusy(false);
     }
@@ -43,7 +44,7 @@ export default function PhotosScreen() {
         await exportPhoto(photo);
         notify('사진첩에 저장했어요');
       } catch (e: any) {
-        notify('내보내지 못했어요', e.message);
+        notify('내보내지 못했어요', explain(e));
       }
     });
   }
@@ -57,7 +58,7 @@ export default function PhotosScreen() {
           await removePhoto(photo.id);
           load();
         } catch (e: any) {
-          notify('삭제 실패', e.message);
+          notify('삭제 실패', explain(e));
         }
       }
     );

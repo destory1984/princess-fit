@@ -3,6 +3,7 @@ import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-na
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { ScreenState } from '@/components/ScreenState';
+import { explain } from '@/lib/dbError';
 import { confirmAction, notify } from '@/lib/confirm';
 import {
   createRoutine,
@@ -61,7 +62,7 @@ export default function RoutinesScreen() {
       setAdding(false);
       router.push(`/routine/${created.id}`);
     } catch (e: any) {
-      notify('추가 실패', e.message);
+      notify('추가 실패', explain(e));
     }
   }
 
@@ -78,7 +79,7 @@ export default function RoutinesScreen() {
           await deleteRoutine(routine.id);
           load();
         } catch (e: any) {
-          notify('삭제 실패', e.message);
+          notify('삭제 실패', explain(e));
         }
       }
     );

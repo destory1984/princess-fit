@@ -6,6 +6,7 @@ import { BodyMap, workedParts } from '@/components/BodyMap';
 import { ExercisePicker } from '@/components/ExercisePicker';
 import { MuscleTag } from '@/components/MuscleTag';
 import { ScreenState } from '@/components/ScreenState';
+import { explain } from '@/lib/dbError';
 import { confirmAction, notify } from '@/lib/confirm';
 import {
   addRoutineExercise,
@@ -63,7 +64,7 @@ export default function RoutineScreen() {
       const created = await addRoutineExercise(id, exerciseId, items.length);
       setItems((prev) => [...prev, created]);
     } catch (e: any) {
-      notify('추가 실패', e.message);
+      notify('추가 실패', explain(e));
     }
   }
 
@@ -74,7 +75,7 @@ export default function RoutineScreen() {
     try {
       await updateRoutineExercise(item.id, { [field]: next });
     } catch (e: any) {
-      notify('저장 실패', e.message);
+      notify('저장 실패', explain(e));
       load();
     }
   }
@@ -90,7 +91,7 @@ export default function RoutineScreen() {
       const created = await startWorkout(routine.name, id);
       router.replace({ pathname: '/workout/[id]', params: { id: created.id } });
     } catch (e: any) {
-      notify('시작 실패', e.message);
+      notify('시작 실패', explain(e));
     }
   }
 
@@ -103,7 +104,7 @@ export default function RoutineScreen() {
     try {
       await reorderRoutineExercises(next.map((i) => i.id));
     } catch (e: any) {
-      notify('순서 저장 실패', e.message);
+      notify('순서 저장 실패', explain(e));
       load();
     }
   }
@@ -114,7 +115,7 @@ export default function RoutineScreen() {
         await removeRoutineExercise(item.id);
         setItems((prev) => prev.filter((x) => x.id !== item.id));
       } catch (e: any) {
-        notify('삭제 실패', e.message);
+        notify('삭제 실패', explain(e));
       }
     });
   }
