@@ -217,9 +217,14 @@ export default function TodayScreen() {
 
       <Pressable style={styles.weekly} onPress={() => router.push('/achievements')}>
         <Ionicons name="flag-outline" size={15} color={colors.textDim} />
+        {/*
+          Only what the room does not already say. Her plaque prints the rank
+          and level two cards up; repeating it here was the very thing this
+          line replaced three cards to stop doing.
+        */}
         <Text style={styles.weeklyText}>
           이번 주 <Text style={styles.weeklyStrong}>{weekly.workouts}</Text>/{weeklyGoal}회
-          {summary ? ` · ${summary.title}` : ''}
+          {weekly.workouts >= weeklyGoal ? ' · 약속 지키셨어요' : ''}
         </Text>
         <Text style={styles.weeklyLink}>연대기 →</Text>
       </Pressable>
