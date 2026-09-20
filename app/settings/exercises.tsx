@@ -3,6 +3,7 @@ import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-na
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { MuscleTag } from '@/components/MuscleTag';
+import { ScreenState } from '@/components/ScreenState';
 import { seedDefaultExercises } from '@/lib/catalog';
 import { confirmAction, notify } from '@/lib/confirm';
 import { countExerciseSets, createExercise, deleteExercise, listExercises } from '@/lib/db';
@@ -17,7 +18,8 @@ import { colors, muscleColor, radius, spacing } from '@/lib/theme';
 
 export default function ExercisesScreen() {
   const router = useRouter();
-  const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [exercises, setExercises] = useState<Exercise[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [group, setGroup] = useState<string>(MUSCLE_GROUPS[0]);
   const [gear, setGear] = useState<string>(EQUIPMENT[0]);
@@ -25,9 +27,10 @@ export default function ExercisesScreen() {
   const [seeding, setSeeding] = useState(false);
 
   const load = useCallback(() => {
+    setError(null);
     listExercises()
       .then(setExercises)
-      .catch((e) => notify('불러오기 실패', e.message));
+      .catch((e) => setError(e.message));
   }, []);
 
   useFocusEffect(load);
@@ -81,6 +84,11 @@ export default function ExercisesScreen() {
       }
     });
   }
+
+  // An empty list is also what this screen holds before it has asked, and
+  // after a failed ask — and here that reads as "you have no exercises",
+  // one tap away from a button offering to seed them all again.
+  if (!exercises) return <ScreenState error={error} onRetry={load} />;
 
   return (
     <View style={styles.screen}>

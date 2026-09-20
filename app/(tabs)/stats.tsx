@@ -61,9 +61,20 @@ export default function StatsScreen() {
 
   useEffect(() => {
     if (!selected) return;
+    let alive = true;
     getExerciseHistory(selected.id)
-      .then(setHistory)
-      .catch((e) => notify('불러오기 실패', e.message));
+      .then((points) => alive && setHistory(points))
+      .catch((e) => {
+        // Cleared first: keeping the last exercise's numbers under the new
+        // one's name is worse than showing none, because it reads as an
+        // answer rather than as a failure.
+        if (!alive) return;
+        setHistory([]);
+        notify('불러오기 실패', e.message);
+      });
+    return () => {
+      alive = false;
+    };
   }, [selected]);
 
   const isCardio = selected?.track_type !== 'weight_reps';
