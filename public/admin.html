@@ -145,19 +145,37 @@
         const { data } = await db.auth.getSession();
         if (!data.session) return signIn();
 
-        // Asked of the database, not assumed: this page has no authority of
-        // its own and should say so rather than render an empty desk.
-        const { data: rows, error } = await db
-          .from('admins')
-          .select('user_id')
-          .eq('user_id', data.session.user.id)
-          .limit(1);
-        if (error || !rows?.length) {
-          main.textContent = data.session.user.email;
+        main.textContent = data.session.user.email;
+
+        /*
+          Asked of the database, not assumed: this page has no authority of
+          its own. Through a function rather than by reading the table,
+          because the policy guarding that table has to ask the same question
+          and would be asking it of itself.
+
+          The two failures are told apart. They used to share a branch, so a
+          broken policy and a plain non-admin both produced 「관리자가 아니에요」
+          — which is a lie half the time and unfixable either way.
+        */
+        const { data: allowed, error } = await db.rpc('is_admin');
+        if (error) {
+          body.innerHTML = `<div class="card">
+            <p class="error">관리자인지 확인하지 못했어요.</p>
+            <p class="meta">${escape(error.message)}</p>
+            <p class="meta">supabase/admin.sql을 다시 한 번 실행해 주세요. is_admin() 함수가 필요해요.</p>
+            <p><button id="out">로그아웃</button></p>
+          </div>`;
+          document.getElementById('out').onclick = async () => {
+            await db.auth.signOut();
+            location.reload();
+          };
+          return;
+        }
+        if (!allowed) {
           body.innerHTML = `<div class="card">
             <p>이 계정은 관리자가 아니에요.</p>
-            <p class="meta">supabase/admin.sql을 실행한 뒤, SQL 편집기에서 한 줄 넣어 주세요:</p>
-            <p class="meta">insert into admins (user_id) select id from auth.users where email = '본인 이메일' on conflict (user_id) do nothing;</p>
+            <p class="meta">SQL 편집기에서 한 줄 넣어 주세요:</p>
+            <p class="meta">insert into admins (user_id) select id from auth.users where email = '${escape(data.session.user.email)}' on conflict (user_id) do nothing;</p>
             <p><button id="out">로그아웃</button></p>
           </div>`;
           document.getElementById('out').onclick = async () => {
@@ -167,7 +185,6 @@
           return;
         }
 
-        main.textContent = data.session.user.email;
         await list();
       }
 

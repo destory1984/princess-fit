@@ -79,16 +79,12 @@ export async function withdrawRequest(id: string) {
  */
 export async function isAdmin(): Promise<boolean> {
   try {
-    const { data } = await supabase.auth.getSession();
-    const user_id = data.session?.user.id;
-    if (!user_id) return false;
-    const { data: rows, error } = await supabase
-      .from('admins')
-      .select('user_id')
-      .eq('user_id', user_id)
-      .limit(1);
+    // Through a function rather than by reading the table: the policy that
+    // guards it has to ask the same question, and asking it of itself is how
+    // that policy bites its own tail.
+    const { data, error } = await supabase.rpc('is_admin');
     if (error) return false;
-    return (rows?.length ?? 0) > 0;
+    return data === true;
   } catch {
     return false;
   }
