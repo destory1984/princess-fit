@@ -327,12 +327,26 @@ as $$
     select
       s.workout_id,
       e.name,
-      max(s.weight_kg) as top,
-      -- The reps at the heaviest set, not the most reps done: 11kg for 8 is
-      -- the sentence, and 11kg beside a 15 from the warm-down is not.
-      (array_agg(s.reps order by s.weight_kg desc, s.reps desc))[1] as top_reps,
       count(*) as sets,
-      min(s.position) as pos
+      min(s.position) as pos,
+      /*
+        Every set, in the order they were done.
+
+        A summary cannot describe a session honestly: 40×12, 50×10, 60×6 is a
+        pyramid, and calling it 「60kg×6, 3세트」 throws away the two sets that
+        made the third one possible. Listing them is also shorter than saying
+        so, most of the time.
+
+        Nulls are skipped by string_agg, so timed work contributes nothing
+        here and falls through to the set count below.
+      */
+      string_agg(
+        case
+          when s.weight_kg > 0 then trim_scale(s.weight_kg)::text || '×' || s.reps
+          when s.reps > 0 then s.reps || '회'
+        end,
+        ' ' order by s.set_no
+      ) as detail
     from workout_sets s
     join exercises e on e.id = s.exercise_id
     where s.workout_id in (select id from recent)
@@ -347,11 +361,7 @@ as $$
     coalesce(
       (
         select string_agg(
-          p.name || case
-            when p.top > 0 then ' ' || trim_scale(p.top)::text || 'kg×' || p.top_reps
-            when p.top_reps > 0 then ' ' || p.top_reps || '회'
-            else ''
-          end || ' (' || p.sets || '세트)',
+          p.name || ' ' || coalesce(p.detail, p.sets || '세트'),
           ', ' order by p.pos
         )
         from per_exercise p
