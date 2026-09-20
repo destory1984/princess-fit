@@ -312,7 +312,20 @@ export default function TodayScreen() {
             <Text style={[styles.starterText, styles.starterTextGhost]} numberOfLines={1}>
               {nextRoutine ? (rotating ? '다음 차례' : '루틴으로 시작') : '루틴 만들기'}
             </Text>
-            <Text style={styles.starterSub} numberOfLines={1}>
+            {/*
+              A routine's name, in the place where the other card keeps a hint
+              — so it has to look like a name, not like a hint.
+
+              A routine called 「2」 read as a count of routines sitting under a
+              button labelled 루틴으로 시작, and the list below it looked like
+              the same thing said twice. A longer name would have hidden the
+              problem rather than fixed it: whatever is written here is the one
+              thing that decides which session starts, and that is not a
+              footnote to the label above it.
+            */}
+            <Text
+              style={[styles.starterSub, nextRoutine && styles.starterName]}
+              numberOfLines={1}>
               {nextRoutine?.name ?? '자주 하는 운동을 묶어요'}
             </Text>
           </Pressable>
@@ -330,7 +343,14 @@ export default function TodayScreen() {
           이번 주 <Text style={styles.weeklyStrong}>{weekly.workouts}</Text>/{weeklyGoal}회
           {weekly.workouts >= weeklyGoal ? ' · 약속 지키셨어요' : ''}
         </Text>
-        <Text style={styles.weeklyLink}>지금까지 →</Text>
+        {/*
+          Named for what is behind it, not for the passage of time. 「지금까지」
+          was read as the training history — which lives in its own tab and is
+          a list of sessions — when what opens here is 품계, 업적 and the year
+          so far. Two different answers to 「내가 얼마나 했나」, and the one
+          worded vaguely is the one that gets tapped by mistake.
+        */}
+        <Text style={styles.weeklyLink}>품계와 업적 →</Text>
       </Pressable>
 
       <View style={styles.sectionHeader}>
@@ -474,6 +494,7 @@ const styles = StyleSheet.create({
   starterText: { color: '#fff', fontSize: 15, fontWeight: '800', marginTop: 2 },
   starterTextGhost: { color: colors.accent },
   starterSub: { color: colors.textDim, fontSize: 11 },
+  starterName: { color: colors.text, fontSize: 12, fontWeight: '700' },
   weekly: {
     flexDirection: 'row',
     alignItems: 'center',
