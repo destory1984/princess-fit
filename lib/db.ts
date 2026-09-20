@@ -778,32 +778,17 @@ export async function restoreBackup(workouts: BackupWorkout[]) {
   return { added: fresh.length, already: workouts.length - fresh.length };
 }
 
-export async function addWorkoutSet(input: {
-  workoutId: string;
-  exerciseId: string;
-  position: number;
-  setNo: number;
-  weight: number;
-  reps: number;
-  durationSec?: number;
-  distanceKm?: number;
-}) {
-  const { data, error } = await supabase
-    .from('workout_sets')
-    .insert({
-      workout_id: input.workoutId,
-      exercise_id: input.exerciseId,
-      position: input.position,
-      set_no: input.setNo,
-      weight_kg: input.weight,
-      reps: input.reps,
-      duration_sec: input.durationSec ?? 0,
-      distance_km: input.distanceKm ?? 0,
-    })
-    .select()
-    .single();
+/**
+ * Write a set that already knows its own id.
+ *
+ * Upsert rather than insert, because this is what a flush replays. A set that
+ * did land before the connection dropped — the row written, the reply lost —
+ * must not come back as a duplicate key error that blocks the queue behind it
+ * forever. Writing the same row twice is the same row.
+ */
+export async function insertWorkoutSet(row: Record<string, unknown>) {
+  const { error } = await supabase.from('workout_sets').upsert(row, { onConflict: 'id' });
   if (error) throw error;
-  return data as WorkoutSet;
 }
 
 export async function updateWorkoutSet(

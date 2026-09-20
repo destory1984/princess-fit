@@ -11,12 +11,18 @@
  * being closed, and go out when the signal comes back. Nothing is lost by
  * walking into a basement, which is where the work happens.
  *
- * Only set edits belong here, and that is a deliberate limit rather than a
- * stopping point. An edit names a row that already exists and sets fields on
- * it, so replaying it late lands exactly where it would have landed early, and
- * replaying it twice changes nothing. Creating a row offline would need an id
- * nobody has agreed on yet, and deleting one that was never created is a knot
- * this does not have to tie to be worth having.
+ * Edits and additions both. An edit names a row that already exists, so
+ * replaying it late lands where it would have landed early and replaying it
+ * twice changes nothing. An addition is only harder if the id has to come from
+ * the server — and it does not. The column is a uuid with a default, so the
+ * client can name the row first and every edit that follows has something to
+ * point at. That is the whole trick, and without it a set added in a basement
+ * has no name until the signal returns.
+ *
+ * Deleting is still not queued. A set deleted offline that was also created
+ * offline should simply never be sent, and one deleted offline that exists on
+ * the server is a row that will come back on the next reload until it goes —
+ * a knot worth tying only if anyone ever pulls on it.
  */
 
 export type SetPatch = {
@@ -27,8 +33,31 @@ export type SetPatch = {
   done?: boolean;
 };
 
-/** One unsent edit. `at` is only for showing how long it has been waiting. */
-export type PendingWrite = { setId: string; patch: SetPatch; at: string };
+/** The columns a set needs before it can exist at all. */
+export type NewSetRow = {
+  id: string;
+  workout_id: string;
+  exercise_id: string;
+  position: number;
+  set_no: number;
+};
+
+/**
+ * One unsent write. `at` is only for showing how long it has been waiting.
+ *
+ * With a `row` it is a set that does not exist on the server yet, and the
+ * whole row goes out. Without one it is an edit to a set that does. The id is
+ * made here in both cases — the column is a uuid with a default, so a client
+ * that brings its own is not fighting the database for the right to name a
+ * row, it is simply naming it first. That is what makes a set added in a
+ * basement referable by every edit that follows it.
+ */
+export type PendingWrite = {
+  setId: string;
+  patch: SetPatch;
+  at: string;
+  row?: NewSetRow;
+};
 
 /**
  * A queue that never grows without bound. A phone left offline for a week
@@ -48,14 +77,51 @@ export const MAX_PENDING = 200;
  * survives — two sets of the same exercise must go out in the order they were
  * finished, or a later reload shows them the wrong way round.
  */
-export function queue(pending: PendingWrite[], setId: string, patch: SetPatch, at: string) {
+export function queue(
+  pending: PendingWrite[],
+  setId: string,
+  patch: SetPatch,
+  at: string,
+  row?: NewSetRow
+) {
   const found = pending.findIndex((p) => p.setId === setId);
   if (found === -1) {
-    return [...pending, { setId, patch, at }].slice(-MAX_PENDING);
+    return [...pending, { setId, patch, at, ...(row ? { row } : {}) }].slice(-MAX_PENDING);
   }
   const next = [...pending];
-  next[found] = { setId, patch: { ...next[found].patch, ...patch }, at };
+  // A set queued for creation stays queued for creation, however many edits
+  // land on it afterwards. They fold into the row that has yet to be born, so
+  // what finally goes out is one insert carrying every number — not an insert
+  // followed by three updates, each of which could fail on its own.
+  next[found] = {
+    setId,
+    patch: { ...next[found].patch, ...patch },
+    at,
+    ...(next[found].row || row ? { row: next[found].row ?? row } : {}),
+  };
   return next;
+}
+
+/**
+ * The sets that exist only in the queue, as rows the board can show.
+ *
+ * A set added offline is not in anything the server returns, so laying edits
+ * over the server's rows is not enough — there is no row underneath. These are
+ * appended, or adding a set in a basement would make it vanish the moment the
+ * screen reloaded, which is the same bug in a new place.
+ */
+export function pendingRows(pending: PendingWrite[]) {
+  return pending
+    .filter((p): p is PendingWrite & { row: NewSetRow } => !!p.row)
+    .map((p) => ({
+      ...p.row,
+      weight_kg: 0,
+      reps: 0,
+      duration_sec: 0,
+      distance_km: 0,
+      done: false,
+      ...p.patch,
+    }));
 }
 
 /**
@@ -78,12 +144,12 @@ export function mergedPatch(pending: PendingWrite[], setId: string, patch: SetPa
  */
 export async function drain(
   pending: PendingWrite[],
-  send: (setId: string, patch: SetPatch) => Promise<unknown>
+  send: (setId: string, patch: SetPatch, row?: NewSetRow) => Promise<unknown>
 ): Promise<PendingWrite[]> {
   const sent: string[] = [];
   for (const write of pending) {
     try {
-      await send(write.setId, write.patch);
+      await send(write.setId, write.patch, write.row);
       sent.push(write.setId);
     } catch {
       break;
@@ -136,7 +202,14 @@ export function parse(raw: string | null): PendingWrite[] {
     return parsed
       .filter(
         (p): p is PendingWrite =>
-          !!p && typeof p.setId === 'string' && !!p.patch && typeof p.patch === 'object'
+          !!p &&
+          typeof p.setId === 'string' &&
+          !!p.patch &&
+          typeof p.patch === 'object' &&
+          // A row without the columns to insert with is worse than no row: it
+          // would be retried forever against a database that keeps refusing it.
+          (p.row === undefined ||
+            (typeof p.row?.workout_id === 'string' && typeof p.row?.exercise_id === 'string'))
       )
       .slice(-MAX_PENDING);
   } catch {
