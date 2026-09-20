@@ -468,6 +468,29 @@ export async function startWorkout(
  * returning nothing.
  */
 /**
+ * When each routine was last finished, over the whole history.
+ *
+ * Unbounded, unlike `recentRoutineUse`, because this answers a different
+ * question: not 「다음은 무엇인가」 but 「이건 언제 했더라」, and a routine last
+ * done in March is exactly the one that needs its date shown.
+ */
+export async function lastDoneByRoutine(): Promise<Map<string, string>> {
+  const { data, error } = await supabase
+    .from('workouts')
+    .select('routine_id, started_at')
+    .not('routine_id', 'is', null)
+    .not('ended_at', 'is', null)
+    .order('started_at', { ascending: false });
+  if (error) throw error;
+
+  const seen = new Map<string, string>();
+  for (const row of data as { routine_id: string; started_at: string }[]) {
+    if (!seen.has(row.routine_id)) seen.set(row.routine_id, row.started_at);
+  }
+  return seen;
+}
+
+/**
  * When each routine was last finished, within the window `nextInSplit` cares
  * about. Sorted newest first so the first sighting of a routine is its latest.
  */

@@ -53,3 +53,29 @@ export function isRotation(uses: RoutineUse[], routineIds: string[]) {
   const ids = new Set(uses.filter((u) => alive.has(u.routineId)).map((u) => u.routineId));
   return ids.size >= 2;
 }
+
+/**
+ * The routines in the order they are worth looking at.
+ *
+ * From the reviews of another app: 「홈 화면에서 내 루틴을 오래된 순으로
+ * 나열하기도 있으면 좋겠습니다. 현재는 시간순이 최근순 밖에 없어서
+ * 아쉽습니다」 — which is really 「내가 찾는 걸 못 찾겠다」 wearing a request
+ * for a sort menu.
+ *
+ * So no menu. One rule: most recently used first, and a routine never used
+ * counts as used on the day it was made. A routine created a minute ago sits
+ * near the top where its owner expects it, and one untouched since March
+ * sinks — without anyone having to choose an ordering, or discover that they
+ * could.
+ */
+export function byLastUsed<T extends { id: string; name: string; created_at: string }>(
+  routines: T[],
+  lastDone: Map<string, string>
+): T[] {
+  const when = (r: T) => lastDone.get(r.id) ?? r.created_at;
+  // Ties broken by name so the same set of routines always lists the same
+  // way — two made in the same second must not swap places on each load.
+  return [...routines].sort(
+    (a, b) => when(b).localeCompare(when(a)) || a.name.localeCompare(b.name)
+  );
+}
