@@ -156,7 +156,8 @@
           main.textContent = data.session.user.email;
           body.innerHTML = `<div class="card">
             <p>이 계정은 관리자가 아니에요.</p>
-            <p class="meta">supabase/admin.sql을 실행한 뒤, admins 표에 본인 user_id를 한 줄 넣어 주세요.</p>
+            <p class="meta">supabase/admin.sql을 실행한 뒤, SQL 편집기에서 한 줄 넣어 주세요:</p>
+            <p class="meta">insert into admins (user_id) select id from auth.users where email = '본인 이메일' on conflict (user_id) do nothing;</p>
             <p><button id="out">로그아웃</button></p>
           </div>`;
           document.getElementById('out').onclick = async () => {

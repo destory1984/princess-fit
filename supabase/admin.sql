@@ -1,12 +1,17 @@
 -- Asking for a movement the catalogue has not got, and the desk that reads it.
 --
--- Run this once, then add yourself:
+-- Run this once, then add yourself by email:
 --
---   insert into admins (user_id) values (auth.uid());
+--   insert into admins (user_id)
+--   select id from auth.users where email = 'you@example.com'
+--   on conflict (user_id) do nothing;
 --
--- from the SQL editor while signed in, or paste your own id from
--- auth.users. Nobody is an admin until that row exists, including whoever
--- created the project.
+-- Not auth.uid(): the SQL editor runs as the owning role rather than as a
+-- signed-in user, so auth.uid() is null there and the insert fails on the
+-- not-null constraint.
+--
+-- Nobody is an admin until that row exists, including whoever created the
+-- project.
 
 create table if not exists admins (
   user_id uuid primary key references auth.users on delete cascade,
