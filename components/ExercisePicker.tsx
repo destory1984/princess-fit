@@ -17,6 +17,7 @@ import { notify } from '@/lib/confirm';
 import { setExerciseFavourite } from '@/lib/db';
 import { sortByUsage, SORT_NAME, type Sort, type UsageMap } from '@/lib/exerciseUsage';
 import { matchesAny } from '@/lib/hangul';
+import { aliasesOf } from '@/lib/aliases';
 import type { Place } from '@/lib/onboarding';
 import { byPlace } from '@/lib/plan';
 import { getPlace } from '@/lib/prefs';
@@ -77,8 +78,19 @@ export function ExercisePicker({
           // ㅂㅂㅂㅊㅍㄹㅅ finds 바벨 벤치 프레스. Nobody types sixty-seven
           // Korean names out in full on a phone, and a box that refuses the
           // initials reads as broken rather than as strict.
+          // The other names people call it by are searched too, but never
+          // shown: 「랫풀」 and 「lat pulldown」 both find 랫 풀다운, and the card
+          // still reads 랫 풀다운 so nobody has to learn a second vocabulary
+          // to read their own history back.
           matchesAny(
-            [e.name, e.muscle_detail, e.muscle_group, e.secondary_group, e.equipment],
+            [
+              e.name,
+              ...aliasesOf(e.name),
+              e.muscle_detail,
+              e.muscle_group,
+              e.secondary_group,
+              e.equipment,
+            ],
             query
           )
       ),
@@ -162,7 +174,7 @@ export function ExercisePicker({
             <>
               <TextInput
                 style={styles.search}
-                placeholder="이름 · 부위 · 기구 · 초성(ㅅㅋㅌ)"
+                placeholder="이름 · 부위 · 기구 · 초성 · 랫풀/bench"
                 placeholderTextColor={colors.textDim}
                 value={query}
                 onChangeText={setQuery}
