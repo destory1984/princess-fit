@@ -49,7 +49,9 @@ export type Muscle = {
 // really has. It knows more — heads and hands among them — and a recovery
 // figure for a hand is the kind of number that makes people stop trusting the
 // rest of the screen. A slug that is not in the artwork is worse still: it can
-// never be worked, so it would sit at 100% for ever looking like an answer.
+// never be worked, so it would sit at 100% for ever looking like an answer —
+// and, being never-trained, would be recommended ahead of everything else.
+// `recovery.test.ts` checks this list against the catalogue for that reason.
 export const MUSCLE_LABELS: Record<string, string> = {
   chest: '가슴',
   'upper-back': '광배근',
@@ -65,7 +67,6 @@ export const MUSCLE_LABELS: Record<string, string> = {
   quadriceps: '대퇴사두',
   hamstring: '햄스트링',
   calves: '종아리',
-  adductors: '내전근',
 };
 
 function hoursBetween(from: string, to: Date) {
@@ -148,4 +149,43 @@ export function todaysWord(muscles: Muscle[]): string {
     return '거의 다 지쳐 있어요. 오늘은 쉬거나 가볍게만 하세요.';
   }
   return `${tired.slice(0, 3).join(' · ')}${tired.length > 3 ? ' 외' : ''}은(는) 아직 덜 쉬었어요.`;
+}
+
+/**
+ * What is most worth training today, readiest and longest-neglected first.
+ *
+ * Sorted by time away rather than by percentage. Among muscles that are all
+ * rested enough, the one at 100% for a fortnight is a better answer than the
+ * one that hit 100% this morning — and a muscle never trained at all is the
+ * best answer of the three, which is why null sorts to the front.
+ */
+export function freshest(muscles: Muscle[], count = 3): Muscle[] {
+  return muscles
+    .filter((m) => m.recovery >= READY)
+    .sort((a, b) => (b.hoursSince ?? Infinity) - (a.hoursSince ?? Infinity))
+    .slice(0, count);
+}
+
+/** Still owed rest, worst first. */
+export function stillTired(muscles: Muscle[], count = 3): Muscle[] {
+  return muscles.filter((m) => m.recovery < READY).slice(0, count);
+}
+
+/**
+ * A word about training these muscles today, or null when there is nothing to
+ * say.
+ *
+ * Never a refusal. It names the one that has had least rest and leaves the
+ * decision alone: the figure is estimated, the person is not, and an app that
+ * blocks a session over its own arithmetic has overstepped.
+ */
+export function clashWord(slugs: string[], muscles: Muscle[]): string | null {
+  const wanted = new Set(slugs);
+  const sore = muscles
+    .filter((m) => wanted.has(m.slug) && m.recovery < READY)
+    .sort((a, b) => a.recovery - b.recovery);
+  if (sore.length === 0) return null;
+  const worst = sore[0];
+  const others = sore.length > 1 ? ` 외 ${sore.length - 1}곳` : '';
+  return `${worst.label}${others}은(는) 아직 ${worst.recovery}%예요. 가볍게 가시거나 다른 곳부터 하셔도 좋아요.`;
 }

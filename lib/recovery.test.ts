@@ -4,8 +4,11 @@ import {
   FULL_LOAD,
   MAX_HOURS,
   MIN_HOURS,
+  clashWord,
+  freshest,
   MUSCLE_LABELS,
   READY,
+  stillTired,
   recoveryHours,
   recoveryOf,
   remainingFatigue,
@@ -13,6 +16,8 @@ import {
   todaysWord,
   type Session,
 } from './recovery.ts';
+import { DEFAULT_EXERCISES } from './exerciseCatalog.ts';
+import { slugsOf } from './muscles.ts';
 
 const NOW = new Date('2026-09-20T12:00:00');
 
@@ -132,4 +137,76 @@ test('a whole-body session is called out as one, not listed muscle by muscle', (
 
 test('READY sits where a muscle is worth training again', () => {
   assert.ok(READY > 50 && READY < 100);
+});
+
+test('the suggestion prefers the one left alone longest, not the highest number', () => {
+  const muscles = recoveryOf(
+    [session(200, { chest: 6 }), session(100, { biceps: 6 })],
+    NOW
+  );
+  const picked = freshest(muscles, 2).map((m) => m.slug);
+  // Both are back to 100; never-trained ones have waited longer than either.
+  assert.ok(picked.every((slug) => slug !== 'chest' && slug !== 'biceps'));
+});
+
+test('among rested muscles, longer since beats shorter since', () => {
+  const muscles = recoveryOf(
+    [session(200, { chest: 6 }), session(100, { biceps: 6 })],
+    NOW
+  ).filter((m) => m.slug === 'chest' || m.slug === 'biceps');
+  assert.equal(freshest(muscles, 1)[0].slug, 'chest');
+});
+
+test('nothing rested enough is suggested as ready', () => {
+  const everything = Object.fromEntries(
+    Object.keys(MUSCLE_LABELS).map((slug) => [slug, FULL_LOAD])
+  );
+  assert.equal(freshest(recoveryOf([session(1, everything)], NOW)).length, 0);
+});
+
+test('the tired list is worst first and stops where rest stops being owed', () => {
+  const muscles = recoveryOf([session(6, { quadriceps: 12, chest: 6 })], NOW);
+  const tired = stillTired(muscles);
+  assert.equal(tired[0].slug, 'quadriceps');
+  assert.ok(tired.every((m) => m.recovery < READY));
+});
+
+test('a plan that hits a sore muscle gets a word, and one that does not gets none', () => {
+  const muscles = recoveryOf([session(4, { quadriceps: 12 })], NOW);
+  const warned = clashWord(['quadriceps', 'gluteal'], muscles);
+  assert.ok(warned?.includes(MUSCLE_LABELS.quadriceps));
+  assert.equal(clashWord(['chest', 'triceps'], muscles), null);
+  assert.equal(clashWord([], muscles), null);
+});
+
+test('the word names the sorest, not whichever came first', () => {
+  const muscles = recoveryOf([session(4, { quadriceps: 12, hamstring: 4 })], NOW);
+  const warned = clashWord(['hamstring', 'quadriceps'], muscles);
+  assert.ok(warned?.startsWith(MUSCLE_LABELS.quadriceps));
+});
+
+test('it advises, and never refuses', () => {
+  const muscles = recoveryOf([session(0, { quadriceps: 99 })], NOW);
+  const warned = clashWord(['quadriceps'], muscles)!;
+  for (const forbidding of ['하지 마', '안 돼', '금지', '쉬세요.']) {
+    assert.ok(!warned.includes(forbidding), warned);
+  }
+});
+
+test('every muscle listed is one some exercise can actually work', () => {
+  // Otherwise it sits at 100% for ever, never having been trained — which
+  // sorts it to the front of the suggestions, recommending a muscle nothing
+  // in the app can help with.
+  const reachable = new Set(
+    DEFAULT_EXERCISES.flatMap((e) =>
+      slugsOf({
+        muscle_group: e.muscle_group,
+        secondary_group: e.secondary_group,
+        body_parts: e.body_parts,
+      })
+    )
+  );
+  for (const slug of Object.keys(MUSCLE_LABELS)) {
+    assert.ok(reachable.has(slug), `${slug} (${MUSCLE_LABELS[slug]}) cannot be trained`);
+  }
 });
