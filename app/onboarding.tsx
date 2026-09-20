@@ -93,7 +93,10 @@ export default function OnboardingScreen() {
     };
   }, [router]);
 
-  const offered = recommendPresets(place, perWeek);
+  // The goal steers which presets are offered, not only what she says about
+  // them — a stamina answer that still produced a bodybuilding split would be
+  // the question having been decoration.
+  const offered = recommendPresets(place, perWeek, goal);
 
   const back = useCallback(() => {
     const previous = previousStep(step);

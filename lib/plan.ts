@@ -57,6 +57,9 @@ const GOAL_PRIORITY: Record<Goal, string[]> = {
   weight: ['sparse', 'cardio', 'more-often', 'streak', 'neglected', 'lopsided', 'balanced'],
   // Showing up is the whole goal; everything else is detail.
   habit: ['sparse', 'streak', 'more-often', 'neglected', 'lopsided', 'balanced', 'cardio'],
+  // The heart answers to minutes, so how much breathing work there was leads,
+  // and how often it happened comes next. The plates come last but still come.
+  stamina: ['cardio', 'sparse', 'more-often', 'streak', 'neglected', 'lopsided', 'balanced'],
 };
 
 /**
@@ -87,6 +90,7 @@ const WATCHING: Record<Goal, string> = {
   shape: '몸을 다듬으신다고 하셨으니, 한쪽으로 쏠리지 않았는지부터 봐요.',
   weight: '체중을 줄이신다고 하셨으니, 얼마나 자주 오셨는지부터 봐요.',
   habit: '꾸준히만 하신다고 하셨으니, 거른 날이 있는지부터 봐요.',
+  stamina: '숨이 덜 차면 좋겠다고 하셨으니, 유산소를 얼마나 하셨는지부터 봐요.',
 };
 
 export function watchingWord(goal: Goal | null) {

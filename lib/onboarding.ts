@@ -15,13 +15,18 @@ import { ROUTINE_PRESETS, type RoutinePreset } from './routinePresets.ts';
  * place to meet her, since she is who the gold is for.
  */
 
-export type Goal = 'strength' | 'shape' | 'weight' | 'habit';
+export type Goal = 'strength' | 'shape' | 'weight' | 'habit' | 'stamina';
 
 export const GOALS: { id: Goal; label: string; detail: string }[] = [
   { id: 'strength', label: '힘을 키우고 싶어요', detail: '더 무겁게 드는 쪽으로' },
   { id: 'shape', label: '몸을 다듬고 싶어요', detail: '모양과 균형을 보는 쪽으로' },
   { id: 'weight', label: '체중을 줄이고 싶어요', detail: '오래, 자주 움직이는 쪽으로' },
   { id: 'habit', label: '꾸준히만 하고 싶어요', detail: '무리 없이 거르지 않는 쪽으로' },
+  // From a review of a much larger app: 「운동 목적을 심폐 향상이나 민첩성
+  // 향상에 두어도 그저 흔한 보디빌딩식 분할법 추천만 해주네요」. Four goals
+  // that all answered with the same barbell is four goals pretending to be a
+  // question. Someone who came to breathe better deserves a different answer.
+  { id: 'stamina', label: '숨이 덜 차면 좋겠어요', detail: '심폐와 지구력을 올리는 쪽으로' },
 ];
 
 export type Place = 'gym' | 'home';
@@ -46,10 +51,21 @@ export const MAX_PER_WEEK = 7;
  * Presets are returned rather than named so a caller that offers none can say
  * so, instead of building a routine out of a missing id.
  */
-export function recommendPresets(place: Place, perWeek: number): RoutinePreset[] {
+export function recommendPresets(
+  place: Place,
+  perWeek: number,
+  goal: Goal | null = null
+): RoutinePreset[] {
   const pick = (...ids: string[]) =>
     ids.map((id) => ROUTINE_PRESETS.find((p) => p.id === id)).filter((p): p is RoutinePreset => !!p);
 
+  if (goal === 'stamina') {
+    // The heart answers to minutes, not to plates — so the breathing day
+    // leads, with the strength work behind it rather than instead of it.
+    return place === 'home'
+      ? pick('cardio', 'home', 'full-body')
+      : pick('cardio', 'full-body', 'upper-lower-a');
+  }
   if (place === 'home') return pick('home');
   if (perWeek >= 4) return pick('upper-lower-a', 'upper-lower-b', 'full-body');
   return pick('full-body', 'upper-lower-a', 'upper-lower-b');
@@ -66,6 +82,7 @@ export function planWord(goal: Goal, place: Place, perWeek: number) {
     shape: '몸을 다듬는 쪽으로',
     weight: '체중을 줄이는 쪽으로',
     habit: '거르지 않는 쪽으로',
+    stamina: '숨이 덜 차는 쪽으로',
   };
   return `${where} 일주일에 ${perWeek}번, ${aim[goal]}. 그렇게 알고 있을게요.`;
 }
