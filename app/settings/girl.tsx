@@ -10,11 +10,10 @@ import { colors, radius, spacing } from '@/lib/theme';
 /**
  * Who you are raising.
  *
- * A girl can only be chosen once her gym-clothes base has been drawn, because
- * that base is the body every garment layers over — without it she could be
- * shown but never dressed. The rest are listed with their portraits and marked
- * 준비 중, which is more honest than hiding them and more useful than offering
- * a choice that would break the wardrobe.
+ * Three, all of them choosable. A girl needs a gym-clothes base before she can
+ * be here at all — that base is the body every garment layers over — so the
+ * ones still waiting on art are in `UPCOMING` and not on this screen. Three
+ * locked doors beside three open ones only make the choice look smaller.
  *
  * Switching takes nothing away. The gold, the clothes and the room belong to
  * the household rather than to her, so a change decides who wears the dresses,
@@ -22,14 +21,11 @@ import { colors, radius, spacing } from '@/lib/theme';
  */
 export default function GirlScreen() {
   const { girl, choose } = useGirlChoice();
-  const playable = ADVISORS.filter((a) => a.playable).length;
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <Text style={styles.hint}>
-        {playable > 1
-          ? '바꿔도 모아 둔 골드와 옷, 방은 그대로예요. 누가 입을지만 달라져요.'
-          : '옷을 갈아입히려면 그 아이의 체육복 그림이 있어야 해서, 지금은 한 명만 고를 수 있어요.'}
+        바꿔도 모아 둔 골드와 옷, 방은 그대로예요. 누가 입을지만 달라져요.
       </Text>
 
       {ADVISORS.map((entry) => {
@@ -37,8 +33,7 @@ export default function GirlScreen() {
         return (
           <Pressable
             key={entry.id}
-            style={[styles.card, on && styles.cardOn, !entry.playable && styles.cardOff]}
-            disabled={!entry.playable}
+            style={[styles.card, on && styles.cardOn]}
             onPress={() => {
               if (on) {
                 notify(`${entry.name}는 이미 함께 있어요.`);
@@ -50,9 +45,6 @@ export default function GirlScreen() {
             <View style={styles.body}>
               <Text style={[styles.name, on && styles.nameOn]}>{entry.name}</Text>
               <Text style={styles.blurb}>{entry.blurb}</Text>
-              {!entry.playable && (
-                <Text style={styles.soon}>준비 중 · 체육복 그림이 필요해요</Text>
-              )}
             </View>
             {on && <Ionicons name="checkmark-circle" size={24} color={colors.accent} />}
           </Pressable>
@@ -77,10 +69,8 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   cardOn: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
-  cardOff: { opacity: 0.55 },
   body: { flex: 1, gap: 2 },
   name: { color: colors.text, fontSize: 16, fontWeight: '700', lineHeight: 22 },
   nameOn: { color: colors.accent },
   blurb: { color: colors.textDim, fontSize: 12, lineHeight: 18 },
-  soon: { color: colors.gold, fontSize: 11, lineHeight: 16 },
 });
