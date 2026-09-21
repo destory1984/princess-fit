@@ -181,7 +181,7 @@ OAuth를 켤 때 **반드시 함께**: 같은 이메일이면 계정을 잇도�
 ### 일 나누는 법 (2026-09-21에 정함)
 
 값을 줄이려고 **코딩은 Devin에게, 판단과 검문은 Claude에게** 나누기로 했다.
-Devin MCP는 `https://mcp.devin.ai/mcp`에 얹혀 있고 `cog_` 키로 붙는다
+Devin MCP는 `https://mcp.devin.ai/mcp`. 키(실제로는 `cog_`가 아니었다)와 `X-Org-Id` 머리를 함께 싣는다
 (`claude mcp add -s user -t http devin ...`).
 
 - 명세와 **시험은 Claude가 먼저 쓴다.** 시험이 먼저 있으면 돌아온 코드를
@@ -194,7 +194,7 @@ Devin MCP는 `https://mcp.devin.ai/mcp`에 얹혀 있고 `cog_` 키로 붙는다
 ### 반만 된 것
 
 - 요청에 답해도 사용자에게 알림이 안 감
-- 관리자 사용자 목록에 검색·페이지 없음 — 시험과 일감서(`docs/devin-admin-list.md`)는 있음. `public/adminList.js` 몸체가 비어 master 시험 9건이 붉다. Devin에게 넘길 차례
+- 관리자 사용자 목록에 검색·페이지 없음 — 시험과 일감서(`docs/devin-admin-list.md`)는 있음. `public/adminList.js` 몸체가 비어 master 시험 9건이 붉다. Devin에게 넘길 차례. 원격은 github.com/destory1984/refit. Devin MCP에는 `X-Org-Id` 머리가 있어야 세션을 만들 수 있다(계정 단위 키라서). 넘길 때 가지는 `devin/admin-list`, PR은 master로
 - AI 조언 규칙/모델 전환 스위치 없음
 
 ### 그림 대기
