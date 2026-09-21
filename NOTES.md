@@ -194,7 +194,7 @@ Devin MCP는 `https://mcp.devin.ai/mcp`에 얹혀 있고 `cog_` 키로 붙는다
 ### 반만 된 것
 
 - 요청에 답해도 사용자에게 알림이 안 감
-- 관리자 사용자 목록에 검색·페이지 없음
+- 관리자 사용자 목록에 검색·페이지 없음 — 시험과 일감서(`docs/devin-admin-list.md`)는 있음. `public/adminList.js` 몸체가 비어 master 시험 9건이 붉다. Devin에게 넘길 차례
 - AI 조언 규칙/모델 전환 스위치 없음
 
 ### 그림 대기
