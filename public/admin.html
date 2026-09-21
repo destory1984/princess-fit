@@ -97,6 +97,7 @@
 
     <script type="module">
       import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+      import { filterUsers, pageOf } from './adminList.js';
 
       /*
         Read from the page's own query string on first run and then kept, so
@@ -141,6 +142,16 @@
       // Which person's card is open. One at a time: the point is to read one
       // person's last few sessions, not to skim everybody's at once.
       let opened = null;
+      /*
+        The user list as it came back, kept for as long as the tab is being
+        looked at. Searching and paging cut this copy instead of asking again:
+        a query per keystroke would put the list a network away from the
+        person typing, and the answer would not differ.
+      */
+      let people = null;
+      let query = '';
+      let page = 1;
+      const PER_PAGE = 20;
 
       const escape = (s) =>
         String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -197,7 +208,7 @@
         because the whole thing is one file and a hash router for two lists
         would be more machinery than either list has.
       */
-      async function render() {
+      async function render({ keepTyping = false } = {}) {
         const tabs = `<div class="row filters">
           <button data-tab="requests" aria-pressed="${tab === 'requests'}">운동 요청</button>
           <button data-tab="users" aria-pressed="${tab === 'users'}">사용자</button>
@@ -206,12 +217,44 @@
         const rest = tab === 'requests' ? await requestsView() : await usersView();
         body.innerHTML = tabs + rest;
         wire();
+        /*
+          The box is rebuilt with the rest of the page, so the caret has to be
+          put back or every letter after the first lands somewhere else. Only
+          after typing: doing it after a page button would pull the focus off
+          the button that was just pressed.
+        */
+        if (keepTyping) {
+          const box = document.getElementById('user-search');
+          if (box) {
+            box.focus();
+            box.setSelectionRange(box.value.length, box.value.length);
+          }
+        }
       }
 
       function wire() {
         for (const b of body.querySelectorAll('[data-tab]')) {
           b.onclick = () => {
             tab = b.dataset.tab;
+            // Left the desk: the list is asked for again on the way back in,
+            // and the search that was running is not someone's next question.
+            people = null;
+            query = '';
+            page = 1;
+            render();
+          };
+        }
+        const box = body.querySelector('#user-search');
+        if (box) {
+          box.oninput = () => {
+            query = box.value;
+            page = 1;
+            render({ keepTyping: true });
+          };
+        }
+        for (const b of body.querySelectorAll('[data-page]')) {
+          b.onclick = () => {
+            page = Number(b.dataset.page);
             render();
           };
         }
@@ -239,9 +282,16 @@
       }
 
       async function usersView() {
-        const { data, error } = await db.rpc('admin_users');
-        if (error) return `<p class="error">${escape(error.message)}</p>`;
-        if (!data.length) return '<p class="empty">아직 아무도 없어요.</p>';
+        if (!people) {
+          const { data, error } = await db.rpc('admin_users');
+          if (error) return `<p class="error">${escape(error.message)}</p>`;
+          people = data;
+        }
+        if (!people.length) return '<p class="empty">아직 아무도 없어요.</p>';
+
+        const found = filterUsers(people, query);
+        const cut = pageOf(found, page, PER_PAGE);
+        page = cut.page;
 
         const day = (v) => (v ? new Date(v).toLocaleDateString('ko-KR') : '—');
 
@@ -284,7 +334,24 @@
               : '<p class="empty">마친 운동이 없어요.</p>';
         }
 
-        return data
+        const search = `<div class="row filters">
+          <input class="grow" id="user-search" placeholder="이메일로 찾기" value="${escape(query)}" />
+          ${
+            query.trim()
+              ? `<span class="meta">${people.length}명 중 ${cut.total}명</span>`
+              : ''
+          }
+        </div>`;
+
+        const pager = `<div class="row filters" style="margin-top:16px">
+          <button data-page="${cut.page - 1}" ${cut.page <= 1 ? 'disabled' : ''}>이전</button>
+          <span class="meta">${cut.page} / ${cut.pages}</span>
+          <button data-page="${cut.page + 1}" ${cut.page >= cut.pages ? 'disabled' : ''}>다음</button>
+        </div>`;
+
+        if (!cut.rows.length) return `${search}<p class="empty">찾는 사람이 없어요.</p>`;
+
+        const cards = cut.rows
           .map(
             (u) => `<div class="card">
               <div class="row">
@@ -328,6 +395,8 @@
             </div>`
           )
           .join('');
+
+        return search + cards + pager;
       }
 
       async function setGold(target) {
@@ -342,6 +411,7 @@
           alert(error.message);
           return;
         }
+        people = null;
         await render();
       }
 
@@ -351,6 +421,7 @@
           alert(error.message);
           return;
         }
+        people = null;
         await render();
       }
 

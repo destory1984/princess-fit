@@ -20,7 +20,12 @@
  * @returns {T[]}
  */
 export function filterUsers(users, query) {
-  throw new Error('not built yet');
+  const words = query.toLowerCase().split(/\s+/).filter(Boolean);
+  if (!words.length) return [...users];
+  return users.filter((u) => {
+    const email = (u.email ?? '').toLowerCase();
+    return email ? words.every((w) => email.includes(w)) : false;
+  });
 }
 
 /**
@@ -35,5 +40,13 @@ export function filterUsers(users, query) {
  * @returns {{ rows: T[], page: number, pages: number, total: number }}
  */
 export function pageOf(items, page, size) {
-  throw new Error('not built yet');
+  const per = Math.max(1, Math.floor(size));
+  const pages = Math.max(1, Math.ceil(items.length / per));
+  const at = Math.min(pages, Math.max(1, Math.floor(page) || 1));
+  return {
+    rows: items.slice((at - 1) * per, at * per),
+    page: at,
+    pages,
+    total: items.length,
+  };
 }
