@@ -47,13 +47,12 @@ import {
   FOOD,
   refusalFor,
   REFUSAL_TEXT,
-  SPECIALS,
   type Item,
 } from "@/lib/shop";
 import { colors, paper, radius, spacing } from "@/lib/theme";
 import { withParticle } from "@/lib/korean";
 
-const SHELVES = ["부엌", "옷장", "장신구", "수업", "방", "특별"] as const;
+const SHELVES = ["부엌", "옷장", "장신구", "수업", "방"] as const;
 type Shelf = (typeof SHELVES)[number];
 
 /** What a purchase needs: which thing, what it costs, and how to carry it out. */
@@ -494,20 +493,6 @@ export function ShopShelves({ ledger, busy, onSpend }: Props) {
         </>
       )}
 
-      {shelf === "특별" && (
-        <>
-          <View style={styles.gems}>
-            <Ionicons name="diamond-outline" size={18} color={colors.accent} />
-            <Text style={styles.gemCount}>보석 0개</Text>
-          </View>
-          <Text style={styles.hint}>
-            보석은 아직 구할 수 없어요. 준비가 되면 여기서 살 수 있게 될 거예요.
-          </Text>
-          {SPECIALS.map((item) => (
-            <ItemRow key={item.id} item={item} shop={shop} />
-          ))}
-        </>
-      )}
     </ScrollView>
   );
 }
@@ -603,13 +588,6 @@ const styles = StyleSheet.create({
     width: 24,
     textAlign: "right",
   },
-  gems: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xs,
-    marginTop: spacing.sm,
-  },
-  gemCount: { color: colors.text, fontSize: 15, fontWeight: "700" },
   row: {
     flexDirection: "row",
     alignItems: "center",

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { ACCESSORIES, buy, effectiveCulture, FOOD, refusalFor, SPECIALS, wornCharm } from './shop.ts';
+import { ACCESSORIES, buy, effectiveCulture, FOOD, refusalFor, wornCharm } from './shop.ts';
 import { GARMENTS, OUTFIT_TOTAL } from './outfit.ts';
 import { EMPTY_CULTURE, LESSONS } from './lessons.ts';
 import { DAILY_UPKEEP, workoutGold, type Household } from './economy.ts';
@@ -65,10 +65,6 @@ test('accessories are kept but do not mend a ragged outfit', () => {
   assert.equal(wornCharm(wardrobe), trinket.charm);
 });
 
-test('the gem shelf is locked, however much gold she has', () => {
-  assert.equal(refusalFor(SPECIALS[0], rich, []), 'locked');
-  assert.throws(() => buy(SPECIALS[0], rich, []), /준비 중/);
-});
 
 test('the charm an accessory promises actually shows up', () => {
   const taught = { grace: 10, learning: 10, charm: 20 };
