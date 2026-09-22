@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 import type { Exercise, Routine, RoutineExercise, Workout, WorkoutSet } from './types';
 import { localDayKey } from './format';
+import { abandonedEnd, isAbandoned } from './abandoned';
 import type { WorkoutFact } from './gamification';
 import {
   afterWalk,
@@ -379,7 +380,43 @@ export async function listWorkoutDays(limit = 400) {
   }));
 }
 
+/**
+ * Close every session left open long after anything happened in it — see
+ * lib/abandoned.ts. Run before anything asks what is in progress, so a
+ * workout forgotten last night neither shows as running nor blocks a new one.
+ *
+ * Best effort: a failure leaves the session open, which is what it was.
+ */
+export async function closeAbandonedWorkouts(now = new Date()) {
+  const { data: open, error } = await supabase
+    .from('workouts')
+    .select('id, started_at')
+    .is('ended_at', null);
+  if (error || !open?.length) return;
+
+  for (const w of open as Pick<Workout, 'id' | 'started_at'>[]) {
+    const { data: last } = await supabase
+      .from('workout_sets')
+      .select('done_at')
+      .eq('workout_id', w.id)
+      .not('done_at', 'is', null)
+      .order('done_at', { ascending: false })
+      .limit(1);
+    const session = {
+      started_at: w.started_at,
+      lastDoneAt: (last as { done_at: string }[] | null)?.[0]?.done_at ?? null,
+    };
+    if (!isAbandoned(session, now)) continue;
+    await supabase
+      .from('workouts')
+      .update({ ended_at: abandonedEnd(session) })
+      .eq('id', w.id)
+      .is('ended_at', null);
+  }
+}
+
 export async function getActiveWorkout() {
+  await closeAbandonedWorkouts().catch(() => {});
   const { data, error } = await supabase
     .from('workouts')
     .select('*')

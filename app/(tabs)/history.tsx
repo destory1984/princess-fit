@@ -8,6 +8,7 @@ import { MonthCalendar } from '@/components/MonthCalendar';
 import { explain } from '@/lib/dbError';
 import { confirmAction, notify } from '@/lib/confirm';
 import {
+  closeAbandonedWorkouts,
   deleteWorkout,
   startWorkoutOn,
   listWorkoutDays,
@@ -55,7 +56,11 @@ export default function HistoryScreen() {
       .catch(() => {
         // The list below still works; only the reading is lost.
       });
-    Promise.all([listWorkouts(), listWorkoutDays()])
+    // Closed first, so a session forgotten last night is listed with the
+    // length it actually had rather than as still running.
+    closeAbandonedWorkouts()
+      .catch(() => {})
+      .then(() => Promise.all([listWorkouts(), listWorkoutDays()]))
       .then(([list, marked]) => {
         setWorkouts(list);
         setDays(new Set(marked.map((m) => m.day)));

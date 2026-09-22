@@ -221,6 +221,7 @@ Devin MCP는 `https://mcp.devin.ai/mcp`. 키(실제로는 `cog_`가 아니었다
 | `duration.ts` / `order.ts` / `split.ts` | 남은 시간 / 순서 / 루틴 차례 |
 | `economy.ts` / `shop.ts` / `room.ts` / `outfit.ts` | 골드·집·방·옷 |
 | `answers.ts` | 요청에 새 답이 왔는지. 푸시 서버 없이 폰이 마지막으로 본 때와 견준다 |
+| `abandoned.ts` | 안 마친 운동. 마지막 세트 뒤 12시간이면 그 세트 때 끝난 것으로 닫는다 |
 | `db.ts` | Supabase 질의 전부 |
 
 ### 화면 (`app/`)
