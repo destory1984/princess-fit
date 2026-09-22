@@ -82,6 +82,12 @@ export type Workout = {
    */
   advice?: string | null;
   advice_source?: string | null;
+  /**
+   * Which girl said it. She can be changed at any time, and a line in one
+   * girl's voice under another girl's name is the wrong girl talking — so a
+   * mismatch means it is asked again rather than shown.
+   */
+  advice_speaker?: string | null;
 };
 
 export type WorkoutSet = {

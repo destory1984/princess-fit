@@ -21,6 +21,9 @@ import {
 import type { Condition } from '@/lib/condition';
 import type { Enrolment } from '@/lib/lessons';
 import { roomMood } from '@/lib/room';
+import { dressedFor } from '@/lib/outfit';
+import type { Seen } from '@/lib/notice';
+import { recoveryOf } from '@/lib/recovery';
 import {
   conditionFactor,
   dailyLine,
@@ -40,6 +43,8 @@ import {
   lastDoneByRoutine,
   listRoutines,
   getBond,
+  listMuscleLoad,
+  listSleepLogs,
   getLedger,
   recentRoutineUse,
   listWorkoutFacts,
@@ -55,15 +60,17 @@ import { isRotation, nextInSplit, type RoutineUse } from '@/lib/split';
 
 async function armDailyMessage(
   name: string,
+  girlId: string,
   house: Household,
   facts: WorkoutFact[],
   lesson: Enrolment | null,
-  bond: Bond | null
+  bond: Bond | null,
+  seen: Omit<Seen, 'facts'>
 ) {
   try {
     const hour = await getNudgeHour();
     if (hour === null) return;
-    await scheduleDailyMessage(name, tomorrowsMessage(house, facts, new Date(), lesson, bond), hour);
+    await scheduleDailyMessage(name, tomorrowsMessage(house, facts, new Date(), lesson, bond, girlId, seen), hour);
   } catch {
     // She will try again the next time the app is opened.
   }
@@ -85,6 +92,8 @@ export default function TodayScreen() {
   const [worn, setWorn] = useState<string[]>([]);
   const [lesson, setLesson] = useState<Enrolment | null>(null);
   const [bond, setBond] = useState<Bond | null>(null);
+  // What she keeps an eye on besides the workouts (lib/notice.ts).
+  const [seen, setSeen] = useState<Omit<Seen, 'facts'>>({});
   // The routine waiting on an answer about today's body, if one is.
   const [pending, setPending] = useState<{ routine: Routine | null } | null>(null);
   const [weeklyGoal, setWeeklyGoalState] = useState(DEFAULT_WEEKLY_GOAL);
@@ -129,17 +138,28 @@ export default function TodayScreen() {
         // What she remembers only colours what she says, so losing it
         // leaves her speaking as she did before — never an empty room.
         const knowing = getBond().catch(() => null);
+        // Sleep and soreness only feed what she notices. Each on its own, so
+        // one missing never silences the others.
+        const noticing = Promise.all([
+          listSleepLogs(14).catch(() => undefined),
+          listMuscleLoad()
+            .then((load) => recoveryOf(load))
+            .catch(() => undefined),
+          getWeeklyGoal().catch(() => undefined),
+        ]).then(([sleep, muscles, weeklyGoal]) => ({ sleep, muscles, weeklyGoal }));
         getLedger()
           .then(async ({ house: h, furniture: mine, worn: dressed, lesson: course }) => {
             setHouse(h);
             setFurniture(mine);
             setWorn(dressed);
             setLesson(course);
-            const known = await knowing;
+            const [known, noticed] = await Promise.all([knowing, noticing]);
             setBond(known);
+            const looked = { ...noticed, sessions: known?.sessions };
+            setSeen(looked);
             // Re-arm her daily message with the mood she will be in by then.
             // A failure here is never worth interrupting the screen for.
-            void armDailyMessage(girl.name, h, facts, course, known);
+            void armDailyMessage(girl.name, girl.id, h, facts, course, known, looked);
           })
           .catch(() => setHouse(null));
 
@@ -177,7 +197,7 @@ export default function TodayScreen() {
           });
       })
       .catch((e) => setError(e.message));
-  }, [girl.name]);
+  }, [girl.name, girl.id]);
 
   useFocusEffect(load);
 
@@ -288,7 +308,8 @@ export default function TodayScreen() {
             streak={summary.streak}
             furniture={furniture}
             penalty={penalty}
-            worn={worn}
+            // Mid-workout she is at the gym with you, and dressed for it.
+            worn={dressedFor(worn, active ? 'gym' : 'home')}
             caption={roomMood(furniture)}
           />
           {house && (
@@ -301,7 +322,7 @@ export default function TodayScreen() {
           {/* She is the way in to what she remembers. */}
           <Pressable onPress={() => router.push('/memories')}>
             <Advisor name={girl.name} portrait={girl.base}>
-              {house ? dailyLine(house, facts, new Date(), lesson, bond) : masterSays(stats, facts)}
+              {house ? dailyLine(house, facts, new Date(), lesson, bond, girl.id, seen) : masterSays(stats, facts)}
             </Advisor>
           </Pressable>
         </>

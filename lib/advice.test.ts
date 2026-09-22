@@ -296,3 +296,17 @@ test('an empty session is told it is empty, and the model is not asked', async (
     globalThis.fetch = real;
   }
 });
+
+test('the advice is in the voice of whoever is here', () => {
+  const c = ctx({ today: fact({ id: 'w' }), streak: 3 });
+  const said = ['geumhwa', 'dohwa', 'seora'].map((g) => localRuleAdvice(c, g));
+  assert.equal(new Set(said).size, 3, said.join(' / '));
+  assert.match(said[2], /습니다/);
+  assert.equal(localRuleAdvice(c), said[0]);
+});
+
+test('the model is told who she is, and that form is not in the record', () => {
+  const p = buildPrompt(ctx({ today: fact({ id: 'w' }) }), 'seora');
+  assert.match(p, /유키/);
+  assert.match(p, /자세나 동작 모양은/);
+});

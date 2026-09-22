@@ -2,6 +2,8 @@ import { localDayKey } from './format.ts';
 import { isEmptyWorkout, type WorkoutFact } from './gamification.ts';
 import { memoryLine, type Memory, type Stage } from './companion.ts';
 import { insightsFor } from './insight.ts';
+import { voiceOf } from './voices.ts';
+import { noticeFor, type Seen } from './notice.ts';
 import { daysLeft, isFinished, lessonById, type Enrolment } from './lessons.ts';
 
 /**
@@ -140,44 +142,14 @@ export function moodOf(house: Household, workouts: WorkoutFact[], today = new Da
   return 'fine';
 }
 
-// She hints rather than asks. A character who states her needs plainly reads
-// as a meter with a face; one who glances at the kitchen reads as a person.
-const LINES: Record<Mood, string[]> = {
-  happy: ['오늘도 와 주셨네요. 기분이 좋아요.', '요즘은 뭐든 될 것 같은 기분이에요.'],
-  fine: ['오늘은 뭘 하실 건가요?', '기다리고 있었어요.'],
-  hungry: ['오늘 저녁은 뭘까, 그 생각만 했어요.', '자꾸 부엌 쪽을 보게 되네요.'],
-  shabby: ['소매가 좀 해졌죠? 아직은 괜찮아요.', '오늘따라 거울을 오래 보게 되네요.'],
-  lonely: ['오늘은 오시려나 했어요.', '문 쪽을 몇 번이나 봤는지 몰라요.'],
-};
-
 /**
  * One line from her, chosen by mood. The day key seeds the pick so the same day
  * always says the same thing — a message that changes on every render reads as
  * noise rather than as someone speaking.
  */
-// How she speaks once she knows you, by how long that has been. Only the
-// moods about you change; hunger and rags are about her, and she is shy about
-// those at every stage. The first stage is LINES itself.
-const LINES_BY_STAGE: Record<Exclude<Stage, 'new'>, Partial<Record<Mood, string[]>>> = {
-  familiar: {
-    happy: ['어제 하신 데는 좀 괜찮으세요?', '요즘 꾸준하시네요. 저도 덩달아 힘이 나요.'],
-    fine: ['오늘은 어디 하실 거예요? 저도 맞혀 볼래요.', '물은 챙기셨어요?'],
-    lonely: ['며칠 안 보이셔서 걱정했어요.', '문 쪽을 몇 번이나 봤는지 몰라요.'],
-  },
-  comfortable: {
-    happy: ['또 오셨네요. 이러다 제가 심심할 틈이 없겠어요.', '오늘은 표정이 좋으시네요. 무거운 거 하실 거죠?'],
-    fine: ['스트레칭은 하고 하시는 거죠? 저 봤어요.', '오늘은 제가 골라 드릴까요? 농담이에요.'],
-    lonely: ['어디 다녀오셨어요? 저 혼자 방 청소 다 했어요.', '오늘은 오실 줄 알았어요. 반쯤은요.'],
-  },
-  old: {
-    happy: ['왔어요? 오늘도 잘 해 봐요.', '이제 오시는 게 당연한 것 같아요.'],
-    fine: ['오늘은 가볍게 가요, 세게 가요?', '늘 하던 대로 하면 돼요.'],
-    lonely: ['바빴나 봐요. 괜찮아요, 기다리는 건 익숙해요.', '오랜만이에요. 금방 돌아올 줄 알았어요.'],
-  },
-};
-
-export function messageFor(mood: Mood, today = new Date(), stage: Stage = 'new') {
-  const lines = (stage !== 'new' && LINES_BY_STAGE[stage][mood]) || LINES[mood];
+export function messageFor(mood: Mood, today = new Date(), stage: Stage = 'new', girl?: string) {
+  const { mood: said } = voiceOf(girl);
+  const lines = mood === 'hungry' || mood === 'shabby' ? said[mood] : said.byStage[stage][mood];
   const key = localDayKey(today);
   const seed = [...key].reduce((n, c) => n + c.charCodeAt(0), 0);
   return lines[seed % lines.length];
@@ -187,21 +159,15 @@ export function messageFor(mood: Mood, today = new Date(), stage: Stage = 'new')
 // What she says about the course she is on. Only on the days that are worth
 // remarking on — the first, the last, and the one after — because a girl who
 // mentions her dance class every single evening for a week is a notice board.
-function lessonLine(lesson: Enrolment, today: Date): string | null {
+function lessonLine(lesson: Enrolment, today: Date, girl?: string): string | null {
   const taught = lessonById(lesson.lessonId);
   if (!taught) return null;
 
-  const key = localDayKey(today);
+  const said = voiceOf(girl).lesson;
   const left = daysLeft(lesson, today);
-  if (key === lesson.startedOn) return `오늘부터 ${taught.name} 배우러 다녀요.`;
-  // Said as something she is doing, not as a bare noun with a number after
-  // it. 「예의범절, 이제 이틀 남았어요」 is a calendar entry; she is a girl who
-  // has been going to a class.
-  if (left === 1) {
-    // 「예의범절은 오늘이 마지막」 reads as if manners themselves end today.
-    return `${taught.name} 수업은 오늘이 마지막이에요. 조금 아쉬워요.`;
-  }
-  if (left === 2) return `${taught.name} 배우는 중이에요. 이제 이틀 남았어요.`;
+  if (localDayKey(today) === lesson.startedOn) return said.starts(taught.name);
+  if (left === 1) return said.lastDay(taught.name);
+  if (left === 2) return said.twoLeft(taught.name);
   return null;
 }
 
@@ -216,14 +182,16 @@ export function tomorrowsMessage(
   workouts: WorkoutFact[],
   today = new Date(),
   lesson: Enrolment | null = null,
-  bond: Bond | null = null
+  bond: Bond | null = null,
+  girl?: string,
+  seen?: Omit<Seen, 'facts'>
 ) {
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
   const projected = settle(house, tomorrow);
   // A course that will have ended by tomorrow is not news tomorrow.
   const still = lesson && !isFinished(lesson, tomorrow) ? lesson : null;
-  return dailyLine(projected, workouts, tomorrow, still, bond);
+  return dailyLine(projected, workouts, tomorrow, still, bond, girl, seen);
 }
 
 /** How long she has known you and what she remembers, as dailyLine needs it. */
@@ -231,25 +199,12 @@ export type Bond = { stage: Stage; memories: Memory[] };
 
 export type GiftKind = 'food' | 'clothes' | 'accessory' | 'furniture' | 'lesson';
 
-// Buying something for her and getting silence back makes the shop feel like a
-// vending machine. One line, in her own register — pleased, never gushing.
-const THANKS: Record<GiftKind, string[]> = {
-  food: ['잘 먹었어요. 한동안은 괜찮을 것 같아요.', '이런 건 아껴 먹어야 하는데 말이죠.'],
-  clothes: ['어때요? 이상하지 않죠?', '거울 앞에 좀 오래 서 있었어요.'],
-  accessory: ['작은 게 더 티가 나는 법이에요.', '오늘은 이걸 하고 있을게요.'],
-  furniture: ['방이 좀 달라 보여요.', '여기 있으니 딱 맞네요.'],
-  // She is signing up, not coming home: the gains land when the course ends.
-  // Thanking you for something she has not learned yet was left over from when
-  // paying and learning happened in the same instant.
-  lesson: ['잘 배우고 올게요.', '내일 아침부터 부지런히 다녀올게요.'],
-};
-
 /**
  * Her word of thanks. Seeded by the thing bought rather than random, so buying
  * the same item twice does not read as two different moods about it.
  */
-export function thanksFor(kind: GiftKind, itemId: string) {
-  const lines = THANKS[kind];
+export function thanksFor(kind: GiftKind, itemId: string, girl?: string) {
+  const lines = voiceOf(girl).thanks[kind];
   const seed = [...itemId].reduce((n, c) => n + c.charCodeAt(0), 0);
   return lines[seed % lines.length];
 }
@@ -267,16 +222,18 @@ export function dailyLine(
   workouts: WorkoutFact[],
   today = new Date(),
   lesson: Enrolment | null = null,
-  bond: Bond | null = null
+  bond: Bond | null = null,
+  girl?: string,
+  seen?: Omit<Seen, 'facts'>
 ): string {
   const mood = moodOf(house, workouts, today);
   const stage = bond?.stage ?? 'new';
-  if (mood !== 'fine' && mood !== 'happy') return messageFor(mood, today, stage);
+  if (mood !== 'fine' && mood !== 'happy') return messageFor(mood, today, stage, girl);
 
   // Something she remembers. A memory made today is the news of the day and
   // goes before her schedule; an old one coming back is a passing thought and
   // waits behind what the numbers noticed.
-  const remembered = bond ? memoryLine(bond.memories, today) : null;
+  const remembered = bond ? memoryLine(bond.memories, today, girl) : null;
   const freshToday = bond?.memories.some((m) => m.day === localDayKey(today));
   if (remembered && freshToday) return remembered;
 
@@ -285,13 +242,23 @@ export function dailyLine(
   // room rather than living on a shop shelf. It yields to hunger and to rags,
   // which are about her rather than about her schedule.
   if (lesson) {
-    const word = lessonLine(lesson, today);
+    const word = lessonLine(lesson, today, girl);
     if (word) return word;
   }
 
-  const watch = insightsFor(workouts, today).find((i) => i.tone === 'watch');
-  if (watch) return `${watch.title}. ${watch.detail}`;
+  // What she, in particular, keeps an eye on. Each girl watches something
+  // different (lib/notice.ts), which is most of what makes them three people.
+  const noticed = noticeFor(girl, { ...seen, facts: workouts }, stage, today);
+  if (noticed) return noticed;
+
+  // The general reading of the numbers, for when she has nothing of her own.
+  // Not for 유키: it is the same watch she already keeps, in a register she
+  // would not use until you are comfortable with each other.
+  if (girl !== 'seora') {
+    const watch = insightsFor(workouts, today, girl).find((i) => i.tone === 'watch');
+    if (watch) return `${watch.title}. ${watch.detail}`;
+  }
 
   if (remembered) return remembered;
-  return messageFor(mood, today, stage);
+  return messageFor(mood, today, stage, girl);
 }

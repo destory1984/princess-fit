@@ -1,6 +1,6 @@
 import { localDayKey } from './format.ts';
 import { bestWeeklyCoverage, streakOf, type WorkoutFact } from './gamification.ts';
-import { withParticle } from './korean.ts';
+import { voiceOf } from './voices.ts';
 
 /**
  * Reading the numbers so you do not have to.
@@ -38,8 +38,10 @@ function within(workouts: WorkoutFact[], days: number, today: Date) {
   return workouts.filter((w) => new Date(w.started_at).getTime() >= since);
 }
 
-export function insightsFor(workouts: WorkoutFact[], today = new Date()): Insight[] {
+export function insightsFor(workouts: WorkoutFact[], today = new Date(), girl?: string): Insight[] {
   if (workouts.length < MIN_WORKOUTS) return [];
+  const say = voiceOf(girl).insight;
+  const said = (id: string, tone: Tone, [title, detail]: [string, string]): Insight => ({ id, tone, title, detail });
 
   const found: Insight[] = [];
   const month = within(workouts, 30, today);
@@ -49,31 +51,16 @@ export function insightsFor(workouts: WorkoutFact[], today = new Date()): Insigh
 
   const streak = streakOf(workouts, today);
   if (streak >= 3) {
-    found.push({
-      id: 'streak',
-      tone: 'good',
-      title: `${streak}일 연속으로 하고 있어요`,
-      detail: '이 흐름이 가장 크게 쌓여요. 오늘 쉬더라도 내일 다시 오면 돼요.',
-    });
+    found.push(said('streak', 'good', say.streak(streak)));
   }
 
   if (month.length > previousMonth.length && previousMonth.length > 0) {
-    found.push({
-      id: 'more-often',
-      tone: 'good',
-      title: `지난달보다 ${month.length - previousMonth.length}번 더 왔어요`,
-      detail: `최근 30일 ${month.length}회 · 그 전 30일 ${previousMonth.length}회.`,
-    });
+    found.push(said('more-often', 'good', say.moreOften(month.length - previousMonth.length, month.length, previousMonth.length)));
   }
 
   const coverage = bestWeeklyCoverage(month);
   if (coverage >= 5) {
-    found.push({
-      id: 'balanced',
-      tone: 'good',
-      title: '한 주에 온몸을 고루 썼어요',
-      detail: `한 주 안에 ${coverage}개 부위를 건드렸어요. 균형이 좋아요.`,
-    });
+    found.push(said('balanced', 'good', say.balanced(coverage)));
   }
 
   // — what to look at —
@@ -85,15 +72,7 @@ export function insightsFor(workouts: WorkoutFact[], today = new Date()): Insigh
     // rule instead would stay silent exactly when the gap is widest.
     const named = neglected.slice(0, 3).join(', ');
     const rest = neglected.length - 3;
-    found.push({
-      id: 'neglected',
-      tone: 'watch',
-      title:
-        rest > 0
-          ? `${named} 외 ${rest}개 부위를 한 달째 안 했어요`
-          : `${withParticle(named, '은는')} 한 달째 안 했어요`,
-      detail: '다음 운동에 하나만 끼워 넣어도 균형이 달라져요.',
-    });
+    found.push(said('neglected', 'watch', say.neglected(named, rest)));
   }
 
   const counts = new Map<string, number>();
@@ -101,42 +80,24 @@ export function insightsFor(workouts: WorkoutFact[], today = new Date()): Insigh
   const total = [...counts.values()].reduce((a, b) => a + b, 0);
   const top = [...counts.entries()].sort((a, b) => b[1] - a[1])[0];
   if (top && total >= 8 && top[1] / total >= 0.5) {
-    found.push({
-      id: 'lopsided',
-      tone: 'watch',
-      title: `${top[0]}에 절반 넘게 몰려 있어요`,
-      detail: `최근 30일 운동의 ${Math.round((top[1] / total) * 100)}%가 ${top[0]}이에요.`,
-    });
+    found.push(said('lopsided', 'watch', say.lopsided(top[0], Math.round((top[1] / total) * 100))));
   }
 
   const cardioMinutes = Math.round(month.reduce((s, w) => s + w.durationSec, 0) / 60);
   if (cardioMinutes < 30) {
-    found.push({
-      id: 'cardio',
-      tone: 'watch',
-      title: '유산소가 거의 없어요',
-      detail:
-        cardioMinutes === 0
-          ? '한 달 동안 0분이에요. 운동 끝에 10분만 걸어도 달라져요.'
-          : `한 달 동안 ${cardioMinutes}분이에요. 끝에 10분씩만 더해 보세요.`,
-    });
+    found.push(said('cardio', 'watch', say.cardio(cardioMinutes)));
   }
 
   const days = new Set(month.map((w) => localDayKey(new Date(w.started_at)))).size;
   if (days > 0 && days < 8) {
-    found.push({
-      id: 'sparse',
-      tone: 'watch',
-      title: '한 달에 여덟 번이 안 돼요',
-      detail: `최근 30일 중 ${days}일 운동했어요. 주 2회만 지켜도 흐름이 생겨요.`,
-    });
+    found.push(said('sparse', 'watch', say.sparse(days)));
   }
 
   return found;
 }
 
 /** The one thing worth saying first, when there is only room for one. */
-export function headline(workouts: WorkoutFact[], today = new Date()): Insight | null {
-  const all = insightsFor(workouts, today);
+export function headline(workouts: WorkoutFact[], today = new Date(), girl?: string): Insight | null {
+  const all = insightsFor(workouts, today, girl);
   return all.find((i) => i.tone === 'watch') ?? all[0] ?? null;
 }

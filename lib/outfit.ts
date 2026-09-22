@@ -248,3 +248,19 @@ export function outfitProgress(owned: string[]) {
     complete: mine.length === GARMENTS.length,
   };
 }
+
+export type Occasion = 'home' | 'gym';
+
+/**
+ * What she has on for where she is. At home, whatever was chosen. At the gym,
+ * her own gym clothes — the drawing underneath everything — with only her
+ * hair left as it was: a ribbon ties hair back, which is what you do before
+ * training, while a gown, a bouquet or a necklace is what you take off.
+ *
+ * Only the picture changes. `worn` stays what was chosen, so charm does not
+ * dip for the length of a workout and she is dressed again when she is home.
+ */
+export function dressedFor(worn: string[], occasion: Occasion): string[] {
+  if (occasion === 'home') return worn;
+  return worn.filter((id) => garmentById(id)?.slot === 'head');
+}

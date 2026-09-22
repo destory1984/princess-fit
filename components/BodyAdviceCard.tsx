@@ -5,6 +5,7 @@ import type { BodyLog } from '@/lib/body';
 import { bodyRuleAdvice, requestBodyAdvice } from '@/lib/bodyAdvice';
 import { getAdviceByModel } from '@/lib/prefs';
 import { colors, paper, radius, spacing } from '@/lib/theme';
+import { useGirl } from '@/lib/girl';
 
 /**
  * A line under the readings. The rules' line shows at once and the model's
@@ -14,12 +15,14 @@ import { colors, paper, radius, spacing } from '@/lib/theme';
  * Titled like the workout card: 「AI 한마디」 only when a model spoke.
  */
 export function BodyAdviceCard({ logs }: { logs: BodyLog[] }) {
+  const girl = useGirl();
   // The model's reply, kept with the readings it was about: once they
   // change, it is about something else and the rules speak until it answers.
-  const [reply, setReply] = useState<{ about: BodyLog[]; text: string } | null>(null);
+  // And with who gave it: a different girl is a different reply.
+  const [reply, setReply] = useState<{ about: BodyLog[]; by: string; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
-  const fresh = reply?.about === logs ? reply : null;
-  const text = fresh?.text ?? bodyRuleAdvice(logs);
+  const fresh = reply?.about === logs && reply.by === girl.id ? reply : null;
+  const text = fresh?.text ?? bodyRuleAdvice(logs, undefined, girl.id);
   const source = fresh ? 'model' : 'rules';
 
   const ask = useCallback(
@@ -27,17 +30,17 @@ export function BodyAdviceCard({ logs }: { logs: BodyLog[] }) {
       getAdviceByModel().then((useModel) => {
         if (!useModel || signal?.aborted) return;
         setBusy(true);
-        requestBodyAdvice(logs, signal, true)
+        requestBodyAdvice(logs, signal, true, undefined, girl.id)
           .then((answer) => {
             if (signal?.aborted) return;
-            setReply(answer.source === 'model' ? { about: logs, text: answer.text } : null);
+            setReply(answer.source === 'model' ? { about: logs, by: girl.id, text: answer.text } : null);
           })
           .finally(() => {
             if (!signal?.aborted) setBusy(false);
           });
       });
     },
-    [logs]
+    [logs, girl.id]
   );
 
   useEffect(() => {

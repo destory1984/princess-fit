@@ -23,11 +23,11 @@ export const ADVISORS: Advisor[] = [
   {
     id: 'geumhwa',
     name: '리나',
-    blurb: '꽃을 들고 반겨요. 칭찬이 후한 편이에요.',
+    blurb: '몸과 잠을 챙겨요. 쉬는 날도 칭찬해요.',
     playable: true,
   },
-  { id: 'dohwa', name: '피아', blurb: '지친 날에도 손을 흔들어요.', playable: true },
-  { id: 'seora', name: '유키', blurb: '자세부터 봐요. 대충 넘어가는 법이 없어요.', playable: true },
+  { id: 'dohwa', name: '피아', blurb: '숫자를 좋아해요. 어제의 나와 겨루게 해요.', playable: true },
+  { id: 'seora', name: '유키', blurb: '빈틈을 봐요. 빠진 부위를 그냥 넘기지 않아요.', playable: true },
 ];
 
 /**

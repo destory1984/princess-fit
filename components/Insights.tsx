@@ -7,6 +7,7 @@ import type { Goal } from '@/lib/onboarding';
 import { rankByGoal, watchingWord } from '@/lib/plan';
 import { getGoal } from '@/lib/prefs';
 import { colors, paper, radius, spacing } from '@/lib/theme';
+import { useGirl } from '@/lib/girl';
 
 type Props = {
   workouts: WorkoutFact[];
@@ -26,6 +27,7 @@ type Props = {
  * are the same, and so is every word of them.
  */
 export function Insights({ workouts, limit = 3 }: Props) {
+  const girl = useGirl();
   const [goal, setGoal] = useState<Goal | null>(null);
 
   useEffect(() => {
@@ -36,7 +38,7 @@ export function Insights({ workouts, limit = 3 }: Props) {
     };
   }, []);
 
-  const all = insightsFor(workouts);
+  const all = insightsFor(workouts, undefined, girl.id);
   const watching = watchingWord(goal);
 
   if (all.length === 0) {

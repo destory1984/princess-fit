@@ -63,3 +63,9 @@ test('with the model off, the rules answer without touching the network', async 
   const reply = await requestBodyAdvice([], undefined, false, TODAY);
   assert.equal(reply.source, 'rules');
 });
+
+test('the body line is in her voice too', () => {
+  const said = ['geumhwa', 'dohwa', 'seora'].map((g) => bodyRuleAdvice([], TODAY, g));
+  assert.equal(new Set(said).size, 3);
+  assert.match(buildBodyPrompt([], TODAY, 'dohwa'), /피아/);
+});

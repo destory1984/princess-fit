@@ -196,20 +196,34 @@ export async function setNudgeHour(hour: number | null) {
 }
 
 /**
- * Advice already given for a workout. Cached so revisiting a past session shows
- * what it said at the time instead of paying for a fresh generation.
+ * Advice already given for a workout, and who gave it. Cached so revisiting a
+ * past session shows what it said at the time instead of paying for a fresh
+ * generation. A plain string is from before the speaker was kept: nobody
+ * knows whose it was, so it reads as nobody's and is asked again.
  */
-export async function getCachedAdvice(workoutId: string) {
+export async function getCachedAdvice(
+  workoutId: string
+): Promise<{ text: string; speaker: string | null } | null> {
   try {
-    return await AsyncStorage.getItem(`refit.advice.${workoutId}`);
+    const raw = await AsyncStorage.getItem(`refit.advice.${workoutId}`);
+    if (!raw) return null;
+    try {
+      const kept = JSON.parse(raw) as { text?: unknown; speaker?: unknown };
+      if (typeof kept.text === 'string') {
+        return { text: kept.text, speaker: typeof kept.speaker === 'string' ? kept.speaker : null };
+      }
+    } catch {
+      // Falls through: the old plain-text form.
+    }
+    return { text: raw, speaker: null };
   } catch {
     return null;
   }
 }
 
-export async function cacheAdvice(workoutId: string, text: string) {
+export async function cacheAdvice(workoutId: string, text: string, speaker: string) {
   try {
-    await AsyncStorage.setItem(`refit.advice.${workoutId}`, text);
+    await AsyncStorage.setItem(`refit.advice.${workoutId}`, JSON.stringify({ text, speaker }));
   } catch {
     // A missing cache only costs a regeneration.
   }

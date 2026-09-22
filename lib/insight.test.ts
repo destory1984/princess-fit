@@ -79,3 +79,10 @@ test('every finding says something specific enough to act on', () => {
     assert.ok(i.detail.length > 8, i.id);
   }
 });
+
+test('the findings are the same for everyone, each said in her own way', () => {
+  const lifting = Array.from({ length: 6 }, (_, i) => on(i * 2));
+  const by = (g: string) => insightsFor(lifting, TODAY, g);
+  assert.deepEqual(by('dohwa').map((i) => i.id), by('geumhwa').map((i) => i.id));
+  assert.notDeepEqual(by('seora').map((i) => i.title), by('geumhwa').map((i) => i.title));
+});

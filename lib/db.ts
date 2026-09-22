@@ -199,28 +199,57 @@ export async function getWeeklyStats(): Promise<WeeklyStats> {
 
 export type WorkoutSummary = Workout & { exerciseCount: number; setCount: number; volume: number };
 
-export async function listWorkouts(limit = 50): Promise<WorkoutSummary[]> {
+/** How many sessions the history list reads at a time. */
+export const WORKOUT_PAGE = 50;
+
+const SUMMARY_COLUMNS = '*, workout_sets(exercise_id, weight_kg, reps, done, warmup)';
+
+type SummaryRow = Workout & {
+  workout_sets: Pick<WorkoutSet, 'exercise_id' | 'weight_kg' | 'reps' | 'done' | 'warmup'>[];
+};
+
+function summaryOf({ workout_sets, ...workout }: SummaryRow): WorkoutSummary {
+  const done = workout_sets.filter((s) => s.done);
+  // Warm-ups do not count as sets done either: 「12세트」 that is really
+  // eight working sets and four with an empty bar is a number nobody
+  // would recognise as their own afternoon.
+  const working = done.filter((s) => !s.warmup);
+  return {
+    ...workout,
+    exerciseCount: new Set(working.map((s) => s.exercise_id)).size,
+    setCount: working.length,
+    volume: volumeOf(working),
+  };
+}
+
+/** Newest first, one page at a time: `offset` is how many are already shown. */
+export async function listWorkouts(limit = WORKOUT_PAGE, offset = 0): Promise<WorkoutSummary[]> {
   const { data, error } = await supabase
     .from('workouts')
-    .select('*, workout_sets(exercise_id, weight_kg, reps, done, warmup)')
+    .select(SUMMARY_COLUMNS)
     .order('started_at', { ascending: false })
-    .limit(limit);
+    .range(offset, offset + limit - 1);
   if (error) throw error;
-  return (data as (Workout & { workout_sets: Pick<WorkoutSet, 'exercise_id' | 'weight_kg' | 'reps' | 'done' | 'warmup'>[] })[]).map(
-    ({ workout_sets, ...workout }) => {
-      const done = workout_sets.filter((s) => s.done);
-      // Warm-ups do not count as sets done either: 「12세트」 that is really
-      // eight working sets and four with an empty bar is a number nobody
-      // would recognise as their own afternoon.
-      const working = done.filter((s) => !s.warmup);
-      return {
-        ...workout,
-        exerciseCount: new Set(working.map((s) => s.exercise_id)).size,
-        setCount: working.length,
-        volume: volumeOf(working),
-      };
-    }
-  );
+  return (data as SummaryRow[]).map(summaryOf);
+}
+
+/**
+ * Every session on one local day. Asked for directly rather than filtered
+ * out of the pages already read — a day older than those pages would
+ * otherwise say 「이 날은 기록이 없어요」 about a day that has one.
+ */
+export async function listWorkoutsOn(dayKey: string): Promise<WorkoutSummary[]> {
+  const from = new Date(`${dayKey}T00:00:00`);
+  const to = new Date(from);
+  to.setDate(to.getDate() + 1);
+  const { data, error } = await supabase
+    .from('workouts')
+    .select(SUMMARY_COLUMNS)
+    .gte('started_at', from.toISOString())
+    .lt('started_at', to.toISOString())
+    .order('started_at', { ascending: false });
+  if (error) throw error;
+  return (data as SummaryRow[]).map(summaryOf);
 }
 
 export async function updateWorkout(id: string, patch: Partial<Pick<Workout, 'title' | 'memo'>>) {
@@ -855,10 +884,19 @@ export async function monthOfSessions(now = new Date()): Promise<SessionLine[]> 
  * Failure is ignored by the caller. Saving a sentence must never be the thing
  * that interrupts somebody who has just finished training.
  */
-export async function saveAdvice(workoutId: string, advice: string, source: string) {
+export async function saveAdvice(workoutId: string, advice: string, source: string, speaker: string) {
   const { error } = await supabase
     .from('workouts')
-    .update({ advice, advice_source: source })
+    .update({ advice, advice_source: source, advice_speaker: speaker })
+    .eq('id', workoutId);
+  if (error) throw error;
+}
+
+/** Drop what was said once the session it was about has been changed. */
+export async function clearSavedAdvice(workoutId: string) {
+  const { error } = await supabase
+    .from('workouts')
+    .update({ advice: null, advice_source: null, advice_speaker: null })
     .eq('id', workoutId);
   if (error) throw error;
 }
@@ -1811,7 +1849,13 @@ async function remember(memories: Memory | Memory[]) {
   }
 }
 
-export type Bond = { days: number; stage: Stage; memories: Memory[] };
+export type Bond = {
+  days: number;
+  stage: Stage;
+  memories: Memory[];
+  /** Read anyway to find the memories; 피아 reads the lifts in them too. */
+  sessions: MemorySession[];
+};
 
 /**
  * How long she has known you and what she remembers, bringing the book up to
@@ -1823,11 +1867,11 @@ export async function getBond(): Promise<Bond> {
   const days = daysTogether(sessions);
 
   const { data, error } = await supabase.from('memories').select(MEMORY_COLUMNS).order('day');
-  if (error) return { days, stage: stageOf(days), memories: [] };
+  if (error) return { days, stage: stageOf(days), memories: [], sessions };
   const known = data as Memory[];
 
   const missing = unrecorded(memoriesFrom(sessions), known.map((m) => m.kind as MemoryKind));
   if (missing.length) await remember(missing);
   const memories = [...known, ...missing].sort((a, b) => a.day.localeCompare(b.day));
-  return { days, stage: stageOf(days), memories };
+  return { days, stage: stageOf(days), memories, sessions };
 }

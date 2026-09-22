@@ -3,6 +3,7 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { Greeting } from '@/components/Greeting';
 import { getLedger, listWorkoutFacts } from '@/lib/db';
 import { messageFor, moodOf } from '@/lib/economy';
+import { useGirl } from '@/lib/girl';
 
 /**
  * Where a tapped message lands. The line travels on the notification so she
@@ -12,6 +13,7 @@ import { messageFor, moodOf } from '@/lib/economy';
 export default function GreetingScreen() {
   const { line } = useLocalSearchParams<{ line?: string }>();
   const router = useRouter();
+  const girl = useGirl();
   const [worn, setWorn] = useState<string[]>([]);
   const [spoken, setSpoken] = useState(line ?? '');
 
@@ -22,7 +24,7 @@ export default function GreetingScreen() {
         .then(([ledger, facts]) => {
           if (!alive) return;
           setWorn(ledger.worn);
-          if (!line) setSpoken(messageFor(moodOf(ledger.house, facts), new Date()));
+          if (!line) setSpoken(messageFor(moodOf(ledger.house, facts), new Date(), 'new', girl.id));
         })
         .catch(() => {
           // She still shows up; only the outfit and the fallback line are lost.
@@ -30,7 +32,7 @@ export default function GreetingScreen() {
       return () => {
         alive = false;
       };
-    }, [line])
+    }, [line, girl.id])
   );
 
   return (

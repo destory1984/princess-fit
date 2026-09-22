@@ -39,7 +39,7 @@ export default function ShopScreen() {
       setLedger(next);
       notify(
         price ? `${label} · −${price.toLocaleString()} G` : label,
-        thanksFor(kind, id),
+        thanksFor(kind, id, girl.id),
       );
       // A course is days of going every morning: she says goodbye on the first
       // and tells you how it went on the last. Booking that must not look like

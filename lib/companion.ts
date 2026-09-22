@@ -1,5 +1,6 @@
 import { localDayKey } from './format.ts';
 import { withParticle } from './korean.ts';
+import { voiceOf } from './voices.ts';
 
 /**
  * How well she knows you, and what she remembers. See docs/companion.md.
@@ -176,39 +177,6 @@ export function unrecorded(found: Memory[], known: Iterable<MemoryKind>) {
   return found.filter((m) => !have.has(m.kind));
 }
 
-// What she says on the day itself. Said once, that day, and never again in
-// these words — the next time it comes up it is as something that happened.
-function freshLine(m: Memory): string {
-  const d = m.detail ?? '';
-  switch (m.kind) {
-    case 'first_day':
-      return '오늘 처음 뵈었네요. 앞으로 잘 부탁드려요.';
-    case 'three_in_a_row':
-      return '사흘 연속이에요. 저 오늘 좀 들떠 있어요.';
-    case 'first_triple_digit':
-      return `오늘 ${d}, 세 자리예요. 오늘 일은 오래 기억할 거예요.`;
-    case 'day_30':
-      return '오늘이 함께한 서른 번째 날이에요. 세어 보고 있었어요.';
-    case 'day_100':
-      return '백 번째 날이에요. 처음 오셨던 날이 생각나요.';
-    case 'came_back':
-      return '돌아오셨네요. 괜찮아요, 기다리고 있었어요.';
-    case 'best_after_half_year':
-      return `${d}, 지금까지 중에 제일 무거웠어요. 반년 넘게 해 온 게 여기 있네요.`;
-    case 'stage_familiar':
-      return '이제 좀 익숙해졌어요. 오시는 발소리도 알 것 같아요.';
-    case 'stage_comfortable':
-      return '이제 좀 편해졌어요. 앞으로는 잔소리도 할 거예요.';
-    case 'stage_old':
-      return '벌써 이렇게 됐네요. 이제 오시는 게 당연한 것 같아요.';
-    case 'first_garment':
-      return `${d}, 처음 사 주신 거예요. 아껴 입을게요.`;
-    case 'first_lesson':
-      return `${d} 수업을 다 마쳤어요. 처음으로 뭔가를 끝까지 해 봤어요.`;
-    case 'first_friend':
-      return `${d} 님이 친구가 됐네요. 방이 좀 덜 조용해진 것 같아요.`;
-  }
-}
 
 /** 「얼마 전에」, 「석 달 전에」, 「작년 이맘때」 — how she would place it. */
 export function whenItWas(day: string, today = new Date()) {
@@ -224,32 +192,6 @@ export function whenItWas(day: string, today = new Date()) {
   return '오래전에';
 }
 
-// What she says when an old one comes back to her. Only the ones with
-// something in them to say; 「서른 번째 날이었죠」 is a date, not a memory.
-function recallLine(m: Memory, today: Date): string | null {
-  const when = whenItWas(m.day, today);
-  const d = m.detail ?? '';
-  switch (m.kind) {
-    case 'first_day':
-      return `${when} 처음 오셨을 때, 저 사실 좀 긴장했었어요.`;
-    case 'first_triple_digit':
-      return `${when} ${d} 드시고 한참 웃으셨잖아요. 오늘도 그런 날이면 좋겠어요.`;
-    case 'three_in_a_row':
-      return `${when} 사흘 연속 오셨던 거, 아직 기억해요.`;
-    case 'came_back':
-      return `${when} 오래 쉬다 오셨을 때도 금방 제자리였잖아요.`;
-    case 'best_after_half_year':
-      return `${when} ${d} 드셨던 날, 저도 같이 숨 참고 봤어요.`;
-    case 'first_garment':
-      return `이 옷장에서 제일 먼저 생긴 게 ${withParticle(d, '이에요예요')}. 아직도 제일 좋아해요.`;
-    case 'first_lesson':
-      return `${when} ${d} 수업 다니던 게 생각나요. 그때 좀 힘들었어요.`;
-    case 'first_friend':
-      return `${d} 님은 요즘 잘 지내시려나요.`;
-    default:
-      return null;
-  }
-}
 
 /** Roughly how often an old memory comes up: one day in this many. */
 export const RECALL_EVERY = 6;
@@ -262,17 +204,25 @@ export const RECALL_EVERY = 6;
  * only now and then: a girl who brings up your first 100kg every morning is
  * a notice board, the same trap lessonLine fell into.
  */
-export function memoryLine(memories: Memory[], today = new Date()): string | null {
+export function memoryLine(memories: Memory[], today = new Date(), girl?: string): string | null {
+  const voice = voiceOf(girl);
   const key = localDayKey(today);
   const fresh = memories.filter((m) => m.day === key);
   // Several can land on one day (a first day that is also a first 100kg);
   // the rarer one is the better news, and later in the list is rarer.
-  if (fresh.length) return freshLine(fresh[fresh.length - 1]);
+  if (fresh.length) {
+    const m = fresh[fresh.length - 1];
+    return voice.fresh[m.kind](m.detail ?? '');
+  }
 
   const n = dayNumber(key);
   if (n % RECALL_EVERY !== 0) return null;
   const old = memories.filter((m) => n - dayNumber(m.day) >= 7);
-  const said = old.map((m) => recallLine(m, today)).filter((l): l is string => l !== null);
+  const when = (m: Memory) => whenItWas(m.day, today);
+  const said = old.flatMap((m) => {
+    const recall = voice.recall[m.kind];
+    return recall ? [recall(when(m), m.detail ?? '')] : [];
+  });
   if (!said.length) return null;
   return said[Math.floor(n / RECALL_EVERY) % said.length];
 }

@@ -38,6 +38,7 @@ import {
   collectGifts,
   payForWorkout,
   payUnpaidWorkouts,
+  clearSavedAdvice,
   getLastPerformance,
   getPersonalBests,
   getExerciseUsage,
@@ -816,6 +817,7 @@ export default function WorkoutScreen() {
       // paid twice.
       const earned = await payUnpaidWorkouts().catch(() => 0);
       await forgetAdvice(id);
+      await clearSavedAdvice(id).catch(() => {});
       if (earned) notify(`+${earned} G`, "채워 넣은 운동의 골드가 들어왔어요.");
       router.replace({ pathname: "/summary/[id]", params: { id } });
     } catch (e: any) {

@@ -1,5 +1,14 @@
-import { useCallback, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Insights } from '@/components/Insights';
@@ -14,6 +23,8 @@ import {
   listWorkoutDays,
   listWorkoutFacts,
   listWorkouts,
+  listWorkoutsOn,
+  WORKOUT_PAGE,
   type WorkoutSummary,
 } from '@/lib/db';
 import { formatDate, localDayKey } from '@/lib/format';
@@ -37,6 +48,15 @@ export default function HistoryScreen() {
   const [days, setDays] = useState<Set<string>>(new Set());
   const [month, setMonth] = useState(() => new Date());
   const [selected, setSelected] = useState<string | null>(null);
+  // The chosen day's sessions, asked for on their own: the pages read so far
+  // may not reach back that far.
+  const [dayList, setDayList] = useState<{ day: string; list: WorkoutSummary[] } | null>(null);
+  // Whether an older page may exist, and whether one is on its way.
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  // How many are showing, so coming back to the tab keeps the place rather
+  // than folding a long scroll back to the first page.
+  const shownCount = useRef(WORKOUT_PAGE);
   const [facts, setFacts] = useState<WorkoutFact[]>([]);
 
   // Which parts were trained each day, so the calendar reads as a pattern.
@@ -60,9 +80,10 @@ export default function HistoryScreen() {
     // length it actually had rather than as still running.
     closeAbandonedWorkouts()
       .catch(() => {})
-      .then(() => Promise.all([listWorkouts(), listWorkoutDays()]))
+      .then(() => Promise.all([listWorkouts(shownCount.current), listWorkoutDays()]))
       .then(([list, marked]) => {
         setWorkouts(list);
+        setHasMore(list.length === shownCount.current);
         setDays(new Set(marked.map((m) => m.day)));
       })
       .catch((e) => setError(e.message));
@@ -70,12 +91,51 @@ export default function HistoryScreen() {
 
   useFocusEffect(load);
 
+  useEffect(() => {
+    if (!selected) return;
+    let alive = true;
+    // On failure it falls back to what is loaded, right for any recent day.
+    listWorkoutsOn(selected)
+      .then((list) => alive && setDayList({ day: selected, list }))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [selected, workouts]);
+
+  const loadMore = useCallback(() => {
+    if (!workouts || !hasMore || loadingMore) return;
+    setLoadingMore(true);
+    listWorkouts(WORKOUT_PAGE, workouts.length)
+      .then((older) => {
+        // By id, in case something was added at the top in between and
+        // shifted a row across the page boundary.
+        const seen = new Set(workouts.map((w) => w.id));
+        const next = [...workouts, ...older.filter((w) => !seen.has(w.id))];
+        shownCount.current = next.length;
+        setWorkouts(next);
+        setHasMore(older.length === WORKOUT_PAGE);
+      })
+      .catch((e) => notify('더 불러오지 못했어요', explain(e)))
+      .finally(() => setLoadingMore(false));
+  }, [workouts, hasMore, loadingMore]);
+
+  function onScroll({ nativeEvent: e }: NativeSyntheticEvent<NativeScrollEvent>) {
+    // A screen's height from the end, so the next page is there by the time
+    // the thumb gets to the bottom.
+    if (!selected && e.contentOffset.y + e.layoutMeasurement.height * 2 >= e.contentSize.height) {
+      loadMore();
+    }
+  }
+
   const shown = useMemo(
     () =>
       selected
-        ? (workouts ?? []).filter((w) => localDayKey(new Date(w.started_at)) === selected)
+        ? dayList?.day === selected
+          ? dayList.list
+          : (workouts ?? []).filter((w) => localDayKey(new Date(w.started_at)) === selected)
         : (workouts ?? []),
-    [workouts, selected]
+    [workouts, selected, dayList]
   );
 
   /**
@@ -113,7 +173,11 @@ export default function HistoryScreen() {
   if (!workouts) return <ScreenState error={error} onRetry={load} />;
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.content}
+      onScroll={onScroll}
+      scrollEventThrottle={200}>
       <MonthCalendar
         month={month}
         markedDays={days}
@@ -222,6 +286,11 @@ export default function HistoryScreen() {
             </View>
           </Pressable>
         ))
+      )}
+
+      {!selected && loadingMore && <ActivityIndicator color={colors.accent} />}
+      {!selected && !hasMore && (workouts?.length ?? 0) > WORKOUT_PAGE && (
+        <Text style={styles.empty}>첫 기록까지 모두 보셨어요.</Text>
       )}
     </ScrollView>
   );

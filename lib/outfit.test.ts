@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  dressedFor,
   GARMENTS,
   garmentById,
   layersOf,
@@ -64,4 +65,11 @@ test('progress finishes only when every piece is owned', () => {
   const done = outfitProgress(GARMENTS.map((g) => g.id));
   assert.equal(done.complete, true);
   assert.equal(done.ratio, 1);
+});
+
+test('at the gym she is in her gym clothes, with her hair left as it was', () => {
+  const chosen = ['gown', 'bouquet', 'necklace', 'ribbon'];
+  assert.deepEqual(dressedFor(chosen, 'gym'), ['ribbon']);
+  assert.deepEqual(dressedFor(chosen, 'home'), chosen);
+  assert.deepEqual(dressedFor([], 'gym'), []);
 });

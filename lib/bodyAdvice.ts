@@ -9,6 +9,7 @@
  * way things moved, and whether the scale has been used often enough to say.
  */
 import { askModel } from './advice.ts';
+import { voiceOf } from './voices.ts';
 import { BODY_METRICS, bmi, change, latest, type BodyLog, type BodyMetric } from './body.ts';
 
 const TRACKED: BodyMetric[] = ['weight_kg', 'body_fat_pct', 'muscle_kg'];
@@ -59,9 +60,9 @@ export function describeBody(logs: BodyLog[], today = new Date()): string {
   return lines.join('\n');
 }
 
-export function buildBodyPrompt(logs: BodyLog[], today = new Date()) {
+export function buildBodyPrompt(logs: BodyLog[], today = new Date(), girl?: string) {
   return [
-    '당신은 한국어로 말하는 침착한 운동 코치입니다.',
+    voiceOf(girl).persona,
     '아래 신체 기록을 보고 두 문장 이내로 말하세요.',
     '규칙: 달라진 흐름을 한 줄, 다음 운동이나 다음 측정에서 할 수 있는 한 가지를 한 줄.',
     // The things a coach does not say about someone's body.
@@ -74,14 +75,15 @@ export function buildBodyPrompt(logs: BodyLog[], today = new Date()) {
 }
 
 /** Something true to say from the readings alone. */
-export function bodyRuleAdvice(logs: BodyLog[], today = new Date()): string {
+export function bodyRuleAdvice(logs: BodyLog[], today = new Date(), girl?: string): string {
+  const say = voiceOf(girl).body;
   if (logs.length === 0) {
-    return '처음 잰 값이 기준이 돼요. 일주일에 한 번, 같은 요일 아침에 재 보세요.';
+    return say.first;
   }
   const newest = [...logs].sort((a, b) => b.measured_on.localeCompare(a.measured_on))[0];
   const gap = daysBetween(newest.measured_on, today);
   if (gap >= 14) {
-    return `마지막으로 잰 지 ${gap}일 지났어요. 오늘 한 번 재 두면 흐름이 이어져요.`;
+    return say.stale(gap);
   }
 
   const weight = direction(logs, 'weight_kg', today);
@@ -89,21 +91,21 @@ export function bodyRuleAdvice(logs: BodyLog[], today = new Date()): string {
   const muscle = direction(logs, 'muscle_kg', today);
 
   if (weight === null && fat === null && muscle === null) {
-    return '한 달 안에 두 번은 재야 흐름이 보여요. 같은 요일 아침, 같은 조건에서 재 보세요.';
+    return say.sparse;
   }
   if (muscle === 'up' && fat !== 'up') {
-    return '골격근량이 늘고 있어요. 지금 하는 근력 운동이 몸에 남고 있다는 뜻이에요.';
+    return say.muscleUp;
   }
   if (weight === 'down' && muscle === 'down') {
-    return '몸무게와 함께 골격근량도 줄고 있어요. 근력 운동을 거르지 말고, 단백질을 챙겨 보세요.';
+    return say.bothDown;
   }
   if (fat === 'down') {
-    return '체지방이 줄고 있어요. 지금 흐름을 그대로 이어 가세요.';
+    return say.fatDown;
   }
   if (weight === 'up' && fat === 'up') {
-    return '몸무게와 체지방이 함께 올랐어요. 운동 끝에 유산소를 조금 붙여 보세요.';
+    return say.heavier;
   }
-  return '큰 변화 없이 안정적이에요. 같은 요일 아침에 재면 작은 변화도 잘 보여요.';
+  return say.steady;
 }
 
 /**
@@ -114,14 +116,15 @@ export async function requestBodyAdvice(
   logs: BodyLog[],
   signal?: AbortSignal,
   useModel = true,
-  today = new Date()
+  today = new Date(),
+  girl?: string
 ): Promise<{ text: string; source: 'model' | 'rules' }> {
   // Nothing recorded is nothing to read; the rules say how to start.
-  if (!useModel || logs.length === 0) return { text: bodyRuleAdvice(logs, today), source: 'rules' };
+  if (!useModel || logs.length === 0) return { text: bodyRuleAdvice(logs, today, girl), source: 'rules' };
   try {
-    const text = await askModel(buildBodyPrompt(logs, today), describeBody(logs, today), signal);
+    const text = await askModel(buildBodyPrompt(logs, today, girl), describeBody(logs, today), signal);
     return { text, source: 'model' };
   } catch {
-    return { text: bodyRuleAdvice(logs, today), source: 'rules' };
+    return { text: bodyRuleAdvice(logs, today, girl), source: 'rules' };
   }
 }

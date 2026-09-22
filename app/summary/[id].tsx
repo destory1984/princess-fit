@@ -21,6 +21,7 @@ import {
   repeatWorkout,
   type WorkoutDetailExercise,
 } from '@/lib/db';
+import { dressedFor } from '@/lib/outfit';
 import { formatDate } from '@/lib/format';
 import { GOALS, PLACES } from '@/lib/onboarding';
 import { getGoal, getPlace, getWeeklyGoal } from '@/lib/prefs';
@@ -63,10 +64,10 @@ export default function SummaryScreen() {
         setFacts(facts);
         setSummary(summarise(facts));
 
-        // Only dresses the girl on the card; she stands in gym clothes until
-        // it arrives, and if it never does.
+        // The card is from the gym, so she is in her gym clothes on it; the
+        // ledger only brings the ribbon in her hair.
         getLedger()
-          .then((ledger) => setWorn(ledger.worn))
+          .then((ledger) => setWorn(dressedFor(ledger.worn, 'gym')))
           .catch(() => {});
 
         // Only feeds the adviser's 「지난번보다」, so the screen never waits.
@@ -257,7 +258,16 @@ export default function SummaryScreen() {
         worn={worn}
       />
 
-      {adviceContext && <AdviceCard context={adviceContext} />}
+      {adviceContext && (
+        <AdviceCard
+          context={adviceContext}
+          saved={
+            workout.advice
+              ? { text: workout.advice, source: workout.advice_source ?? null, speaker: workout.advice_speaker ?? null }
+              : null
+          }
+        />
+      )}
 
       {/*
         What was done and what got written down are not always the same —
