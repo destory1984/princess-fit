@@ -9,14 +9,15 @@
  * so a purchase visibly lands instead of vanishing into a database column,
  * and it stays obvious which art is still missing.
  *
- * The rug is out for now. Its art is drawn from too high an angle to lie
- * convincingly on this floor — 「나르는 양탄자야?」 — and widening it only
- * makes the ellipse more obviously a circle. The file is still in
- * assets/room, so putting it back is this one line once a flatter one exists.
+ * The rug is drawn by scripts/make-rug.mjs rather than by hand: the first one
+ * was seen from too high an angle to lie on this floor — 「나르는 양탄자야?」
+ * — and the angle is only a number there. Its art is cropped tight, so its
+ * place in lib/room.ts is the rug itself, not a canvas with a rug in it.
  */
 type Art = { source: number; aspect: number };
 
 const ART: Record<string, Art> = {
+  rug: { source: require('../assets/room/rug.png'), aspect: 1600 / 547 },
   bed: { source: require('../assets/room/bed.png'), aspect: 1371 / 1148 },
   curtain: { source: require('../assets/room/curtain.png'), aspect: 1536 / 1024 },
   shelf: { source: require('../assets/room/shelf.png'), aspect: 1024 / 1536 },
