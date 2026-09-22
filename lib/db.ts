@@ -1433,6 +1433,20 @@ export async function listFriends(): Promise<Friend[]> {
   return data as Friend[];
 }
 
+/**
+ * Days trained together, per friend. Empty rather than failing: before
+ * social.sql is re-run the function is missing, and the list still works.
+ */
+export async function listTogetherDays(): Promise<Map<string, string[]>> {
+  const { data, error } = await supabase.rpc('together_days');
+  const byFriend = new Map<string, string[]>();
+  if (error) return byFriend;
+  for (const row of data as { friend_id: string; day: string }[]) {
+    byFriend.set(row.friend_id, [...(byFriend.get(row.friend_id) ?? []), row.day]);
+  }
+  return byFriend;
+}
+
 export async function getFriendRoom(friendId: string): Promise<FriendRoom> {
   const { data, error } = await supabase.rpc('friend_room', { p_friend: friendId });
   if (error) throw error;

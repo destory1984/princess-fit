@@ -56,6 +56,38 @@ export function trainedToday(lastTrained: string | null, today = new Date()): bo
   return !!lastTrained && localDayKey(new Date(lastTrained)) === localDayKey(today);
 }
 
+/** The Monday of the week a day falls in, as a day key. */
+function weekOf(day: Date): string {
+  const monday = new Date(day.getFullYear(), day.getMonth(), day.getDate());
+  monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+  return localDayKey(monday);
+}
+
+/**
+ * How many weeks in a row two friends have trained on the same day at least
+ * once, ending this week — or last week, since this one is not over.
+ *
+ * Counted in weeks, not days. Nobody trains every day and nobody should: a
+ * run that snapped on every rest day would punish exactly the people doing it
+ * properly. A week with one shared session keeps it going.
+ */
+export function togetherStreak(days: string[], today = new Date()): number {
+  const weeks = new Set(days.map((d) => weekOf(new Date(`${d}T12:00:00`))));
+  const cursor = new Date(`${weekOf(today)}T12:00:00`);
+  if (!weeks.has(weekOf(cursor))) cursor.setDate(cursor.getDate() - 7);
+  let run = 0;
+  while (weeks.has(weekOf(cursor))) {
+    run += 1;
+    cursor.setDate(cursor.getDate() - 7);
+  }
+  return run;
+}
+
+/** The run as a line, or null when it is too short to be worth a word. */
+export function togetherLine(streak: number): string | null {
+  return streak >= 2 ? `함께 ${streak}주째` : null;
+}
+
 export type ArrivedGift = { kind: 'gift' | 'together'; amount: number; from_name: string };
 
 /**

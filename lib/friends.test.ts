@@ -10,6 +10,8 @@ import {
   lastTrainedLine,
   normaliseCode,
   TOGETHER_BONUS,
+  togetherLine,
+  togetherStreak,
   trainedToday,
 } from './friends.ts';
 
@@ -57,6 +59,40 @@ test('what arrived reads as one line per friend, with the particle chosen', () =
     '이름 없는 친구가 50G를 보냈어요',
   ]);
   assert.equal(arrivedTotal([{ amount: 10 }, { amount: 20 }]), 30);
+});
+
+// 2026-09-23 is a Wednesday; its week runs Mon 21 – Sun 27.
+const WED = new Date('2026-09-23T09:00:00');
+
+test('the run together is counted in weeks, not days', () => {
+  assert.equal(togetherStreak([], WED), 0);
+  // Once a week is enough; rest days between do not break it.
+  assert.equal(togetherStreak(['2026-09-21', '2026-09-17', '2026-09-08'], WED), 3);
+  // Several days in one week are still one week.
+  assert.equal(togetherStreak(['2026-09-23', '2026-09-22', '2026-09-21'], WED), 1);
+});
+
+test('this week is not over, so a run through last week still stands', () => {
+  assert.equal(togetherStreak(['2026-09-19', '2026-09-12'], WED), 2);
+});
+
+test('a whole week without a shared day ends the run', () => {
+  // Nothing in the week of 14–20.
+  assert.equal(togetherStreak(['2026-09-22', '2026-09-10'], WED), 1);
+  // Nothing this week or last.
+  assert.equal(togetherStreak(['2026-09-10'], WED), 0);
+});
+
+test('a Sunday belongs to the week before it, not after', () => {
+  // Sun 27 and Mon 21 are the same week; Sun 20 is the week before.
+  assert.equal(togetherStreak(['2026-09-20'], new Date('2026-09-27T09:00:00')), 1);
+  assert.equal(togetherStreak(['2026-09-20', '2026-09-27'], new Date('2026-09-27T20:00:00')), 2);
+});
+
+test('a single week together is not called a run', () => {
+  assert.equal(togetherLine(0), null);
+  assert.equal(togetherLine(1), null);
+  assert.equal(togetherLine(2), '함께 2주째');
 });
 
 test('the bonus the app announces is the one the database pays', () => {

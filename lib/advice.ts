@@ -355,6 +355,19 @@ export async function requestAdvice(
   useModel = true
 ): Promise<{ text: string; source: 'model' | 'rules' }> {
   if (!useModel || isEmptyWorkout(c.today)) return { text: localRuleAdvice(c), source: 'rules' };
+  try {
+    return { text: await askModel(buildPrompt(c), describeContext(c), signal), source: 'model' };
+  } catch {
+    return { text: localRuleAdvice(c), source: 'rules' };
+  }
+}
+
+/**
+ * One prompt to the configured model, and its reply — or a throw when the
+ * call fails, times out, comes back empty, or says a number that is not in
+ * `facts`. Every caller has rules to fall back on, so a throw is never shown.
+ */
+export async function askModel(prompt: string, facts: string, signal?: AbortSignal) {
   const provider = configuredProvider();
   // AbortSignal.any/timeout are not on every runtime this ships to.
   const controller = new AbortController();
@@ -369,7 +382,7 @@ export async function requestAdvice(
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: provider.model,
-        prompt: buildPrompt(c),
+        prompt,
         stream: false,
         think: false,
         keep_alive: '10m',
@@ -382,12 +395,10 @@ export async function requestAdvice(
     const text = body.response?.trim();
     if (!text) throw new Error('빈 응답');
     // A reply that invented numbers invented the advice with them. The rules
-    // have something true to say about the same session, so use that instead
+    // have something true to say about the same facts, so use that instead
     // of passing on a target nobody can stand behind.
-    if (!staysInTheFacts(text, describeContext(c))) throw new Error('사실 밖의 숫자');
-    return { text, source: 'model' };
-  } catch {
-    return { text: localRuleAdvice(c), source: 'rules' };
+    if (!staysInTheFacts(text, facts)) throw new Error('사실 밖의 숫자');
+    return text;
   } finally {
     clearTimeout(timer);
     signal?.removeEventListener('abort', onAbort);

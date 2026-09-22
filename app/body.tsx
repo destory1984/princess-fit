@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect } from 'expo-router';
+import { BodyAdviceCard } from '@/components/BodyAdviceCard';
 import { LineChart } from '@/components/LineChart';
 import { ScreenState } from '@/components/ScreenState';
 import {
@@ -187,6 +188,8 @@ export default function BodyScreen() {
           BMI {index} · 키 {height}cm 기준
         </Text>
       )}
+
+      <BodyAdviceCard logs={logs} />
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>{meta.name}</Text>

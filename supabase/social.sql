@@ -67,6 +67,7 @@ drop function if exists list_friends();
 drop function if exists friend_room(uuid);
 drop function if exists send_gift(uuid, integer, date);
 drop function if exists claim_together(date, text);
+drop function if exists together_days();
 drop function if exists claim_gifts();
 drop function if exists unclaim_gifts(uuid[]);
 
@@ -290,6 +291,26 @@ begin
   end loop;
   return made;
 end;
+$$;
+
+/*
+  The days the caller and each friend both trained, as far as the
+  together-bonus has recorded them. The app counts the run from these.
+  Recorded only when one of the two finishes a session, which is when
+  both having trained becomes true — so there is nothing to miss.
+*/
+create function together_days()
+returns table (friend_id uuid, day date)
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select g.from_user, g.day from gifts g
+  join friendships f on f.user_id = auth.uid() and f.friend_id = g.from_user
+  where g.kind = 'together' and g.to_user = auth.uid()
+    and g.day > current_date - 400
+  order by g.day desc;
 $$;
 
 /* Collect what has arrived. Marked claimed here; the app adds it to the purse. */

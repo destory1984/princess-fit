@@ -10,6 +10,7 @@ import {
   collectGifts,
   ensureFriendCard,
   listFriends,
+  listTogetherDays,
   myFriendName,
   removeFriend,
   sendGift,
@@ -25,6 +26,8 @@ import {
   lastTrainedLine,
   normaliseCode,
   TOGETHER_BONUS,
+  togetherLine,
+  togetherStreak,
   trainedToday,
 } from '@/lib/friends';
 import { girlOf, useGirl } from '@/lib/girl';
@@ -51,6 +54,7 @@ export default function FriendsScreen() {
   const [busy, setBusy] = useState(false);
   /** The friend whose gift amounts are open, if any. */
   const [giftFor, setGiftFor] = useState<string | null>(null);
+  const [together, setTogether] = useState<Map<string, string[]>>(new Map());
 
   const load = useCallback(() => {
     setError(null);
@@ -61,7 +65,9 @@ export default function FriendsScreen() {
         // Keeps the girl on the card current: she is chosen on the phone, and
         // a friend visiting should find the one actually being raised.
         setCode(await ensureFriendCard(stored, girl.id));
-        setFriends(await listFriends());
+        const [list, together] = await Promise.all([listFriends(), listTogetherDays()]);
+        setTogether(together);
+        setFriends(list);
         const arrived = await collectGifts().catch(() => []);
         if (arrived.length) {
           notify(`+${arrivedTotal(arrived)} G`, arrivedLines(arrived).join('\n'));
@@ -204,6 +210,7 @@ export default function FriendsScreen() {
         friends.map((friend) => {
           const went = trainedToday(friend.last_trained);
           const open = giftFor === friend.user_id;
+          const run = togetherLine(togetherStreak(together.get(friend.user_id) ?? []));
           return (
             <View key={friend.user_id} style={styles.friend}>
             <Pressable
@@ -214,7 +221,15 @@ export default function FriendsScreen() {
               onLongPress={() => unfriend(friend)}>
               <Portrait source={girlOf(friend.girl).base} size={48} />
               <View style={styles.rowBody}>
-                <Text style={styles.rowName}>{displayName(friend.name)}</Text>
+                <View style={styles.nameRow}>
+                  <Text style={styles.rowName}>{displayName(friend.name)}</Text>
+                  {run && (
+                    <View style={styles.run}>
+                      <Ionicons name="flame" size={12} color={colors.danger} />
+                      <Text style={styles.runText}>{run}</Text>
+                    </View>
+                  )}
+                </View>
                 <Text style={[styles.rowSub, went && styles.went]}>
                   {lastTrainedLine(friend.last_trained)}
                 </Text>
@@ -294,6 +309,9 @@ const styles = StyleSheet.create({
   },
   rowBody: { flex: 1 },
   rowName: { color: colors.text, fontSize: 16, fontWeight: '700' },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  run: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+  runText: { color: colors.danger, fontSize: 12, fontWeight: '700' },
   rowSub: { color: colors.textDim, fontSize: 12, marginTop: 2 },
   went: { color: colors.success, fontWeight: '700' },
   giftButton: { padding: spacing.xs },

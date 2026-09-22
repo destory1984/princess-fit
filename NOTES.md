@@ -186,11 +186,8 @@
 1. **Supabase 메일 틀** — 비밀번호 찾기가 `{{ .Token }}`을 보내도록.
    안 하면 오늘 지은 것이 안 돈다. 붙여 넣을 본문은
    `supabase/templates/reset-password.html`.
-2. **`supabase/migrate.sql` 다시 돌리기** — `exercises.unilateral` 칸이
-   없으면 종목 화면의 「한쪽씩 하는 종목」 스위치가 저장에 실패한다.
-   `workouts.paid_at`도 여기서 생긴다.
-2-1. **`supabase/social.sql` 처음 돌리기** — 친구·선물·함께 운동 보너스.
-   안 돌리면 친구 화면이 오류를 띄우고, 운동 완료의 보너스는 조용히 건너뛴다.
+2. ~~`migrate.sql`·`social.sql` 돌리기~~ — 2026-09-23 돌림. 친구 기능은
+   아직 두 계정으로 확인 전(「반만 된 것」).
 3. **시험용 기록 삭제** — 데드리프트 10kg 따위가 진짜 기준으로 쓰이는 중.
 
 ### 개발 빌드를 말면 한꺼번에 풀리는 것
@@ -239,7 +236,8 @@ Devin MCP는 `https://mcp.devin.ai/mcp`. 키(실제로는 `cog_`가 아니었다
 | `sides.ts` | 좌우 불균형 |
 | `outbox.ts` / `outboxStore.ts` | 못 보낸 쓰기. 순수 규칙 / 저장·전송 |
 | `backup.ts` / `restore.ts` | 내보내기 / 가져오기 |
-| `advice.ts` | 조언 프롬프트, 규칙 기반 답, 지어낸 숫자 검사 |
+| `advice.ts` | 조언 프롬프트, 규칙 기반 답, 지어낸 숫자 검사. `askModel`은 모델 부르기와 검사를 한데 묶어 다른 조언도 쓴다 |
+| `bodyAdvice.ts` | 신체 기록 한마디. 흐름(오름·내림)만 말하고, 몸 평가·칼로리·목표 체중은 모델에게도 금한다 |
 | `suggest.ts` / `recovery.ts` | 종목 추천 / 회복 |
 | `substitute.ts` | 대체 종목 |
 | `hangul.ts` / `aliases.ts` / `korean.ts` | 초성 / 별칭 / 조사 |
@@ -271,7 +269,7 @@ Devin MCP는 `https://mcp.devin.ai/mcp`. 키(실제로는 `cog_`가 아니었다
 ### 시험
 
 ```bash
-node --test lib/*.test.ts   # 488건
+node --test lib/*.test.ts   # 502건
 npx tsc --noEmit
 npx eslint .
 ```
