@@ -227,3 +227,5 @@ alter table memories enable row level security;
 drop policy if exists "own memories" on memories;
 create policy "own memories" on memories
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+alter table household add column if not exists gifted_on date;

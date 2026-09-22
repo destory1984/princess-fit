@@ -411,6 +411,7 @@ export default function PreviewScreen() {
           furniture: ['bed', 'curtain'],
           culture: { grace: 24, learning: 41, charm: 12 },
           lesson: null,
+          giftedOn: null,
         }}
         busy={null}
         onSpend={() => {}}
@@ -426,6 +427,7 @@ export default function PreviewScreen() {
           culture: { grace: 100, learning: 100, charm: 100 },
           // Part-way through a course: the other half of this shelf.
           lesson: { lessonId: 'dance', startedOn: '2026-09-19', endsOn: '2026-09-22' },
+          giftedOn: null,
         }}
         busy={null}
         onSpend={() => {}}

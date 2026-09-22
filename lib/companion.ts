@@ -43,7 +43,8 @@ export type Session = {
   lifts: { exercise: string; kg: number }[];
 };
 
-export type MemoryKind =
+/** The memories there is one of, ever — each has its own lines in every voice. */
+export type OnceKind =
   | 'first_day'
   | 'three_in_a_row'
   | 'first_triple_digit'
@@ -57,6 +58,18 @@ export type MemoryKind =
   | 'first_garment'
   | 'first_lesson'
   | 'first_friend';
+
+/**
+ * A gift is remembered by what it was — `gift:<item id>` — so each thing
+ * given is its own day, and the unique key still stops one being written twice.
+ */
+export type GiftKind = `gift:${string}`;
+
+export type MemoryKind = OnceKind | GiftKind;
+
+export function isGift(kind: MemoryKind): kind is GiftKind {
+  return kind.startsWith('gift:');
+}
 
 export type Memory = {
   kind: MemoryKind;
@@ -171,6 +184,19 @@ export function eventMemory(
   return { kind, day: localDayKey(today), line, detail };
 }
 
+/**
+ * The day something was given to her. The shop is where you give her things
+ * now rather than a list to finish, so what builds up is the days you did.
+ */
+export function giftMemory(itemId: string, name: string, today = new Date()): Memory {
+  return {
+    kind: `gift:${itemId}`,
+    day: localDayKey(today),
+    line: `${withParticle(name, '을를')} 선물한 날`,
+    detail: name,
+  };
+}
+
 /** What memoriesFrom found that is not written down yet. */
 export function unrecorded(found: Memory[], known: Iterable<MemoryKind>) {
   const have = new Set(known);
@@ -212,7 +238,7 @@ export function memoryLine(memories: Memory[], today = new Date(), girl?: string
   // the rarer one is the better news, and later in the list is rarer.
   if (fresh.length) {
     const m = fresh[fresh.length - 1];
-    return voice.fresh[m.kind](m.detail ?? '');
+    return isGift(m.kind) ? voice.gift.fresh(m.detail ?? '') : voice.fresh[m.kind](m.detail ?? '');
   }
 
   const n = dayNumber(key);
@@ -220,7 +246,7 @@ export function memoryLine(memories: Memory[], today = new Date(), girl?: string
   const old = memories.filter((m) => n - dayNumber(m.day) >= 7);
   const when = (m: Memory) => whenItWas(m.day, today);
   const said = old.flatMap((m) => {
-    const recall = voice.recall[m.kind];
+    const recall = isGift(m.kind) ? voice.gift.recall : voice.recall[m.kind];
     return recall ? [recall(when(m), m.detail ?? '')] : [];
   });
   if (!said.length) return null;

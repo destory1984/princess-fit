@@ -27,8 +27,6 @@ import {
 } from '@/lib/character';
 import { getLedger, listWorkoutFacts } from '@/lib/db';
 import { effectiveCulture } from '@/lib/shop';
-import { outfitProgress } from '@/lib/outfit';
-import { roomProgress } from '@/lib/room';
 import { getWeeklyGoal, setWeeklyGoal } from '@/lib/prefs';
 import {
   LEVEL_TITLES,
@@ -47,7 +45,6 @@ export default function TrainingLedgerScreen() {
   const [culture, setCulture] = useState<Culture>(EMPTY_CULTURE);
   const [wardrobe, setWardrobe] = useState<string[]>([]);
   const [wearing, setWearing] = useState<string[]>([]);
-  const [furniture, setFurniture] = useState<string[]>([]);
   // Whether the household answered. Empty arrays are also what this screen
   // holds before it asks, and after it fails.
   const [ledgerKnown, setLedgerKnown] = useState(false);
@@ -68,7 +65,6 @@ export default function TrainingLedgerScreen() {
             setCulture(l.culture);
             setWardrobe(l.wardrobe);
             setWearing(l.worn);
-            setFurniture(l.furniture);
             setLesson(l.lesson);
             setLedgerKnown(true);
           })
@@ -96,8 +92,6 @@ export default function TrainingLedgerScreen() {
   const summary = summarise(facts);
   // Lessons plus what she is wearing, so this never disagrees with the shop.
   const standing = effectiveCulture(culture, wardrobe, wearing);
-  const clothes = outfitProgress(wardrobe);
-  const room = roomProgress(furniture);
   const stats = computeStats(facts);
   const archetype = archetypeOf(stats);
   const plan = weeklyPlan(facts, goal);
@@ -176,28 +170,6 @@ export default function TrainingLedgerScreen() {
         </View>
       </Scroll>
 
-      <Scroll title="일 년의 길">
-        <Text style={styles.yearHint}>
-          {ledgerKnown
-            ? '꾸준히 일 년이면 옷장을 채울 수 있어요. 방은 그 다음이에요.'
-            : '옷장과 방은 지금 불러오지 못했어요. 잠시 뒤에 다시 열어 주세요.'}
-        </Text>
-        {ledgerKnown && [
-          { label: '옷장', done: clothes.count, total: clothes.total, ratio: clothes.ratio, unit: '벌' },
-          { label: '방', done: room.count, total: room.total, ratio: room.ratio, unit: '개' },
-        ].map((line) => (
-          <View key={line.label} style={styles.cultureRow}>
-            <Text style={styles.yearLabel}>{line.label}</Text>
-            <View style={styles.cultureTrack}>
-              <View style={[styles.cultureFill, { width: `${line.ratio * 100}%` }]} />
-            </View>
-            <Text style={styles.yearValue}>
-              {line.done}/{line.total}
-              {line.unit}
-            </Text>
-          </View>
-        ))}
-      </Scroll>
 
       <Scroll title="배운 것">
         <Text style={styles.refineTitle}>

@@ -9,10 +9,11 @@ import { daysLeft, isFinished, lessonById, type Enrolment } from './lessons.ts';
 /**
  * The household ledger: what a workout earns, and what a day away costs.
  *
- * The numbers are set against one target — a year of steady training (three
- * sessions a week, 156 in all) should pay for her meals, the full wardrobe,
- * and a year of schooling besides. Change one and the year drifts, so the
- * shop tests re-derive it rather than trusting a comment.
+ * The numbers are set against two promises: any one gift is a week or two of
+ * training, and a year of steady training (three sessions a week, 156 in
+ * all) pays for every gift, her meals and a year of schooling besides.
+ * Change one and the year drifts, so the shop tests re-derive both rather
+ * than trusting a comment.
  */
 
 export const GOLD_PER_WORKOUT = 75;

@@ -29,7 +29,6 @@ import {
   GARMENTS,
   layersOf,
   OUTFIT_SLOT_NAME,
-  outfitProgress,
   takingOff,
   wearing,
   type Garment,
@@ -37,7 +36,6 @@ import {
 import {
   FURNITURE,
   replaces,
-  roomProgress,
   SLOT_NAME,
   type Furniture,
 } from "@/lib/room";
@@ -45,6 +43,7 @@ import {
   ACCESSORIES,
   effectiveCulture,
   FOOD,
+  givenToday,
   refusalFor,
   REFUSAL_TEXT,
   type Item,
@@ -132,7 +131,7 @@ function Row({
 
 function ItemRow({ item, shop }: { item: Item; shop: Shop }) {
   const { house, wardrobe } = shop.ledger;
-  const refusal = refusalFor(item, house, wardrobe);
+  const refusal = refusalFor(item, house, wardrobe, shop.ledger.giftedOn);
   return (
     <Row
       id={item.id}
@@ -268,8 +267,9 @@ function GarmentRow({
 }
 
 function FurnitureRow({ piece, shop }: { piece: Furniture; shop: Shop }) {
-  const { house, furniture } = shop.ledger;
+  const { house, furniture, giftedOn } = shop.ledger;
   const owned = furniture.includes(piece.id);
+  const given = givenToday(giftedOn);
   const swaps = owned ? null : replaces(piece, furniture);
   return (
     <Row
@@ -282,13 +282,15 @@ function FurnitureRow({ piece, shop }: { piece: Furniture; shop: Shop }) {
       note={
         owned
           ? REFUSAL_TEXT.owned
-          : house.gold < piece.price
+          : given
+            ? REFUSAL_TEXT.given
+            : house.gold < piece.price
             ? REFUSAL_TEXT.poor
             : swaps
               ? `${swaps.name} 대신 들어와요`
               : SLOT_NAME[piece.slot]
       }
-      disabled={owned || house.gold < piece.price}
+      disabled={owned || given || house.gold < piece.price}
       owned={owned}
       onPress={() =>
         shop.spend(piece.id, piece.name, piece.price, "furniture", () =>
@@ -296,17 +298,6 @@ function FurnitureRow({ piece, shop }: { piece: Furniture; shop: Shop }) {
         )
       }
     />
-  );
-}
-
-function Bar({ ratio, label }: { ratio: number; label: string }) {
-  return (
-    <View style={styles.barWrap}>
-      <View style={styles.track}>
-        <View style={[styles.fill, { width: `${Math.min(1, ratio) * 100}%` }]} />
-      </View>
-      <Text style={styles.barLabel}>{label}</Text>
-    </View>
   );
 }
 
@@ -325,7 +316,7 @@ export function ShopShelves({ ledger, busy, onSpend }: Props) {
   const [tryingOn, setTryingOn] = useState<string | null>(null);
   const shop: Shop = { ledger, busy, onSpend, spend: onSpend };
 
-  const { house, wardrobe, worn, furniture, culture } = ledger;
+  const { house, wardrobe, worn, culture } = ledger;
   // What the bars show: lessons plus whatever she has on.
   const standing = effectiveCulture(culture, wardrobe, worn);
 
@@ -333,12 +324,19 @@ export function ShopShelves({ ledger, busy, onSpend }: Props) {
   const previewed = tryingOn ? GARMENTS.find((g) => g.id === tryingOn) ?? null : null;
   const shownWorn = previewed ? wearing(worn, previewed) : worn;
 
-  const clothes = outfitProgress(wardrobe);
-  const room = roomProgress(furniture);
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <Purse house={house} />
+      {/*
+        Said before anyone runs into it: a greyed-out row with no warning
+        reads as broken, and this is a rule, not a fault.
+      */}
+      <Text style={styles.hint}>
+        {givenToday(ledger.giftedOn)
+          ? "오늘 선물은 이미 했어요. 옷·장신구·방 꾸미기는 하루에 하나씩이에요."
+          : "옷·장신구·방 꾸미기는 선물이에요. 하루에 하나씩 줄 수 있어요."}
+      </Text>
 
       <View style={styles.tabs}>
         {SHELVES.map((s) => (
@@ -362,25 +360,19 @@ export function ShopShelves({ ledger, busy, onSpend }: Props) {
           <View style={styles.dollRow}>
             <PaperDoll worn={shownWorn} style={styles.doll} />
             <View style={styles.dollBody}>
-              <Bar
-                ratio={clothes.ratio}
-                label={`${clothes.count}/${clothes.total}벌`}
-              />
               <Text style={styles.hint}>
                 {previewed
                   ? `${withParticle(previewed.name, '을를')} 입혀 봤어요. 아직 산 건 아니에요.`
-                  : clothes.complete
-                    ? "옷장이 가득 찼어요. 일 년을 걸어온 값이에요."
-                    : "안 가진 옷은 눌러서 입혀만 볼 수 있어요. 가진 옷은 눌러서 갈아입어요."}
+                  : "안 가진 옷은 눌러서 입혀만 볼 수 있어요. 가진 옷은 눌러서 갈아입어요."}
               </Text>
               {previewed && (
                 <View style={styles.tryRow}>
                   <Pressable
                     style={[
                       styles.buy,
-                      house.gold < previewed.price && styles.buyOff,
+                      (house.gold < previewed.price || givenToday(ledger.giftedOn)) && styles.buyOff,
                     ]}
-                    disabled={!!busy || house.gold < previewed.price}
+                    disabled={!!busy || house.gold < previewed.price || givenToday(ledger.giftedOn)}
                     onPress={() =>
                       shop.spend(
                         previewed.id,
@@ -396,7 +388,9 @@ export function ShopShelves({ ledger, busy, onSpend }: Props) {
                     }
                   >
                     <Text style={styles.buyText}>
-                      {house.gold < previewed.price
+                      {givenToday(ledger.giftedOn)
+                        ? REFUSAL_TEXT.given
+                        : house.gold < previewed.price
                         ? "골드가 모자라요"
                         : `사기 · ${previewed.price.toLocaleString()} G`}
                     </Text>
@@ -483,7 +477,6 @@ export function ShopShelves({ ledger, busy, onSpend }: Props) {
 
       {shelf === "방" && (
         <>
-          <Bar ratio={room.ratio} label={`${room.count}/${room.total}개`} />
           <Text style={styles.hint}>
             한 자리에 하나씩. 좋은 걸 사면 있던 게 빠져요.
           </Text>
@@ -548,7 +541,6 @@ const styles = StyleSheet.create({
   buyText: { color: "#fff", fontWeight: "800", fontSize: 13 },
   tryOff: { paddingVertical: spacing.sm, paddingHorizontal: spacing.sm },
   tryOffText: { color: colors.textDim, fontWeight: "700", fontSize: 12 },
-  barWrap: { gap: 4, marginTop: spacing.sm },
   track: {
     flex: 1,
     height: 8,
@@ -559,12 +551,6 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   fill: { height: "100%", backgroundColor: colors.gold },
-  barLabel: {
-    color: colors.gold,
-    fontSize: 12,
-    fontWeight: "700",
-    textAlign: "right",
-  },
   hint: {
     color: colors.textDim,
     fontSize: 12,

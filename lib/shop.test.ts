@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { ACCESSORIES, buy, effectiveCulture, FOOD, refusalFor, wornCharm } from './shop.ts';
+import { ACCESSORIES, buy, effectiveCulture, FOOD, givenToday, refusalFor, wornCharm } from './shop.ts';
+import { FURNITURE, ROOM_TOTAL } from './room.ts';
 import { GARMENTS, OUTFIT_TOTAL } from './outfit.ts';
 import { EMPTY_CULTURE, LESSONS } from './lessons.ts';
 import { DAILY_UPKEEP, workoutGold, type Household } from './economy.ts';
@@ -34,26 +35,47 @@ test('a full belly refuses more food but not a new dress', () => {
   assert.equal(refusalFor(ACCESSORIES[0], stuffed, []), null);
 });
 
-// The promise the whole design rests on, checked end to end rather than by
-// eyeballing two constants in different files.
-test('a year of steady training pays for meals, the wardrobe and schooling', () => {
-  const typical: WorkoutFact = {
-    id: 'w',
-    started_at: '2026-09-20T10:00:00',
-    groups: ['가슴'],
-    doneSets: 12,
-    volume: 3000,
-    durationSec: 0,
-    distanceKm: 0,
-  };
+const typical: WorkoutFact = {
+  id: 'w',
+  started_at: '2026-09-20T10:00:00',
+  groups: ['가슴'],
+  doneSets: 12,
+  volume: 3000,
+  durationSec: 0,
+  distanceKm: 0,
+};
+
+// The shop is where you give her things, not a list to finish. A gift is
+// something a week or two of turning up pays for — never a season's saving.
+test('any one gift is a week or two of training, not a season', () => {
+  const gifts = [...GARMENTS, ...ACCESSORIES, ...FURNITURE];
+  for (const g of gifts) {
+    const workouts = g.price / workoutGold(typical);
+    assert.ok(workouts <= 12, `${g.name}: ${workouts.toFixed(1)} workouts`);
+  }
+});
+
+// And steady training can give her all of it within the year, alongside her
+// meals and her schooling — checked end to end rather than by eyeballing
+// constants in different files.
+test('a year of steady training pays for every gift, her meals and her schooling', () => {
   const earned = workoutGold(typical) * 156;
   const upkeep = DAILY_UPKEEP * 365;
-  // Roughly a decent meal every other day alongside the clothes.
   const meals = 25 * 180;
-  // And twenty lessons across the year, at the going rate.
   const schooling = 20 * (LESSONS.reduce((s, l) => s + l.price, 0) / LESSONS.length);
-  const spare = earned - upkeep - meals - schooling - OUTFIT_TOTAL;
+  const accessories = ACCESSORIES.reduce((s, a) => s + a.price, 0);
+  const spare = earned - upkeep - meals - schooling - OUTFIT_TOTAL - ROOM_TOTAL - accessories;
   assert.ok(spare >= 0, `short by ${Math.round(-spare)}`);
+});
+
+test('one gift a day; food is not a gift', () => {
+  const today = new Date(2026, 8, 23, 20);
+  assert.equal(givenToday('2026-09-23', today), true);
+  assert.equal(givenToday('2026-09-22', today), false);
+  assert.equal(givenToday(null, today), false);
+  assert.equal(refusalFor(ACCESSORIES[0], rich, [], '2026-09-23', today), 'given');
+  assert.equal(refusalFor(ACCESSORIES[0], rich, [], '2026-09-22', today), null);
+  assert.equal(refusalFor(FOOD[0], rich, [], '2026-09-23', today), null);
 });
 
 test('accessories are kept but do not mend a ragged outfit', () => {

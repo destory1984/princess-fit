@@ -1,6 +1,7 @@
 import { FULL, type Household } from './economy.ts';
 import { CULTURE_CAP, type Culture } from './lessons.ts';
 import { outfitCharm } from './outfit.ts';
+import { localDayKey } from './format.ts';
 
 /**
  * What gold buys. Two kinds here, and they behave differently on purpose:
@@ -40,18 +41,38 @@ export const FOOD: Item[] = [
  * charm a little, so they are not purely decorative.
  */
 export const ACCESSORIES: Item[] = [
-  { id: 'brooch', kind: 'accessory', name: '은 브로치', detail: '어머니에게 받은 듯한', price: 400, charm: 3, icon: 'ellipse-outline' },
-  { id: 'gloves', kind: 'accessory', name: '레이스 장갑', detail: '손끝까지 단정하게', price: 600, charm: 3, icon: 'hand-left-outline' },
-  { id: 'tiara', kind: 'accessory', name: '작은 티아라', detail: '언젠가의 예고처럼', price: 1_600, charm: 6, icon: 'diamond-outline' },
+  { id: 'brooch', kind: 'accessory', name: '은 브로치', detail: '어머니에게 받은 듯한', price: 300, charm: 3, icon: 'ellipse-outline' },
+  { id: 'gloves', kind: 'accessory', name: '레이스 장갑', detail: '손끝까지 단정하게', price: 400, charm: 3, icon: 'hand-left-outline' },
+  { id: 'tiara', kind: 'accessory', name: '작은 티아라', detail: '언젠가의 예고처럼', price: 800, charm: 6, icon: 'diamond-outline' },
 ];
 
 export type Purchase = { house: Household; wardrobe: string[] };
 
-export type Refusal = 'poor' | 'owned' | 'full' | null;
+export type Refusal = 'poor' | 'owned' | 'full' | 'given' | null;
+
+/**
+ * One gift a day — a garment, an accessory or a piece for her room.
+ *
+ * The shop stopped being a list to finish and became the place you give her
+ * things, and a gift is a day: ten bought in one sitting is one day, not ten.
+ * It also keeps a purse saved up under the old prices from emptying the
+ * shelves on the first evening. Food and lessons are not gifts — one is
+ * looking after her, the other is something she goes and does.
+ */
+export function givenToday(giftedOn: string | null | undefined, today = new Date()) {
+  return giftedOn === localDayKey(today);
+}
 
 /** Why she cannot have it, or null when she can. */
-export function refusalFor(item: Item, house: Household, wardrobe: string[]): Refusal {
+export function refusalFor(
+  item: Item,
+  house: Household,
+  wardrobe: string[],
+  giftedOn: string | null = null,
+  today = new Date()
+): Refusal {
   if (isKept(item) && wardrobe.includes(item.id)) return 'owned';
+  if (item.kind === 'accessory' && givenToday(giftedOn, today)) return 'given';
   if (house.gold < item.price) return 'poor';
   if (item.kind === 'food' && house.satiety >= FULL) return 'full';
   return null;
@@ -61,6 +82,7 @@ export const REFUSAL_TEXT: Record<Exclude<Refusal, null>, string> = {
   poor: '골드가 모자라요',
   owned: '이미 가지고 있어요',
   full: '지금은 배가 불러요',
+  given: '오늘은 이미 선물했어요. 내일 또 줘요',
 };
 
 /** Accessories stay; food does not. */

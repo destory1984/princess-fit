@@ -120,3 +120,7 @@ create policy "own memories" on memories
 -- The first wording of this memory read as if the days themselves had walked in.
 update memories set line = '처음으로 사흘 연속 운동한 날'
   where kind = 'three_in_a_row' and line = '처음으로 사흘을 이어서 온 날';
+
+-- The day the last gift was given. One a day: the shop is where you give her
+-- things, and ten bought in one sitting is one day, not ten.
+alter table household add column if not exists gifted_on date;

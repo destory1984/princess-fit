@@ -85,7 +85,7 @@ export const GARMENTS: Garment[] = [
     slot: 'hand',
     name: '흰 꽃다발',
     detail: '누가 준 것인지는 말하지 않아요',
-    price: 400,
+    price: 250,
     charm: 2,
     // Held against her with the stems down where her folded arms meet. Low
     // enough to clear her chin: centred on her chest it read as flowers
@@ -98,7 +98,7 @@ export const GARMENTS: Garment[] = [
     slot: 'bottom',
     name: '주황 퍼프 바지',
     detail: '움직이기 편한 쪽',
-    price: 700,
+    price: 450,
     charm: 2,
     // Her hips' width, not a skirt's: a skirt flares and these do not, so
     // taking the skirt's box made them a tent. They come out shorter for it,
@@ -111,7 +111,7 @@ export const GARMENTS: Garment[] = [
     slot: 'bottom',
     name: '푸른 퍼프 바지',
     detail: '차분한 쪽이 좋다면',
-    price: 700,
+    price: 450,
     charm: 2,
     // trousers
     fit: { x: 0.274, y: 0.486, w: 0.451 },
@@ -121,7 +121,7 @@ export const GARMENTS: Garment[] = [
     slot: 'bottom',
     name: '흰 주름치마',
     detail: '무엇에나 어울려요',
-    price: 900,
+    price: 500,
     charm: 3,
     // skirt
     fit: { x: 0.123, y: 0.468, w: 0.743 },
@@ -131,7 +131,7 @@ export const GARMENTS: Garment[] = [
     slot: 'bottom',
     name: '주황 주름치마',
     detail: '멀리서도 눈에 띄어요',
-    price: 900,
+    price: 500,
     charm: 3,
     // skirt
     fit: { x: 0.135, y: 0.394, w: 0.741 },
@@ -141,7 +141,7 @@ export const GARMENTS: Garment[] = [
     slot: 'bottom',
     name: '푸른 주름치마',
     detail: '단정하게 보이고 싶은 날',
-    price: 900,
+    price: 500,
     charm: 3,
     // skirt
     fit: { x: 0.122, y: 0.467, w: 0.744 },
@@ -151,7 +151,7 @@ export const GARMENTS: Garment[] = [
     slot: 'top',
     name: '리본 블라우스',
     detail: '처음으로 제대로 갖춰 입는 옷',
-    price: 1_200,
+    price: 600,
     charm: 4,
     // shoulders
     fit: { x: 0.26, y: 0.36, w: 0.5 },
@@ -161,7 +161,7 @@ export const GARMENTS: Garment[] = [
     slot: 'top',
     name: '한 벌 드레스',
     detail: '일 년을 걸어야 닿는 자리',
-    price: 3_600,
+    price: 1_200,
     charm: 10,
     // A whole outfit: anything underneath would only fight with it.
     hides: ['top', 'bottom'],
@@ -186,7 +186,7 @@ export const GARMENTS: Garment[] = [
     slot: 'neck',
     name: '금빛 목걸이',
     detail: '무도회에 어울리는',
-    price: 1_100,
+    price: 700,
     charm: 5,
     // Below the chin. Her hair silhouette reaches far higher than her face,
     // so a fit measured from the base's outline sits across her mouth.

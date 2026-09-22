@@ -12,7 +12,7 @@ import {
   workoutGold,
   type Household,
 } from './economy';
-import { buy, type Item } from './shop';
+import { buy, givenToday, REFUSAL_TEXT, type Item } from './shop';
 import { DEFAULT_CONDITION, shapePlan, type Condition } from './condition';
 import { slugsOf } from './muscles';
 import type { Session as RecoverySession } from './recovery';
@@ -39,6 +39,7 @@ import { arrivedTotal, type ArrivedGift } from './friends';
 import {
   daysTogether,
   eventMemory,
+  giftMemory,
   memoriesFrom,
   stageOf,
   unrecorded,
@@ -1203,13 +1204,18 @@ export async function getHousehold(today = new Date()): Promise<Household> {
 /** The purse and the wardrobe together, which is how the shop needs them. */
 export async function getLedger(today = new Date()): Promise<Ledger> {
   const userId = await requireUserId();
-  const { data, error } = await supabase
+  const columns =
+    'gold, satiety, attire, settled_on, wardrobe, worn, furniture, grace, learning, charm, lesson_id, lesson_started_on, lesson_ends_on';
+  let { data, error } = await supabase
     .from('household')
-    .select(
-      'gold, satiety, attire, settled_on, wardrobe, worn, furniture, grace, learning, charm, lesson_id, lesson_started_on, lesson_ends_on'
-    )
+    .select(`${columns}, gifted_on`)
     .eq('user_id', userId)
     .maybeSingle();
+  // Before migrate.sql adds gifted_on the household would not load at all —
+  // and the household is the whole of her. Read it without, and give freely.
+  if (error && /gifted_on/.test(error.message)) {
+    ({ data, error } = await supabase.from('household').select(columns).eq('user_id', userId).maybeSingle());
+  }
   if (error) throw error;
 
   const stored: Household = data
@@ -1258,7 +1264,8 @@ export async function getLedger(today = new Date()): Promise<Ledger> {
   if (!data || settled !== stored || collected) {
     await saveHousehold(settled, collected ? { culture, lesson } : undefined);
   }
-  return { house: settled, wardrobe, worn, furniture, culture, lesson };
+  const giftedOn: string | null = (data as { gifted_on?: string | null } | null)?.gifted_on ?? null;
+  return { house: settled, wardrobe, worn, furniture, culture, lesson, giftedOn };
 }
 
 /**
@@ -1299,6 +1306,7 @@ export async function saveHousehold(house: Household, extra: Partial<Omit<Ledger
     ...(extra.worn ? { worn: extra.worn } : {}),
     ...(extra.furniture ? { furniture: extra.furniture } : {}),
     ...(extra.culture ? extra.culture : {}),
+    ...(extra.giftedOn ? { gifted_on: extra.giftedOn } : {}),
     updated_at: new Date().toISOString(),
   });
   if (error) throw error;
@@ -1314,6 +1322,8 @@ export type Ledger = {
   culture: Culture;
   /** The course she is part-way through, or null when she is free. */
   lesson: Enrolment | null;
+  /** The day the last gift was given (see givenToday), or null. */
+  giftedOn: string | null;
 };
 
 /**
@@ -1323,14 +1333,16 @@ export type Ledger = {
 export async function buyGarment(garment: Garment, today = new Date()): Promise<Ledger> {
   const ledger = await getLedger(today);
   if (ledger.wardrobe.includes(garment.id)) throw new Error('이미 가지고 있어요');
+  if (givenToday(ledger.giftedOn, today)) throw new Error(REFUSAL_TEXT.given);
   if (ledger.house.gold < garment.price) throw new Error('골드가 모자라요');
 
   const house = { ...ledger.house, gold: ledger.house.gold - garment.price, attire: FULL };
   const wardrobe = [...ledger.wardrobe, garment.id];
   const worn = wearing(ledger.worn, garment);
-  await saveHousehold(house, { wardrobe, worn });
-  if (ledger.wardrobe.length === 0) void remember(eventMemory('first_garment', garment.name, today));
-  return { ...ledger, house, wardrobe, worn };
+  const giftedOn = localDayKey(today);
+  await saveHousehold(house, { wardrobe, worn, giftedOn });
+  void remember(giftMemory(garment.id, garment.name, today));
+  return { ...ledger, house, wardrobe, worn, giftedOn };
 }
 
 /** Put on or take off something she already owns. Free. */
@@ -1343,21 +1355,28 @@ export async function setWorn(worn: string[], today = new Date()): Promise<Ledge
 /** Spend at the shop. Returns the ledger as it stands afterwards. */
 export async function buyItem(item: Item, today = new Date()): Promise<Ledger> {
   const ledger = await getLedger(today);
+  const gift = item.kind === 'accessory';
+  if (gift && givenToday(ledger.giftedOn, today)) throw new Error(REFUSAL_TEXT.given);
   const next = buy(item, ledger.house, ledger.wardrobe);
-  await saveHousehold(next.house, { wardrobe: next.wardrobe });
-  return { ...ledger, house: next.house, wardrobe: next.wardrobe };
+  const giftedOn = gift ? localDayKey(today) : ledger.giftedOn;
+  await saveHousehold(next.house, { wardrobe: next.wardrobe, ...(gift ? { giftedOn } : {}) });
+  if (gift) void remember(giftMemory(item.id, item.name, today));
+  return { ...ledger, house: next.house, wardrobe: next.wardrobe, giftedOn };
 }
 
 /** Buy a piece for her room. The slot it fills may already hold something. */
 export async function buyFurniture(piece: Furniture, today = new Date()): Promise<Ledger> {
   const ledger = await getLedger(today);
   if (ledger.furniture.includes(piece.id)) throw new Error('이미 가지고 있어요');
+  if (givenToday(ledger.giftedOn, today)) throw new Error(REFUSAL_TEXT.given);
   if (ledger.house.gold < piece.price) throw new Error('골드가 모자라요');
 
   const house = { ...ledger.house, gold: ledger.house.gold - piece.price };
   const furniture = [...ledger.furniture, piece.id];
-  await saveHousehold(house, { furniture });
-  return { ...ledger, house, furniture };
+  const giftedOn = localDayKey(today);
+  await saveHousehold(house, { furniture, giftedOn });
+  void remember(giftMemory(piece.id, piece.name, today));
+  return { ...ledger, house, furniture, giftedOn };
 }
 
 /** Pay for a lesson. What it teaches depends on how much she already knows. */

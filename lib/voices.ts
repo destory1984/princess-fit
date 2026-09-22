@@ -1,5 +1,5 @@
 import { withParticle } from './korean.ts';
-import type { MemoryKind, Stage } from './companion.ts';
+import type { OnceKind, Stage } from './companion.ts';
 import type { GiftKind, Mood } from './economy.ts';
 
 /**
@@ -39,9 +39,11 @@ export type Voice = {
     twoLeft: (name: string) => string;
   };
   /** Said on the day it happens. `d` is the memory's detail. */
-  fresh: Record<MemoryKind, (d: string) => string>;
+  fresh: Record<OnceKind, (d: string) => string>;
   /** Said when an old one comes back. Only the ones with something in them. */
-  recall: Partial<Record<MemoryKind, (when: string, d: string) => string>>;
+  recall: Partial<Record<OnceKind, (when: string, d: string) => string>>;
+  /** Something you gave her: on the day, and when it comes back to her. */
+  gift: { fresh: (name: string) => string; recall: (when: string, name: string) => string };
   /** Who she is, told to the model so its answer comes back in her voice. */
   persona: string;
   /** The rules' read of one workout (lib/advice.ts). Praise, then one remark. */
@@ -187,6 +189,10 @@ const rina: Voice = {
     ],
     sparse: (d) => ['한 달에 여덟 번이 안 돼요', `최근 30일 중 ${d}일 운동했어요. 주 2회만 지켜도 흐름이 생겨요.`],
   },
+  gift: {
+    fresh: (d) => `${d}, 고마워요. 오늘 받은 건 오래 기억할게요.`,
+    recall: (w, d) => `${w} ${withParticle(d, '을를')} 받던 날, 저 사실 좀 울 뻔했어요.`,
+  },
 };
 
 const pia: Voice = {
@@ -288,6 +294,10 @@ const pia: Voice = {
     cardio: (m) => ['유산소 기록이 거의 없어요!', m === 0 ? '한 달 동안 0분! 끝나고 10분만 걸어도 숫자가 생겨요!' : `한 달 동안 ${m}분! 끝에 10분씩만 더해 봐요!`],
     sparse: (d) => ['한 달에 여덟 번이 안 돼요!', `최근 30일 중 ${d}일! 주 2회만 해도 기록이 쭉 이어져요!`],
   },
+  gift: {
+    fresh: (d) => `${d}! 오늘의 선물이에요! 고마워요!`,
+    recall: (w, d) => `${w} ${d} 받았던 날! 그날 기분 최고였어요!`,
+  },
 };
 
 const yuki: Voice = {
@@ -388,6 +398,10 @@ const yuki: Voice = {
     lopsided: (g, pct) => [`${g}에 절반 넘게 몰려 있습니다`, `최근 30일 운동의 ${pct}%가 ${g}입니다. 치우쳤습니다.`],
     cardio: (m) => ['유산소가 부족합니다', m === 0 ? '한 달 동안 0분입니다. 운동 끝에 10분 걸으십시오.' : `한 달 동안 ${m}분입니다. 끝에 10분씩 더하십시오.`],
     sparse: (d) => ['한 달에 여덟 번이 안 됩니다', `최근 30일 중 ${d}일입니다. 주 2회는 지키십시오.`],
+  },
+  gift: {
+    fresh: (d) => `${d}. …감사합니다. 소중히 쓰겠습니다.`,
+    recall: (w, d) => `${w} 주신 ${d}, 아직 잘 쓰고 있어요.`,
   },
 };
 

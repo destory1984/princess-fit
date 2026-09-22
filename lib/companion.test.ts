@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   daysTogether,
   eventMemory,
+  giftMemory,
   memoriesFrom,
   memoryLine,
   RECALL_EVERY,
@@ -179,4 +180,14 @@ test('she places a memory the way a person would', () => {
   assert.equal(whenItWas('2026-06-23', today), '석 달 전에');
   assert.equal(whenItWas('2025-09-25', today), '작년 이맘때');
   assert.equal(whenItWas('2024-01-01', today), '오래전에');
+});
+
+test('every gift is its own day, and she says so in her own voice', () => {
+  const today = new Date(2026, 8, 23);
+  const bow = giftMemory('ribbon', '리본', today);
+  assert.equal(bow.kind, 'gift:ribbon');
+  assert.equal(bow.line, '리본을 선물한 날');
+  const said = ['geumhwa', 'dohwa', 'seora'].map((g) => memoryLine([bow], today, g));
+  assert.equal(new Set(said).size, 3);
+  for (const l of said) assert.match(l!, /리본/);
 });
