@@ -27,6 +27,6 @@ test('an empty session is judged by its start and ends where it began', () => {
   assert.equal(isAbandoned({ started_at: '2026-09-22T08:00:00Z', lastDoneAt: null }, now), false);
 });
 
-test('exactly twelve hours is still open', () => {
-  assert.equal(isAbandoned({ started_at: '2026-09-21T21:00:00Z', lastDoneAt: null }, now), false);
+test('exactly six hours is still open', () => {
+  assert.equal(isAbandoned({ started_at: '2026-09-22T03:00:00Z', lastDoneAt: null }, now), false);
 });

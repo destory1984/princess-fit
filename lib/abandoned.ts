@@ -8,12 +8,12 @@
  *
  * Judged by the last thing that happened in it, not by when it began: a
  * Tuesday session being written up on Friday has sets ticked on Friday and
- * is very much in progress. Twelve hours is longer than any workout and
- * shorter than a night's sleep, so the one forgotten last night is closed by
- * morning and the one under way over midnight is not.
+ * is very much in progress. Six hours is longer than any workout, so the
+ * one forgotten last night is closed by morning, and a set ticked in the
+ * last six hours keeps a session running however long ago it began.
  */
 
-export const ABANDONED_AFTER_MS = 12 * 60 * 60 * 1000;
+export const ABANDONED_AFTER_MS = 6 * 60 * 60 * 1000;
 
 export type OpenSession = { started_at: string; lastDoneAt: string | null };
 
