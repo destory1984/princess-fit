@@ -61,7 +61,7 @@ export function levelAt(xp: number) {
 export const LEVEL_TITLES = [
   '견습',
   '시동',
-  '종자',
+  '수련 기사',
   '기사',
   '근위 기사',
   '성기사',

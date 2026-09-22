@@ -336,6 +336,8 @@ export default function PreviewScreen() {
         grain={10}
         onAdjust={() => {}}
         onStart={() => {}}
+        onStop={() => {}}
+        onReset={() => {}}
       />
       <RestBar
         exerciseName="덤벨 컬"
@@ -344,6 +346,8 @@ export default function PreviewScreen() {
         grain={10}
         onAdjust={() => {}}
         onStart={() => {}}
+        onStop={() => {}}
+        onReset={() => {}}
       />
 
       <Text style={styles.heading}>세트 카드</Text>

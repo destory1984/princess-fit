@@ -130,6 +130,19 @@ export default function WorkoutScreen() {
   // follows the workout on its own until you say otherwise.
   const [opened, setOpened] = useState<string | null>(null);
   const [restEnd, setRestEnd] = useState<number | null>(null);
+
+  /**
+   * Set when the rest ends, and read the clock in the same breath. The
+   * countdown is end minus `now`, and `now` was last read at the previous
+   * tick — up to half a second or, after a pause between rests, much longer
+   * ago. A 60-second rest started against a stale clock opened at 1:01.
+   */
+  function restUntil(end: number | null) {
+    // Only ever called from a press or an effect, never during render.
+    // eslint-disable-next-line react-hooks/purity
+    setNow(Date.now());
+    setRestEnd(end);
+  }
   // Lazy, so the clock is read once on mount rather than on every render.
   const [now, setNow] = useState(() => Date.now());
   const [error, setError] = useState<string | null>(null);
@@ -275,7 +288,7 @@ export default function WorkoutScreen() {
         // The bell booked before the app was killed is still with the OS, and
         // setting the end below books another. Two rings for one rest.
         await cancelStrayRestAlarms();
-        if (alive) setRestEnd(at);
+        if (alive) restUntil(at);
       })
       .finally(() => alive && setRestRestored(true));
     return () => {
@@ -475,7 +488,7 @@ export default function WorkoutScreen() {
       // persist runs from a press, never during render; the rule cannot tell
       // the difference for a function declared in the component body.
       // eslint-disable-next-line react-hooks/purity
-      setRestEnd(Date.now() + seconds * 1000);
+      restUntil(Date.now() + seconds * 1000);
       successFeedback();
 
       // Carry the weight onto the sets still waiting, so a set laid out in
@@ -1470,14 +1483,18 @@ export default function WorkoutScreen() {
             onAdjust={(delta) =>
               restEnd === null
                 ? changeRest(delta)
-                : setRestEnd((end) =>
-                    Math.max(Date.now(), (end ?? Date.now()) + delta * 1000),
-                  )
+                : restUntil(Math.max(Date.now(), restEnd + delta * 1000))
             }
             onStart={() => {
               setRestFor(restExercise?.id ?? null);
-              setRestEnd(Date.now() + restLength * 1000);
+              restUntil(Date.now() + restLength * 1000);
             }}
+            // Clearing the end is enough: the booking effect's cleanup calls
+            // the bell off for any rest cut short.
+            onStop={() => restUntil(null)}
+            // A set that took longer than planned, or a rest interrupted: the
+            // same rest again from the top, for the same exercise.
+            onReset={() => restUntil(Date.now() + restLength * 1000)}
           />
 
           <View style={styles.actions}>

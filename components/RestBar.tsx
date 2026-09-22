@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { colors, radius, spacing } from '@/lib/theme';
 
 type Props = {
@@ -13,6 +14,10 @@ type Props = {
   onAdjust: (delta: number) => void;
   /** Start the rest by hand, without finishing a set first. */
   onStart: () => void;
+  /** Call the running rest off, bell and all. */
+  onStop: () => void;
+  /** Start the running rest over from its full length. */
+  onReset: () => void;
   grain: number;
 };
 
@@ -33,6 +38,8 @@ export function RestBar({
   remaining,
   onAdjust,
   onStart,
+  onStop,
+  onReset,
   grain,
 }: Props) {
   const running = remaining !== null;
@@ -61,9 +68,20 @@ export function RestBar({
             <Text style={styles.buttonText}>+{grain}</Text>
           </Pressable>
           {/*
-            No skip button: a rest blocks nothing, so starting the next set is
-            already the way out of one. Only starting a rest needs a control.
+            Stopping was left out once, on the thought that starting the next
+            set is already the way out of a rest. It is not: the bell is booked
+            with the phone and rings anyway, in the middle of the set.
           */}
+          {running && (
+            <Pressable style={styles.button} onPress={onReset} accessibilityLabel="처음부터">
+              <Ionicons name="refresh" size={15} color={colors.accent} />
+            </Pressable>
+          )}
+          {running && (
+            <Pressable style={[styles.button, styles.primary]} onPress={onStop}>
+              <Text style={[styles.buttonText, styles.primaryText]}>정지</Text>
+            </Pressable>
+          )}
           {!running && (
             <Pressable style={[styles.button, styles.primary]} onPress={onStart}>
               <Text style={[styles.buttonText, styles.primaryText]}>시작</Text>
@@ -85,11 +103,13 @@ const styles = StyleSheet.create({
   },
   fill: { height: '100%', backgroundColor: colors.accent },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  label: { color: colors.textDim, fontSize: 13, maxWidth: 120 },
+  // Gives way first: four buttons while running leave little room on a phone.
+  label: { color: colors.textDim, fontSize: 13, maxWidth: 120, flexShrink: 1 },
   clock: { color: colors.text, fontSize: 22, fontWeight: '800', minWidth: 62 },
   clockOn: { color: colors.accent },
   actions: { flexDirection: 'row', gap: spacing.xs, marginLeft: 'auto' },
   button: {
+    justifyContent: 'center',
     backgroundColor: colors.surfaceAlt,
     borderRadius: radius.sm,
     paddingVertical: spacing.sm,
