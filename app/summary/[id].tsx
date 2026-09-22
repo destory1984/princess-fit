@@ -12,6 +12,7 @@ import { notify } from '@/lib/confirm';
 import {
   getActiveWorkout,
   getLastPerformance,
+  getLedger,
   getWorkoutDetail,
   monthOfSessions,
   previousRoutineSession,
@@ -49,6 +50,7 @@ export default function SummaryScreen() {
     null
   );
   const [error, setError] = useState<string | null>(null);
+  const [worn, setWorn] = useState<string[]>([]);
 
   const load = useCallback(() => {
     if (!id) return;
@@ -60,6 +62,12 @@ export default function SummaryScreen() {
         setFact(facts.find((f) => f.id === id) ?? null);
         setFacts(facts);
         setSummary(summarise(facts));
+
+        // Only dresses the girl on the card; she stands in gym clothes until
+        // it arrives, and if it never does.
+        getLedger()
+          .then((ledger) => setWorn(ledger.worn))
+          .catch(() => {});
 
         // Only feeds the adviser's 「지난번보다」, so the screen never waits.
         const ids = [...new Set(detail.items.map((i) => i.exercise_id))];
@@ -240,7 +248,14 @@ export default function SummaryScreen() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <BragCard ref={card} workout={workout} items={items} fact={fact} summary={summary} />
+      <BragCard
+        ref={card}
+        workout={workout}
+        items={items}
+        fact={fact}
+        summary={summary}
+        worn={worn}
+      />
 
       {adviceContext && <AdviceCard context={adviceContext} />}
 

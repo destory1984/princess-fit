@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { BodyMap, workedParts } from '@/components/BodyMap';
@@ -15,6 +15,7 @@ import {
   listExercises,
   listRoutineExercises,
   removeRoutineExercise,
+  renameRoutine,
   reorderRoutineExercises,
   startWorkout,
   updateRoutineExercise,
@@ -30,6 +31,8 @@ export default function RoutineScreen() {
   const [items, setItems] = useState<RoutineExercise[]>([]);
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [picking, setPicking] = useState(false);
+  // Null while not being edited, so a reload never overwrites typing.
+  const [name, setName] = useState<string | null>(null);
 
   const load = useCallback(() => {
     if (!id) return;
@@ -76,6 +79,21 @@ export default function RoutineScreen() {
       await updateRoutineExercise(item.id, { [field]: next });
     } catch (e: any) {
       notify('저장 실패', explain(e));
+      load();
+    }
+  }
+
+  async function rename() {
+    if (!routine || name === null) return;
+    const next = name.trim();
+    setName(null);
+    // Emptied or unchanged: keep what was there rather than a nameless routine.
+    if (!next || next === routine.name) return;
+    setRoutine({ ...routine, name: next });
+    try {
+      await renameRoutine(routine.id, next);
+    } catch (e: any) {
+      notify('이름 저장 실패', explain(e));
       load();
     }
   }
@@ -128,7 +146,23 @@ export default function RoutineScreen() {
   return (
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>{routine.name}</Text>
+        {/*
+          The name is the title itself, edited where it stands. Sessions
+          already done keep the name they were done under.
+        */}
+        <View style={styles.titleRow}>
+          <TextInput
+            style={[styles.title, styles.titleInput]}
+            value={name ?? routine.name}
+            onChangeText={setName}
+            onBlur={rename}
+            onSubmitEditing={rename}
+            returnKeyType="done"
+            maxLength={40}
+            accessibilityLabel="루틴 이름"
+          />
+          <Ionicons name="pencil" size={16} color={colors.textDim} />
+        </View>
 
         <View style={styles.bodyCard}>
           <BodyMap data={worked} />
@@ -269,6 +303,8 @@ const styles = StyleSheet.create({
   },
   startText: { color: '#fff', fontWeight: '800', fontSize: 15 },
   title: { color: colors.text, fontSize: 22, fontWeight: '800' },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  titleInput: { flex: 1, padding: 0 },
   bodyCard: {
     backgroundColor: colors.surface,
     borderRadius: radius.lg,

@@ -25,7 +25,8 @@ import {
 } from "@/lib/notify";
 import { celebrateFeedback, successFeedback } from "@/lib/feedback";
 
-import { formatDate, formatDuration, formatKm } from "@/lib/format";
+import { formatDate, formatDuration, formatKm, localDayKey } from "@/lib/format";
+import { arrivedLines, type ArrivedGift } from "@/lib/friends";
 import { warmUpAdvice } from "@/lib/advice";
 import { summarise } from "@/lib/gamification";
 import {
@@ -33,7 +34,10 @@ import {
   deleteWorkoutSet,
   estimateOneRm,
   finishWorkout,
+  claimTogether,
+  collectGifts,
   payForWorkout,
+  payUnpaidWorkouts,
   getLastPerformance,
   getPersonalBests,
   getExerciseUsage,
@@ -807,11 +811,12 @@ export default function WorkoutScreen() {
           saveSet(s.id, { done: true, done_at: workout.ended_at }),
         ),
       );
-      // Not paid for. A session that was finished normally has already
-      // been, and one closed by closeAbandonedWorkouts never will be:
-      // payForWorkout cannot tell the two apart, so paying here would pay
-      // the first kind twice. See 「반만 된 것」 in NOTES.md.
+      // Paid now if it never was — closed by itself, or written down after
+      // the fact. paid_at keeps one finished the ordinary way from being
+      // paid twice.
+      const earned = await payUnpaidWorkouts().catch(() => 0);
       await forgetAdvice(id);
+      if (earned) notify(`+${earned} G`, "채워 넣은 운동의 골드가 들어왔어요.");
       router.replace({ pathname: "/summary/[id]", params: { id } });
     } catch (e: any) {
       notify("저장 실패", explain(e));
@@ -861,6 +866,15 @@ export default function WorkoutScreen() {
         }
       }
 
+      // A friend who trained today too earns both of them a bonus. Collected
+      // at once, so it lands in the same notice; best effort throughout —
+      // the workout is saved, and a bonus is never worth an error.
+      let arrived: ArrivedGift[] = [];
+      if (fact && !unpaid) {
+        await claimTogether(localDayKey(new Date(fact.started_at)));
+        arrived = await collectGifts().catch(() => []);
+      }
+
       const gained = after.xp - before.xp;
       const earnedBefore = new Set(
         before.badges.filter((b) => b.earned).map((b) => b.id),
@@ -874,6 +888,7 @@ export default function WorkoutScreen() {
           : "",
         fresh.length ? `새 업적 · ${fresh.map((b) => b.name).join(", ")}` : "",
         after.streak > 1 ? `${after.streak}일 연속 운동 중` : "",
+        ...arrivedLines(arrived),
       ].filter(Boolean);
       const title = earned ? `+${gained} XP · +${earned} G` : `+${gained} XP`;
 

@@ -130,6 +130,8 @@ function RootNavigator() {
         <Stack.Screen name="summary/[id]" options={{ title: "오늘의 기록" }} />
         <Stack.Screen name="greeting" options={{ title: "" }} />
         <Stack.Screen name="body" options={{ title: "신체 기록" }} />
+        <Stack.Screen name="friends" options={{ title: "친구" }} />
+        <Stack.Screen name="friend/[id]" options={{ title: "친구의 방" }} />
         <Stack.Screen name="sleep" options={{ title: "수면 기록" }} />
         <Stack.Screen name="recovery" options={{ title: "회복" }} />
         <Stack.Screen name="photos" options={{ title: "사진 기록" }} />

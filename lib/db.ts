@@ -2,7 +2,7 @@ import { supabase } from './supabase';
 import type { Exercise, Routine, RoutineExercise, Workout, WorkoutSet } from './types';
 import { localDayKey } from './format';
 import { abandonedEnd, isAbandoned } from './abandoned';
-import type { WorkoutFact } from './gamification';
+import { isEmptyWorkout, type WorkoutFact } from './gamification';
 import {
   afterWalk,
   afterWorkout,
@@ -35,6 +35,7 @@ import type { Furniture } from './room';
 import { SPLIT_WINDOW_DAYS, type RoutineUse } from './split';
 import type { BackupWorkout } from './backup';
 import { unseen } from './restore';
+import { arrivedTotal, type ArrivedGift } from './friends';
 import {
   groupHistory,
   streakDays,
@@ -111,6 +112,11 @@ export async function createRoutine(name: string) {
     .single();
   if (error) throw error;
   return data as Routine;
+}
+
+export async function renameRoutine(id: string, name: string) {
+  const { error } = await supabase.from('routines').update({ name }).eq('id', id);
+  if (error) throw error;
 }
 
 export async function deleteRoutine(id: string) {
@@ -399,6 +405,7 @@ export async function closeAbandonedWorkouts(now = new Date()) {
     .is('ended_at', null);
   if (error || !open?.length) return;
 
+  let closed = 0;
   for (const w of open as Pick<Workout, 'id' | 'started_at'>[]) {
     const { data: last } = await supabase
       .from('workout_sets')
@@ -412,12 +419,15 @@ export async function closeAbandonedWorkouts(now = new Date()) {
       lastDoneAt: (last as { done_at: string }[] | null)?.[0]?.done_at ?? null,
     };
     if (!isAbandoned(session, now)) continue;
-    await supabase
+    const { error: closeError } = await supabase
       .from('workouts')
       .update({ ended_at: abandonedEnd(session) })
       .eq('id', w.id)
       .is('ended_at', null);
+    if (!closeError) closed += 1;
   }
+  // The sets were done; forgetting the button should not cost her the gold.
+  if (closed) await payUnpaidWorkouts(now).catch(() => {});
 }
 
 export async function getActiveWorkout() {
@@ -959,6 +969,13 @@ export async function restoreBackup(workouts: BackupWorkout[]) {
       .select()
       .single();
     if (error) throw error;
+    // Taken back, not earned: marked paid before its sets land, so the sweep
+    // for unpaid sessions never sees it. A separate write, because before
+    // migrate.sql the column is missing and that must not stop the restore.
+    await supabase
+      .from('workouts')
+      .update({ paid_at: new Date().toISOString() })
+      .eq('id', (created as Workout).id);
 
     const rows: Record<string, unknown>[] = [];
     let position = 0;
@@ -1307,12 +1324,162 @@ export async function takeLesson(lesson: Lesson, today = new Date()): Promise<Le
   return { ...ledger, house, lesson: enrolment };
 }
 
-/** Pay out a finished workout. Returns the new ledger and what it earned. */
+/**
+ * Mark a workout paid, if nobody has yet. True when this call won it, false
+ * when it was paid before, null when the column is not there yet (before
+ * migrate.sql) — in which case paying goes on unguarded, as it always did.
+ *
+ * A conditional update rather than read-then-write, so the finish button and
+ * the sweep for closed sessions cannot both pay the same one.
+ */
+async function claimPayment(id: string): Promise<boolean | null> {
+  const { data, error } = await supabase
+    .from('workouts')
+    .update({ paid_at: new Date().toISOString() })
+    .eq('id', id)
+    .is('paid_at', null)
+    .select('id');
+  if (error) {
+    if (/paid_at/.test(error.message)) return null;
+    throw error;
+  }
+  return (data as unknown[]).length > 0;
+}
+
+async function releasePayment(id: string) {
+  await supabase.from('workouts').update({ paid_at: null }).eq('id', id);
+}
+
+/**
+ * Pay out a finished workout. Returns the new ledger and what it earned — 0
+ * when it had already been paid.
+ */
 export async function payForWorkout(fact: WorkoutFact, today = new Date()) {
-  const before = await getHousehold(today);
-  const after = afterWorkout(before, fact);
-  await saveHousehold(after);
-  return { house: after, gold: workoutGold(fact) };
+  const claimed = await claimPayment(fact.id);
+  if (claimed === false) return { house: await getHousehold(today), gold: 0 };
+  try {
+    const before = await getHousehold(today);
+    const after = afterWorkout(before, fact);
+    await saveHousehold(after);
+    return { house: after, gold: workoutGold(fact) };
+  } catch (e) {
+    // Handed back, so the retry — or the next sweep — can pay it after all.
+    if (claimed) await releasePayment(fact.id).catch(() => {});
+    throw e;
+  }
+}
+
+/**
+ * Pay every finished session that has not been paid and has something in it.
+ *
+ * Sessions closed by closeAbandonedWorkouts never pass the finish button,
+ * and ones written down after the fact are filled in through the editor —
+ * neither was ever paid. Empty ones are left unclaimed rather than paid 0,
+ * so filling them in later still earns. Returns the gold paid in all.
+ */
+export async function payUnpaidWorkouts(today = new Date()) {
+  const { data, error } = await supabase
+    .from('workouts')
+    .select('id')
+    .not('ended_at', 'is', null)
+    .is('paid_at', null);
+  if (error || !data?.length) return 0;
+  const unpaid = new Set((data as { id: string }[]).map((w) => w.id));
+  const facts = (await listWorkoutFacts()).filter(
+    (f) => unpaid.has(f.id) && !isEmptyWorkout(f)
+  );
+  let gold = 0;
+  for (const fact of facts) gold += (await payForWorkout(fact, today)).gold;
+  return gold;
+}
+
+/*
+  Friends. Everything goes through the functions in supabase/social.sql,
+  which check the friendship before handing anything over; no table of
+  another person's is ever read directly.
+*/
+
+export type Friend = { user_id: string; name: string; girl: string; last_trained: string | null };
+export type FriendRoom = { name: string; girl: string; furniture: string[]; worn: string[] };
+
+/** The caller's code, creating the card on first call. Name and girl kept current. */
+export async function ensureFriendCard(name: string, girl: string): Promise<string> {
+  const { data, error } = await supabase.rpc('ensure_friend_card', { p_name: name, p_girl: girl });
+  if (error) throw error;
+  return data as string;
+}
+
+/** The name on the caller's own card, or '' before there is one. */
+export async function myFriendName(): Promise<string> {
+  const { data, error } = await supabase.rpc('my_friend_name');
+  if (error) throw error;
+  return (data as string | null) ?? '';
+}
+
+export async function addFriend(code: string): Promise<string> {
+  const { data, error } = await supabase.rpc('add_friend', { p_code: code });
+  if (error) throw error;
+  return data as string;
+}
+
+export async function removeFriend(friendId: string) {
+  const { error } = await supabase.rpc('remove_friend', { p_friend: friendId });
+  if (error) throw error;
+}
+
+export async function listFriends(): Promise<Friend[]> {
+  const { data, error } = await supabase.rpc('list_friends');
+  if (error) throw error;
+  return data as Friend[];
+}
+
+export async function getFriendRoom(friendId: string): Promise<FriendRoom> {
+  const { data, error } = await supabase.rpc('friend_room', { p_friend: friendId });
+  if (error) throw error;
+  const row = (data as FriendRoom[])[0];
+  if (!row) throw new Error('방을 찾지 못했어요');
+  return row;
+}
+
+/** Send gold. Taken from the purse on the server, so read the ledger again after. */
+export async function sendGift(friendId: string, amount: number, today = new Date()) {
+  const { error } = await supabase.rpc('send_gift', {
+    p_friend: friendId,
+    p_amount: amount,
+    p_day: localDayKey(today),
+  });
+  if (error) throw error;
+}
+
+/**
+ * Write the together-bonus for a day the caller trained, for every friend
+ * who trained too. Best effort — before social.sql is run there is nothing
+ * to claim, and a workout must never fail over a bonus.
+ */
+export async function claimTogether(day: string) {
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+  const { data, error } = await supabase.rpc('claim_together', { p_day: day, p_tz: tz });
+  if (error) return 0;
+  return (data as number) ?? 0;
+}
+
+/**
+ * Collect what friends have sent and add it to the purse. Handed back to be
+ * collected again if the purse cannot be saved, so a failure costs nothing.
+ */
+export async function collectGifts(today = new Date()): Promise<ArrivedGift[]> {
+  const { data, error } = await supabase.rpc('claim_gifts');
+  if (error) return [];
+  const arrived = data as (ArrivedGift & { id: string })[];
+  if (!arrived.length) return [];
+  try {
+    const house = await getHousehold(today);
+    await saveHousehold({ ...house, gold: house.gold + arrivedTotal(arrived) });
+  } catch (e) {
+    await supabase.rpc('unclaim_gifts', { p_ids: arrived.map((g) => g.id) });
+    throw e;
+  }
+  return arrived;
 }
 
 export const DEFAULT_REST_SEC = 60;

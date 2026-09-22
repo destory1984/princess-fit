@@ -35,7 +35,8 @@ export type Girl = Advisor & {
   aspect: number;
 };
 
-function girlOf(id: string): Girl {
+/** The girl by id, falling back to the first playable one for an unknown id. */
+export function girlOf(id: string): Girl {
   const advisor = ADVISORS.find((a) => a.id === id && a.playable) ?? ADVISORS[0];
   const art = baseArt(advisor.id);
   return { ...advisor, base: art.source, aspect: art.aspect };

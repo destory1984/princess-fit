@@ -201,3 +201,7 @@ alter table workout_sets add column if not exists done_at timestamptz;
 
 alter table workouts add column if not exists advice        text;
 alter table workouts add column if not exists advice_source text;
+
+-- When the session's gold was paid. Null until then, so one closed by itself
+-- or filled in later can still be paid, and one paid cannot be paid again.
+alter table workouts add column if not exists paid_at timestamptz;

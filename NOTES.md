@@ -64,6 +64,23 @@
   모든 기록을 지울 수 있다. 관리자 기능은 전부 `security definer` 함수로
   푼다 — 함수가 관리자 여부를 스스로 묻고 거절한다.
 
+- **골드는 `workouts.paid_at`으로 한 번만 준다.** `paid_at is null`인 것만
+  조건부 update로 차지하고, 저장이 실패하면 되돌려 준다. 완료 버튼, 저절로
+  닫힘(`closeAbandonedWorkouts` → `payUnpaidWorkouts`), 나중에 채워 넣기
+  (`saveEdit`) 셋이 다 같은 길로 받는다. **빈 운동은 차지하지 않는다** — 0G로
+  「받음」 도장을 찍으면 나중에 채워도 못 받는다. 칸이 생기는 첫 실행에서만
+  그때까지 끝난 운동을 모두 받은 것으로 찍는다(대부분 받았고, 저절로 닫힌
+  몇은 가려낼 수 없다). 가져오기는 넣자마자 받은 것으로 찍는다.
+- **친구는 함수로만 본다.** 다른 사람의 표를 직접 읽는 정책은 없다.
+  `supabase/social.sql`의 `security definer` 함수가 친구인지 먼저 묻고,
+  이름·아이·옷·가구만 넘긴다. 세트·무게·메모·지갑은 넘기지 않는다.
+- **선물은 받는 쪽 지갑을 직접 고치지 않는다.** 지갑은 각자 폰이 앞으로
+  정산해 저장하므로, 밑에서 바뀐 숫자는 다음 저장에 덮인다. `gifts` 줄로
+  보내고 받는 폰이 모아 더한다. 저장이 실패하면 되돌려 다시 모은다.
+  보내는 쪽은 서버가 한 번의 조건부 update로 뺀다.
+- **순위표는 없다.** 셈을 정직하게 지켜 온 앱에서 순위는 부풀릴 까닭이 된다.
+  비교는 `docs/competitors.md`.
+
 ### 셈
 
 - **워밍업 램프는 권하되 넣지 않는다.** 무게 40kg부터, 40·60·80%에
@@ -167,9 +184,13 @@
 ### 급한 것
 
 1. **Supabase 메일 틀** — 비밀번호 찾기가 `{{ .Token }}`을 보내도록.
-   안 하면 오늘 지은 것이 안 돈다.
+   안 하면 오늘 지은 것이 안 돈다. 붙여 넣을 본문은
+   `supabase/templates/reset-password.html`.
 2. **`supabase/migrate.sql` 다시 돌리기** — `exercises.unilateral` 칸이
    없으면 종목 화면의 「한쪽씩 하는 종목」 스위치가 저장에 실패한다.
+   `workouts.paid_at`도 여기서 생긴다.
+2-1. **`supabase/social.sql` 처음 돌리기** — 친구·선물·함께 운동 보너스.
+   안 돌리면 친구 화면이 오류를 띄우고, 운동 완료의 보너스는 조용히 건너뛴다.
 3. **시험용 기록 삭제** — 데드리프트 10kg 따위가 진짜 기준으로 쓰이는 중.
 
 ### 개발 빌드를 말면 한꺼번에 풀리는 것
@@ -197,7 +218,8 @@ Devin MCP는 `https://mcp.devin.ai/mcp`. 키(실제로는 `cog_`가 아니었다
 
 ### 반만 된 것
 
-- **저절로 닫힌 운동은 골드를 못 받는다.** 골드는 「운동 완료」를 누를 때(`finish` → `payForWorkout`)만 들어간다. 6시간 뒤 저절로 닫힌 운동(`closeAbandonedWorkouts`)은 그 단계를 거치지 않고, 나중에 기록 화면에서 세트를 채워 넣어도(`saveEdit`) 두 번 주지 않으려고 주지 않는다. `payForWorkout`은 같은 운동을 두 번 받아도 모른다 — 받았는지 적는 기둥(예: `workouts.paid_at`)이 먼저 있어야 고칠 수 있다.
+- ~~저절로 닫힌 운동은 골드를 못 받는다~~ → 2026-09-22 고침. 아래 「데이터」의 `paid_at` 참고.
+- **친구 기능은 두 계정으로 돌려 본 적이 없다.** `social.sql`은 지었으나 실제 DB에서 시험 전. 처음 돌릴 때 친구 맺기 → 방 구경 → 선물 → 같은 날 운동 보너스를 차례로 확인한다.
 
 ### 그림 대기
 
@@ -225,6 +247,7 @@ Devin MCP는 `https://mcp.devin.ai/mcp`. 키(실제로는 `cog_`가 아니었다
 | `economy.ts` / `shop.ts` / `room.ts` / `outfit.ts` | 골드·집·방·옷 |
 | `answers.ts` | 요청에 새 답이 왔는지. 푸시 서버 없이 폰이 마지막으로 본 때와 견준다 |
 | `abandoned.ts` | 안 마친 운동. 마지막 세트 뒤 6시간이면 그 세트 때 끝난 것으로 닫는다 |
+| `friends.ts` | 친구 코드, 선물 금액, 함께 운동 보너스, 받은 선물 문장. 금액·보너스는 시험이 `social.sql`과 맞춰 본다 |
 | `db.ts` | Supabase 질의 전부 |
 
 ### 화면 (`app/`)
@@ -238,6 +261,9 @@ Devin MCP는 `https://mcp.devin.ai/mcp`. 키(실제로는 `cog_`가 아니었다
 - `supabase/migrate.sql` — 기둥 추가. 여러 번 돌려도 됨
 - `supabase/fix-ended-at.sql` — 옛 기록의 끝난 시각을 마지막 세트로 당김. 한 번만 돌리면 되고, 또 돌려도 됨
 - `supabase/admin.sql` — 관리자·요청·프로필. 여러 번 돌려도 됨
+- `supabase/social.sql` — 친구·선물·함께 운동 보너스. 여러 번 돌려도 됨
+- `supabase/templates/` — Supabase 대시보드에 붙여 넣을 메일 틀
+- `docs/competitors.md` — 다른 운동 앱과 견준 것, 다음에 지을 것
 - `public/admin.html` — 관리자 페이지. `/admin.html`로 열림
 - `scripts/garment-fit.mjs` — 그림 자리 재기
 - `scripts/make-rug.mjs` — 양탄자 그리기 (`--tilt`로 각도)
@@ -245,7 +271,7 @@ Devin MCP는 `https://mcp.devin.ai/mcp`. 키(실제로는 `cog_`가 아니었다
 ### 시험
 
 ```bash
-node --test lib/*.test.ts   # 426건
+node --test lib/*.test.ts   # 488건
 npx tsc --noEmit
 npx eslint .
 ```
@@ -260,3 +286,6 @@ npx eslint .
   묵은 탭의 콘솔은 고치기 전 오류를 그대로 물고 있다.
 - **`lib/`의 규칙은 시험을 붙인다.** 화면은 눈으로 본다.
 - 커밋은 **무엇을 고쳤는지보다 왜 그랬는지**를 적는다.
+- **Windows PowerShell 5.1의 `Get-Content`/`Set-Content`로 소스를 고치지 않는다.**
+  BOM 없는 UTF-8을 ANSI로 읽어 한글을 통째로 깨뜨린다(2026-09-22,
+  `TrainingHall.tsx`). 고칠 때는 편집 도구나 Git Bash의 `sed`를 쓴다.

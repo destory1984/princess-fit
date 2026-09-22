@@ -80,6 +80,17 @@ export default function SettingsScreen() {
         <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
       </Pressable>
 
+      <Pressable style={styles.row} onPress={() => router.push('/friends')}>
+        <View style={styles.icon}>
+          <Ionicons name="people-outline" size={22} color={colors.accent} />
+        </View>
+        <View style={styles.body}>
+          <Text style={styles.title}>친구</Text>
+          <Text style={styles.sub}>방 구경 · 선물 · 같은 날 운동하면 둘 다 보너스</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
+      </Pressable>
+
       <Pressable style={styles.row} onPress={() => router.push('/settings/plan')}>
         <View style={styles.icon}>
           <Ionicons name="flag-outline" size={22} color={colors.accent} />

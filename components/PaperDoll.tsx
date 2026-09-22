@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { garmentArt } from "@/lib/outfitArt";
 import { layersOf } from "@/lib/outfit";
-import { useGirl } from '@/lib/girl';
+import { useGirl, type Girl } from '@/lib/girl';
 
 // react-native-web has no native animation driver, so asking for one there
 // only produces a warning and the same JS-driven animation.
@@ -25,6 +25,8 @@ type Props = {
    * pixels of drift is enough to make her look alive, and costs no new art.
    */
   idle?: boolean;
+  /** Someone else's girl, when visiting. Defaults to the one this phone raises. */
+  girl?: Girl;
 };
 
 /**
@@ -37,8 +39,9 @@ type Props = {
  *
  * Give the box a width, or both dimensions.
  */
-export function PaperDoll({ worn, style, idle }: Props) {
-  const girl = useGirl();
+export function PaperDoll({ worn, style, idle, girl: visiting }: Props) {
+  const own = useGirl();
+  const girl = visiting ?? own;
   // Percentages and aspectRatio both lose to an image's intrinsic size here,
   // so the box is measured and every garment placed in real pixels.
   const [box, setBox] = useState({ width: 0, height: 0 });

@@ -5,20 +5,27 @@ import { PaperDoll } from "@/components/PaperDoll";
 import { STAT_META, STAT_ORDER, type Stats } from "@/lib/character";
 import { artFor } from "@/lib/furnitureArt";
 import { roomContents } from "@/lib/room";
+import type { Girl } from "@/lib/girl";
 import { colors, paper } from "@/lib/theme";
 
 const ROOM = require("../assets/room.png");
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
-type Props = {
-  today: Date;
+/** Her plaque. Left out when visiting a friend: their numbers are theirs. */
+type Status = {
   rank: string;
   level: number;
   archetype: string;
   condition: string;
   stats: Stats;
   streak: number;
+};
+
+type Props = Partial<Status> & {
+  today: Date;
+  /** Someone else's girl, when visiting. */
+  girl?: Girl;
   /** Ids of the furniture she owns; the cot is always there underneath. */
   furniture?: string[];
   /** Why the numbers are lower than they were, when they are. */
@@ -42,6 +49,7 @@ export function TrainingHall({
   penalty,
   worn = [],
   caption,
+  girl,
 }: Props) {
   // Everything in the scene — the girl, every piece of furniture — is placed
   // as a fraction of it, so the scene has to be exactly the artwork's 3:2.
@@ -100,6 +108,7 @@ export function TrainingHall({
           {scene.height > 0 && (
             <PaperDoll
               worn={worn}
+              girl={girl}
               style={{
                 position: "absolute",
                 bottom: scene.height * 0.02,
@@ -121,29 +130,31 @@ export function TrainingHall({
             </Text>
           </OrnateFrame>
 
-          <OrnateFrame compact style={styles.statusPanel}>
-            <Text style={styles.statusName}>{archetype}</Text>
-            <Text style={styles.statusRank}>
-              제 {level} 품 · {rank}
-            </Text>
-            <Text style={styles.statusCondition}>{condition}</Text>
-            <View style={styles.statusNumbers}>
-              {STAT_ORDER.map((key) => (
-                <View key={key} style={styles.statusStat}>
-                  <Text style={styles.statusStatLabel}>
-                    {STAT_META[key].short}
-                  </Text>
-                  <Text style={styles.statusStatValue}>{stats[key]}</Text>
-                </View>
-              ))}
-            </View>
-            {streak > 0 && (
-              <Text style={styles.statusStreak}>연속 {streak}일</Text>
-            )}
-            {penalty ? (
-              <Text style={styles.statusPenalty}>{penalty}</Text>
-            ) : null}
-          </OrnateFrame>
+          {stats && (
+            <OrnateFrame compact style={styles.statusPanel}>
+              <Text style={styles.statusName}>{archetype}</Text>
+              <Text style={styles.statusRank}>
+                제 {level} 품 · {rank}
+              </Text>
+              <Text style={styles.statusCondition}>{condition}</Text>
+              <View style={styles.statusNumbers}>
+                {STAT_ORDER.map((key) => (
+                  <View key={key} style={styles.statusStat}>
+                    <Text style={styles.statusStatLabel}>
+                      {STAT_META[key].short}
+                    </Text>
+                    <Text style={styles.statusStatValue}>{stats[key]}</Text>
+                  </View>
+                ))}
+              </View>
+              {!!streak && (
+                <Text style={styles.statusStreak}>연속 {streak}일</Text>
+              )}
+              {penalty ? (
+                <Text style={styles.statusPenalty}>{penalty}</Text>
+              ) : null}
+            </OrnateFrame>
+          )}
         </View>
 
         {caption ? <Text style={styles.caption}>{caption}</Text> : null}
@@ -156,8 +167,8 @@ export function TrainingHall({
         */}
         {unpictured.length > 0 && (
           <Text style={styles.missing} numberOfLines={2}>
-            들여둔 것 · {unpictured.map((piece) => piece.name).join(' · ')}
-            {'  (그림은 준비 중이에요)'}
+            들여둔 것 · {unpictured.map((piece) => piece.name).join(" · ")}
+            {"  (그림은 준비 중이에요)"}
           </Text>
         )}
       </View>

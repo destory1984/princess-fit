@@ -79,3 +79,18 @@ alter table exercises add column if not exists unilateral boolean;
 -- single value on a profile: children grow, and a record of when they were
 -- how tall is worth more than the latest number. Usually blank.
 alter table body_logs add column if not exists height_cm numeric(4, 1);
+
+-- When the session's gold was paid. Every session finished before the column
+-- existed is taken as paid — most were, and the few closed by themselves
+-- cannot be told apart. Only on the run that adds the column: afterwards,
+-- null means unpaid, and stamping it again would swallow real debts.
+do $$
+begin
+  if not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'workouts' and column_name = 'paid_at'
+  ) then
+    alter table workouts add column if not exists paid_at timestamptz;
+    update workouts set paid_at = ended_at where ended_at is not null;
+  end if;
+end $$;

@@ -3,6 +3,8 @@ import { StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { BodyMap, workedParts } from '@/components/BodyMap';
 import { OrnateFrame } from '@/components/OrnateFrame';
+import { PaperDoll } from '@/components/PaperDoll';
+import { useGirl } from '@/lib/girl';
 import type { WorkoutDetailExercise } from '@/lib/db';
 import { DEFAULT_REST_SEC } from '@/lib/db';
 import { workoutGold } from '@/lib/economy';
@@ -19,6 +21,8 @@ type Props = {
   items: WorkoutDetailExercise[];
   fact: WorkoutFact;
   summary: ReturnType<typeof summarise>;
+  /** What she has on, so the card shows the girl as she is today. */
+  worn?: string[];
 };
 
 /**
@@ -29,9 +33,10 @@ type Props = {
  * on the bench without finishing a workout first.
  */
 export const BragCard = forwardRef<View, Props>(function BragCard(
-  { workout, items, fact, summary },
+  { workout, items, fact, summary, worn = [] },
   ref
 ) {
+  const girl = useGirl();
   const worked = workedParts(items.flatMap((i) => i.exercise ?? []));
   const doneSets = items.reduce((sum, i) => sum + i.sets.filter((s) => s.done).length, 0);
   // A session written down after the fact has no length. Rounding that up to
@@ -101,9 +106,22 @@ export const BragCard = forwardRef<View, Props>(function BragCard(
   return (
     <View ref={ref} collapsable={false}>
       <OrnateFrame style={styles.card}>
-        <Text style={styles.date}>{formatDate(workout.started_at)}</Text>
-        <Text style={styles.cheer}>{empty ? cheer : `💪 ${cheer}`}</Text>
-        <Text style={styles.title}>{workout.title}</Text>
+        {/*
+          She stands in the corner. A card of numbers looks like every other
+          fitness app's; the girl is what makes it this one, and what a friend
+          who sees it would ask about.
+        */}
+        <View style={styles.head}>
+          <View style={styles.headText}>
+            <Text style={styles.date}>{formatDate(workout.started_at)}</Text>
+            <Text style={styles.cheer}>{empty ? cheer : `💪 ${cheer}`}</Text>
+            <Text style={styles.title}>{workout.title}</Text>
+          </View>
+          <View style={styles.girl}>
+            <PaperDoll worn={worn} style={styles.doll} />
+            <Text style={styles.girlName}>{girl.name}</Text>
+          </View>
+        </View>
 
         {/*
           What was actually done. The card had the weight, the sets, the
@@ -194,6 +212,11 @@ function Pill({ icon, text, tint }: { icon: string; text: string; tint: string }
 
 const styles = StyleSheet.create({
   card: { gap: spacing.sm },
+  head: { flexDirection: 'row', gap: spacing.sm },
+  headText: { flex: 1 },
+  girl: { alignItems: 'center' },
+  doll: { width: 72 },
+  girlName: { color: colors.textDim, fontSize: 10, fontWeight: '700' },
   date: { color: colors.textDim, fontSize: 13 },
   cheer: { color: colors.accent, fontSize: 15, fontWeight: '700' },
   title: { color: colors.text, fontSize: 26, fontWeight: '800', marginBottom: spacing.md },
