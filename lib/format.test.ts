@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { formatKm } from './format.ts';
+import { daysAgo, formatKm } from './format.ts';
 
 test('the float tail never reaches the screen', () => {
   // This is the actual sum of two sets logged in the app's own tenths, and
@@ -31,4 +31,20 @@ test('every sum of tenths comes out short', () => {
       assert.ok(out.length <= 4, `${a / 10} + ${b / 10} → ${out}`);
     }
   }
+});
+
+test('daysAgo counts calendar days in the old words', () => {
+  const now = new Date(2026, 8, 22, 1, 0);
+  const at = (m: number, d: number, h = 12) => new Date(2026, m, d, h).toISOString();
+  assert.equal(daysAgo(at(8, 22, 0), now), '오늘');
+  assert.equal(daysAgo(at(8, 21, 20), now), '어제');
+  assert.equal(daysAgo(at(8, 20), now), '이틀 전');
+  assert.equal(daysAgo(at(8, 19), now), '사흘 전');
+  assert.equal(daysAgo(at(8, 15), now), '이레 전');
+  assert.equal(daysAgo(at(8, 12), now), '열흘 전');
+  assert.equal(daysAgo(at(8, 9), now), '열흘 남짓 전');
+  assert.equal(daysAgo(at(8, 1), now), '보름 남짓 전');
+  assert.equal(daysAgo(at(7, 20), now), '한 달 전');
+  assert.equal(daysAgo(at(5, 20), now), '석 달 전');
+  assert.equal(daysAgo(new Date(2025, 5, 1).toISOString(), now), '해포 전');
 });

@@ -36,3 +36,31 @@ export function formatKm(km: number) {
   const rounded = Math.round(km * 10) / 10;
   return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
 }
+
+/**
+ * How long ago a day was, in the old counting words — 사흘, 보름, 석 달 —
+ * because the app dresses as a page from an old ledger and 「3일 전」 is a
+ * phone talking.
+ *
+ * Counted in calendar days on this phone: yesterday evening is 「어제」 at one
+ * in the morning, not 「오늘」 for being five hours ago. Past ten days the old
+ * words count in 열흘, 보름 and months, which is as exact as anyone pictures
+ * a gap that long anyway.
+ */
+const DAY_WORDS = ['', '', '이틀', '사흘', '나흘', '닷새', '엿새', '이레', '여드레', '아흐레', '열흘'];
+const MONTH_WORDS = ['', '한', '두', '석', '넉', '다섯', '여섯', '일곱', '여덟', '아홉', '열', '열한', '열두'];
+
+export function daysAgo(iso: string, now = new Date()) {
+  const then = new Date(iso);
+  const a = Date.UTC(then.getFullYear(), then.getMonth(), then.getDate());
+  const b = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  const days = Math.round((b - a) / 86_400_000);
+  if (days <= 0) return '오늘';
+  if (days === 1) return '어제';
+  if (days <= 10) return `${DAY_WORDS[days]} 전`;
+  if (days < 15) return '열흘 남짓 전';
+  if (days < 30) return '보름 남짓 전';
+  const months = Math.floor(days / 30);
+  if (months <= 12) return `${MONTH_WORDS[months]} 달 전`;
+  return '해포 전';
+}

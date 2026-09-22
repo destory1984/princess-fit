@@ -12,7 +12,7 @@ import {
   listRoutineExercises,
   listRoutines,
 } from '@/lib/db';
-import { formatDate } from '@/lib/format';
+import { daysAgo } from '@/lib/format';
 import { byLastUsed } from '@/lib/split';
 import type { Routine } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
@@ -158,7 +158,7 @@ export default function RoutinesScreen() {
                 */}
                 {sizes[item.id] !== undefined &&
                   (lastDone.has(item.id)
-                    ? ` · 지난번 ${formatDate(lastDone.get(item.id)!, 'short')}`
+                    ? ` · ${daysAgo(lastDone.get(item.id)!)}`
                     : ' · 아직 안 해봤어요')}
               </Text>
             </View>

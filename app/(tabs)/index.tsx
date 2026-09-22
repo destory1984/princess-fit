@@ -36,6 +36,7 @@ import {
   getWeeklyStats,
   listExercises,
   listRoutineExercises,
+  lastDoneByRoutine,
   listRoutines,
   getLedger,
   recentRoutineUse,
@@ -43,6 +44,7 @@ import {
   startWorkout,
   type WeeklyStats,
 } from '@/lib/db';
+import { daysAgo } from '@/lib/format';
 import { summarise, type WorkoutFact } from '@/lib/gamification';
 import type { Routine, Workout } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
@@ -91,6 +93,7 @@ export default function TodayScreen() {
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [answers, setAnswers] = useState<string | null>(null);
+  const [lastDone, setLastDone] = useState<Map<string, string>>(new Map());
 
   /**
    * What the screen needs in order to exist, and nothing else.
@@ -133,6 +136,11 @@ export default function TodayScreen() {
 
         // Which routine the second start button offers. Off the critical path:
         // the button has a sensible thing to say without it.
+        // When each routine was last done, said under its name.
+        lastDoneByRoutine()
+          .then(setLastDone)
+          .catch(() => {});
+
         recentRoutineUse()
           .then(setRoutineUse)
           .catch(() => {});
@@ -409,6 +417,10 @@ export default function TodayScreen() {
                   : routineSizes[r.id] > 0
                     ? `종목 ${routineSizes[r.id]}개`
                     : '종목을 더 담아 주세요'}
+                {routineSizes[r.id] !== undefined &&
+                  (lastDone.has(r.id)
+                    ? ` · ${daysAgo(lastDone.get(r.id)!)}`
+                    : ' · 아직 안 해봤어요')}
               </Text>
             </View>
             <View style={styles.startPill}>
