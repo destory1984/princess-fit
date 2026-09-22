@@ -44,15 +44,26 @@ export function MonthCalendar({
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <Pressable hitSlop={10} onPress={() => onShiftMonth(-1)}>
-          <Ionicons name="chevron-back" size={20} color={colors.textDim} />
-        </Pressable>
+        {/* A year back is twelve taps otherwise. */}
+        <View style={styles.nav}>
+          <Pressable hitSlop={6} onPress={() => onShiftMonth(-12)} accessibilityLabel="1년 전">
+            <Ionicons name="play-back-outline" size={18} color={colors.textDim} />
+          </Pressable>
+          <Pressable hitSlop={6} onPress={() => onShiftMonth(-1)} accessibilityLabel="한 달 전">
+            <Ionicons name="chevron-back" size={20} color={colors.textDim} />
+          </Pressable>
+        </View>
         <Text style={styles.title}>
           {month.getFullYear()}년 {month.getMonth() + 1}월
         </Text>
-        <Pressable hitSlop={10} onPress={() => onShiftMonth(1)}>
-          <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
-        </Pressable>
+        <View style={styles.nav}>
+          <Pressable hitSlop={6} onPress={() => onShiftMonth(1)} accessibilityLabel="한 달 뒤">
+            <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
+          </Pressable>
+          <Pressable hitSlop={6} onPress={() => onShiftMonth(12)} accessibilityLabel="1년 뒤">
+            <Ionicons name="play-forward-outline" size={18} color={colors.textDim} />
+          </Pressable>
+        </View>
       </View>
 
       <View style={styles.week}>
@@ -73,7 +84,9 @@ export function MonthCalendar({
               <Pressable
                 key={key}
                 style={styles.cell}
-                disabled={!marked}
+                // An empty past day is where a forgotten session gets written
+                // down, so it opens too. Only days to come stay shut.
+                disabled={key > today}
                 onPress={() => onSelect(key)}>
                 <View style={[styles.dayWrap, selected === key && styles.dayWrapOn]}>
                   <Text
@@ -116,6 +129,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     paddingBottom: spacing.md,
   },
+  nav: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   title: { color: colors.text, fontSize: 16, fontWeight: '700' },
   week: { flexDirection: 'row' },
   weekday: {
