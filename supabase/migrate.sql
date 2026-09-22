@@ -115,3 +115,7 @@ alter table memories enable row level security;
 drop policy if exists "own memories" on memories;
 create policy "own memories" on memories
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- The first wording of this memory read as if the days themselves had walked in.
+update memories set line = '처음으로 사흘 연속 운동한 날'
+  where kind = 'three_in_a_row' and line = '처음으로 사흘을 이어서 온 날';

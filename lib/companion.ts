@@ -111,7 +111,7 @@ export function memoriesFrom(sessions: Session[]): Memory[] {
     if (count === 101) note('stage_old', day, '오래된 사이가 된 날');
 
     if (i >= 2 && dayNumber(day) - dayNumber(days[i - 2]) === 2) {
-      note('three_in_a_row', day, '처음으로 사흘을 이어서 온 날');
+      note('three_in_a_row', day, '처음으로 사흘 연속 운동한 날');
     }
     if (i >= 1) {
       const away = dayNumber(day) - dayNumber(days[i - 1]);
@@ -147,7 +147,7 @@ export function memoriesFrom(sessions: Session[]): Memory[] {
         dayNumber(day) - dayNumber(first) >= HALF_YEAR_DAYS
       ) {
         const what = `${l.exercise} ${kg(l.kg)}`;
-        note('best_after_half_year', day, `반년을 넘겨 ${what}, 가장 무겁게 든 날`, what);
+        note('best_after_half_year', day, `운동한 지 반년 넘어 ${withParticle(what, '으로로')} 최고 기록을 세운 날`, what);
       }
       best.set(l.exercise, Math.max(before ?? 0, l.kg));
     }
@@ -184,7 +184,7 @@ function freshLine(m: Memory): string {
     case 'first_day':
       return '오늘 처음 뵈었네요. 앞으로 잘 부탁드려요.';
     case 'three_in_a_row':
-      return '사흘이나 이어서 오셨어요. 저 오늘 좀 들떠 있어요.';
+      return '사흘 연속이에요. 저 오늘 좀 들떠 있어요.';
     case 'first_triple_digit':
       return `오늘 ${d}, 세 자리예요. 오늘 일은 오래 기억할 거예요.`;
     case 'day_30':
@@ -235,7 +235,7 @@ function recallLine(m: Memory, today: Date): string | null {
     case 'first_triple_digit':
       return `${when} ${d} 드시고 한참 웃으셨잖아요. 오늘도 그런 날이면 좋겠어요.`;
     case 'three_in_a_row':
-      return `${when} 사흘 이어서 오셨던 거, 아직 기억해요.`;
+      return `${when} 사흘 연속 오셨던 거, 아직 기억해요.`;
     case 'came_back':
       return `${when} 오래 쉬다 오셨을 때도 금방 제자리였잖아요.`;
     case 'best_after_half_year':
