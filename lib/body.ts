@@ -63,3 +63,26 @@ export function series(logs: BodyLog[], metric: BodyMetric) {
     .sort((a, b) => a.measured_on.localeCompare(b.measured_on))
     .map((l) => ({ label: l.measured_on.slice(5), value: l[metric]! }));
 }
+
+/**
+ * Turn what was typed into the three boxes into something to save.
+ *
+ * Blank boxes are left out rather than saved as nothing, so weighing in
+ * without the body-fat scale keeps this morning's body fat if it was already
+ * written. A box with something unreadable in it — or a zero, which no scale
+ * reads — stops the whole save and names the box, rather than saving the
+ * other two and quietly dropping the third.
+ */
+export function parseMeasurements(
+  drafts: Record<BodyMetric, string>
+): { values: Partial<Record<BodyMetric, number>> } | { bad: BodyMetric } | { empty: true } {
+  const values: Partial<Record<BodyMetric, number>> = {};
+  for (const key of BODY_METRIC_ORDER) {
+    const raw = drafts[key].trim().replace(',', '.');
+    if (!raw) continue;
+    const value = Number(raw);
+    if (!Number.isFinite(value) || value <= 0) return { bad: key };
+    values[key] = value;
+  }
+  return Object.keys(values).length ? { values } : { empty: true };
+}

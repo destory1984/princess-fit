@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { change, latest, series, type BodyLog } from './body.ts';
+import { change, latest, parseMeasurements, series, type BodyLog } from './body.ts';
 
 const TODAY = new Date(2026, 8, 20);
 
@@ -62,4 +62,23 @@ test('a series comes back oldest first and skips blank readings', () => {
     series(logs, 'weight_kg').map((p) => p.value),
     [81, 79.4]
   );
+});
+
+test('parseMeasurements keeps what was typed and skips blank boxes', () => {
+  assert.deepEqual(parseMeasurements({ weight_kg: '79,4', body_fat_pct: '', muscle_kg: ' 33 ' }), {
+    values: { weight_kg: 79.4, muscle_kg: 33 },
+  });
+});
+
+test('parseMeasurements names the box it cannot read', () => {
+  assert.deepEqual(parseMeasurements({ weight_kg: '79', body_fat_pct: 'abc', muscle_kg: '' }), {
+    bad: 'body_fat_pct',
+  });
+  assert.deepEqual(parseMeasurements({ weight_kg: '0', body_fat_pct: '', muscle_kg: '' }), {
+    bad: 'weight_kg',
+  });
+});
+
+test('parseMeasurements with every box blank has nothing to save', () => {
+  assert.deepEqual(parseMeasurements({ weight_kg: '', body_fat_pct: ' ', muscle_kg: '' }), { empty: true });
 });

@@ -9,6 +9,7 @@ import {
   BODY_METRICS,
   change,
   latest,
+  parseMeasurements,
   series,
   type BodyLog,
   type BodyMetric,
@@ -29,7 +30,11 @@ export default function BodyScreen() {
   const [logs, setLogs] = useState<BodyLog[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [metric, setMetric] = useState<BodyMetric>('weight_kg');
-  const [draft, setDraft] = useState('');
+  const [drafts, setDrafts] = useState<Record<BodyMetric, string>>({
+    weight_kg: '',
+    body_fat_pct: '',
+    muscle_kg: '',
+  });
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(() => {
@@ -42,15 +47,19 @@ export default function BodyScreen() {
   useFocusEffect(load);
 
   async function record() {
-    const value = Number(draft.replace(',', '.'));
-    if (!Number.isFinite(value) || value <= 0) {
-      notify('숫자를 넣어주세요');
+    const parsed = parseMeasurements(drafts);
+    if ('empty' in parsed) {
+      notify('잰 값을 하나라도 넣어주세요');
+      return;
+    }
+    if ('bad' in parsed) {
+      notify(`${BODY_METRICS[parsed.bad].name} 칸에 숫자를 넣어주세요`);
       return;
     }
     setSaving(true);
     try {
-      await saveBodyLog({ [metric]: value });
-      setDraft('');
+      await saveBodyLog(parsed.values);
+      setDrafts({ weight_kg: '', body_fat_pct: '', muscle_kg: '' });
       load();
     } catch (e: any) {
       notify('저장 실패', explain(e));
@@ -83,7 +92,48 @@ export default function BodyScreen() {
   const points = series(logs, metric);
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled">
+      {/*
+        The form comes first and asks for all three at once. It used to sit
+        under the chart and take one number, for whichever tile happened to be
+        picked — so writing down one weigh-in meant tapping a tile, scrolling
+        past a graph and saving three times. Most scales show all three
+        together; they are written down together.
+      */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>오늘 잰 것</Text>
+        {BODY_METRIC_ORDER.map((key) => {
+          const before = latest(logs, key);
+          return (
+            <View key={key} style={styles.field}>
+              <Text style={styles.fieldLabel}>{BODY_METRICS[key].name}</Text>
+              <TextInput
+                style={styles.input}
+                placeholder={before === null ? '' : `지난번 ${before}`}
+                placeholderTextColor={colors.textDim}
+                keyboardType="decimal-pad"
+                value={drafts[key]}
+                onChangeText={(text) => setDrafts((d) => ({ ...d, [key]: text }))}
+                returnKeyType="done"
+              />
+              <Text style={styles.unit}>{BODY_METRICS[key].unit}</Text>
+            </View>
+          );
+        })}
+        <Pressable
+          style={[styles.save, saving && styles.saveOff]}
+          disabled={saving}
+          onPress={record}>
+          <Text style={styles.saveText}>{saving ? '저장 중…' : '저장'}</Text>
+        </Pressable>
+        <Text style={styles.note}>
+          잰 것만 적으면 돼요. 같은 날 다시 적으면 적은 칸만 바뀌어요.
+        </Text>
+      </View>
+
       <View style={styles.tiles}>
         {BODY_METRIC_ORDER.map((key) => {
           const value = latest(logs, key);
@@ -119,31 +169,6 @@ export default function BodyScreen() {
         <LineChart points={points} unit={meta.unit} />
       </View>
 
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>오늘 {meta.name} 기록</Text>
-        <View style={styles.entry}>
-          <TextInput
-            style={styles.input}
-            placeholder={`예: ${metric === 'body_fat_pct' ? '23.4' : '79.4'}`}
-            placeholderTextColor={colors.textDim}
-            keyboardType="decimal-pad"
-            value={draft}
-            onChangeText={setDraft}
-            onSubmitEditing={record}
-            returnKeyType="done"
-          />
-          <Text style={styles.unit}>{meta.unit}</Text>
-          <Pressable
-            style={[styles.save, saving && styles.saveOff]}
-            disabled={saving}
-            onPress={record}>
-            <Text style={styles.saveText}>{saving ? '저장 중…' : '기록'}</Text>
-          </Pressable>
-        </View>
-        <Text style={styles.note}>
-          하루에 하나만 남아요. 같은 날 다시 재면 새 값으로 바뀌어요.
-        </Text>
-      </View>
 
       {logs.length > 0 && (
         <View style={styles.card}>
@@ -204,7 +229,8 @@ const styles = StyleSheet.create({
   cardTitle: { color: colors.text, fontSize: 15, fontWeight: '700' },
   change: { color: colors.accent, fontSize: 13, fontWeight: '700' },
   changeQuiet: { color: colors.textDim, fontSize: 12, lineHeight: 18 },
-  entry: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  field: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  fieldLabel: { color: colors.text, fontSize: 14, fontWeight: '600', width: 64 },
   input: {
     flex: 1,
     backgroundColor: paper.bgAlt,
@@ -213,12 +239,13 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     fontSize: 16,
   },
-  unit: { color: colors.textDim, fontSize: 13 },
+  unit: { color: colors.textDim, fontSize: 13, width: 22 },
   save: {
     backgroundColor: colors.accent,
     borderRadius: radius.sm,
     paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
+    alignItems: 'center',
+    marginTop: spacing.xs,
   },
   saveOff: { opacity: 0.6 },
   saveText: { color: '#fff', fontWeight: '800' },
