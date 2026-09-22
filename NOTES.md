@@ -234,6 +234,7 @@ Devin MCP는 `https://mcp.devin.ai/mcp`. 키(실제로는 `cog_`가 아니었다
 ### 그 밖
 
 - `supabase/migrate.sql` — 기둥 추가. 여러 번 돌려도 됨
+- `supabase/fix-ended-at.sql` — 옛 기록의 끝난 시각을 마지막 세트로 당김. 한 번만 돌리면 되고, 또 돌려도 됨
 - `supabase/admin.sql` — 관리자·요청·프로필. 여러 번 돌려도 됨
 - `public/admin.html` — 관리자 페이지. `/admin.html`로 열림
 - `scripts/garment-fit.mjs` — 그림 자리 재기
