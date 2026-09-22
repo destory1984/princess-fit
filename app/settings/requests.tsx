@@ -12,6 +12,8 @@ import { useFocusEffect } from 'expo-router';
 import { confirmAction, notify } from '@/lib/confirm';
 import { explain } from '@/lib/dbError';
 import { formatDate } from '@/lib/format';
+import { seenUpTo, unreadAnswers } from '@/lib/answers';
+import { getAnswersSeenAt, setAnswersSeenAt } from '@/lib/prefs';
 import {
   listMyRequests,
   sendExerciseRequest,
@@ -36,10 +38,19 @@ export default function RequestsScreen() {
   const [note, setNote] = useState('');
   const [sending, setSending] = useState(false);
   const [mine, setMine] = useState<ExerciseRequest[]>([]);
+  // Answers that were new when this screen opened. Marked seen straight
+  // away, so the home screen stops mentioning them, but still picked out
+  // here until they leave the screen.
+  const [fresh, setFresh] = useState<Set<string>>(new Set());
 
   const load = useCallback(() => {
-    listMyRequests()
-      .then(setMine)
+    Promise.all([listMyRequests(), getAnswersSeenAt()])
+      .then(([rows, seenAt]) => {
+        setMine(rows);
+        setFresh(new Set(unreadAnswers(rows, seenAt).map((r) => r.id)));
+        const next = seenUpTo(rows, seenAt);
+        if (next && next !== seenAt) void setAnswersSeenAt(next);
+      })
       .catch(() => {
         // The form still works without the history behind it.
       });
@@ -162,7 +173,10 @@ export default function RequestsScreen() {
           {mine.map((request) => (
             <View key={request.id} style={styles.row}>
               <View style={styles.rowBody}>
-                <Text style={styles.rowTitle}>{request.name}</Text>
+                <Text style={styles.rowTitle}>
+                  {request.name}
+                  {fresh.has(request.id) && <Text style={styles.fresh}>  새 답</Text>}
+                </Text>
                 <Text style={styles.rowSub}>
                   {formatDate(request.created_at, 'short')} · {STATUS_LABEL[request.status]}
                 </Text>
@@ -226,5 +240,6 @@ const styles = StyleSheet.create({
   rowBody: { flex: 1, gap: 2 },
   rowTitle: { color: colors.text, fontSize: 15, fontWeight: '700' },
   rowSub: { color: colors.textDim, fontSize: 12 },
+  fresh: { color: colors.accent, fontSize: 11, fontWeight: '800' },
   reply: { color: colors.text, fontSize: 13, lineHeight: 19, marginTop: spacing.xs },
 });

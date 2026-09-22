@@ -27,7 +27,9 @@ import {
   tomorrowsMessage,
   type Household,
 } from '@/lib/economy';
-import { DEFAULT_WEEKLY_GOAL, getNudgeHour, getWeeklyGoal } from '@/lib/prefs';
+import { DEFAULT_WEEKLY_GOAL, getAnswersSeenAt, getNudgeHour, getWeeklyGoal } from '@/lib/prefs';
+import { answerNotice, unreadAnswers } from '@/lib/answers';
+import { listMyRequests } from '@/lib/requests';
 import { cancelStrayRestAlarms, scheduleDailyMessage } from '@/lib/notify';
 import {
   getActiveWorkout,
@@ -88,6 +90,7 @@ export default function TodayScreen() {
   const [routineUse, setRoutineUse] = useState<RoutineUse[]>([]);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [answers, setAnswers] = useState<string | null>(null);
 
   /**
    * What the screen needs in order to exist, and nothing else.
@@ -132,6 +135,12 @@ export default function TodayScreen() {
         // the button has a sensible thing to say without it.
         recentRoutineUse()
           .then(setRoutineUse)
+          .catch(() => {});
+
+        // Whether the desk has answered a request since they last looked.
+        // Off the critical path: the screen is complete without it.
+        Promise.all([listMyRequests(), getAnswersSeenAt()])
+          .then(([mine, seenAt]) => setAnswers(answerNotice(unreadAnswers(mine, seenAt))))
           .catch(() => {});
 
         // Only decides whether the newcomer guide's first step is ticked.
@@ -240,6 +249,14 @@ export default function TodayScreen() {
             body="다 하셨으면 아래 '운동 완료'를 누르세요. 오늘의 기록 카드가 뜨고, 기록·통계 탭에 쌓입니다."
           />
         </View>
+      )}
+
+      {answers && (
+        <Pressable style={styles.answers} onPress={() => router.push('/settings/requests')}>
+          <Ionicons name="mail-unread-outline" size={18} color={colors.accent} />
+          <Text style={styles.answersText}>{answers}</Text>
+          <Ionicons name="chevron-forward" size={16} color={colors.textDim} />
+        </Pressable>
       )}
 
       {summary && stats && shownStats && (
@@ -503,6 +520,17 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   weeklyText: { color: colors.textDim, fontSize: 12, flex: 1 },
+  answers: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.accent,
+  },
+  answersText: { color: colors.text, fontSize: 13, fontWeight: '700', flex: 1 },
   weeklyStrong: { color: colors.text, fontWeight: '800', fontSize: 13 },
   weeklyLink: { color: colors.accent, fontSize: 12, fontWeight: '700' },
   sectionHeader: {

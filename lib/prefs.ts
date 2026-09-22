@@ -277,3 +277,22 @@ export async function setRestEnd(workoutId: string, at: number | null) {
     // The countdown on screen is still right; only surviving a restart is lost.
   }
 }
+
+const ANSWERS_SEEN = 'refit.answersSeenAt';
+
+/** When the requests screen was last looked at, as the desk's clock saw it. */
+export async function getAnswersSeenAt() {
+  try {
+    return await AsyncStorage.getItem(ANSWERS_SEEN);
+  } catch {
+    return null;
+  }
+}
+
+export async function setAnswersSeenAt(at: string) {
+  try {
+    await AsyncStorage.setItem(ANSWERS_SEEN, at);
+  } catch {
+    // The notice shows once more than it should, which is harmless.
+  }
+}
