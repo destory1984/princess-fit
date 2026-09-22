@@ -74,3 +74,8 @@ alter table workouts add column if not exists advice_source text;
 -- seven built-ins keep working and a false here is someone's own decision to
 -- stop being asked.
 alter table exercises add column if not exists unilateral boolean;
+
+-- Height, as one more reading on the day it was measured rather than a
+-- single value on a profile: children grow, and a record of when they were
+-- how tall is worth more than the latest number. Usually blank.
+alter table body_logs add column if not exists height_cm numeric(4, 1);

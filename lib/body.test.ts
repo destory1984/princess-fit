@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { change, latest, parseMeasurements, series, type BodyLog } from './body.ts';
+import { bmi, change, latest, parseMeasurements, series, type BodyLog } from './body.ts';
 
 const TODAY = new Date(2026, 8, 20);
 
@@ -11,6 +11,7 @@ function log(day: string, over: Partial<BodyLog> = {}): BodyLog {
     weight_kg: null,
     body_fat_pct: null,
     muscle_kg: null,
+    height_cm: null,
     ...over,
   };
 }
@@ -65,20 +66,29 @@ test('a series comes back oldest first and skips blank readings', () => {
 });
 
 test('parseMeasurements keeps what was typed and skips blank boxes', () => {
-  assert.deepEqual(parseMeasurements({ weight_kg: '79,4', body_fat_pct: '', muscle_kg: ' 33 ' }), {
+  assert.deepEqual(parseMeasurements({ weight_kg: '79,4', body_fat_pct: '', muscle_kg: ' 33 ', height_cm: '' }), {
     values: { weight_kg: 79.4, muscle_kg: 33 },
   });
 });
 
 test('parseMeasurements names the box it cannot read', () => {
-  assert.deepEqual(parseMeasurements({ weight_kg: '79', body_fat_pct: 'abc', muscle_kg: '' }), {
+  assert.deepEqual(parseMeasurements({ weight_kg: '79', body_fat_pct: 'abc', muscle_kg: '', height_cm: '' }), {
     bad: 'body_fat_pct',
   });
-  assert.deepEqual(parseMeasurements({ weight_kg: '0', body_fat_pct: '', muscle_kg: '' }), {
+  assert.deepEqual(parseMeasurements({ weight_kg: '0', body_fat_pct: '', muscle_kg: '', height_cm: '' }), {
     bad: 'weight_kg',
   });
 });
 
 test('parseMeasurements with every box blank has nothing to save', () => {
-  assert.deepEqual(parseMeasurements({ weight_kg: '', body_fat_pct: ' ', muscle_kg: '' }), { empty: true });
+  assert.deepEqual(parseMeasurements({ weight_kg: '', body_fat_pct: ' ', muscle_kg: '', height_cm: '' }), { empty: true });
+});
+
+test('bmi to one decimal, and none without a plausible height', () => {
+  assert.equal(bmi(72, 175), 23.5);
+  assert.equal(bmi(null, 175), null);
+  assert.equal(bmi(72, null), null);
+  assert.equal(bmi(72, 17.5), null);
+  assert.equal(bmi(20, 115), 15.1); // a child
+
 });

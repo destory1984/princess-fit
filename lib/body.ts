@@ -12,17 +12,19 @@ export type BodyLog = {
   weight_kg: number | null;
   body_fat_pct: number | null;
   muscle_kg: number | null;
+  height_cm: number | null;
 };
 
-export type BodyMetric = 'weight_kg' | 'body_fat_pct' | 'muscle_kg';
+export type BodyMetric = 'weight_kg' | 'body_fat_pct' | 'muscle_kg' | 'height_cm';
 
 export const BODY_METRICS: Record<BodyMetric, { name: string; unit: string; decimals: number }> = {
   weight_kg: { name: '몸무게', unit: 'kg', decimals: 1 },
   body_fat_pct: { name: '체지방', unit: '%', decimals: 1 },
   muscle_kg: { name: '골격근량', unit: 'kg', decimals: 1 },
+  height_cm: { name: '키', unit: 'cm', decimals: 1 },
 };
 
-export const BODY_METRIC_ORDER: BodyMetric[] = ['weight_kg', 'body_fat_pct', 'muscle_kg'];
+export const BODY_METRIC_ORDER: BodyMetric[] = ['weight_kg', 'body_fat_pct', 'muscle_kg', 'height_cm'];
 
 /** The most recent reading that actually has this measurement. */
 export function latest(logs: BodyLog[], metric: BodyMetric) {
@@ -85,4 +87,15 @@ export function parseMeasurements(
     values[key] = value;
   }
   return Object.keys(values).length ? { values } : { empty: true };
+}
+
+/**
+ * Body mass index from a height in centimetres, to one decimal. Null when
+ * either number is missing or not a plausible reading, rather than a BMI of
+ * 0 or 900 on the screen.
+ */
+export function bmi(weightKg: number | null, heightCm: number | null): number | null {
+  if (!weightKg || !heightCm || heightCm < 50 || heightCm > 250) return null;
+  const m = heightCm / 100;
+  return Math.round((weightKg / (m * m)) * 10) / 10;
 }

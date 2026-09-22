@@ -1364,14 +1364,24 @@ export async function createRoutineFromPreset(preset: RoutinePreset) {
 
 export async function listBodyLogs(limit = 400): Promise<BodyLog[]> {
   const userId = await requireUserId();
-  const { data, error } = await supabase
-    .from('body_logs')
-    .select('id, measured_on, weight_kg, body_fat_pct, muscle_kg')
-    .eq('user_id', userId)
-    .order('measured_on', { ascending: false })
-    .limit(limit);
-  if (error) throw error;
-  return data as BodyLog[];
+  const read = (columns: string) =>
+    supabase
+      .from('body_logs')
+      .select(columns)
+      .eq('user_id', userId)
+      .order('measured_on', { ascending: false })
+      .limit(limit);
+  const full = await read('id, measured_on, weight_kg, body_fat_pct, muscle_kg, height_cm');
+  if (!full.error) return full.data as unknown as BodyLog[];
+  // Before migrate.sql has added height_cm, the rest still reads: a missing
+  // column should cost the height, not the whole screen.
+  if (!/height_cm/.test(full.error.message)) throw full.error;
+  const older = await read('id, measured_on, weight_kg, body_fat_pct, muscle_kg');
+  if (older.error) throw older.error;
+  return (older.data as unknown as Omit<BodyLog, 'height_cm'>[]).map((row) => ({
+    ...row,
+    height_cm: null,
+  }));
 }
 
 /**
@@ -1379,7 +1389,7 @@ export async function listBodyLogs(limit = 400): Promise<BodyLog[]> {
  * the first rather than adding noise to the trend.
  */
 export async function saveBodyLog(
-  measurements: Partial<Pick<BodyLog, 'weight_kg' | 'body_fat_pct' | 'muscle_kg'>>,
+  measurements: Partial<Pick<BodyLog, 'weight_kg' | 'body_fat_pct' | 'muscle_kg' | 'height_cm'>>,
   day = localDayKey(new Date())
 ) {
   const userId = await requireUserId();

@@ -7,6 +7,7 @@ import { ScreenState } from '@/components/ScreenState';
 import {
   BODY_METRIC_ORDER,
   BODY_METRICS,
+  bmi,
   change,
   latest,
   parseMeasurements,
@@ -34,6 +35,7 @@ export default function BodyScreen() {
     weight_kg: '',
     body_fat_pct: '',
     muscle_kg: '',
+    height_cm: '',
   });
   const [saving, setSaving] = useState(false);
 
@@ -59,7 +61,7 @@ export default function BodyScreen() {
     setSaving(true);
     try {
       await saveBodyLog(parsed.values);
-      setDrafts({ weight_kg: '', body_fat_pct: '', muscle_kg: '' });
+      setDrafts({ weight_kg: '', body_fat_pct: '', muscle_kg: '', height_cm: '' });
       load();
     } catch (e: any) {
       notify('저장 실패', explain(e));
@@ -90,6 +92,8 @@ export default function BodyScreen() {
   const meta = BODY_METRICS[metric];
   const moved = change(logs, metric);
   const points = series(logs, metric);
+  const height = latest(logs, 'height_cm');
+  const index = bmi(latest(logs, 'weight_kg'), height);
 
   return (
     <ScrollView
@@ -130,7 +134,7 @@ export default function BodyScreen() {
           <Text style={styles.saveText}>{saving ? '저장 중…' : '저장'}</Text>
         </Pressable>
         <Text style={styles.note}>
-          잰 것만 적으면 돼요. 같은 날 다시 적으면 적은 칸만 바뀌어요.
+          잰 것만 적으면 돼요. 키는 달라졌을 때만 적으세요.{'\n'}같은 날 다시 적으면 적은 칸만 바뀌어요.
         </Text>
       </View>
 
@@ -152,6 +156,16 @@ export default function BodyScreen() {
           );
         })}
       </View>
+
+      {/*
+        Worked out from the latest height, which is written down only when it
+        changes — often for a grown-up, every few months for a child.
+      */}
+      {index !== null && (
+        <Text style={styles.bmi}>
+          BMI {index} · 키 {height}cm 기준
+        </Text>
+      )}
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>{meta.name}</Text>
@@ -219,6 +233,7 @@ const styles = StyleSheet.create({
   tileValue: { color: colors.text, fontSize: 20, fontWeight: '800' },
   tileValueOn: { color: colors.accent },
   tileUnit: { color: colors.textDim, fontSize: 11, fontWeight: '600' },
+  bmi: { color: colors.textDim, fontSize: 12, textAlign: 'center' },
   tileLabel: { color: colors.textDim, fontSize: 12, marginTop: 2 },
   card: {
     backgroundColor: colors.surface,
