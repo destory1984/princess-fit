@@ -57,10 +57,16 @@ export function levelAt(xp: number) {
   };
 }
 
-/** One rank per level so the title changes often enough to notice. */
+/**
+ * One rank per level so the title changes often enough to notice.
+ *
+ * The first three say where on the road to knighthood you are, in words that
+ * read as nothing else: 시동 was an engine starting and 종자 a seed, and
+ * someone had to ask what 종자 meant on the day they reached it.
+ */
 export const LEVEL_TITLES = [
-  '견습',
-  '시동',
+  '기사 지망생',
+  '견습 기사',
   '수련 기사',
   '기사',
   '근위 기사',
