@@ -197,11 +197,11 @@ export default function BodyScreen() {
               </Text>
               {/* A mistyped 179 would otherwise be permanent. */}
               <Pressable hitSlop={8} onPress={() => removeLog(log)}>
-                <Ionicons name="close" size={16} color={colors.textDim} />
+                <Ionicons name="trash-outline" size={16} color={colors.textDim} />
               </Pressable>
             </View>
           ))}
-          <Text style={styles.note}>잘못 적었으면 ✕로 지우고 다시 재세요.</Text>
+          <Text style={styles.note}>잘못 적었으면 휴지통으로 지우고 다시 적으세요.</Text>
         </View>
       )}
 
