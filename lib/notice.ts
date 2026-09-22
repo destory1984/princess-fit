@@ -1,5 +1,5 @@
 import { localDayKey } from './format.ts';
-import { streakOf, type WorkoutFact } from './gamification.ts';
+import { isEmptyWorkout, streakOf, type WorkoutFact } from './gamification.ts';
 import { withParticle } from './korean.ts';
 import { READY, type Muscle } from './recovery.ts';
 import { formatDuration, sleepMinutes, type SleepLog } from './sleep.ts';
@@ -205,7 +205,10 @@ function yuki(seen: Seen, today: Date, stage: Stage): string | null {
 }
 
 /** What this girl has noticed today, in her own words, or null. */
-export function noticeFor(girl: string | undefined, seen: Seen, stage: Stage, today = new Date()) {
+export function noticeFor(girl: string | undefined, given: Seen, stage: Stage, today = new Date()) {
+  // An empty session is not a day trained. The plaque already counts that
+  // way, and she said 「벌써 5일째」 beside a plaque reading 연속 1일.
+  const seen = { ...given, facts: given.facts.filter((f) => !isEmptyWorkout(f)) };
   if (girl === 'dohwa') return pia(seen, today);
   if (girl === 'seora') return yuki(seen, today, stage);
   return rina(seen, today);

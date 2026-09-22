@@ -99,3 +99,10 @@ test('nobody says anything about form', () => {
     assert.doesNotMatch(say(g, seen) ?? '', /자세|무릎|폼/);
   }
 });
+
+test('an empty session does not count towards a run of days', () => {
+  const empty = (d: string) => fact(d, [], { doneSets: 0, volume: 0 });
+  const facts = [empty('2026-09-20'), empty('2026-09-21'), empty('2026-09-22'), fact('2026-09-23')];
+  assert.doesNotMatch(say('geumhwa', { facts }) ?? '', /4일째/);
+  assert.doesNotMatch(say('dohwa', { facts }) ?? '', /연속/);
+});
