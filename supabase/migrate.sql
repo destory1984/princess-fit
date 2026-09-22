@@ -129,3 +129,24 @@ alter table household add column if not exists gifted_on date;
 -- there and kept in her hand even if another is chosen later.
 alter table workouts add column if not exists diary    text;
 alter table workouts add column if not exists diary_by text;
+
+-- Who was here, and from when (lib/picks.ts). One row each time a girl is
+-- chosen; closeness, memories and the diary are all counted per girl from it.
+create table if not exists girl_picks (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users on delete cascade,
+  girl text not null,
+  picked_at timestamptz not null default now()
+);
+create index if not exists girl_picks_user_idx on girl_picks (user_id, picked_at);
+alter table girl_picks enable row level security;
+drop policy if exists "own girl picks" on girl_picks;
+create policy "own girl picks" on girl_picks
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- Memories are each girl's own now: one first day per girl, not per person.
+-- Rows from before this have no girl; the app gives them to the first girl
+-- chosen, which is who was there.
+alter table memories add column if not exists girl text;
+alter table memories drop constraint if exists memories_user_id_kind_key;
+create unique index if not exists memories_user_girl_kind on memories (user_id, girl, kind);

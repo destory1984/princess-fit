@@ -98,6 +98,17 @@
 - 말은 전부 `lib/voices.ts`에 있고 모든 아이가 모든 경우의 말을 가진다.
   유키는 합쇼체로 시작해 「편안한 사이」에서 해요체로 풀린다. 운동 중
   응원(`cheer.ts`)과 수업 알림(`notify.ts`)은 아직 한 목소리다.
+- **가까움과 기억은 아이마다 따로다 (`lib/picks.ts`, `girl_picks`).** 아이를
+  고를 때마다 한 줄씩 적고, 그 아이가 곁에 있던 날만 그 아이와 함께한 날로
+  센다. 새 아이와는 처음부터, 떠난 아이는 그 사이 그대로 기다린다. 표가 생기기
+  전의 모든 날은 처음 적힌 아이(그때 고른 아이)의 것이다. 일기도 그 날 곁에
+  있던 아이의 손으로 쓴다.
+- **토라짐은 앱에서 그 아이에게 한 일로만 (`sulkOf`).** 떠났다 돌아오면(하루
+  넘게), 또는 한 주에 세 번 넘게 바꾸면. 운동 한 번이나 선물 하나, 아니면
+  이틀이면 풀리고, 푼 날엔 푼다고 말한다. **운동을 쉰 것으로는 절대 토라지지
+  않는다**(시험이 지킨다). **알림으로는 토라지지 않는다** — `tomorrowsMessage`가
+  토라짐을 지운다. 토라진 동안에도 기능은 그대로고 말만 바뀐다. 시샘은 하되
+  떠나지 말라는 말은 하지 않는다. 처음 토라진 날, 처음 화해한 날은 기억이 된다.
 - **기록 탭에는 아이의 일기가 있다 (`lib/diary.ts`).** 운동마다 한 줄, 골드를
   받는 순간 그때 고른 아이가 쓰고 **다시 쓰지 않는다** — 조언과 반대다. 옛
   운동은 기록 탭을 열 때 지금 아이가 채운다(누가 있었는지 모르는 날이니 가장
@@ -282,6 +293,8 @@ Devin MCP는 `https://mcp.devin.ai/mcp`. 키(실제로는 `cog_`가 아니었다
   운동복, 조언 카드의 「· 아이 이름」과 아이를 바꿨을 때 새로 묻기. 모두
   시험과 타입은 통과. 쉬는 시간을 보려면 운동을 하나 시작해야 해서 실제
   기록에 하나가 생긴다 — 볼 때 지우거나 시험용 계정으로 본다.
+- **`girl_picks` 표와 `memories.girl` 칸도 migrate.sql로 생긴다.** 그 전엔
+  세 아이가 모든 날을 함께 나눠 갖고(예전처럼), 토라짐은 일어나지 않는다.
 - **일기 칸(`workouts.diary`, `diary_by`)은 migrate.sql을 다시 돌려야 생긴다.**
   그 전엔 일기가 조용히 쓰이지 않을 뿐 기록 탭은 그대로 뜬다.
 - **`gifted_on` 칸은 migrate.sql을 다시 돌려야 생긴다.** 그 전에는 집 장부를
@@ -323,7 +336,7 @@ Devin MCP는 `https://mcp.devin.ai/mcp`. 키(실제로는 `cog_`가 아니었다
 | `hangul.ts` / `aliases.ts` / `korean.ts` | 초성 / 별칭 / 조사 |
 | `duration.ts` / `order.ts` / `split.ts` | 남은 시간 / 순서 / 루틴 차례 |
 | `economy.ts` / `shop.ts` / `room.ts` / `outfit.ts` | 골드·집·방·옷 |
-| `companion.ts` / `voices.ts` / `notice.ts` / `diary.ts` | 함께한 날·기억 / 아이마다의 말 / 아이마다 눈여겨보는 것 / 일기 |
+| `companion.ts` / `voices.ts` / `notice.ts` / `diary.ts` / `picks.ts` | 함께한 날·기억 / 아이마다의 말 / 아이마다 눈여겨보는 것 / 일기 / 누가 곁에 있었나·토라짐 |
 | `answers.ts` | 요청에 새 답이 왔는지. 푸시 서버 없이 폰이 마지막으로 본 때와 견준다 |
 | `abandoned.ts` | 안 마친 운동. 마지막 세트 뒤 6시간이면 그 세트 때 끝난 것으로 닫는다 |
 | `friends.ts` | 친구 코드, 선물 금액, 함께 운동 보너스, 받은 선물 문장. 금액·보너스는 시험이 `social.sql`과 맞춰 본다 |
@@ -344,7 +357,7 @@ Devin MCP는 `https://mcp.devin.ai/mcp`. 키(실제로는 `cog_`가 아니었다
 - `supabase/templates/` — Supabase 대시보드에 붙여 넣을 메일 틀
 - `docs/competitors.md` — 다른 운동 앱과 견준 것, 다음에 지을 것
 - `docs/companion.md` — 아이가 기억하고 자라는 것. 2026-09-23 지음 (`lib/companion.ts`, `app/memories.tsx`)
-- `docs/relationship.md` — 일기 · 아이 바꾸기 · 토라짐. 아직 안 지음, 설계만
+- `docs/relationship.md` — 일기 · 아이 바꾸기 · 토라짐. 2026-09-23 지음
 - `docs/places.md` — 운동터와 그곳에서 할 수 있는 종목. 아직 안 지음, 설계만
 - `public/admin.html` — 관리자 페이지. `/admin.html`로 열림
 - `scripts/garment-fit.mjs` — 그림 자리 재기
@@ -353,7 +366,7 @@ Devin MCP는 `https://mcp.devin.ai/mcp`. 키(실제로는 `cog_`가 아니었다
 ### 시험
 
 ```bash
-node --test lib/*.test.ts   # 558건
+node --test lib/*.test.ts   # 567건
 npx tsc --noEmit
 npx eslint .
 ```

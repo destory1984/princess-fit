@@ -10,6 +10,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ADVISORS, DEFAULT_ADVISOR_ID, type Advisor } from './advisors';
 import { baseArt } from './outfitArt';
+import { recordPick } from './db';
 
 /**
  * Who you are raising, and how the rest of the app asks.
@@ -76,13 +77,18 @@ export function GirlProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const choose = useCallback(async (next: string) => {
+    if (next === id) return;
+    const previous = id;
     setId(next);
+    // Kept on the account too: who was here, and from when, is what counts
+    // each girl's closeness and puts each diary entry in the right hand.
+    void recordPick(next, previous);
     try {
       await AsyncStorage.setItem(KEY, next);
     } catch {
       // She stays chosen for this run either way.
     }
-  }, []);
+  }, [id]);
 
   const value = useMemo(() => ({ girl: girlOf(id), choose }), [id, choose]);
   return <GirlContext.Provider value={value}>{children}</GirlContext.Provider>;

@@ -23,10 +23,10 @@ export default function MemoriesScreen() {
 
   const load = useCallback(() => {
     setError(null);
-    getBond()
+    getBond(girl.id)
       .then(setBond)
       .catch((e) => setError(e.message));
-  }, []);
+  }, [girl.id]);
 
   useFocusEffect(load);
 

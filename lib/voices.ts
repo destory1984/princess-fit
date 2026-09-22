@@ -61,6 +61,17 @@ export type Voice = {
     /** `what` is already 「가슴, 팔 12세트」 or 「유산소 30분」. */
     plain: (what: string) => string;
   };
+  /**
+   * Sulking (lib/picks.ts). Only for being left and come back to, or picked
+   * and dropped over and over — never for time away from training. Jealous,
+   * never possessive: she may say she noticed, never that you may not go.
+   */
+  sulk: {
+    returned: (other: string, away: number) => string[];
+    fickle: string[];
+    /** The day it ends because you did something about it. */
+    madeUp: string[];
+  };
   /** Something you gave her: on the day, and when it comes back to her. */
   gift: { fresh: (name: string) => string; recall: (when: string, name: string) => string };
   /** Who she is, told to the model so its answer comes back in her voice. */
@@ -159,6 +170,8 @@ const rina: Voice = {
     first_garment: (d) => `${d}, 처음 사 주신 거예요. 아껴 입을게요.`,
     first_lesson: (d) => `${d} 수업을 다 마쳤어요. 처음으로 뭔가를 끝까지 해 봤어요.`,
     first_friend: (d) => `${d} 님이 친구가 됐네요. 방이 좀 덜 조용해진 것 같아요.`,
+    first_sulk: () => '괜히 토라졌었네요. 오늘 일은 잊어 주세요.',
+    first_makeup: () => '화해해서 다행이에요.',
   },
   recall: {
     first_day: (w) => `${w} 처음 오셨을 때, 저 사실 좀 긴장했었어요.`,
@@ -169,6 +182,8 @@ const rina: Voice = {
     first_garment: (_, d) => `이 옷장에서 제일 먼저 생긴 게 ${withParticle(d, '이에요예요')}. 아직도 제일 좋아해요.`,
     first_lesson: (w, d) => `${w} ${d} 수업 다니던 게 생각나요. 그때 좀 힘들었어요.`,
     first_friend: (_, d) => `${d} 님은 요즘 잘 지내시려나요.`,
+    first_sulk: (w) => `${w} 제가 토라졌던 날, 기억하세요? 지금 생각하면 좀 부끄러워요.`,
+    first_makeup: (w) => `${w} 화해하던 날, 사실 저 그날 좀 울었어요.`,
   },
   persona:
     '당신은 「리나」입니다. 운동하는 사람을 곁에서 돌보는 다정한 아이입니다. 해요체로 부드럽게 말하고, 무리하지 않았는지·잘 쉬었는지를 먼저 챙깁니다.',
@@ -230,6 +245,14 @@ const rina: Voice = {
     short: '오늘은 짧게 끝났다. 바빴나 보다. 그래도 와 준 게 어디야.',
     plain: (what) => `오늘은 ${what}. 별일 없이 끝나서 다행이다.`,
   },
+  sulk: {
+    returned: (o, n) => [
+      `다녀오셨어요. …${withParticle(o, '와과')} 즐거우셨어요? 괜찮아요, 기다리는 건 잘해요.`,
+      `오셨네요. ${n}일 만이에요.`,
+    ],
+    fickle: ['오늘은 저예요? …내일은 또 누굴까요.', '오셨네요. 이번엔 오래 계실 건가요?'],
+    madeUp: ['오늘 와 주셔서… 이제 괜찮아요. 정말로요.', '됐어요. 서운했던 거, 오늘로 다 풀렸어요.'],
+  },
 };
 
 const pia: Voice = {
@@ -285,6 +308,8 @@ const pia: Voice = {
     first_garment: (d) => `${d}! 처음 받은 옷이에요! 아끼고 또 아낄게요!`,
     first_lesson: (d) => `${d} 수업 다 끝냈어요! 처음으로 뭔가를 끝까지 해냈어요!`,
     first_friend: (d) => `${d} 님이랑 친구가 됐어요! 응원할 사람이 늘었다!`,
+    first_sulk: () => '흥이에요, 흥!',
+    first_makeup: () => '화해 완료!',
   },
   recall: {
     first_day: (w) => `${w} 처음 만났을 때, 저 손 너무 세게 흔들었죠? 헤헤.`,
@@ -295,6 +320,8 @@ const pia: Voice = {
     first_garment: (_, d) => `제일 처음 받은 옷이 ${withParticle(d, '이에요예요')}! 아직도 제일 좋아요!`,
     first_lesson: (w, d) => `${w} ${d} 배우던 거 생각나요! 힘들었지만 재밌었어요!`,
     first_friend: (_, d) => `${d} 님도 요즘 열심히 하고 있을까요? 같이 응원해요!`,
+    first_sulk: (w) => `${w} 저 삐졌던 거 기억나요? 그땐 진짜 서운했단 말이에요!`,
+    first_makeup: (w) => `${w} 화해한 날! 그날 기록은 제 보물이에요!`,
   },
   persona:
     '당신은 「피아」입니다. 숫자와 기록을 좋아하는 밝은 아이입니다. 해요체에 느낌표를 섞어 신나게 말하고, 지난번보다 나아진 숫자를 먼저 짚고 다음 도전을 권합니다.',
@@ -353,6 +380,14 @@ const pia: Voice = {
     short: '오늘은 짧았다. 그래도 기록은 기록! 0보다 크면 다 이긴 거다.',
     plain: (what) => `${what} 완료! 오늘도 한 줄 추가.`,
   },
+  sulk: {
+    returned: (o, n) => [
+      `흥. ${n}일 동안 ${withParticle(o, '이가')} 응원했어요? 오늘은 응원 안 할 거예요. …한 세트만 할게요.`,
+      '어디 갔었어요! 그동안 기록은 누가 봐 줬는데요!',
+    ],
+    fickle: ['또 바꿨죠? 이번 주에만 몇 번째예요! 흥!', '저 이번 주 몇 번째 선수예요? 세고 있거든요!'],
+    madeUp: ['됐어요, 풀렸어요! 오늘 기록 보고 다 용서했어요!', '화해 기념 기록! 이건 제가 따로 적어 둘 거예요!'],
+  },
 };
 
 const yuki: Voice = {
@@ -408,6 +443,8 @@ const yuki: Voice = {
     first_garment: (d) => `${d}. 처음 받는 옷입니다. …소중히 입겠습니다.`,
     first_lesson: (d) => `${d} 수업을 마쳤습니다. 끝까지 하는 건 생각보다 어렵더군요.`,
     first_friend: (d) => `${d} 님이 친구가 됐군요. 꾸준한 분이면 좋겠습니다.`,
+    first_sulk: () => '기록해 두겠습니다.',
+    first_makeup: () => '없던 일로 하겠습니다.',
   },
   recall: {
     first_day: (w) => `${w} 처음 오셨을 때 제가 좀 엄했죠. 지금도 그렇지만요.`,
@@ -418,6 +455,8 @@ const yuki: Voice = {
     first_garment: (_, d) => `처음 받은 옷이 ${withParticle(d, '이에요예요')}. 아직 잘 개어 두고 있어요.`,
     first_lesson: (w, d) => `${w} ${d} 수업 다니던 때가 생각나요. 하루도 안 빠졌죠.`,
     first_friend: (_, d) => `${d} 님은 요즘도 꾸준히 하시려나요.`,
+    first_sulk: (w) => `${w} 제가 말이 짧았던 날이 있었죠. 사과는 안 하겠지만, 기억은 해요.`,
+    first_makeup: (w) => `${w} 없던 일로 한 날. 없던 일로 했지만 잊지는 않았어요.`,
   },
   persona:
     '당신은 「유키」입니다. 빈틈을 놓치지 않는 엄격한 아이입니다. 합쇼체(~습니다)로 짧고 단호하게 말하고, 빠진 부위나 모자란 것을 먼저 짚습니다. 칭찬은 짧게 합니다.',
@@ -475,6 +514,14 @@ const yuki: Voice = {
     heavy: '평소보다 많이 들었다. 내일은 쉬게 할 것.',
     short: '짧게 끝남. 한 부위라도 끝까지 한 것은 인정.',
     plain: (what) => `${what}. 특이사항 없음.`,
+  },
+  sulk: {
+    returned: (_o, n) => [
+      `${n}일 만입니다. 누구와 하셨는지는 묻지 않겠습니다. 적어는 두었습니다.`,
+      '돌아오셨군요. 오늘 할 일부터 하시죠. 이상입니다.',
+    ],
+    fickle: ['이번 주에 몇 번 바꾸셨는지 세고 있습니다. 결정은 신중히 하십시오.'],
+    madeUp: ['…오늘 기록, 확인했습니다. 됐습니다. 없던 일로 하겠습니다.'],
   },
 };
 

@@ -36,6 +36,7 @@ import { SPLIT_WINDOW_DAYS, type RoutineUse } from './split';
 import type { BackupWorkout } from './backup';
 import { unseen } from './restore';
 import { diaryFor } from './diary';
+import { sulkOf, whileShe, whoWasThere, type Pick as GirlPick, type Sulk } from './picks';
 import { getChosenGirlId } from './prefs';
 import { DEFAULT_ADVISOR_ID } from './advisors';
 import { arrivedTotal, type ArrivedGift } from './friends';
@@ -1863,17 +1864,56 @@ const MEMORY_COLUMNS = 'kind, day, line, detail';
  * Write one down, unless one of its kind already is. Never throws: a memory
  * that fails to save is a line she does not say, not a purchase that failed.
  */
-async function remember(memories: Memory | Memory[]) {
+async function remember(memories: Memory | Memory[], girl?: string) {
   const rows = (Array.isArray(memories) ? memories : [memories]).map((m) => ({ ...m }));
   if (!rows.length) return;
   try {
     const userId = await requireUserId();
+    // Hers who is here now, unless the caller knows better.
+    const who = girl ?? (await getChosenGirlId()) ?? DEFAULT_ADVISOR_ID;
     await supabase.from('memories').upsert(
-      rows.map((m) => ({ user_id: userId, ...m })),
-      { onConflict: 'user_id,kind', ignoreDuplicates: true }
+      rows.map((m) => ({ user_id: userId, girl: who, ...m })),
+      { onConflict: 'user_id,girl,kind', ignoreDuplicates: true }
     );
   } catch {
     // Before migrate.sql there is no table; the rest of the app goes on.
+  }
+}
+
+/**
+ * Every pick, oldest first. The first time it is asked with nothing there,
+ * the girl here now is written in as having been here all along — everything
+ * before the list existed is hers (lib/picks.ts). Empty when the table is
+ * not there yet, which makes every girl see all of the history, as before.
+ */
+export async function listPicks(current?: string): Promise<GirlPick[]> {
+  try {
+    const { data, error } = await supabase
+      .from('girl_picks')
+      .select('girl, picked_at')
+      .order('picked_at');
+    if (error) return [];
+    const picks = data as GirlPick[];
+    if (picks.length || !current) return picks;
+    const first = { girl: current, picked_at: new Date(0).toISOString() };
+    const userId = await requireUserId();
+    await supabase.from('girl_picks').insert({ user_id: userId, ...first });
+    return [first];
+  } catch {
+    return [];
+  }
+}
+
+/** Write down that she was chosen, now. Never throws. */
+export async function recordPick(girl: string, previous?: string) {
+  try {
+    // The one being left is the one who was here all along, if nobody was
+    // ever written down: otherwise the history would change hands with her.
+    await listPicks(previous);
+    const userId = await requireUserId();
+    await supabase.from('girl_picks').insert({ user_id: userId, girl });
+  } catch {
+    // Before migrate.sql: the choice still holds on this phone.
   }
 }
 
@@ -1883,25 +1923,53 @@ export type Bond = {
   memories: Memory[];
   /** Read anyway to find the memories; 피아 reads the lifts in them too. */
   sessions: MemorySession[];
+  sulk: Sulk | null;
+  /** A sulk that ended today because of something done about it. */
+  madeUp: boolean;
 };
 
 /**
  * How long she has known you and what she remembers, bringing the book up to
- * date on the way. Before migrate.sql the memories are simply empty and she
- * still knows how long it has been.
+ * date on the way. Counted only over the days she was the one here, so each
+ * girl has her own closeness and her own memories (docs/relationship.md).
+ * Before migrate.sql the memories are simply empty and she still knows how
+ * long it has been.
  */
-export async function getBond(): Promise<Bond> {
-  const sessions = await listMemorySessions();
-  const days = daysTogether(sessions);
+export async function getBond(girl: string, today = new Date()): Promise<Bond> {
+  const [sessions, picks] = await Promise.all([listMemorySessions(), listPicks(girl)]);
+  const hers = whileShe(girl, picks, sessions);
+  const days = daysTogether(hers);
+  const firstGirl = picks[0]?.girl ?? girl;
 
-  const { data, error } = await supabase.from('memories').select(MEMORY_COLUMNS).order('day');
-  if (error) return { days, stage: stageOf(days), memories: [], sessions };
-  const known = data as Memory[];
+  const trainedDays = sessions.filter((s) => s.worked).map((s) => localDayKey(new Date(s.started_at)));
+  const { data, error } = await supabase.from('memories').select(`${MEMORY_COLUMNS}, girl`).order('day');
+  const rows = error ? [] : (data as (Memory & { girl: string | null })[]);
+  // Written before memories had a girl: they were the first girl's.
+  if (rows.some((r) => r.girl === null)) {
+    void supabase.from('memories').update({ girl: firstGirl }).is('girl', null).then(() => {});
+  }
+  const known: Memory[] = rows
+    .filter((r) => (r.girl ?? firstGirl) === girl)
+    .map(({ kind, day, line, detail }) => ({ kind, day, line, detail }));
+  const giftDays = known.filter((m) => isGift(m.kind)).map((m) => m.day);
 
-  const missing = unrecorded(memoriesFrom(sessions), known.map((m) => m.kind as MemoryKind));
-  if (missing.length) await remember(missing);
+  // A sulk, and whether today is the day it was made up for.
+  const sulk = sulkOf(girl, picks, trainedDays, giftDays, today);
+  const key = localDayKey(today);
+  const before = (d: string) => d < key;
+  const wouldBe = sulkOf(girl, picks, trainedDays.filter(before), giftDays.filter(before), today);
+  const madeUp = !sulk && wouldBe !== null;
+
+  const events: Memory[] = [];
+  if (sulk) events.push(eventMemory('first_sulk', '', today));
+  if (madeUp) events.push(eventMemory('first_makeup', '', today));
+  const found = [...memoriesFrom(hers), ...events];
+
+  if (error) return { days, stage: stageOf(days), memories: [], sessions, sulk, madeUp };
+  const missing = unrecorded(found, known.map((m) => m.kind as MemoryKind));
+  if (missing.length) await remember(missing, girl);
   const memories = [...known, ...missing].sort((a, b) => a.day.localeCompare(b.day));
-  return { days, stage: stageOf(days), memories, sessions };
+  return { days, stage: stageOf(days), memories, sessions, sulk, madeUp };
 }
 
 /*
@@ -1929,13 +1997,14 @@ export async function writeDiaries(girl?: string, batch = 40): Promise<number> {
       .limit(batch);
     if (error || !missing?.length) return 0;
 
-    const [facts, sessions, stored] = await Promise.all([
+    const [facts, sessions, stored, picks] = await Promise.all([
       listWorkoutFacts(),
       listMemorySessions(),
       supabase
         .from('memories')
         .select(MEMORY_COLUMNS)
         .then(({ data: rows }) => (rows as Memory[] | null) ?? []),
+      listPicks(girl),
     ]);
     const memories = [...memoriesFrom(sessions), ...stored.filter((m) => isGift(m.kind as MemoryKind))];
     const byId = new Map(facts.map((f) => [f.id, f]));
@@ -1951,6 +2020,8 @@ export async function writeDiaries(girl?: string, batch = 40): Promise<number> {
       for (const s of ordered.slice(0, Math.max(0, at))) {
         for (const l of s.lifts) bestBefore.set(l.exercise, Math.max(bestBefore.get(l.exercise) ?? 0, l.kg));
       }
+      // In the hand of whoever was chosen at the time, when that is known.
+      const hand = whoWasThere(picks, today.started_at) ?? girl;
       const entry = diaryFor(
         {
           today,
@@ -1959,14 +2030,14 @@ export async function writeDiaries(girl?: string, batch = 40): Promise<number> {
           bestBefore,
           memories: memories.filter((m) => m.day === day),
         },
-        girl
+        hand
       );
       if (!entry) continue;
       // Only where there is still none: two phones racing must not have the
       // second rewrite what the first girl wrote.
       const { error: saveError } = await supabase
         .from('workouts')
-        .update({ diary: entry, diary_by: girl ?? DEFAULT_ADVISOR_ID })
+        .update({ diary: entry, diary_by: hand ?? DEFAULT_ADVISOR_ID })
         .eq('id', id)
         .is('diary', null);
       if (!saveError) written++;

@@ -27,6 +27,10 @@ export default function GirlScreen() {
       <Text style={styles.hint}>
         바꿔도 모아 둔 골드와 옷, 방은 그대로예요. 누가 입을지만 달라져요.
       </Text>
+      <Text style={styles.hint}>
+        다만 가까워지는 건 아이마다 따로예요. 새로 고른 아이와는 처음부터
+        시작하고, 떠난 아이는 그동안의 사이 그대로 기다려요. 돌아가면 알아채요.
+      </Text>
 
       {ADVISORS.map((entry) => {
         const on = entry.id === girl.id;

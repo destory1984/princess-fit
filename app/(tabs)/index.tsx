@@ -137,7 +137,7 @@ export default function TodayScreen() {
         getWeeklyGoal().then(setWeeklyGoalState);
         // What she remembers only colours what she says, so losing it
         // leaves her speaking as she did before — never an empty room.
-        const knowing = getBond().catch(() => null);
+        const knowing = getBond(girl.id).catch(() => null);
         // Sleep and soreness only feed what she notices. Each on its own, so
         // one missing never silences the others.
         const noticing = Promise.all([

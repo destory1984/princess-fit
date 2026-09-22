@@ -221,3 +221,13 @@ test('she speaks differently once she knows you', () => {
   // Hunger is about her, and she says it the same way at every stage.
   assert.equal(messageFor('hungry', day, 'old'), messageFor('hungry', day));
 });
+
+test('a sulk comes before everything, and never reaches a notification', () => {
+  const today = new Date(2026, 8, 20);
+  const hungry: Household = { gold: 0, satiety: 10, attire: 100, settledOn: '2026-09-20' };
+  const sulking = { stage: 'new' as const, memories: [], sulk: { reason: 'returned' as const, other: 'dohwa', away: 10 } };
+  assert.match(dailyLine(hungry, [], today, null, sulking, 'geumhwa'), /피아|10일 만/);
+  assert.doesNotMatch(tomorrowsMessage(hungry, [], today, null, sulking, 'geumhwa'), /피아|만이에요/);
+  const madeUp = { stage: 'new' as const, memories: [], madeUp: true };
+  assert.match(dailyLine(hungry, [], today, null, madeUp, 'dohwa'), /풀렸|화해/);
+});

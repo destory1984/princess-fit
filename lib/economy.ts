@@ -4,6 +4,8 @@ import { memoryLine, type Memory, type Stage } from './companion.ts';
 import { insightsFor } from './insight.ts';
 import { voiceOf } from './voices.ts';
 import { noticeFor, type Seen } from './notice.ts';
+import type { Sulk } from './picks.ts';
+import { ADVISORS } from './advisors.ts';
 import { daysLeft, isFinished, lessonById, type Enrolment } from './lessons.ts';
 
 /**
@@ -192,11 +194,37 @@ export function tomorrowsMessage(
   const projected = settle(house, tomorrow);
   // A course that will have ended by tomorrow is not news tomorrow.
   const still = lesson && !isFinished(lesson, tomorrow) ? lesson : null;
-  return dailyLine(projected, workouts, tomorrow, still, bond, girl, seen);
+  // Never sulks through a notification. A notification reaches into the
+  // rest of someone's day, and 「왜 안 와요」 there is pressure, not charm.
+  const calm = bond ? { ...bond, sulk: null, madeUp: false } : null;
+  return dailyLine(projected, workouts, tomorrow, still, calm, girl, seen);
 }
 
 /** How long she has known you and what she remembers, as dailyLine needs it. */
-export type Bond = { stage: Stage; memories: Memory[] };
+export type Bond = {
+  stage: Stage;
+  memories: Memory[];
+  /** Whether she is sulking today, and why (lib/picks.ts). */
+  sulk?: Sulk | null;
+  /** Whether a sulk ended today because of something you did. */
+  madeUp?: boolean;
+};
+
+function daySeed(today: Date) {
+  return [...localDayKey(today)].reduce((n, c) => n + c.charCodeAt(0), 0);
+}
+
+// A sulk, or its end. Before everything else, hunger included: a girl who is
+// upset with you is not going to mention dinner.
+function feelingLine(bond: Bond | null, today: Date, girl?: string): string | null {
+  const say = voiceOf(girl).sulk;
+  const pickOf = (lines: string[]) => lines[daySeed(today) % lines.length];
+  if (bond?.madeUp) return pickOf(say.madeUp);
+  if (!bond?.sulk) return null;
+  if (bond.sulk.reason === 'fickle') return pickOf(say.fickle);
+  const other = ADVISORS.find((a) => a.id === bond.sulk!.other)?.name ?? '다른 애';
+  return pickOf(say.returned(other, bond.sulk.away));
+}
 
 export type GiftKind = 'food' | 'clothes' | 'accessory' | 'furniture' | 'lesson';
 
@@ -227,6 +255,9 @@ export function dailyLine(
   girl?: string,
   seen?: Omit<Seen, 'facts'>
 ): string {
+  const felt = feelingLine(bond, today, girl);
+  if (felt) return felt;
+
   const mood = moodOf(house, workouts, today);
   const stage = bond?.stage ?? 'new';
   if (mood !== 'fine' && mood !== 'happy') return messageFor(mood, today, stage, girl);
