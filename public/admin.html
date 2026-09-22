@@ -97,6 +97,7 @@
 
     <script type="module">
       import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+      import { filterUsers, pageOf } from './adminList.js';
 
       /*
         Read from the page's own query string on first run and then kept, so
@@ -141,6 +142,15 @@
       // Which person's card is open. One at a time: the point is to read one
       // person's last few sessions, not to skim everybody's at once.
       let opened = null;
+      // The users tab keeps what admin_users() returned, so typing in the
+      // search box or turning a page cuts the same list again instead of
+      // asking the database for it. Cleared on entering the tab and after
+      // anything that changes a row.
+      let users = null;
+      let recent = null;
+      let query = '';
+      let page = 1;
+      const PER_PAGE = 20;
 
       const escape = (s) =>
         String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -204,14 +214,25 @@
         </div>`;
         body.innerHTML = tabs + '<p class="empty">불러오는 중…</p>';
         const rest = tab === 'requests' ? await requestsView() : await usersView();
+        // Re-rendering replaces the search box, so the caret would be lost
+        // after every letter. Put it back where it was.
+        const typing = document.activeElement?.id === 'search';
+        const caret = typing ? document.activeElement.selectionStart : null;
         body.innerHTML = tabs + rest;
         wire();
+        if (typing) {
+          const box = body.querySelector('#search');
+          box?.focus();
+          box?.setSelectionRange(caret, caret);
+        }
       }
 
       function wire() {
         for (const b of body.querySelectorAll('[data-tab]')) {
           b.onclick = () => {
             tab = b.dataset.tab;
+            users = null;
+            recent = null;
             render();
           };
         }
@@ -233,15 +254,51 @@
         for (const b of body.querySelectorAll('[data-open]')) {
           b.onclick = () => {
             opened = opened === b.dataset.open ? null : b.dataset.open;
+            recent = null;
+            render();
+          };
+        }
+        for (const b of body.querySelectorAll('[data-page]')) {
+          b.onclick = () => {
+            page = Number(b.dataset.page);
+            render();
+          };
+        }
+        const search = body.querySelector('#search');
+        if (search) {
+          search.oninput = () => {
+            query = search.value;
+            page = 1;
             render();
           };
         }
       }
 
       async function usersView() {
-        const { data, error } = await db.rpc('admin_users');
-        if (error) return `<p class="error">${escape(error.message)}</p>`;
-        if (!data.length) return '<p class="empty">아직 아무도 없어요.</p>';
+        if (!users) {
+          const { data, error } = await db.rpc('admin_users');
+          if (error) return `<p class="error">${escape(error.message)}</p>`;
+          users = data;
+        }
+        if (!users.length) return '<p class="empty">아직 아무도 없어요.</p>';
+
+        const found = filterUsers(users, query);
+        const cut = pageOf(found, page, PER_PAGE);
+        page = cut.page;
+        const searchHtml = `<div class="row" style="margin-bottom:12px">
+          <input id="search" type="search" placeholder="이메일로 찾기" style="flex:1"
+            value="${escape(query)}" />
+          ${query.trim() ? `<span class="meta">${users.length}명 중 ${found.length}명</span>` : ''}
+        </div>`;
+        const pagerHtml =
+          cut.pages > 1
+            ? `<div class="row" style="justify-content:center;margin-top:12px">
+                <button data-page="${cut.page - 1}" ${cut.page === 1 ? 'disabled' : ''}>이전</button>
+                <span class="meta">${cut.page} / ${cut.pages}</span>
+                <button data-page="${cut.page + 1}" ${cut.page === cut.pages ? 'disabled' : ''}>다음</button>
+              </div>`
+            : '';
+        if (!found.length) return searchHtml + '<p class="empty">찾는 사람이 없어요.</p>';
 
         const day = (v) => (v ? new Date(v).toLocaleDateString('ko-KR') : '—');
 
@@ -249,10 +306,8 @@
         // one query for the list and one for whoever is being looked at.
         let recentHtml = '';
         if (opened) {
-          const { data: rows, error: recentError } = await db.rpc('admin_user_recent', {
-            target: opened,
-            sessions: 5,
-          });
+          recent ??= await db.rpc('admin_user_recent', { target: opened, sessions: 5 });
+          const { data: rows, error: recentError } = recent;
           // A missing function means the SQL has not been run, which is the
           // one cause worth naming: the raw message says what is absent and
           // nothing about what to do.
@@ -284,7 +339,7 @@
               : '<p class="empty">마친 운동이 없어요.</p>';
         }
 
-        return data
+        return searchHtml + cut.rows
           .map(
             (u) => `<div class="card">
               <div class="row">
@@ -327,7 +382,7 @@
               ${opened === u.user_id ? recentHtml : ''}
             </div>`
           )
-          .join('');
+          .join('') + pagerHtml;
       }
 
       async function setGold(target) {
@@ -342,6 +397,7 @@
           alert(error.message);
           return;
         }
+        users = null;
         await render();
       }
 
@@ -351,6 +407,7 @@
           alert(error.message);
           return;
         }
+        users = null;
         await render();
       }
 

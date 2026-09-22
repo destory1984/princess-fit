@@ -189,12 +189,12 @@ Devin MCP는 `https://mcp.devin.ai/mcp`. 키(실제로는 `cog_`가 아니었다
 - 짓는 일은 Devin. 돌아오면 세 검사를 돌리고 **diff를 눈으로 읽는다.**
 - Devin에게는 `NOTES.md`·`AGENTS.md`를 먼저 읽히고, `lib/`의 규칙에는
   시험을 붙이라 이른다. 플레이북에 박아 두면 매번 이를 것도 없다.
-- 첫 일감으로 「관리자 목록 검색·페이지」를 시험 삼아 돌려 보기로 했다.
+- 첫 일감으로 「관리자 목록 검색·페이지」를 넘기려 했으나 채비에서 멈췄다. 키에 X-Org-Id를 실어 조직은 찾았으나 세션 생성이 403이었다(키 권한 또는 요금제 문제로 보임). 그 일감은 Claude가 지었다. Devin은 키 권한을 정리한 뒤에 다시 쓴다.
+- Devin은 제 VM에서 일하니 GitHub 원격(`github.com/destory1984/refit`)이 있어야 한다.
 
 ### 반만 된 것
 
 - 요청에 답해도 사용자에게 알림이 안 감
-- 관리자 사용자 목록에 검색·페이지 없음 — 시험과 일감서(`docs/devin-admin-list.md`)는 있음. `public/adminList.js` 몸체가 비어 master 시험 9건이 붉다. Devin에게 넘길 차례. 원격은 github.com/destory1984/refit. Devin MCP에는 `X-Org-Id` 머리가 있어야 세션을 만들 수 있다(계정 단위 키라서). 넘길 때 가지는 `devin/admin-list`, PR은 master로
 - AI 조언 규칙/모델 전환 스위치 없음
 
 ### 그림 대기
