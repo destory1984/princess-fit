@@ -18,7 +18,18 @@ const XP_PER_SET = 10;
 const XP_PER_100KG = 1;
 const XP_PER_CARDIO_MINUTE = 2;
 
+/**
+ * A session with nothing done in it — opened and walked away from, or closed
+ * on its own with no set ever ticked. It is kept, because it can still be
+ * filled in, but it is not a workout yet: no XP, no gold, no day in a
+ * streak, and nothing on its card saying the person beat yesterday.
+ */
+export function isEmptyWorkout(w: Pick<WorkoutFact, 'doneSets' | 'durationSec'>) {
+  return w.doneSets === 0 && w.durationSec === 0;
+}
+
 export function workoutXp(w: WorkoutFact) {
+  if (isEmptyWorkout(w)) return 0;
   return (
     XP_PER_WORKOUT +
     w.doneSets * XP_PER_SET +
@@ -203,7 +214,8 @@ export function evaluateBadges(workouts: WorkoutFact[], today = new Date()): Bad
   ];
 }
 
-export function summarise(workouts: WorkoutFact[], today = new Date()) {
+export function summarise(all: WorkoutFact[], today = new Date()) {
+  const workouts = all.filter((w) => !isEmptyWorkout(w));
   const xp = totalXp(workouts);
   const badges = evaluateBadges(workouts, today);
   return {

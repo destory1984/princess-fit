@@ -1,6 +1,6 @@
 import { withParticle } from './exerciseCopy.ts';
 import { formatDuration, formatKm } from './format.ts';
-import type { WorkoutFact } from './gamification.ts';
+import { isEmptyWorkout, type WorkoutFact } from './gamification.ts';
 import type { Stats } from './character.ts';
 
 /** One movement as it was actually done, and what it was last time. */
@@ -208,7 +208,13 @@ export function buildPrompt(c: AdviceContext) {
  * Advice without a model: compares this session to recent ones and picks the
  * most useful thing to say. Also the fallback when no model is configured.
  */
+export const EMPTY_ADVICE =
+  '오늘은 적힌 세트가 없어요. 하신 게 있다면 아래 「운동 추가·삭제하기」로 적어 두세요.';
+
 export function localRuleAdvice(c: AdviceContext): string {
+  // Comparing nothing with last week only produces 「많이 줄었네요」, which is
+  // true and useless. What is worth saying is that the record is empty.
+  if (isEmptyWorkout(c.today)) return EMPTY_ADVICE;
   const past = c.history.filter((w) => w.id !== c.today.id).slice(0, 8);
   const praise = c.streak > 1 ? `${c.streak}일째 이어오고 있어요.` : '오늘도 기록을 남겼네요.';
 
@@ -348,7 +354,7 @@ export async function requestAdvice(
   signal?: AbortSignal,
   useModel = true
 ): Promise<{ text: string; source: 'model' | 'rules' }> {
-  if (!useModel) return { text: localRuleAdvice(c), source: 'rules' };
+  if (!useModel || isEmptyWorkout(c.today)) return { text: localRuleAdvice(c), source: 'rules' };
   const provider = configuredProvider();
   // AbortSignal.any/timeout are not on every runtime this ships to.
   const controller = new AbortController();

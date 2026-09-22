@@ -24,9 +24,9 @@ function fact(partial: Partial<WorkoutFact> & { started_at: string }): WorkoutFa
 }
 
 test('xp rewards sets, volume and cardio minutes on top of showing up', () => {
-  assert.equal(workoutXp(fact({ started_at: '2026-09-19T10:00:00' })), 50);
+  assert.equal(workoutXp(fact({ started_at: '2026-09-19T10:00:00', doneSets: 1 })), 60);
   assert.equal(workoutXp(fact({ started_at: '2026-09-19T10:00:00', doneSets: 3 })), 80);
-  assert.equal(workoutXp(fact({ started_at: '2026-09-19T10:00:00', volume: 2500 })), 75);
+  assert.equal(workoutXp(fact({ started_at: '2026-09-19T10:00:00', doneSets: 1, volume: 2500 })), 85);
   assert.equal(workoutXp(fact({ started_at: '2026-09-19T10:00:00', durationSec: 1800 })), 110);
 });
 
@@ -117,4 +117,13 @@ test('two sessions in one day count once toward the weekly goal', () => {
     fact({ id: 'c', started_at: '2026-09-15T09:00:00' }),
   ];
   assert.equal(weeklyGoalRun(twice, 3, today), 0);
+});
+
+test('an empty session earns nothing and keeps no streak', () => {
+  const empty = fact({ started_at: '2026-09-21T10:00:00' });
+  assert.equal(workoutXp(empty), 0);
+  const done = fact({ started_at: '2026-09-20T10:00:00', doneSets: 3 });
+  const s = summarise([empty, done], new Date('2026-09-21T20:00:00'));
+  assert.equal(s.xp, workoutXp(done));
+  assert.equal(s.streak, 1);
 });

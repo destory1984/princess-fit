@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { requestAdvice, type AdviceContext } from '@/lib/advice';
+import { isEmptyWorkout } from '@/lib/gamification';
 import { saveAdvice } from '@/lib/db';
 import { cacheAdvice, getAdviceByModel, getCachedAdvice } from '@/lib/prefs';
 import { colors, paper, radius, spacing } from '@/lib/theme';
@@ -40,7 +41,9 @@ export function AdviceCard({ context }: { context: AdviceContext }) {
     // is not shown to someone who has since switched the model off.
     Promise.all([getCachedAdvice(context.today.id), getAdviceByModel()]).then(([cached, useModel]) => {
       if (controller.signal.aborted) return;
-      if (cached && useModel) {
+      // An empty session's kept reply was the model comparing nothing with
+      // last week; the rules have the one true thing to say instead.
+      if (cached && useModel && !isEmptyWorkout(context.today)) {
         setText(cached);
         setSource('model');
         setBusy(false);

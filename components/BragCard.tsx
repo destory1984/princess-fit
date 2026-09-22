@@ -8,7 +8,7 @@ import { DEFAULT_REST_SEC } from '@/lib/db';
 import { workoutGold } from '@/lib/economy';
 import { estimatedMinutes, estimatedSeconds } from '@/lib/duration';
 import { formatDate, formatDuration, formatKm } from '@/lib/format';
-import { workoutXp, type summarise, type WorkoutFact } from '@/lib/gamification';
+import { isEmptyWorkout, workoutXp, type summarise, type WorkoutFact } from '@/lib/gamification';
 import type { Workout } from '@/lib/types';
 import { colors, spacing } from '@/lib/theme';
 
@@ -89,7 +89,11 @@ export const BragCard = forwardRef<View, Props>(function BragCard(
     })
     .filter((line): line is string => line !== null);
 
-  const cheer = CHEERS[new Date(workout.started_at).getDate() % CHEERS.length];
+  // Nothing done is not a win over yesterday, so it is not called one.
+  const empty = isEmptyWorkout(fact);
+  const cheer = empty
+    ? '적힌 세트가 없어요'
+    : CHEERS[new Date(workout.started_at).getDate() % CHEERS.length];
   const best = items
     .filter((i) => i.topWeight > 0)
     .sort((a, b) => b.estimatedOneRm - a.estimatedOneRm)[0];
@@ -98,7 +102,7 @@ export const BragCard = forwardRef<View, Props>(function BragCard(
     <View ref={ref} collapsable={false}>
       <OrnateFrame style={styles.card}>
         <Text style={styles.date}>{formatDate(workout.started_at)}</Text>
-        <Text style={styles.cheer}>💪 {cheer}</Text>
+        <Text style={styles.cheer}>{empty ? cheer : `💪 ${cheer}`}</Text>
         <Text style={styles.title}>{workout.title}</Text>
 
         {/*
@@ -132,8 +136,12 @@ export const BragCard = forwardRef<View, Props>(function BragCard(
         )}
 
         <View style={styles.badgeRow}>
-          <Pill icon="flash" text={`+${workoutXp(fact)} XP`} tint={colors.accent} />
-          <Pill icon="ellipse" text={`+${workoutGold(fact)} G`} tint={colors.gold} />
+          {!empty && (
+            <>
+              <Pill icon="flash" text={`+${workoutXp(fact)} XP`} tint={colors.accent} />
+              <Pill icon="ellipse" text={`+${workoutGold(fact)} G`} tint={colors.gold} />
+            </>
+          )}
           <Pill
             icon="ribbon"
             text={`Lv.${summary.level} ${summary.title}`}

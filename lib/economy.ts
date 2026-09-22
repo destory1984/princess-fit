@@ -1,6 +1,6 @@
 import { localDayKey } from './format.ts';
 import { withParticle } from './korean.ts';
-import type { WorkoutFact } from './gamification.ts';
+import { isEmptyWorkout, type WorkoutFact } from './gamification.ts';
 import { insightsFor } from './insight.ts';
 import { daysLeft, isFinished, lessonById, type Enrolment } from './lessons.ts';
 
@@ -29,6 +29,7 @@ export const ATTIRE_PER_DAY = 2;
 export const FULL = 100;
 
 export function workoutGold(w: WorkoutFact) {
+  if (isEmptyWorkout(w)) return 0;
   return (
     GOLD_PER_WORKOUT +
     w.doneSets * GOLD_PER_SET +

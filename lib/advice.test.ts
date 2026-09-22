@@ -4,6 +4,7 @@ import {
   allowedNumbers,
   buildPrompt,
   describeContext,
+  EMPTY_ADVICE,
   localRuleAdvice,
   requestAdvice,
   STAT_WORDS,
@@ -272,6 +273,24 @@ test('with the model switched off, the rules answer and nothing is fetched', asy
     const answer = await requestAdvice(c, undefined, false);
     assert.equal(answer.source, 'rules');
     assert.equal(answer.text, localRuleAdvice(c));
+    assert.equal(called, false);
+  } finally {
+    globalThis.fetch = real;
+  }
+});
+
+test('an empty session is told it is empty, and the model is not asked', async () => {
+  const real = globalThis.fetch;
+  let called = false;
+  globalThis.fetch = (async () => {
+    called = true;
+    throw new Error('no network in this test');
+  }) as typeof fetch;
+  try {
+    const c = ctx({ today: fact({ id: 'a', doneSets: 0, volume: 0 }) });
+    assert.equal(localRuleAdvice(c), EMPTY_ADVICE);
+    const answer = await requestAdvice(c);
+    assert.equal(answer.text, EMPTY_ADVICE);
     assert.equal(called, false);
   } finally {
     globalThis.fetch = real;
