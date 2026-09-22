@@ -807,6 +807,10 @@ export default function WorkoutScreen() {
           saveSet(s.id, { done: true, done_at: workout.ended_at }),
         ),
       );
+      // Not paid for. A session that was finished normally has already
+      // been, and one closed by closeAbandonedWorkouts never will be:
+      // payForWorkout cannot tell the two apart, so paying here would pay
+      // the first kind twice. See 「반만 된 것」 in NOTES.md.
       await forgetAdvice(id);
       router.replace({ pathname: "/summary/[id]", params: { id } });
     } catch (e: any) {

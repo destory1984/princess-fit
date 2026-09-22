@@ -195,6 +195,7 @@ Devin MCP는 `https://mcp.devin.ai/mcp`. 키(실제로는 `cog_`가 아니었다
 
 ### 반만 된 것
 
+- **저절로 닫힌 운동은 골드를 못 받는다.** 골드는 「운동 완료」를 누를 때(`finish` → `payForWorkout`)만 들어간다. 6시간 뒤 저절로 닫힌 운동(`closeAbandonedWorkouts`)은 그 단계를 거치지 않고, 나중에 기록 화면에서 세트를 채워 넣어도(`saveEdit`) 두 번 주지 않으려고 주지 않는다. `payForWorkout`은 같은 운동을 두 번 받아도 모른다 — 받았는지 적는 기둥(예: `workouts.paid_at`)이 먼저 있어야 고칠 수 있다.
 
 ### 그림 대기
 
