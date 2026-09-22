@@ -72,6 +72,7 @@ import type { UsageMap } from "@/lib/exerciseUsage";
 import { listMuscleLoad } from "@/lib/db";
 import type { Place } from "@/lib/onboarding";
 import {
+  getAdviceByModel,
   getAskRoutine,
   getPlace,
   getRestEnd,
@@ -223,7 +224,7 @@ export default function WorkoutScreen() {
 
   // Give the model a long head start on loading; advice is asked for at the end.
   useEffect(() => {
-    warmUpAdvice();
+    void getAdviceByModel().then((on) => on && warmUpAdvice());
     // Only used to order the picker, so a failure costs nothing but the order.
     getExerciseUsage()
       .then(setUsage)

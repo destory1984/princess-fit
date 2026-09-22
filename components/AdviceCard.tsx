@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { requestAdvice, type AdviceContext } from '@/lib/advice';
 import { saveAdvice } from '@/lib/db';
-import { cacheAdvice, getCachedAdvice } from '@/lib/prefs';
+import { cacheAdvice, getAdviceByModel, getCachedAdvice } from '@/lib/prefs';
 import { colors, paper, radius, spacing } from '@/lib/theme';
 
 /** `context` must keep a stable identity — a new object each render refetches. */
@@ -15,7 +15,8 @@ export function AdviceCard({ context }: { context: AdviceContext }) {
   const ask = useCallback(
     (signal?: AbortSignal) => {
       setBusy(true);
-      requestAdvice(context, signal)
+      getAdviceByModel()
+        .then((useModel) => requestAdvice(context, signal, useModel))
         .then(({ text: next, source: from }) => {
           if (signal?.aborted) return;
           setText(next);
@@ -35,9 +36,11 @@ export function AdviceCard({ context }: { context: AdviceContext }) {
 
   useEffect(() => {
     const controller = new AbortController();
-    getCachedAdvice(context.today.id).then((cached) => {
+    // A model's answer kept from before is still the model's answer, so it
+    // is not shown to someone who has since switched the model off.
+    Promise.all([getCachedAdvice(context.today.id), getAdviceByModel()]).then(([cached, useModel]) => {
       if (controller.signal.aborted) return;
-      if (cached) {
+      if (cached && useModel) {
         setText(cached);
         setSource('model');
         setBusy(false);

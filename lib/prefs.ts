@@ -242,6 +242,24 @@ export async function setAskRoutine(ask: boolean) {
   await AsyncStorage.setItem(ASK_ROUTINE, ask ? 'on' : 'off');
 }
 
+const ADVICE_MODEL = 'refit.adviceModel';
+
+/**
+ * Whether advice is asked of the model at all. On unless turned off: the rules
+ * answer whenever the model does not, so leaving it on costs only the wait.
+ */
+export async function getAdviceByModel() {
+  try {
+    return (await AsyncStorage.getItem(ADVICE_MODEL)) !== 'off';
+  } catch {
+    return true;
+  }
+}
+
+export async function setAdviceByModel(on: boolean) {
+  await AsyncStorage.setItem(ADVICE_MODEL, on ? 'on' : 'off');
+}
+
 const REST_END = 'refit.restEnd';
 
 /**

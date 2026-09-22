@@ -5,6 +5,7 @@ import {
   buildPrompt,
   describeContext,
   localRuleAdvice,
+  requestAdvice,
   STAT_WORDS,
   staysInTheFacts,
   type AdviceContext,
@@ -257,4 +258,22 @@ test('no plan and no month means neither is mentioned', () => {
   const said = describeContext(ctx({ today: fact({ id: 'w' }), plan: null, month: [] }));
   assert.ok(!said.includes('본인이 정한 계획'));
   assert.ok(!said.includes('최근 한 달'));
+});
+
+test('with the model switched off, the rules answer and nothing is fetched', async () => {
+  const real = globalThis.fetch;
+  let called = false;
+  globalThis.fetch = (async () => {
+    called = true;
+    throw new Error('no network in this test');
+  }) as typeof fetch;
+  try {
+    const c = ctx({ today: fact({ id: 'a' }) });
+    const answer = await requestAdvice(c, undefined, false);
+    assert.equal(answer.source, 'rules');
+    assert.equal(answer.text, localRuleAdvice(c));
+    assert.equal(called, false);
+  } finally {
+    globalThis.fetch = real;
+  }
 });

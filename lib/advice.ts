@@ -338,11 +338,17 @@ export function warmUpAdvice() {
  * Asks the configured model, falling back to the rule-based advice when none is
  * set up, the call fails, or it takes too long. Swapping providers means
  * changing this one function.
+ *
+ * `useModel` false answers from the rules without touching the network: for
+ * someone with no model server, a 25-second wait for a call that was always
+ * going to fail is the whole of what the model gives them.
  */
 export async function requestAdvice(
   c: AdviceContext,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  useModel = true
 ): Promise<{ text: string; source: 'model' | 'rules' }> {
+  if (!useModel) return { text: localRuleAdvice(c), source: 'rules' };
   const provider = configuredProvider();
   // AbortSignal.any/timeout are not on every runtime this ships to.
   const controller = new AbortController();

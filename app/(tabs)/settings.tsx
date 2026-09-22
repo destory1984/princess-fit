@@ -10,7 +10,15 @@ import { getLedger, listExercises, saveHousehold } from '@/lib/db';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { GOALS, PLACES, type Goal, type Place } from '@/lib/onboarding';
-import { getAskRoutine, getGoal, getPlace, getWeeklyGoal, setAskRoutine } from '@/lib/prefs';
+import {
+  getAdviceByModel,
+  getAskRoutine,
+  getGoal,
+  getPlace,
+  getWeeklyGoal,
+  setAdviceByModel,
+  setAskRoutine,
+} from '@/lib/prefs';
 import { colors, radius, spacing } from '@/lib/theme';
 import { useGirl } from '@/lib/girl';
 
@@ -26,6 +34,7 @@ export default function SettingsScreen() {
   // and the findings quietly went unranked. The row says which it is.
   const [granting, setGranting] = useState<string | null>(null);
   const [askRoutine, setAskRoutineState] = useState(true);
+  const [byModel, setByModelState] = useState(true);
   const [plan, setPlan] = useState<{
     days: number;
     goal: Goal | null;
@@ -43,6 +52,7 @@ export default function SettingsScreen() {
         setPlan({ days, goal, place })
       );
       getAskRoutine().then(setAskRoutineState).catch(() => {});
+      getAdviceByModel().then(setByModelState).catch(() => {});
     }, [])
   );
 
@@ -141,6 +151,26 @@ export default function SettingsScreen() {
           onValueChange={(next) => {
             setAskRoutineState(next);
             setAskRoutine(next).catch(() => setAskRoutineState(!next));
+          }}
+          trackColor={{ true: colors.accent }}
+        />
+      </View>
+
+      <View style={styles.row}>
+        <View style={styles.icon}>
+          <Ionicons name="sparkles-outline" size={22} color={colors.accent} />
+        </View>
+        <View style={styles.body}>
+          <Text style={styles.title}>AI 모델에게 조언 묻기</Text>
+          <Text style={styles.sub}>
+            끄면 기록만 보고 짧게 말해요. 모델 서버가 없으면 꺼 두는 게 빨라요.
+          </Text>
+        </View>
+        <Switch
+          value={byModel}
+          onValueChange={(next) => {
+            setByModelState(next);
+            setAdviceByModel(next).catch(() => setByModelState(!next));
           }}
           trackColor={{ true: colors.accent }}
         />
