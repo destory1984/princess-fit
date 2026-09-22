@@ -96,9 +96,6 @@ export function SetCard({
             </Text>
           </Pressable>
         )}
-        <Pressable hitSlop={8} onPress={onRemove}>
-          <Ionicons name="close" size={18} color={colors.textDim} />
-        </Pressable>
       </View>
 
       <View style={styles.steppers}>
@@ -152,12 +149,24 @@ export function SetCard({
         )}
       </View>
 
-      <Pressable style={[styles.done, { backgroundColor: tint }]} onPress={complete}>
-        <Ionicons name="checkmark" size={20} color={colors.surface} />
-        <Text style={styles.doneText}>
-          {track === 'weight_reps' ? '세트 완료' : '기록 완료'}
-        </Text>
-      </Pressable>
+      {/*
+        Deleting sat as a bare ✕ in the corner, where it read as 「close this
+        card」 and took the set with it. It is now a named button beside the
+        one it could be mistaken for, a third of the width, so the thumb that
+        finishes a set lands on 완료.
+      */}
+      <View style={styles.actions}>
+        <Pressable style={[styles.done, { backgroundColor: tint }]} onPress={complete}>
+          <Ionicons name="checkmark" size={20} color={colors.surface} />
+          <Text style={styles.doneText}>
+            {track === 'weight_reps' ? '세트 완료' : '기록 완료'}
+          </Text>
+        </Pressable>
+        <Pressable style={styles.remove} onPress={onRemove}>
+          <Ionicons name="trash-outline" size={18} color={colors.danger} />
+          <Text style={styles.removeText}>세트 삭제</Text>
+        </Pressable>
+      </View>
     </Animated.View>
   );
 }
@@ -191,7 +200,20 @@ const styles = StyleSheet.create({
   label: { color: colors.textDim, fontSize: 13, fontWeight: '600' },
   steppers: { flexDirection: 'row', alignItems: 'center' },
   divider: { width: 1, height: 52, backgroundColor: colors.border },
+  actions: { flexDirection: 'row', gap: spacing.sm },
+  remove: {
+    flex: 1,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.danger,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+  },
+  removeText: { color: colors.danger, fontWeight: '700', fontSize: 14 },
   done: {
+    flex: 2,
     borderRadius: radius.md,
     paddingVertical: spacing.md,
     flexDirection: 'row',
