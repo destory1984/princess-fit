@@ -262,6 +262,8 @@ Devin MCP는 `https://mcp.devin.ai/mcp`. 키(실제로는 `cog_`가 아니었다
 - `supabase/social.sql` — 친구·선물·함께 운동 보너스. 여러 번 돌려도 됨
 - `supabase/templates/` — Supabase 대시보드에 붙여 넣을 메일 틀
 - `docs/competitors.md` — 다른 운동 앱과 견준 것, 다음에 지을 것
+- `docs/companion.md` — 아이가 기억하고 자라는 것. 아직 안 지음, 설계만
+- `docs/places.md` — 운동터와 그곳에서 할 수 있는 종목. 아직 안 지음, 설계만
 - `public/admin.html` — 관리자 페이지. `/admin.html`로 열림
 - `scripts/garment-fit.mjs` — 그림 자리 재기
 - `scripts/make-rug.mjs` — 양탄자 그리기 (`--tilt`로 각도)
