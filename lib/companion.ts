@@ -38,6 +38,8 @@ export function stageOf(daysTogether: number): Stage {
  * caller, as they are from gold — an empty bar is not a first 100kg.
  */
 export type Session = {
+  /** The workout's id, when read from the database. */
+  id?: string;
   started_at: string;
   worked: boolean;
   lifts: { exercise: string; kg: number }[];

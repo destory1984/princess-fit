@@ -124,3 +124,8 @@ update memories set line = '처음으로 사흘 연속 운동한 날'
 -- The day the last gift was given. One a day: the shop is where you give her
 -- things, and ten bought in one sitting is one day, not ten.
 alter table household add column if not exists gifted_on date;
+
+-- Her diary: a line about each session, written once by the girl who was
+-- there and kept in her hand even if another is chosen later.
+alter table workouts add column if not exists diary    text;
+alter table workouts add column if not exists diary_by text;

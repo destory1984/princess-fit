@@ -337,3 +337,15 @@ export async function setAnswersSeenAt(at: string) {
     // The notice shows once more than it should, which is harmless.
   }
 }
+
+/**
+ * The chosen girl's id, for code that runs outside a screen (lib/db.ts writing
+ * her diary). The same key lib/girl.tsx keeps; null when none was chosen.
+ */
+export async function getChosenGirlId(): Promise<string | null> {
+  try {
+    return await AsyncStorage.getItem('refit.girl');
+  } catch {
+    return null;
+  }
+}

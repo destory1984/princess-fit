@@ -35,11 +35,15 @@ import type { Furniture } from './room';
 import { SPLIT_WINDOW_DAYS, type RoutineUse } from './split';
 import type { BackupWorkout } from './backup';
 import { unseen } from './restore';
+import { diaryFor } from './diary';
+import { getChosenGirlId } from './prefs';
+import { DEFAULT_ADVISOR_ID } from './advisors';
 import { arrivedTotal, type ArrivedGift } from './friends';
 import {
   daysTogether,
   eventMemory,
   giftMemory,
+  isGift,
   memoriesFrom,
   stageOf,
   unrecorded,
@@ -1435,6 +1439,9 @@ export async function payForWorkout(fact: WorkoutFact, today = new Date()) {
     const before = await getHousehold(today);
     const after = afterWorkout(before, fact);
     await saveHousehold(after);
+    // Written now, by whoever is here now: this is the moment that decides
+    // whose hand the entry is in. Never allowed to fail the payment.
+    void getChosenGirlId().then((girl) => writeDiaries(girl ?? undefined)).catch(() => {});
     return { house: after, gold: workoutGold(fact) };
   } catch (e) {
     // Handed back, so the retry — or the next sweep — can pay it after all.
@@ -1818,7 +1825,7 @@ async function listMemorySessions(): Promise<MemorySession[]> {
   const [{ data, error }, exercises] = await Promise.all([
     supabase
       .from('workouts')
-      .select('started_at, workout_sets(exercise_id, weight_kg, reps, duration_sec, done, warmup)')
+      .select('id, started_at, workout_sets(exercise_id, weight_kg, reps, duration_sec, done, warmup)')
       .not('ended_at', 'is', null)
       .order('started_at', { ascending: true })
       .limit(5000),
@@ -1829,6 +1836,7 @@ async function listMemorySessions(): Promise<MemorySession[]> {
 
   return (
     data as {
+      id: string;
       started_at: string;
       workout_sets: Pick<WorkoutSet, 'exercise_id' | 'weight_kg' | 'reps' | 'duration_sec' | 'done' | 'warmup'>[];
     }[]
@@ -1841,6 +1849,7 @@ async function listMemorySessions(): Promise<MemorySession[]> {
       if (name && s.weight_kg > 0 && s.reps > 0) top.set(name, Math.max(top.get(name) ?? 0, s.weight_kg));
     }
     return {
+      id: w.id,
       started_at: w.started_at,
       worked: done.length > 0,
       lifts: [...top].map(([exercise, kg]) => ({ exercise, kg })),
@@ -1893,4 +1902,77 @@ export async function getBond(): Promise<Bond> {
   if (missing.length) await remember(missing);
   const memories = [...known, ...missing].sort((a, b) => a.day.localeCompare(b.day));
   return { days, stage: stageOf(days), memories, sessions };
+}
+
+/*
+  Her diary (lib/diary.ts, docs/relationship.md). Each finished session gets
+  one entry, written once by the girl chosen at the time and never rewritten.
+*/
+
+/**
+ * Write the entries still missing, newest first, a batch at a time. Called
+ * when a session is paid (so it is hers who was there) and when the history
+ * opens (which fills in sessions from before the diary existed, in the hand
+ * of whoever is here now — the least untrue answer for days nobody logged).
+ *
+ * Never throws: before migrate.sql there is no diary column, and a diary
+ * that could not be written is an empty line, not a failed workout.
+ */
+export async function writeDiaries(girl?: string, batch = 40): Promise<number> {
+  try {
+    const { data: missing, error } = await supabase
+      .from('workouts')
+      .select('id')
+      .not('ended_at', 'is', null)
+      .is('diary', null)
+      .order('started_at', { ascending: false })
+      .limit(batch);
+    if (error || !missing?.length) return 0;
+
+    const [facts, sessions, stored] = await Promise.all([
+      listWorkoutFacts(),
+      listMemorySessions(),
+      supabase
+        .from('memories')
+        .select(MEMORY_COLUMNS)
+        .then(({ data: rows }) => (rows as Memory[] | null) ?? []),
+    ]);
+    const memories = [...memoriesFrom(sessions), ...stored.filter((m) => isGift(m.kind as MemoryKind))];
+    const byId = new Map(facts.map((f) => [f.id, f]));
+    const ordered = sessions.slice().sort((a, b) => a.started_at.localeCompare(b.started_at));
+
+    let written = 0;
+    for (const { id } of missing as { id: string }[]) {
+      const today = byId.get(id);
+      if (!today) continue;
+      const day = localDayKey(new Date(today.started_at));
+      const at = ordered.findIndex((s) => s.id === id);
+      const bestBefore = new Map<string, number>();
+      for (const s of ordered.slice(0, Math.max(0, at))) {
+        for (const l of s.lifts) bestBefore.set(l.exercise, Math.max(bestBefore.get(l.exercise) ?? 0, l.kg));
+      }
+      const entry = diaryFor(
+        {
+          today,
+          history: facts,
+          lifts: at >= 0 ? ordered[at].lifts : [],
+          bestBefore,
+          memories: memories.filter((m) => m.day === day),
+        },
+        girl
+      );
+      if (!entry) continue;
+      // Only where there is still none: two phones racing must not have the
+      // second rewrite what the first girl wrote.
+      const { error: saveError } = await supabase
+        .from('workouts')
+        .update({ diary: entry, diary_by: girl ?? DEFAULT_ADVISOR_ID })
+        .eq('id', id)
+        .is('diary', null);
+      if (!saveError) written++;
+    }
+    return written;
+  } catch {
+    return 0;
+  }
 }

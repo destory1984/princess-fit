@@ -88,6 +88,12 @@ export type Workout = {
    * mismatch means it is asked again rather than shown.
    */
   advice_speaker?: string | null;
+  /**
+   * Her diary line about this session, and whose hand it is in. Written once,
+   * by the girl who was there, and never rewritten — unlike the advice.
+   */
+  diary?: string | null;
+  diary_by?: string | null;
 };
 
 export type WorkoutSet = {

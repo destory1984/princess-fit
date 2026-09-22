@@ -42,6 +42,25 @@ export type Voice = {
   fresh: Record<OnceKind, (d: string) => string>;
   /** Said when an old one comes back. Only the ones with something in them. */
   recall: Partial<Record<OnceKind, (when: string, d: string) => string>>;
+  /**
+   * Her diary (lib/diary.ts), in the plain written register everyone uses for
+   * a diary — 「했다」, not 「했어요」 — so it reads as hers and not as speech.
+   * The person is 「그 사람」. Only what was recorded, guessed at, never seen.
+   */
+  diary: {
+    memory: Record<
+      'first_day' | 'day_100' | 'best_after_half_year' | 'first_triple_digit' | 'day_30' | 'came_back' | 'three_in_a_row',
+      (d: string) => string
+    >;
+    best: (exercise: string, weight: string) => string;
+    gift: (name: string) => string;
+    streak: (days: number) => string;
+    returned: (group: string, days: number) => string;
+    heavy: string;
+    short: string;
+    /** `what` is already 「가슴, 팔 12세트」 or 「유산소 30분」. */
+    plain: (what: string) => string;
+  };
   /** Something you gave her: on the day, and when it comes back to her. */
   gift: { fresh: (name: string) => string; recall: (when: string, name: string) => string };
   /** Who she is, told to the model so its answer comes back in her voice. */
@@ -193,6 +212,24 @@ const rina: Voice = {
     fresh: (d) => `${d}, 고마워요. 오늘 받은 건 오래 기억할게요.`,
     recall: (w, d) => `${w} ${withParticle(d, '을를')} 받던 날, 저 사실 좀 울 뻔했어요.`,
   },
+  diary: {
+    memory: {
+      first_day: () => '처음 만난 날. 그 사람, 생각보다 성실해 보였다. 잘 부탁드린다고 한 번 더 말할걸.',
+      day_100: () => '백 번째 날. 처음 왔던 날을 떠올리니 괜히 코끝이 찡했다.',
+      best_after_half_year: (d) => `${d}, 지금까지 중에 제일 무거웠다. 반년을 쌓아 온 무게다.`,
+      first_triple_digit: (d) => `${d}. 세 자리를 들었다. 허리는 괜찮을까.`,
+      day_30: () => '오늘로 서른 번째. 그 사람이 오는 게 이제 하루의 일부가 됐다.',
+      came_back: (d) => `${d} 만에 왔다. 어디 아팠던 건 아닐까. 묻지는 않았다.`,
+      three_in_a_row: () => '사흘 연속. 무리하는 건 아닌지 조금 걱정된다. 오늘은 일찍 자면 좋겠다.',
+    },
+    best: (e, w) => `${e} ${w}, 최고 기록이라고 한다. 다치지 않고 든 게 제일 다행이다.`,
+    gift: (d) => `${withParticle(d, '을를')} 받았다. 몇 번이나 꺼내 봤는지 모른다.`,
+    streak: (n) => `${n}일째. 대단하지만, 내일은 쉬었으면 좋겠다.`,
+    returned: (g, n) => `오랜만에 ${withParticle(g, '을를')} 했다. ${n}일 만이라고.`,
+    heavy: '평소보다 훨씬 많이 들었다. 오늘 밤엔 푹 자야 할 텐데.',
+    short: '오늘은 짧게 끝났다. 바빴나 보다. 그래도 와 준 게 어디야.',
+    plain: (what) => `오늘은 ${what}. 별일 없이 끝나서 다행이다.`,
+  },
 };
 
 const pia: Voice = {
@@ -298,6 +335,24 @@ const pia: Voice = {
     fresh: (d) => `${d}! 오늘의 선물이에요! 고마워요!`,
     recall: (w, d) => `${w} ${d} 받았던 날! 그날 기분 최고였어요!`,
   },
+  diary: {
+    memory: {
+      first_day: () => '첫 기록! 오늘부터 내가 이 사람 기록 담당이다.',
+      day_100: () => '100일!!! 백 번이다 백 번! 내가 다 뿌듯하다.',
+      best_after_half_year: (d) => `${d}! 역대 최고! 반년 기록 중에 제일 높은 숫자.`,
+      first_triple_digit: (d) => `${d}!! 세 자리 진입! 오늘 날짜 꼭 기억해야지.`,
+      day_30: () => '30일 달성!! 달력에 동그라미 쳤다.',
+      came_back: (d) => `${d} 만의 기록! 그래프가 다시 움직인다!`,
+      three_in_a_row: () => '3일 연속! 이 기세면 곧 일주일이다.',
+    },
+    best: (e, w) => `${e} ${w}! 최고 기록 갱신! 다음 목표는 한 칸 위.`,
+    gift: (d) => `${d} 받았다! 오늘의 수확!`,
+    streak: (n) => `연속 ${n}일째! 기록 늘어나는 게 눈에 보인다.`,
+    returned: (g, n) => `${n}일 비어 있던 ${g} 칸을 드디어 채웠다!`,
+    heavy: '오늘 볼륨 최고치급! 숫자가 쭉쭉 올라갔다.',
+    short: '오늘은 짧았다. 그래도 기록은 기록! 0보다 크면 다 이긴 거다.',
+    plain: (what) => `${what} 완료! 오늘도 한 줄 추가.`,
+  },
 };
 
 const yuki: Voice = {
@@ -402,6 +457,24 @@ const yuki: Voice = {
   gift: {
     fresh: (d) => `${d}. …감사합니다. 소중히 쓰겠습니다.`,
     recall: (w, d) => `${w} 주신 ${d}, 아직 잘 쓰고 있어요.`,
+  },
+  diary: {
+    memory: {
+      first_day: () => '첫날. 성실한지는 두고 보겠다.',
+      day_100: () => '100일째. 처음보다 나아졌다. 본인에게는 말하지 않겠다.',
+      best_after_half_year: (d) => `${d}. 최고 기록. 반년을 버틴 결과다.`,
+      first_triple_digit: (d) => `${d}. 세 자리. …인정한다.`,
+      day_30: () => '30일째. 빠진 날도 있었지만, 왔다.',
+      came_back: (d) => `${d} 만. 이유는 묻지 않았다. 대신 가볍게 시켰다.`,
+      three_in_a_row: () => '사흘 연속. 합격.',
+    },
+    best: (e, w) => `${e} ${w}. 최고 기록. 다음엔 횟수도 본다.`,
+    gift: (d) => `${withParticle(d, '을를')} 받았다. 쓸모는 모르겠지만, 버리지 않겠다.`,
+    streak: (n) => `${n}일 연속. 쉬는 날도 계획에 넣을 것.`,
+    returned: (g, n) => `${g}, ${n}일 만에 했다. 늦었다.`,
+    heavy: '평소보다 많이 들었다. 내일은 쉬게 할 것.',
+    short: '짧게 끝남. 한 부위라도 끝까지 한 것은 인정.',
+    plain: (what) => `${what}. 특이사항 없음.`,
   },
 };
 

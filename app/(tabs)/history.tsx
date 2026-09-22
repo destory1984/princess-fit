@@ -24,6 +24,7 @@ import {
   listWorkoutFacts,
   listWorkouts,
   listWorkoutsOn,
+  writeDiaries,
   WORKOUT_PAGE,
   type WorkoutSummary,
 } from '@/lib/db';
@@ -31,6 +32,7 @@ import { formatDate, localDayKey } from '@/lib/format';
 import type { WorkoutFact } from '@/lib/gamification';
 import type { Workout } from '@/lib/types';
 import { colors, muscleColor, radius, spacing } from '@/lib/theme';
+import { girlOf, useGirl } from '@/lib/girl';
 
 function duration(workout: Workout) {
   if (!workout.ended_at) return '진행 중';
@@ -43,6 +45,7 @@ function duration(workout: Workout) {
 
 export default function HistoryScreen() {
   const router = useRouter();
+  const girl = useGirl();
   const [workouts, setWorkouts] = useState<WorkoutSummary[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [days, setDays] = useState<Set<string>>(new Set());
@@ -84,10 +87,17 @@ export default function HistoryScreen() {
       .then(([list, marked]) => {
         setWorkouts(list);
         setHasMore(list.length === shownCount.current);
+        // Sessions from before the diary, or paid while it could not be
+        // written, get their entry now — and the list is read again to show it.
+        if (list.some((w) => w.ended_at && !w.diary && w.setCount > 0)) {
+          void writeDiaries(girl.id).then((n) => {
+            if (n > 0) listWorkouts(shownCount.current).then(setWorkouts).catch(() => {});
+          });
+        }
         setDays(new Set(marked.map((m) => m.day)));
       })
       .catch((e) => setError(e.message));
-  }, []);
+  }, [girl.id]);
 
   useFocusEffect(load);
 
@@ -268,6 +278,13 @@ export default function HistoryScreen() {
             }
             onLongPress={() => confirmDelete(item)}>
             <View style={styles.rowMain}>
+              {/* Hers, in her hand — whoever was here when it was written. */}
+              {item.diary && (
+                <Text style={styles.diary}>
+                  {item.diary}
+                  <Text style={styles.diaryBy}> — {girlOf(item.diary_by ?? '').name}</Text>
+                </Text>
+              )}
               <Text style={styles.rowTitle}>{item.title}</Text>
               <Text style={styles.rowSub}>
                 {formatDate(item.started_at)}
@@ -297,6 +314,8 @@ export default function HistoryScreen() {
 }
 
 const styles = StyleSheet.create({
+  diary: { color: colors.text, fontSize: 13, lineHeight: 19, fontStyle: 'italic', marginBottom: 4 },
+  diaryBy: { color: colors.textDim, fontSize: 11, fontStyle: 'normal' },
   legend: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   legendDot: { width: 8, height: 8, borderRadius: 4 },

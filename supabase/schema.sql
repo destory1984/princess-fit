@@ -229,3 +229,6 @@ create policy "own memories" on memories
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 alter table household add column if not exists gifted_on date;
+
+alter table workouts add column if not exists diary    text;
+alter table workouts add column if not exists diary_by text;
