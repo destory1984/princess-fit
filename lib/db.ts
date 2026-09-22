@@ -37,6 +37,17 @@ import type { BackupWorkout } from './backup';
 import { unseen } from './restore';
 import { arrivedTotal, type ArrivedGift } from './friends';
 import {
+  daysTogether,
+  eventMemory,
+  memoriesFrom,
+  stageOf,
+  unrecorded,
+  type Memory,
+  type MemoryKind,
+  type Session as MemorySession,
+  type Stage,
+} from './companion';
+import {
   groupHistory,
   streakDays,
   volumeOf,
@@ -1196,7 +1207,12 @@ export async function getLedger(today = new Date()): Promise<Ledger> {
   let collected: Enrolment | null = null;
   if (lesson && isFinished(lesson, today)) {
     const taught = lessonById(lesson.lessonId);
-    if (taught) culture = attend(taught, culture);
+    if (taught) {
+      culture = attend(taught, culture);
+      // Only the first course is remembered, and the unique key is what
+      // makes it the first: a later one is simply turned away.
+      void remember(eventMemory('first_lesson', taught.name, today));
+    }
     collected = lesson;
     lesson = null;
   }
@@ -1275,6 +1291,7 @@ export async function buyGarment(garment: Garment, today = new Date()): Promise<
   const wardrobe = [...ledger.wardrobe, garment.id];
   const worn = wearing(ledger.worn, garment);
   await saveHousehold(house, { wardrobe, worn });
+  if (ledger.wardrobe.length === 0) void remember(eventMemory('first_garment', garment.name, today));
   return { ...ledger, house, wardrobe, worn };
 }
 
@@ -1419,6 +1436,7 @@ export async function myFriendName(): Promise<string> {
 export async function addFriend(code: string): Promise<string> {
   const { data, error } = await supabase.rpc('add_friend', { p_code: code });
   if (error) throw error;
+  void remember(eventMemory('first_friend', data as string));
   return data as string;
 }
 
@@ -1729,4 +1747,87 @@ export async function saveSleepLog(
 export async function deleteSleepLog(id: string) {
   const { error } = await supabase.from('sleep_logs').delete().eq('id', id);
   if (error) throw error;
+}
+
+/*
+  What she remembers (docs/companion.md). Memories from training are read off
+  the whole history each time rather than caught as they happen, so a
+  session filled in afterwards, or one closed by itself, still lands on its
+  own day. Only the ones from the shop and friends are written as they occur.
+*/
+
+/** Every finished session, as the memories read it. */
+async function listMemorySessions(): Promise<MemorySession[]> {
+  const [{ data, error }, exercises] = await Promise.all([
+    supabase
+      .from('workouts')
+      .select('started_at, workout_sets(exercise_id, weight_kg, reps, duration_sec, done, warmup)')
+      .not('ended_at', 'is', null)
+      .order('started_at', { ascending: true })
+      .limit(5000),
+    listExercises(),
+  ]);
+  if (error) throw error;
+  const nameOf = new Map(exercises.map((e) => [e.id, e.name]));
+
+  return (
+    data as {
+      started_at: string;
+      workout_sets: Pick<WorkoutSet, 'exercise_id' | 'weight_kg' | 'reps' | 'duration_sec' | 'done' | 'warmup'>[];
+    }[]
+  ).map((w) => {
+    // The same line isEmptyWorkout draws: warm-ups are not the work.
+    const done = w.workout_sets.filter((s) => s.done && !s.warmup);
+    const top = new Map<string, number>();
+    for (const s of done) {
+      const name = nameOf.get(s.exercise_id);
+      if (name && s.weight_kg > 0 && s.reps > 0) top.set(name, Math.max(top.get(name) ?? 0, s.weight_kg));
+    }
+    return {
+      started_at: w.started_at,
+      worked: done.length > 0,
+      lifts: [...top].map(([exercise, kg]) => ({ exercise, kg })),
+    };
+  });
+}
+
+const MEMORY_COLUMNS = 'kind, day, line, detail';
+
+/**
+ * Write one down, unless one of its kind already is. Never throws: a memory
+ * that fails to save is a line she does not say, not a purchase that failed.
+ */
+async function remember(memories: Memory | Memory[]) {
+  const rows = (Array.isArray(memories) ? memories : [memories]).map((m) => ({ ...m }));
+  if (!rows.length) return;
+  try {
+    const userId = await requireUserId();
+    await supabase.from('memories').upsert(
+      rows.map((m) => ({ user_id: userId, ...m })),
+      { onConflict: 'user_id,kind', ignoreDuplicates: true }
+    );
+  } catch {
+    // Before migrate.sql there is no table; the rest of the app goes on.
+  }
+}
+
+export type Bond = { days: number; stage: Stage; memories: Memory[] };
+
+/**
+ * How long she has known you and what she remembers, bringing the book up to
+ * date on the way. Before migrate.sql the memories are simply empty and she
+ * still knows how long it has been.
+ */
+export async function getBond(): Promise<Bond> {
+  const sessions = await listMemorySessions();
+  const days = daysTogether(sessions);
+
+  const { data, error } = await supabase.from('memories').select(MEMORY_COLUMNS).order('day');
+  if (error) return { days, stage: stageOf(days), memories: [] };
+  const known = data as Memory[];
+
+  const missing = unrecorded(memoriesFrom(sessions), known.map((m) => m.kind as MemoryKind));
+  if (missing.length) await remember(missing);
+  const memories = [...known, ...missing].sort((a, b) => a.day.localeCompare(b.day));
+  return { days, stage: stageOf(days), memories };
 }

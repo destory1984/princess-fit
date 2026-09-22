@@ -25,6 +25,7 @@ import {
   conditionFactor,
   dailyLine,
   tomorrowsMessage,
+  type Bond,
   type Household,
 } from '@/lib/economy';
 import { DEFAULT_WEEKLY_GOAL, getAnswersSeenAt, getNudgeHour, getWeeklyGoal } from '@/lib/prefs';
@@ -38,6 +39,7 @@ import {
   listRoutineExercises,
   lastDoneByRoutine,
   listRoutines,
+  getBond,
   getLedger,
   recentRoutineUse,
   listWorkoutFacts,
@@ -55,12 +57,13 @@ async function armDailyMessage(
   name: string,
   house: Household,
   facts: WorkoutFact[],
-  lesson: Enrolment | null
+  lesson: Enrolment | null,
+  bond: Bond | null
 ) {
   try {
     const hour = await getNudgeHour();
     if (hour === null) return;
-    await scheduleDailyMessage(name, tomorrowsMessage(house, facts, new Date(), lesson), hour);
+    await scheduleDailyMessage(name, tomorrowsMessage(house, facts, new Date(), lesson, bond), hour);
   } catch {
     // She will try again the next time the app is opened.
   }
@@ -81,6 +84,7 @@ export default function TodayScreen() {
   const [furniture, setFurniture] = useState<string[]>([]);
   const [worn, setWorn] = useState<string[]>([]);
   const [lesson, setLesson] = useState<Enrolment | null>(null);
+  const [bond, setBond] = useState<Bond | null>(null);
   // The routine waiting on an answer about today's body, if one is.
   const [pending, setPending] = useState<{ routine: Routine | null } | null>(null);
   const [weeklyGoal, setWeeklyGoalState] = useState(DEFAULT_WEEKLY_GOAL);
@@ -122,15 +126,20 @@ export default function TodayScreen() {
         setLoaded(true);
 
         getWeeklyGoal().then(setWeeklyGoalState);
+        // What she remembers only colours what she says, so losing it
+        // leaves her speaking as she did before — never an empty room.
+        const knowing = getBond().catch(() => null);
         getLedger()
-          .then(({ house: h, furniture: mine, worn: dressed, lesson: course }) => {
+          .then(async ({ house: h, furniture: mine, worn: dressed, lesson: course }) => {
             setHouse(h);
             setFurniture(mine);
             setWorn(dressed);
             setLesson(course);
+            const known = await knowing;
+            setBond(known);
             // Re-arm her daily message with the mood she will be in by then.
             // A failure here is never worth interrupting the screen for.
-            void armDailyMessage(girl.name, h, facts, course);
+            void armDailyMessage(girl.name, h, facts, course, known);
           })
           .catch(() => setHouse(null));
 
@@ -289,9 +298,12 @@ export default function TodayScreen() {
           )}
           {/* The one reason to open this on a day you are not training. */}
           <WalkCard onFed={load} dense />
-          <Advisor name={girl.name} portrait={girl.base}>
-            {house ? dailyLine(house, facts, new Date(), lesson) : masterSays(stats, facts)}
-          </Advisor>
+          {/* She is the way in to what she remembers. */}
+          <Pressable onPress={() => router.push('/memories')}>
+            <Advisor name={girl.name} portrait={girl.base}>
+              {house ? dailyLine(house, facts, new Date(), lesson, bond) : masterSays(stats, facts)}
+            </Advisor>
+          </Pressable>
         </>
       )}
 

@@ -18,6 +18,7 @@ import {
 } from './economy.ts';
 import type { WorkoutFact } from './gamification.ts';
 import { enrol, LESSONS } from './lessons.ts';
+import { eventMemory } from './companion.ts';
 
 function fact(partial: Partial<WorkoutFact> = {}): WorkoutFact {
   return {
@@ -198,4 +199,25 @@ test("tomorrow's message drops a course that will be over by then", () => {
   const oneDay = enrol({ ...LESSONS[0], days: 1 }, new Date(2026, 8, 20));
   const said = tomorrowsMessage(happy, [], new Date(2026, 8, 20), oneDay);
   assert.ok(!said.includes('배우러'), said);
+});
+
+test('a memory made today is said before her schedule, but after her hunger', () => {
+  const today = new Date(2026, 8, 20);
+  const bond = { stage: 'new' as const, memories: [eventMemory('first_garment', '리본', today)] };
+  const happy: Household = { gold: 500, satiety: 90, attire: 90, settledOn: '2026-09-20' };
+  const trained = [fact({ id: 't', started_at: '2026-09-20T10:00:00', doneSets: 3 })];
+  const lesson = enrol(LESSONS[0], today);
+  assert.match(dailyLine(happy, trained, today, lesson, bond), /리본/);
+
+  const hungry: Household = { ...happy, satiety: 10 };
+  assert.equal(dailyLine(hungry, trained, today, lesson, bond), messageFor('hungry', today));
+});
+
+test('she speaks differently once she knows you', () => {
+  const day = new Date(2026, 8, 20);
+  const first = new Set([0, 1, 2, 3].map((d) => messageFor('fine', new Date(2026, 8, 20 + d))));
+  const later = new Set([0, 1, 2, 3].map((d) => messageFor('fine', new Date(2026, 8, 20 + d), 'old')));
+  assert.equal([...first].filter((l) => later.has(l)).length, 0);
+  // Hunger is about her, and she says it the same way at every stage.
+  assert.equal(messageFor('hungry', day, 'old'), messageFor('hungry', day));
 });

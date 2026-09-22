@@ -123,6 +123,17 @@ export default function SettingsScreen() {
 
       <NudgeSetting />
 
+      <Pressable style={styles.row} onPress={() => router.push('/memories')}>
+        <View style={styles.icon}>
+          <Ionicons name="heart-outline" size={22} color={colors.accent} />
+        </View>
+        <View style={styles.body}>
+          <Text style={styles.title}>함께한 날들</Text>
+          <Text style={styles.sub}>{girl.name}의 기억</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
+      </Pressable>
+
       <Pressable style={styles.row} onPress={() => router.push('/achievements')}>
         <View style={styles.icon}>
           <Ionicons name="trophy-outline" size={22} color={colors.accent} />

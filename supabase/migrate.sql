@@ -94,3 +94,24 @@ begin
     update workouts set paid_at = ended_at where ended_at is not null;
   end if;
 end $$;
+
+-- What she remembers. One row per kind of memory, ever: the unique key is
+-- what keeps a first day from being written twice when two phones race.
+-- The line is kept as it was written, so renaming an exercise later does not
+-- rewrite what happened.
+create table if not exists memories (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users on delete cascade,
+  kind text not null,
+  day date not null,
+  line text not null,
+  detail text,
+  created_at timestamptz not null default now(),
+  unique (user_id, kind)
+);
+
+alter table memories enable row level security;
+
+drop policy if exists "own memories" on memories;
+create policy "own memories" on memories
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);

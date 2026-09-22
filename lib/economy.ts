@@ -1,5 +1,6 @@
 import { localDayKey } from './format.ts';
 import { isEmptyWorkout, type WorkoutFact } from './gamification.ts';
+import { memoryLine, type Memory, type Stage } from './companion.ts';
 import { insightsFor } from './insight.ts';
 import { daysLeft, isFinished, lessonById, type Enrolment } from './lessons.ts';
 
@@ -154,8 +155,29 @@ const LINES: Record<Mood, string[]> = {
  * always says the same thing — a message that changes on every render reads as
  * noise rather than as someone speaking.
  */
-export function messageFor(mood: Mood, today = new Date()) {
-  const lines = LINES[mood];
+// How she speaks once she knows you, by how long that has been. Only the
+// moods about you change; hunger and rags are about her, and she is shy about
+// those at every stage. The first stage is LINES itself.
+const LINES_BY_STAGE: Record<Exclude<Stage, 'new'>, Partial<Record<Mood, string[]>>> = {
+  familiar: {
+    happy: ['어제 하신 데는 좀 괜찮으세요?', '요즘 꾸준하시네요. 저도 덩달아 힘이 나요.'],
+    fine: ['오늘은 어디 하실 거예요? 저도 맞혀 볼래요.', '물은 챙기셨어요?'],
+    lonely: ['며칠 안 보이셔서 걱정했어요.', '문 쪽을 몇 번이나 봤는지 몰라요.'],
+  },
+  comfortable: {
+    happy: ['또 오셨네요. 이러다 제가 심심할 틈이 없겠어요.', '오늘은 표정이 좋으시네요. 무거운 거 하실 거죠?'],
+    fine: ['스트레칭은 하고 하시는 거죠? 저 봤어요.', '오늘은 제가 골라 드릴까요? 농담이에요.'],
+    lonely: ['어디 다녀오셨어요? 저 혼자 방 청소 다 했어요.', '오늘은 오실 줄 알았어요. 반쯤은요.'],
+  },
+  old: {
+    happy: ['왔어요? 오늘도 잘 해 봐요.', '이제 오시는 게 당연한 것 같아요.'],
+    fine: ['오늘은 가볍게 가요, 세게 가요?', '늘 하던 대로 하면 돼요.'],
+    lonely: ['바빴나 봐요. 괜찮아요, 기다리는 건 익숙해요.', '오랜만이에요. 금방 돌아올 줄 알았어요.'],
+  },
+};
+
+export function messageFor(mood: Mood, today = new Date(), stage: Stage = 'new') {
+  const lines = (stage !== 'new' && LINES_BY_STAGE[stage][mood]) || LINES[mood];
   const key = localDayKey(today);
   const seed = [...key].reduce((n, c) => n + c.charCodeAt(0), 0);
   return lines[seed % lines.length];
@@ -193,15 +215,19 @@ export function tomorrowsMessage(
   house: Household,
   workouts: WorkoutFact[],
   today = new Date(),
-  lesson: Enrolment | null = null
+  lesson: Enrolment | null = null,
+  bond: Bond | null = null
 ) {
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
   const projected = settle(house, tomorrow);
   // A course that will have ended by tomorrow is not news tomorrow.
   const still = lesson && !isFinished(lesson, tomorrow) ? lesson : null;
-  return dailyLine(projected, workouts, tomorrow, still);
+  return dailyLine(projected, workouts, tomorrow, still, bond);
 }
+
+/** How long she has known you and what she remembers, as dailyLine needs it. */
+export type Bond = { stage: Stage; memories: Memory[] };
 
 export type GiftKind = 'food' | 'clothes' | 'accessory' | 'furniture' | 'lesson';
 
@@ -240,10 +266,19 @@ export function dailyLine(
   house: Household,
   workouts: WorkoutFact[],
   today = new Date(),
-  lesson: Enrolment | null = null
+  lesson: Enrolment | null = null,
+  bond: Bond | null = null
 ): string {
   const mood = moodOf(house, workouts, today);
-  if (mood !== 'fine' && mood !== 'happy') return messageFor(mood, today);
+  const stage = bond?.stage ?? 'new';
+  if (mood !== 'fine' && mood !== 'happy') return messageFor(mood, today, stage);
+
+  // Something she remembers. A memory made today is the news of the day and
+  // goes before her schedule; an old one coming back is a passing thought and
+  // waits behind what the numbers noticed.
+  const remembered = bond ? memoryLine(bond.memories, today) : null;
+  const freshToday = bond?.memories.some((m) => m.day === localDayKey(today));
+  if (remembered && freshToday) return remembered;
 
   // A course she is part-way through is the most concrete thing in her week,
   // and it only exists because gold was spent on it — so it should reach the
@@ -257,5 +292,6 @@ export function dailyLine(
   const watch = insightsFor(workouts, today).find((i) => i.tone === 'watch');
   if (watch) return `${watch.title}. ${watch.detail}`;
 
-  return messageFor(mood, today);
+  if (remembered) return remembered;
+  return messageFor(mood, today, stage);
 }
