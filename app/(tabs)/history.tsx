@@ -207,7 +207,8 @@ export default function HistoryScreen() {
               <Text style={styles.rowTitle}>{item.title}</Text>
               <Text style={styles.rowSub}>
                 {formatDate(item.started_at)}
-                {item.setCount > 0 && ` · ${item.setCount}세트 · ${item.volume.toLocaleString()}kg`}
+                {item.setCount > 0 &&
+                  ` · ${item.exerciseCount}종목 · ${item.setCount}세트 · ${item.volume.toLocaleString()}kg`}
               </Text>
             </View>
             <View style={styles.rowEnd}>

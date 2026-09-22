@@ -180,23 +180,28 @@ export async function getWeeklyStats(): Promise<WeeklyStats> {
   return { workouts: recent.length, volume, streakDays: streakDays(days) };
 }
 
-export type WorkoutSummary = Workout & { setCount: number; volume: number };
+export type WorkoutSummary = Workout & { exerciseCount: number; setCount: number; volume: number };
 
 export async function listWorkouts(limit = 50): Promise<WorkoutSummary[]> {
   const { data, error } = await supabase
     .from('workouts')
-    .select('*, workout_sets(weight_kg, reps, done, warmup)')
+    .select('*, workout_sets(exercise_id, weight_kg, reps, done, warmup)')
     .order('started_at', { ascending: false })
     .limit(limit);
   if (error) throw error;
-  return (data as (Workout & { workout_sets: Pick<WorkoutSet, 'weight_kg' | 'reps' | 'done' | 'warmup'>[] })[]).map(
+  return (data as (Workout & { workout_sets: Pick<WorkoutSet, 'exercise_id' | 'weight_kg' | 'reps' | 'done' | 'warmup'>[] })[]).map(
     ({ workout_sets, ...workout }) => {
       const done = workout_sets.filter((s) => s.done);
       // Warm-ups do not count as sets done either: 「12세트」 that is really
       // eight working sets and four with an empty bar is a number nobody
       // would recognise as their own afternoon.
       const working = done.filter((s) => !s.warmup);
-      return { ...workout, setCount: working.length, volume: volumeOf(working) };
+      return {
+        ...workout,
+        exerciseCount: new Set(working.map((s) => s.exercise_id)).size,
+        setCount: working.length,
+        volume: volumeOf(working),
+      };
     }
   );
 }
