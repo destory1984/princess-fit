@@ -77,6 +77,7 @@ import {
   getPlace,
   getRestEnd,
   setRestEnd as rememberRestEnd,
+  forgetAdvice,
 } from "@/lib/prefs";
 import { recoveryOf, type Muscle } from "@/lib/recovery";
 import { suggestExercise } from "@/lib/suggest";
@@ -100,7 +101,7 @@ import { warmupFor, warmupWord, workingWeightOf } from "@/lib/warmup";
 import { colors, muscleColor, radius, spacing } from "@/lib/theme";
 
 export default function WorkoutScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, edit } = useLocalSearchParams<{ id: string; edit?: string }>();
   const router = useRouter();
   const [workout, setWorkout] = useState<Workout | null>(null);
   const [sets, setSets] = useState<WorkoutSet[]>([]);
@@ -393,7 +394,14 @@ export default function WorkoutScreen() {
     (sum, s) => sum + s.weight_kg * s.reps,
     0,
   );
-  const done = Boolean(workout?.ended_at);
+  /*
+    A finished session opened from its summary to put right what was not
+    written down at the time. Everything that edits sets works as it does
+    mid-workout; only the ending differs — it is already over, so saving goes
+    back to the summary without finishing it again or paying for it twice.
+  */
+  const editing = edit === "1" && Boolean(workout?.ended_at);
+  const done = Boolean(workout?.ended_at) && !editing;
   const progress = sets.length ? doneSets.length / sets.length : 0;
 
   // Only worth working out for an empty board, which is the only time she asks.
@@ -787,8 +795,28 @@ export default function WorkoutScreen() {
     }
   }
 
+  async function saveEdit() {
+    if (!id || !workout) return;
+    try {
+      // Anything added here is a record of what was done, not a plan, so it
+      // is ticked. Stamped with the session's end rather than now, so it does
+      // not read as a set done today.
+      const pending = sets.filter((s) => !s.done);
+      await Promise.all(
+        pending.map((s) =>
+          saveSet(s.id, { done: true, done_at: workout.ended_at }),
+        ),
+      );
+      await forgetAdvice(id);
+      router.replace({ pathname: "/summary/[id]", params: { id } });
+    } catch (e: any) {
+      notify("저장 실패", explain(e));
+    }
+  }
+
   async function finish() {
     if (!id) return;
+    if (editing) return saveEdit();
     if (doneSets.length === 0) {
       confirmAction(
         "완료한 세트가 없어요",
@@ -1437,7 +1465,7 @@ export default function WorkoutScreen() {
               운동 완료 it read as a second way to end the workout, and with
               nothing left to tick it did nothing at all.
             */}
-            {pendingSets > 0 && (
+            {pendingSets > 0 && !editing && (
               <Pressable style={styles.actionGhost} onPress={completeAll}>
                 <Ionicons
                   name="checkmark-done"
@@ -1450,7 +1478,9 @@ export default function WorkoutScreen() {
               </Pressable>
             )}
             <Pressable style={styles.finish} onPress={finish}>
-              <Text style={styles.finishText}>오늘의 운동 완료</Text>
+              <Text style={styles.finishText}>
+                {editing ? "고친 기록 저장" : "오늘의 운동 완료"}
+              </Text>
             </Pressable>
           </View>
         </View>

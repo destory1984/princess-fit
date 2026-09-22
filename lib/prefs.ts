@@ -215,6 +215,15 @@ export async function cacheAdvice(workoutId: string, text: string) {
   }
 }
 
+/** Drop the kept advice once the session it read has been changed. */
+export async function forgetAdvice(workoutId: string) {
+  try {
+    await AsyncStorage.removeItem(`refit.advice.${workoutId}`);
+  } catch {
+    // Worst case the old sentence shows until the refresh button is pressed.
+  }
+}
+
 const ASK_ROUTINE = 'refit.askRoutine';
 
 /**

@@ -244,6 +244,20 @@ export default function SummaryScreen() {
 
       {adviceContext && <AdviceCard context={adviceContext} />}
 
+      {/*
+        What was done and what got written down are not always the same —
+        a phone left in the locker, a set nobody ticked. This is where the
+        record is put right, after the fact.
+      */}
+      <Pressable
+        style={styles.repeat}
+        onPress={() =>
+          router.replace({ pathname: '/workout/[id]', params: { id: workout.id, edit: '1' } })
+        }>
+        <Ionicons name="create-outline" size={18} color={colors.accent} />
+        <Text style={styles.repeatText}>운동 추가·삭제하기</Text>
+      </Pressable>
+
       <Pressable style={styles.repeat} onPress={repeat}>
         <Ionicons name="repeat" size={18} color={colors.accent} />
         <Text style={styles.repeatText}>이 운동 그대로 다시 하기</Text>
