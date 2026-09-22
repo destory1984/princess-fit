@@ -50,17 +50,38 @@ export default function BodyScreen() {
 
   async function record() {
     const parsed = parseMeasurements(drafts);
-    if ('empty' in parsed) {
-      notify('잰 값을 하나라도 넣어주세요');
-      return;
-    }
     if ('bad' in parsed) {
       notify(`${BODY_METRICS[parsed.bad].name} 칸에 숫자를 넣어주세요`);
       return;
     }
+    if ('empty' in parsed) {
+      // The scale can read the same as last time, and that is a reading worth
+      // keeping. Show what would be written and let them say so. Height is
+      // left out: it is written down only when it changes.
+      const same: Partial<Record<BodyMetric, number>> = {};
+      for (const key of BODY_METRIC_ORDER) {
+        const before = key === 'height_cm' || !logs ? null : latest(logs, key);
+        if (before !== null) same[key] = before;
+      }
+      const keys = Object.keys(same) as BodyMetric[];
+      if (!keys.length) {
+        notify('잰 값을 하나라도 넣어주세요');
+        return;
+      }
+      confirmAction(
+        '지난번과 같게 적을까요?',
+        keys.map((k) => `${BODY_METRICS[k].name} ${same[k]}${BODY_METRICS[k].unit}`).join('\n'),
+        () => write(same)
+      );
+      return;
+    }
+    await write(parsed.values);
+  }
+
+  async function write(values: Partial<Record<BodyMetric, number>>) {
     setSaving(true);
     try {
-      await saveBodyLog(parsed.values);
+      await saveBodyLog(values);
       setDrafts({ weight_kg: '', body_fat_pct: '', muscle_kg: '', height_cm: '' });
       load();
     } catch (e: any) {
