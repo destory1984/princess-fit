@@ -153,6 +153,16 @@ export default function TodayScreen() {
   const load = useCallback(() => {
     setError(null);
     Promise.all([getActiveWorkout(), listRoutines(), getWeeklyStats(), listWorkoutFacts()])
+      // The festival is judged before anything that touches the purse is on
+      // screen. Judging pays the prize with a read and a write of the whole
+      // household, and so do the ledger read below and the walk card's
+      // credit: run alongside, whichever wrote last would put back the gold
+      // or the satiety from before the other. It costs a query only in the
+      // two weeks after a festival, and the judging itself once a month.
+      .then(async (loaded) => {
+        await judgeFestival(girl.id, loaded[3]).catch(() => null);
+        return loaded;
+      })
       .then(([a, r, w, facts]) => {
         setActive(a);
         // Nobody is resting if nobody is mid-workout, so anything still booked
@@ -204,12 +214,7 @@ export default function TodayScreen() {
             })
             .catch(() => {});
 
-        // The festival is judged before the ledger is read: judging pays the
-        // prize into the purse, and a ledger read alongside it could write
-        // the gold from before the prize back over it.
-        judgeFestival(girl.id, facts)
-          .catch(() => null)
-          .then(() => getLedger())
+        getLedger()
           .then(async (ledger) => {
             const { house: h, furniture: mine, worn: dressed, lesson: course } = ledger;
             void readFestival(ledger);

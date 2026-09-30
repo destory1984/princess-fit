@@ -360,18 +360,31 @@ export async function getChosenGirlId(): Promise<string | null> {
 const FESTIVAL_ENTRY = 'refit.festivalEntry';
 const FESTIVAL_SEEN = 'refit.festivalSeen';
 
-/** The contest chosen for the festival `key` (YYYY-MM), or null if none was. */
-export async function getFestivalEntry(key: string): Promise<string | null> {
+async function festivalEntries(): Promise<Record<string, string>> {
   try {
-    const raw = JSON.parse((await AsyncStorage.getItem(FESTIVAL_ENTRY)) ?? 'null');
-    return raw?.key === key && typeof raw.contest === 'string' ? raw.contest : null;
+    const raw = JSON.parse((await AsyncStorage.getItem(FESTIVAL_ENTRY)) ?? '{}');
+    return raw && typeof raw === 'object' && !('key' in raw) ? raw : {};
   } catch {
-    return null;
+    return {};
   }
 }
 
+/** The contest chosen for the festival `key` (YYYY-MM), or null if none was. */
+export async function getFestivalEntry(key: string): Promise<string | null> {
+  const entry = (await festivalEntries())[key];
+  return typeof entry === 'string' ? entry : null;
+}
+
+/**
+ * One entry per festival rather than only the latest: choosing next month's
+ * contest before last month's has been judged must not change what she went
+ * to last month. Only the last three are kept.
+ */
 export async function setFestivalEntry(key: string, contest: string) {
-  await AsyncStorage.setItem(FESTIVAL_ENTRY, JSON.stringify({ key, contest }));
+  const kept = Object.entries({ ...(await festivalEntries()), [key]: contest })
+    .sort(([a], [b]) => a.localeCompare(b))
+    .slice(-3);
+  await AsyncStorage.setItem(FESTIVAL_ENTRY, JSON.stringify(Object.fromEntries(kept)));
 }
 
 /** The festival whose result was last shown, so it is announced once. */

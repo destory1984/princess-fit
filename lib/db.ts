@@ -2137,6 +2137,20 @@ export async function judgeFestival(
     .insert({ user_id: userId, girl, ...festivalMemory(result) });
   // Taken already — by another phone, a moment ago.
   if (claimError) return null;
+  // The unique key is per girl, so two phones with different girls can both
+  // get past the check above. The first row written keeps the month; a
+  // later one takes itself back before anything is paid.
+  const { data: rows } = await supabase
+    .from('memories')
+    .select('girl, created_at')
+    .eq('kind', kind)
+    .order('created_at')
+    .limit(1);
+  const first = (rows as { girl: string }[] | null)?.[0];
+  if (first && first.girl !== girl) {
+    await supabase.from('memories').delete().eq('kind', kind).eq('girl', girl);
+    return null;
+  }
 
   const prize = prizeFor(result.place);
   try {

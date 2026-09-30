@@ -119,7 +119,7 @@ export default function FestivalScreen() {
       {past.length > 0 && (
         <Scroll title="지난 기록">
           {past.map((r) => (
-            <View key={r.key} style={styles.row}>
+            <View key={`${r.key}-${r.girl}`} style={styles.row}>
               <Text style={styles.rowTitle}>{festivalTitle(r)}</Text>
               <Text style={styles.rowLine}>
                 {(r.girl ? girlOf(r.girl) : girl).name} · {r.contestName} ·{' '}
