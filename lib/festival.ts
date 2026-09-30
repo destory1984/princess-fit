@@ -5,6 +5,7 @@ import { conditionFactor, type Household } from './economy.ts';
 import type { Culture } from './lessons.ts';
 import { effectiveCulture } from './shop.ts';
 import { isFestival, type Memory } from './companion.ts';
+import { voiceOf } from './voices.ts';
 
 export { isFestival };
 
@@ -393,6 +394,36 @@ export function unresolved(facts: WorkoutFact[], today = new Date()): Festival |
   if (since < 1 || since > RESOLVE_WITHIN_DAYS) return null;
   if (formOf(facts, new Date(`${festival.day}T12:00:00`)) === 0) return null;
   return festival;
+}
+
+// ---------------------------------------------------------------- talk
+
+/** Days before a festival she starts to mention it, and days after she still does. */
+export const TALK_BEFORE = 3;
+export const TALK_AFTER = 2;
+
+/**
+ * What she says about the festival today, or null: in the few days before
+ * it, where she is going, and in the two days after, how it went — if it
+ * was she who went. The rest of the month she has other things to say; a
+ * girl who talks about the festival every day for a month is a poster.
+ */
+export function festivalTalk(
+  girl: string | undefined,
+  memories: Memory[],
+  contestName: string | null,
+  today = new Date()
+): string | null {
+  const said = voiceOf(girl).festival;
+  const latest = latestFestival(today);
+  const since = -daysUntil(latest, today);
+  if (since >= 1 && since <= TALK_AFTER) {
+    const r = parseResult(memories.find((m) => m.kind === `festival:${latest.key}`)?.detail ?? null);
+    if (r) return said.place[r.place](r.contestName, r.entries[0]?.name ?? '');
+  }
+  const left = daysUntil(nextFestival(today), today);
+  if (contestName && left <= TALK_BEFORE) return said.ahead(contestName, left);
+  return null;
 }
 
 // ---------------------------------------------------------------- memory

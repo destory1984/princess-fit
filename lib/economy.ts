@@ -253,7 +253,8 @@ export function dailyLine(
   lesson: Enrolment | null = null,
   bond: Bond | null = null,
   girl?: string,
-  seen?: Omit<Seen, 'facts'>
+  seen?: Omit<Seen, 'facts'>,
+  festival: string | null = null
 ): string {
   const felt = feelingLine(bond, today, girl);
   if (felt) return felt;
@@ -268,6 +269,11 @@ export function dailyLine(
   const remembered = bond ? memoryLine(bond.memories, today, girl) : null;
   const freshToday = bond?.memories.some((m) => m.day === localDayKey(today));
   if (remembered && freshToday) return remembered;
+
+  // The festival, in the few days either side of it (lib/festival.ts
+  // festivalTalk, worked out by the caller). Her own big day comes before
+  // her classes and before what the numbers noticed.
+  if (festival) return festival;
 
   // A course she is part-way through is the most concrete thing in her week,
   // and it only exists because gold was spent on it — so it should reach the

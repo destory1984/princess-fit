@@ -47,6 +47,7 @@ import {
   contestById,
   daysUntil,
   defaultEntry,
+  festivalTalk,
   festivalTitle,
   latestFestival,
   nextFestival,
@@ -395,7 +396,18 @@ export default function TodayScreen() {
           {/* She is the way in to what she remembers. */}
           <Pressable onPress={() => router.push('/memories')}>
             <Advisor name={girl.name} portrait={girl.base}>
-              {house ? dailyLine(house, facts, new Date(), lesson, bond, girl.id, seen) : masterSays(stats, facts)}
+              {house
+                ? dailyLine(
+                    house,
+                    facts,
+                    new Date(),
+                    lesson,
+                    bond,
+                    girl.id,
+                    seen,
+                    festivalTalk(girl.id, bond?.memories ?? [], festival?.contest ?? null)
+                  )
+                : masterSays(stats, facts)}
             </Advisor>
           </Pressable>
           {/* Only once the goal is known: 유키 may be asking for exactly that. */}

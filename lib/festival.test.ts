@@ -17,6 +17,7 @@ import {
   rivalsOf,
   rumourOf,
   formDays,
+  festivalTalk,
   scoreOf,
   standingAt,
   unresolved,
@@ -25,7 +26,7 @@ import {
 } from './festival.ts';
 import { computeStats } from './character.ts';
 import { EMPTY_CULTURE } from './lessons.ts';
-import { newHousehold } from './economy.ts';
+import { dailyLine, newHousehold } from './economy.ts';
 import { memoryLine } from './companion.ts';
 import { VOICES, type VoiceId } from './voices.ts';
 import type { WorkoutFact } from './gamification.ts';
@@ -377,4 +378,26 @@ test('each favour met that month lifts her in every contest', () => {
   for (const c of CONTESTS) {
     assert.equal(scoreOf(c.id, { ...s, favours: 3 }), Math.min(100, scoreOf(c.id, s) + 6), c.id);
   }
+});
+
+test('she talks about the festival only in the days around it', () => {
+  const memories = [festivalMemory(judge('ball', standingOf(monthOf(2)), latestFestival(at(2026, 9, 30)), 0))];
+  // Three days before October's, and on the day.
+  assert.match(festivalTalk('geumhwa', [], '무도회', at(2026, 10, 28))!, /무도회/);
+  assert.match(festivalTalk('geumhwa', [], '무도회', at(2026, 10, 31))!, /오늘/);
+  assert.equal(festivalTalk('geumhwa', [], '무도회', at(2026, 10, 20)), null);
+  // The two days after September's, if she went.
+  assert.ok(festivalTalk('dohwa', memories, '무도회', at(2026, 9, 27)));
+  assert.ok(festivalTalk('dohwa', memories, '무도회', at(2026, 9, 28)));
+  assert.equal(festivalTalk('dohwa', memories, '무도회', at(2026, 9, 29)), null);
+  assert.equal(festivalTalk('dohwa', [], '무도회', at(2026, 9, 27)), null);
+});
+
+test('the festival waits behind her hunger, and goes before the rest', () => {
+  const said = '축제 이야기';
+  const fed = { ...newHousehold(at(2026, 9, 27)), satiety: 100, attire: 100 };
+  const hungry = { ...fed, satiety: 10 };
+  const facts = [session(at(2026, 9, 26))];
+  assert.equal(dailyLine(fed, facts, at(2026, 9, 27), null, null, 'geumhwa', undefined, said), said);
+  assert.notEqual(dailyLine(hungry, facts, at(2026, 9, 27), null, null, 'geumhwa', undefined, said), said);
 });
