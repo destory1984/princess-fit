@@ -73,3 +73,9 @@ test('initials that belong to nothing find nothing', () => {
   const found = DEFAULT_EXERCISES.filter((e) => matches(e.name, '�headache'));
   assert.equal(found.length, 0);
 });
+
+test('a space guessed differently, or initials after Latin letters, still find it', () => {
+  assert.ok(matches('AB 슬라이드', 'ab슬라이드'));
+  assert.ok(matches('AB 슬라이드', 'abㅅㄹ'));
+  assert.ok(!matches('AB 슬라이드', 'cdㅅㄹ'));
+});

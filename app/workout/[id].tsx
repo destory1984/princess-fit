@@ -1262,7 +1262,9 @@ export default function WorkoutScreen() {
                               ? `${s.reps}회`
                               : track === "cardio" && s.distance_km > 0
                                 ? `분 · ${formatKm(s.distance_km)}km`
-                                : "분"}
+                                : track === "floors" && s.reps > 0
+                                  ? `분 · ${s.reps}층`
+                                  : "분"}
                           </Text>
                         </View>
                       ))}
@@ -1287,7 +1289,9 @@ export default function WorkoutScreen() {
                               >
                                 {track === "weight_reps"
                                   ? `${s.weight_kg}×${s.reps}`
-                                  : `${Math.round(s.duration_sec / 60)}분`}
+                                  : track === "floors" && s.reps > 0
+                                    ? `${Math.round(s.duration_sec / 60)}분 · ${s.reps}층`
+                                    : `${Math.round(s.duration_sec / 60)}분`}
                               </Text>
                             </Pressable>
                           ))}

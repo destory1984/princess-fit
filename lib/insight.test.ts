@@ -20,6 +20,9 @@ function on(daysAgo: number, over: Partial<WorkoutFact> = {}): WorkoutFact {
   };
 }
 
+// One session from before the month, so the month-long findings may speak.
+const LONG_AGO = on(45);
+
 const ids = (list: { id: string }[]) => list.map((i) => i.id);
 
 // Inventing a pattern from two workouts teaches people to ignore the app.
@@ -30,7 +33,7 @@ test('nothing is said until there is enough history to mean it', () => {
 });
 
 test('a body part untouched for a month is named', () => {
-  const chestOnly = [0, 3, 6, 9, 12].map((d) => on(d, { groups: ['가슴', '팔'] }));
+  const chestOnly = [...[0, 3, 6, 9, 12].map((d) => on(d, { groups: ['가슴', '팔'] })), LONG_AGO];
   const found = insightsFor(chestOnly, TODAY);
   const neglected = found.find((i) => i.id === 'neglected');
   assert.ok(neglected, '등/어깨/하체/복근 중 무엇도 짚지 않았어요');
@@ -55,7 +58,7 @@ test('training more than last month is noticed and counted', () => {
 });
 
 test('no cardio at all says zero rather than a vague nudge', () => {
-  const lifting = [0, 2, 4, 6].map((d) => on(d));
+  const lifting = [...[0, 2, 4, 6].map((d) => on(d)), LONG_AGO];
   const cardio = insightsFor(lifting, TODAY).find((i) => i.id === 'cardio');
   assert.match(cardio!.detail, /0분/);
 });
@@ -67,7 +70,7 @@ test('plenty of cardio draws no comment', () => {
 
 // The thing to change matters more than the thing going well.
 test('the headline prefers what needs attention', () => {
-  const lifting = [0, 1, 2, 3, 4].map((d) => on(d));
+  const lifting = [...[0, 1, 2, 3, 4].map((d) => on(d)), LONG_AGO];
   const first = headline(lifting, TODAY)!;
   assert.equal(first.tone, 'watch');
 });
@@ -81,8 +84,16 @@ test('every finding says something specific enough to act on', () => {
 });
 
 test('the findings are the same for everyone, each said in her own way', () => {
-  const lifting = Array.from({ length: 6 }, (_, i) => on(i * 2));
+  const lifting = [...Array.from({ length: 6 }, (_, i) => on(i * 2)), LONG_AGO];
   const by = (g: string) => insightsFor(lifting, TODAY, g);
   assert.deepEqual(by('dohwa').map((i) => i.id), by('geumhwa').map((i) => i.id));
   assert.notDeepEqual(by('seora').map((i) => i.title), by('geumhwa').map((i) => i.title));
+});
+
+// 「한 달에 여덟 번이 안 돼요」 to someone three weeks in, who came five times.
+test('nothing is said about the month before there has been a month', () => {
+  const newcomer = [0, 4, 8, 12, 16].map((d) => on(d, { groups: ['가슴'] }));
+  const found = ids(insightsFor(newcomer, TODAY));
+  for (const id of ['sparse', 'neglected', 'cardio']) assert.ok(!found.includes(id), id);
+  assert.ok(ids(insightsFor([...newcomer, LONG_AGO], TODAY)).includes('sparse'));
 });

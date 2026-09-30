@@ -101,14 +101,25 @@ const ENTRIES: Omit<CatalogEntry, 'how_to'>[] = [
   { name: '리버스 컬', muscle_group: '팔', secondary_group: null, equipment: '바벨', muscle_detail: '전완, 이두', body_parts: 'forearm,biceps' , track_type: 'weight_reps' },
 
   { name: '러닝', muscle_group: '유산소', secondary_group: '하체', equipment: '맨몸', muscle_detail: '심폐, 하체', body_parts: 'quadriceps,calves' , track_type: 'cardio' },
-  { name: '걷기', muscle_group: '유산소', secondary_group: '하체', equipment: '맨몸', muscle_detail: '심폐, 하체', body_parts: 'quadriceps,calves' , track_type: 'cardio' },
+  { name: '걷기', muscle_group: '유산소', secondary_group: '하체', equipment: '맨몸', muscle_detail: '심폐, 하체', body_parts: 'quadriceps,calves' , track_type: 'duration' },
   { name: '줄넘기', muscle_group: '유산소', secondary_group: '하체', equipment: '맨몸', muscle_detail: '심폐, 종아리', body_parts: 'calves,quadriceps' , track_type: 'duration' },
-  { name: '계단 오르기', muscle_group: '유산소', secondary_group: '하체', equipment: '맨몸', muscle_detail: '심폐, 둔근', body_parts: 'gluteal,quadriceps' , track_type: 'cardio' },
+  { name: '계단 오르기', muscle_group: '유산소', secondary_group: '하체', equipment: '맨몸', muscle_detail: '심폐, 둔근', body_parts: 'gluteal,quadriceps' , track_type: 'floors' },
   { name: '버피', muscle_group: '유산소', secondary_group: '하체', equipment: '맨몸', muscle_detail: '전신, 심폐', body_parts: 'quadriceps,chest,abs' , track_type: 'weight_reps' },
   { name: '수영', muscle_group: '유산소', secondary_group: '등', equipment: '맨몸', muscle_detail: '전신, 심폐', body_parts: 'upper-back,deltoids' , track_type: 'cardio' },
   { name: '사이클', muscle_group: '유산소', secondary_group: '하체', equipment: '머신', muscle_detail: '심폐, 대퇴사두', body_parts: 'quadriceps' , track_type: 'cardio' },
   { name: '일립티컬', muscle_group: '유산소', secondary_group: '하체', equipment: '머신', muscle_detail: '심폐, 하체', body_parts: 'quadriceps,gluteal' , track_type: 'cardio' },
-  { name: '로잉 머신', muscle_group: '유산소', secondary_group: '등', equipment: '머신', muscle_detail: '심폐, 광배근', body_parts: 'upper-back,quadriceps' , track_type: 'cardio' },
+  { name: '천국의 계단', muscle_group: '유산소', secondary_group: '하체', equipment: '머신', muscle_detail: '심폐, 둔근', body_parts: 'gluteal,quadriceps' , track_type: 'cardio' },
+  { name: '로잉 머신', muscle_group: '유산소', secondary_group: '등', equipment: '머신', muscle_detail: '심폐, 광배근', body_parts: 'upper-back,quadriceps' , track_type: 'duration' },
+
+  // At home the gear is whatever fits under a bed: a wheel, a band, one
+  // kettlebell, a pair of push-up handles. All filed under 기타 so the home
+  // filter (plan.ts HOME_EQUIPMENT) keeps them.
+  { name: 'AB 슬라이드', muscle_group: '복근', secondary_group: '어깨', equipment: '기타', muscle_detail: '복직근, 코어', body_parts: 'abs,obliques,deltoids' , track_type: 'weight_reps' },
+  { name: '사이드 플랭크', muscle_group: '복근', secondary_group: null, equipment: '맨몸', muscle_detail: '복사근, 코어', body_parts: 'obliques,abs' , track_type: 'duration' },
+  { name: '밴드 로우', muscle_group: '등', secondary_group: '팔', equipment: '기타', muscle_detail: '광배근, 능형근', body_parts: 'upper-back,biceps' , track_type: 'weight_reps' },
+  { name: '밴드 풀 어파트', muscle_group: '어깨', secondary_group: '등', equipment: '기타', muscle_detail: '후면 삼각근, 능형근', body_parts: 'deltoids,upper-back' , track_type: 'weight_reps' },
+  { name: '케틀벨 고블릿 스쿼트', muscle_group: '하체', secondary_group: '복근', equipment: '기타', muscle_detail: '대퇴사두, 둔근', body_parts: 'quadriceps,gluteal' , track_type: 'weight_reps' },
+  { name: '푸시업 바 푸시업', muscle_group: '가슴', secondary_group: '팔', equipment: '기타', muscle_detail: '대흉근, 삼두', body_parts: 'chest,triceps' , track_type: 'weight_reps' },
 ];
 
 /**

@@ -144,7 +144,7 @@ test('she says what she needs before she says what your training needs', () => {
 
 test('once she is comfortable she passes on what the numbers noticed', () => {
   const settled: Household = { gold: 500, satiety: 90, attire: 90, settledOn: '2026-09-20' };
-  const chestOnly = [0, 2, 4, 6, 8].map((d) => {
+  const chestOnly = [0, 2, 4, 6, 8, 45].map((d) => {
     const when = new Date(2026, 8, 20 - d);
     return fact({ id: `c${d}`, started_at: `${when.toISOString().slice(0, 10)}T10:00:00` });
   });

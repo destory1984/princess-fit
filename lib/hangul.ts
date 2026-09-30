@@ -65,7 +65,12 @@ export function matches(text: string, query: string) {
   if (isInitialsOnly(q)) {
     return initialsOf(text).includes(q.replace(/\s+/g, ''));
   }
-  return text.toLowerCase().includes(q.toLowerCase());
+  // Spaces are where people guess differently: 「ab슬라이드」 is 「AB 슬라이드」.
+  const compact = (s: string) => s.replace(/\s+/g, '').toLowerCase();
+  if (compact(text).includes(compact(q))) return true;
+  // Initials mixed with Latin letters or digits, as in 「abㅅㄹㅇㄷ」.
+  if ([...q].some((c) => INITIALS.includes(c))) return initialsOf(text).includes(initialsOf(q));
+  return false;
 }
 
 /** Whether any of these fields answers the query. */

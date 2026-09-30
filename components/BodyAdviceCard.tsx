@@ -6,13 +6,15 @@ import { bodyRuleAdvice, requestBodyAdvice } from '@/lib/bodyAdvice';
 import { getAdviceByModel } from '@/lib/prefs';
 import { colors, paper, radius, spacing } from '@/lib/theme';
 import { useGirl } from '@/lib/girl';
+import { Portrait } from '@/components/Portrait';
 
 /**
  * A line under the readings. The rules' line shows at once and the model's
  * replaces it if one answers — the screen is for writing a number down, and
  * nobody should wait twenty seconds on a sentence to do that.
  *
- * Titled like the workout card: 「AI 한마디」 only when a model spoke.
+ * Titled by who is saying it, with her face — the line is in her voice
+ * either way. The model is owned up to in a badge, as on the workout card.
  */
 export function BodyAdviceCard({ logs }: { logs: BodyLog[] }) {
   const girl = useGirl();
@@ -52,13 +54,13 @@ export function BodyAdviceCard({ logs }: { logs: BodyLog[] }) {
   return (
     <View style={styles.card}>
       <View style={styles.head}>
-        <Ionicons
-          name={source === 'model' ? 'sparkles' : 'reader-outline'}
-          size={16}
-          color={colors.accent}
-        />
-        <Text style={styles.title}>{source === 'model' ? 'AI 한마디' : '몸의 흐름'}</Text>
-        {busy && <Text style={styles.badge}>모델에게 묻는 중…</Text>}
+        <Portrait source={girl.base} size={32} />
+        <Text style={styles.title}>{girl.name}의 한마디</Text>
+        {busy ? (
+          <Text style={styles.badge}>모델에게 묻는 중…</Text>
+        ) : (
+          source === 'model' && <Text style={styles.badge}>모델</Text>
+        )}
         <Pressable hitSlop={8} disabled={busy} onPress={() => ask()}>
           <Ionicons name="refresh" size={16} color={busy ? colors.border : colors.textDim} />
         </Pressable>

@@ -1,12 +1,17 @@
 import type { Condition } from './condition.ts';
 
-/** weight_reps: kg × 횟수 · duration: 시간만 · cardio: 시간 + 거리 */
-export type TrackType = 'weight_reps' | 'duration' | 'cardio';
+/**
+ * weight_reps: kg × 횟수 · duration: 시간만 · cardio: 시간 + 거리 ·
+ * floors: 시간 + 층수 (the floors are kept in `reps`; nobody climbing an
+ * apartment stairwell knows the distance, but everyone knows the floor).
+ */
+export type TrackType = 'weight_reps' | 'duration' | 'cardio' | 'floors';
 
 export const TRACK_TYPE_LABEL: Record<TrackType, string> = {
   weight_reps: '무게 × 횟수',
   duration: '시간',
   cardio: '시간 + 거리',
+  floors: '시간 + 층수',
 };
 
 export type Exercise = {

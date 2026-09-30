@@ -35,6 +35,8 @@ test('the machine sticker and the gym word find it', () => {
   assert.ok(find('턱걸이').includes('풀업'));
   assert.ok(find('팔굽혀펴기').includes('푸시업'));
   assert.ok(find('런닝머신').includes('러닝'));
+  assert.ok(find('천국의계단').includes('천국의 계단'));
+  assert.ok(find('스텝밀').includes('천국의 계단'));
 });
 
 test('initials still work, and now reach the aliases too', () => {

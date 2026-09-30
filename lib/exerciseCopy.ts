@@ -28,7 +28,7 @@ const EQUIPMENT_PHRASE: Record<string, string> = {
 export function introOf(e: Described) {
   const gear = EQUIPMENT_PHRASE[e.equipment] ?? '';
   const kind =
-    e.track_type === 'cardio'
+    e.track_type === 'cardio' || e.track_type === 'floors'
       ? '숨이 차오르는 유산소 운동'
       : e.track_type === 'duration'
         ? '자세를 버티는 운동'
@@ -51,7 +51,7 @@ export function coachTipOf(e: Described) {
   if (COMPOUND.some((c) => e.name.includes(c))) {
     return '무거운 운동입니다. 무게를 올리기 전에 빈 봉으로 자세부터 익히세요.';
   }
-  if (e.track_type === 'cardio') {
+  if (e.track_type === 'cardio' || e.track_type === 'floors') {
     return '숨이 조금 찰 정도가 좋습니다. 대화가 아예 불가능하면 너무 빠른 것입니다.';
   }
   if (e.track_type === 'duration') {

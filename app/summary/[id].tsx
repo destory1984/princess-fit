@@ -13,6 +13,7 @@ import {
   getActiveWorkout,
   getLastPerformance,
   getLedger,
+  getWorkout,
   getWorkoutDetail,
   monthOfSessions,
   previousRoutineSession,
@@ -20,7 +21,9 @@ import {
   listWorkoutFacts,
   repeatWorkout,
   type WorkoutDetailExercise,
+  writeDiaries,
 } from '@/lib/db';
+import { girlOf, useGirl } from '@/lib/girl';
 import { dressedFor } from '@/lib/outfit';
 import { formatDate } from '@/lib/format';
 import { GOALS, PLACES } from '@/lib/onboarding';
@@ -33,6 +36,7 @@ import { colors, radius, spacing } from '@/lib/theme';
 export default function SummaryScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const girl = useGirl();
   const card = useRef<View>(null);
   const [workout, setWorkout] = useState<Workout | null>(null);
   const [items, setItems] = useState<WorkoutDetailExercise[]>([]);
@@ -59,6 +63,18 @@ export default function SummaryScreen() {
     Promise.all([getWorkoutDetail(id), listWorkoutFacts()])
       .then(([detail, facts]) => {
         setWorkout(detail.workout);
+
+        // Paying writes her entry without waiting, so the card can open
+        // before it is there. Write it here too (only where there is none)
+        // and read the line back.
+        if (detail.workout.ended_at && !detail.workout.diary && detail.items.length) {
+          void writeDiaries(girl.id)
+            .then(() => getWorkout(id))
+            .then((w) => {
+              if (w.diary) setWorkout((prev) => (prev ? { ...prev, diary: w.diary, diary_by: w.diary_by } : prev));
+            })
+            .catch(() => {});
+        }
         setItems(detail.items);
         setFact(facts.find((f) => f.id === id) ?? null);
         setFacts(facts);
@@ -110,7 +126,7 @@ export default function SummaryScreen() {
           .catch(() => {});
       })
       .catch((e) => setError(e.message));
-  }, [id]);
+  }, [id, girl.id]);
 
   useFocusEffect(load);
 
@@ -258,6 +274,15 @@ export default function SummaryScreen() {
         worn={worn}
       />
 
+      {workout.diary && (
+        <View style={styles.diaryBox}>
+          <Text style={styles.diary}>
+            {workout.diary}
+            <Text style={styles.diaryBy}> — {girlOf(workout.diary_by ?? '').name}</Text>
+          </Text>
+        </View>
+      )}
+
       {adviceContext && (
         <AdviceCard
           context={adviceContext}
@@ -308,6 +333,9 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xl },
   hint: { color: colors.textDim, textAlign: 'center' },
+  diaryBox: { backgroundColor: colors.surfaceAlt, borderRadius: radius.lg, padding: spacing.md },
+  diary: { color: colors.text, fontSize: 14, lineHeight: 21, fontStyle: 'italic' },
+  diaryBy: { color: colors.textDim, fontSize: 12, fontStyle: 'normal' },
   repeat: {
     borderColor: colors.accent,
     borderWidth: 1,

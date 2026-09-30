@@ -24,7 +24,11 @@ export async function seedDefaultExercises() {
 
   const stale = DEFAULT_EXERCISES.flatMap((entry) => {
     const row = byName.get(entry.name);
-    const stale = row && (!row.body_parts || (!row.how_to && entry.how_to));
+    // A changed way of recording travels too: 걷기 and 로잉 머신 were once
+    // asked for kilometres nobody knows, and are now just timed.
+    const stale =
+      row &&
+      (!row.body_parts || (!row.how_to && entry.how_to) || row.track_type !== entry.track_type);
     return stale ? [{ id: row.id, entry }] : [];
   });
   await Promise.all(

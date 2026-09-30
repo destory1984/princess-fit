@@ -87,10 +87,25 @@ export const ROUTINE_PRESETS: RoutinePreset[] = [
     days: '아무 때나',
     exercises: [
       { name: '푸시업', sets: 3, reps: 10 },
-      { name: '스쿼트', sets: 3, reps: 15 },
-      { name: '런지', sets: 3, reps: 12 },
+      { name: '글루트 브릿지', sets: 3, reps: 15 },
+      { name: '월 싯', sets: 3, reps: 0 },
       { name: '플랭크', sets: 3, reps: 0 },
       { name: '걷기', sets: 1, reps: 0 },
+    ],
+  },
+  {
+    id: 'home-strength',
+    name: '집에서 근력',
+    detail: '맨몸에 익숙해졌다면. 매트 한 장이면 되고, 개수로 늘려 가요.',
+    minutes: 35,
+    days: '주 3회',
+    exercises: [
+      { name: '푸시업', sets: 4, reps: 12 },
+      { name: '점프 스쿼트', sets: 3, reps: 12 },
+      { name: '백 익스텐션', sets: 3, reps: 12 },
+      { name: '덩키 킥', sets: 3, reps: 15 },
+      { name: '레그 레이즈', sets: 3, reps: 12 },
+      { name: '버피', sets: 3, reps: 10 },
     ],
   },
 ];

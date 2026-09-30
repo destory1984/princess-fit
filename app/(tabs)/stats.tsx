@@ -8,6 +8,8 @@ import { Insights } from '@/components/Insights';
 import { ScreenState } from '@/components/ScreenState';
 import { LineChart } from '@/components/LineChart';
 import { OrnateFrame } from '@/components/OrnateFrame';
+import { Portrait } from '@/components/Portrait';
+import { useGirl } from '@/lib/girl';
 import { explain } from '@/lib/dbError';
 import { notify } from '@/lib/confirm';
 import {
@@ -27,6 +29,7 @@ import { colors, radius, spacing } from '@/lib/theme';
 
 export default function StatsScreen() {
   const router = useRouter();
+  const girl = useGirl();
   const [exercises, setExercises] = useState<Exercise[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [totals, setTotals] = useState<GroupTotal[]>([]);
@@ -102,7 +105,10 @@ export default function StatsScreen() {
           <Ionicons name="chevron-forward" size={18} color={colors.textDim} />
         </Pressable>
 
-        <Text style={styles.sectionTitle}>이번 달, 이렇게 하고 계세요</Text>
+        <View style={styles.speakerRow}>
+          <Portrait source={girl.base} size={32} />
+          <Text style={[styles.sectionTitle, styles.speakerTitle]}>{girl.name}의 한마디</Text>
+        </View>
         <Insights workouts={facts} />
 
         <OrnateFrame>
@@ -229,6 +235,8 @@ function Toggle({ label, on, onPress }: { label: string; on: boolean; onPress: (
 }
 
 const styles = StyleSheet.create({
+  speakerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  speakerTitle: { flex: 1 },
   sectionTitle: { color: colors.text, fontSize: 15, fontWeight: '800' },
   tool: {
     flexDirection: 'row',

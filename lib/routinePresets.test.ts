@@ -34,3 +34,14 @@ test('an exercise the account lacks is reported, not dropped in silence', () => 
 test('the beginner preset comes first, because it is the one to pick', () => {
   assert.equal(ROUTINE_PRESETS[0].id, 'full-body');
 });
+
+// The home preset once asked for 스쿼트 and 런지, which the catalogue files
+// under 바벨 and 덤벨 — a routine for people without equipment that needs it.
+test('home presets need no equipment', () => {
+  const equipment = new Map(DEFAULT_EXERCISES.map((e) => [e.name, e.equipment]));
+  for (const p of ROUTINE_PRESETS.filter((p) => p.id.startsWith('home'))) {
+    for (const e of p.exercises) {
+      assert.equal(equipment.get(e.name), '맨몸', `${p.name}: ${e.name}`);
+    }
+  }
+});

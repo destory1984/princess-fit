@@ -46,6 +46,10 @@ export function insightsFor(workouts: WorkoutFact[], today = new Date(), girl?: 
   const found: Insight[] = [];
   const month = within(workouts, 30, today);
   const previousMonth = within(workouts, 60, today).filter((w) => !month.includes(w));
+  // 「한 달째」, 「한 달 동안」 and 「한 달에 여덟 번」 are only true of someone
+  // who has been here a month. Three weeks in, five days is a good start, not
+  // a shortfall.
+  const aMonthIn = workouts.some((w) => new Date(w.started_at).getTime() < daysAgo(30, today).getTime());
 
   // — what is going well —
 
@@ -67,7 +71,7 @@ export function insightsFor(workouts: WorkoutFact[], today = new Date(), girl?: 
 
   const recentGroups = new Set(month.flatMap((w) => w.groups));
   const neglected = GROUPS.filter((g) => !recentGroups.has(g));
-  if (neglected.length > 0) {
+  if (aMonthIn && neglected.length > 0) {
     // Name three at most: a list of five is a wall of text, and capping the
     // rule instead would stay silent exactly when the gap is widest.
     const named = neglected.slice(0, 3).join(', ');
@@ -84,12 +88,12 @@ export function insightsFor(workouts: WorkoutFact[], today = new Date(), girl?: 
   }
 
   const cardioMinutes = Math.round(month.reduce((s, w) => s + w.durationSec, 0) / 60);
-  if (cardioMinutes < 30) {
+  if (aMonthIn && cardioMinutes < 30) {
     found.push(said('cardio', 'watch', say.cardio(cardioMinutes)));
   }
 
   const days = new Set(month.map((w) => localDayKey(new Date(w.started_at)))).size;
-  if (days > 0 && days < 8) {
+  if (aMonthIn && days > 0 && days < 8) {
     found.push(said('sparse', 'watch', say.sparse(days)));
   }
 

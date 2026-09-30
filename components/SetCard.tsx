@@ -132,6 +132,18 @@ export function SetCard({
               bigStep={5}
               onChange={(v) => change({ duration_sec: v * 60 })}
             />
+            {track === 'floors' && (
+              <>
+                <View style={styles.divider} />
+                <BigStepper
+                  value={set.reps}
+                  unit="층"
+                  step={1}
+                  bigStep={5}
+                  onChange={(v) => change({ reps: v })}
+                />
+              </>
+            )}
             {track === 'cardio' && (
               <>
                 <View style={styles.divider} />
