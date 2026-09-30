@@ -135,6 +135,7 @@ const benchStanding: Standing = {
   attire: 80,
   form: 67,
   factor: 0.91,
+  favours: 2,
 };
 
 export default function PreviewScreen() {

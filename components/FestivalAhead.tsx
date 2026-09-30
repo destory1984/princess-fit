@@ -3,6 +3,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Advisor } from '@/components/Advisor';
 import {
   CONTESTS,
+  FAVOUR_BONUS,
   FULL_FORM_DAYS,
   daysUntil,
   prizeFor,
@@ -65,6 +66,13 @@ export function FestivalAhead({ festival, today, girl, standing, formDays, index
         <Text style={styles.formText}>
           기세 <Text style={styles.strong}>{standing.form}</Text> · 최근 4주에 운동한 날{' '}
           <Text style={styles.strong}>{formDays}</Text>/{FULL_FORM_DAYS}
+        </Text>
+      </View>
+      <View style={styles.form}>
+        <Ionicons name="heart-outline" size={16} color={colors.accent} />
+        <Text style={styles.formText}>
+          지난 축제 뒤로 들어준 부탁 <Text style={styles.strong}>{standing.favours}</Text>번 · 모든 대회{' '}
+          <Text style={styles.strong}>+{FAVOUR_BONUS * standing.favours}</Text>
         </Text>
       </View>
       {dimmed && (

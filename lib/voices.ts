@@ -1,6 +1,7 @@
 import { withParticle } from './korean.ts';
 import type { OnceKind, Stage } from './companion.ts';
 import type { GiftKind, Mood } from './economy.ts';
+import type { FavourKind } from './favour.ts';
 
 /**
  * How each girl talks. Everything she says lives here, one voice per girl, so
@@ -85,6 +86,16 @@ export type Voice = {
     /** `winner` is whoever came first, for the places below it. */
     place: Record<1 | 2 | 3 | 4, (contest: string, winner: string) => string>;
     recall: (when: string, contest: string, place: number) => string;
+  };
+  /**
+   * 「이번 주 부탁」 (lib/favour.ts): only the kinds she asks for. `target` is
+   * already written out; `group` is the part, for the one favour that has one.
+   * Asked, never demanded, and never with a threat attached.
+   */
+  favour: {
+    ask: Partial<Record<FavourKind, (target: string, group: string) => string>>;
+    /** Said once it is met. */
+    done: string[];
   };
   /** Who she is, told to the model so its answer comes back in her voice. */
   persona: string;
@@ -257,6 +268,14 @@ const rina: Voice = {
         ? `${w} ${c}에서 우승했던 날, 그날 밤엔 잠이 안 왔어요.`
         : `${w} ${c}에 나갔던 거 기억나요. 떨렸지만 좋았어요.`,
   },
+  favour: {
+    ask: {
+      twice: () => '이번 주엔 두 번만 와 주세요. 무리하지 말고요.',
+      cardio: (n) => `이번 주엔 숨이 차는 운동을 ${n}분만 해 주세요. 심장도 챙겨야죠.`,
+      light: () => '이번 주엔 한 번쯤 가볍게 해요. 열 세트 안쪽으로요. 몸도 쉬어야 자라요.',
+    },
+    done: ['부탁 들어주셔서 고마워요. 이번 주는 마음이 편해요.', '약속 지켜 주셨네요. 저도 축제 때 힘낼게요.'],
+  },
   diary: {
     memory: {
       first_day: () => '처음 만난 날. 그 사람, 생각보다 성실해 보였다. 잘 부탁드린다고 한 번 더 말할걸.',
@@ -410,6 +429,14 @@ const pia: Voice = {
         ? `${w} ${c} 우승한 거 기억나요? 그날 제 목 또 쉬었잖아요!`
         : `${w} ${c} 나갔던 거, 그 점수 아직 외우고 있어요!`,
   },
+  favour: {
+    ask: {
+      more_days: (n) => `이번 주 목표는 ${n}일! 달력에 동그라미 ${n}개 그려 봐요!`,
+      sets: (n) => `이번 주엔 세트 ${n}개 쌓아 봐요! 제가 하나하나 셀게요!`,
+      best_session: (n) => `이번 주엔 한 번에 ${n}kg 넘겨 봐요! 이번 달 최고보다 한 칸 위예요!`,
+    },
+    done: ['부탁 성공! 이번 주 기록에 별 달아 뒀어요!', '해냈다! 축제 때 이거 자랑할 거예요!'],
+  },
   diary: {
     memory: {
       first_day: () => '첫 기록! 오늘부터 내가 이 사람 기록 담당이다.',
@@ -562,6 +589,14 @@ const yuki: Voice = {
       p === 1
         ? `${w} ${c}에서 우승했던 날, 저도 조금은 웃었어요.`
         : `${w} ${c} ${p}위. 그 기록, 아직 적어 두고 있어요.`,
+  },
+  favour: {
+    ask: {
+      neglected: (_, g) => `이번 주에는 ${withParticle(g, '을를')} 한 번 하십시오. 가장 오래 비어 있습니다.`,
+      goal: (n) => `이번 주 목표 ${n}회, 지켜 주십시오.`,
+      coverage: (n) => `이번 주에는 부위를 ${n}곳 이상 고루 쓰십시오.`,
+    },
+    done: ['부탁한 것, 확인했습니다. …고맙습니다.', '이번 주 약속은 지켜졌습니다. 적어 두었습니다.'],
   },
   diary: {
     memory: {

@@ -118,6 +118,14 @@ export function latestFestival(today = new Date()): Festival {
   return festivalOf(before.getFullYear(), before.getMonth() + 1);
 }
 
+/** The festival the month before this one. */
+export function previousFestival(festival: Festival): Festival {
+  const before = new Date(`${festival.day}T12:00:00`);
+  before.setDate(1);
+  before.setMonth(before.getMonth() - 1);
+  return festivalOf(before.getFullYear(), before.getMonth() + 1);
+}
+
 /** The next festival, which is today's when it is today. */
 export function nextFestival(today = new Date()): Festival {
   const key = localDayKey(today);
@@ -174,7 +182,16 @@ export type Standing = {
   form: number;
   /** How she is faring, 0.7–1 (conditionFactor). Hunger costs her here too. */
   factor: number;
+  /** Weeks in the month before whose favour was met (lib/favour.ts). */
+  favours: number;
 };
+
+/**
+ * Points each met favour adds, in every contest. Four weeks at most is 8 —
+ * nearly three months of a rival's improvement, which is enough to matter
+ * and not enough to stand in for the training itself.
+ */
+export const FAVOUR_BONUS = 2;
 
 export type Keeping = {
   house: Household;
@@ -189,7 +206,7 @@ export type Keeping = {
  * had not done yet. The household is read as it is now: nothing records how
  * hungry she was last Saturday, and the gap is at most RESOLVE_WITHIN_DAYS.
  */
-export function standingAt(facts: WorkoutFact[], keeping: Keeping, day: Date): Standing {
+export function standingAt(facts: WorkoutFact[], keeping: Keeping, day: Date, favours = 0): Standing {
   const end = dayNumber(localDayKey(day));
   const upTo = facts.filter(
     (f) => !isEmptyWorkout(f) && dayNumber(localDayKey(new Date(f.started_at))) <= end
@@ -200,6 +217,7 @@ export function standingAt(facts: WorkoutFact[], keeping: Keeping, day: Date): S
     attire: keeping.house.attire,
     form: formOf(upTo, day),
     factor: conditionFactor(keeping.house),
+    favours,
   };
 }
 
@@ -210,7 +228,7 @@ export function scoreOf(contest: ContestId, s: Standing): number {
     (sum, [k, w]) => sum + (values[k] ?? 0) * (w ?? 0),
     0
   );
-  return Math.round(raw * s.factor);
+  return Math.min(100, Math.round(raw * s.factor) + FAVOUR_BONUS * (s.favours ?? 0));
 }
 
 /** What she would enter if nobody chose: the one she scores best in. */
@@ -301,10 +319,7 @@ export function festivalIndex(facts: WorkoutFact[], festival: Festival): number 
   let n = 0;
   let cursor = festival;
   while (true) {
-    const before = new Date(`${cursor.day}T12:00:00`);
-    before.setDate(1);
-    before.setMonth(before.getMonth() - 1);
-    const prev = festivalOf(before.getFullYear(), before.getMonth() + 1);
+    const prev = previousFestival(cursor);
     if (prev.day < first) return n;
     n += 1;
     cursor = prev;

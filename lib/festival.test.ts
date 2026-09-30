@@ -115,6 +115,7 @@ test('each contest counts different things', () => {
     attire: 0,
     form: 0,
     factor: 1,
+    favours: 0,
   };
   const strong = { ...base, stats: { ...base.stats, strength: 100 }, form: 100 };
   const graceful = { ...base, culture: { grace: 100, learning: 0, charm: 100 } };
@@ -131,8 +132,11 @@ test('a perfect standing scores 100 in every contest, and nothing scores 0', () 
     attire: 100,
     form: 100,
     factor: 1,
+    favours: 0,
   };
   for (const c of CONTESTS) assert.equal(scoreOf(c.id, full), 100, c.id);
+  // Favours met lift a perfect standing no further.
+  for (const c of CONTESTS) assert.equal(scoreOf(c.id, { ...full, favours: 4 }), 100, c.id);
   for (const c of CONTESTS) assert.equal(scoreOf(c.id, { ...full, stats: { ...full.stats, strength: 0, stamina: 0, vitality: 0, balance: 0, discipline: 0 }, culture: EMPTY_CULTURE, attire: 0, form: 0 }), 0);
 });
 
@@ -366,4 +370,11 @@ test('the form days are the days behind the form', () => {
   const start = new Date(day);
   start.setDate(start.getDate() - 27);
   assert.equal(formDays(steady(start, 28, 4), day), 7);
+});
+
+test('each favour met that month lifts her in every contest', () => {
+  const s = standingOf(monthOf(4));
+  for (const c of CONTESTS) {
+    assert.equal(scoreOf(c.id, { ...s, favours: 3 }), Math.min(100, scoreOf(c.id, s) + 6), c.id);
+  }
 });

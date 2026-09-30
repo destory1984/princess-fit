@@ -11,6 +11,8 @@ import { Purse } from '@/components/Purse';
 import { TrainingHall } from '@/components/TrainingHall';
 import { WalkCard } from '@/components/WalkCard';
 import { FestivalCard } from '@/components/FestivalCard';
+import { FavourCard } from '@/components/FavourCard';
+import { favourFor } from '@/lib/favour';
 import {
   archetypeOf,
   computeStats,
@@ -120,6 +122,7 @@ export default function TodayScreen() {
   // The routine waiting on an answer about today's body, if one is.
   const [pending, setPending] = useState<{ routine: Routine | null } | null>(null);
   const [weeklyGoal, setWeeklyGoalState] = useState(DEFAULT_WEEKLY_GOAL);
+  const [goalKnown, setGoalKnown] = useState(false);
   // Whether the answers have arrived. An empty routine list and a zero count
   // are also what this screen holds before it has asked anything, and telling
   // the two apart is the difference between greeting a newcomer and greeting
@@ -162,7 +165,10 @@ export default function TodayScreen() {
         setStats(computeStats(facts));
         setLoaded(true);
 
-        getWeeklyGoal().then(setWeeklyGoalState);
+        getWeeklyGoal().then((g) => {
+          setWeeklyGoalState(g);
+          setGoalKnown(true);
+        });
         // What she remembers only colours what she says, so losing it
         // leaves her speaking as she did before — never an empty room.
         const knowing = getBond(girl.id).catch(() => null);
@@ -392,6 +398,10 @@ export default function TodayScreen() {
               {house ? dailyLine(house, facts, new Date(), lesson, bond, girl.id, seen) : masterSays(stats, facts)}
             </Advisor>
           </Pressable>
+          {/* Only once the goal is known: 유키 may be asking for exactly that. */}
+          {goalKnown && facts.length > 0 && (
+            <FavourCard favour={favourFor(girl.id, facts, new Date(), weeklyGoal)} girl={girl} />
+          )}
           {festival && !festival.news && (
             <FestivalCard
               next={nextFestival()}

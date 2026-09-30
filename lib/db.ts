@@ -37,7 +37,8 @@ import type { BackupWorkout } from './backup';
 import { unseen } from './restore';
 import { diaryFor } from './diary';
 import { sulkOf, whileShe, whoWasThere, type Pick as GirlPick, type Sulk } from './picks';
-import { getChosenGirlId, getFestivalEntry } from './prefs';
+import { getChosenGirlId, getFestivalEntry, getWeeklyGoal } from './prefs';
+import { favoursMet } from './favour';
 import {
   CONTESTS,
   defaultEntry,
@@ -45,10 +46,12 @@ import {
   festivalMemory,
   judge,
   parseResult,
+  previousFestival,
   prizeFor,
   standingAt,
   unresolved,
   type ContestId,
+  type Festival,
   type Result as FestivalResult,
 } from './festival';
 import { DEFAULT_ADVISOR_ID } from './advisors';
@@ -2070,6 +2073,26 @@ export async function writeDiaries(girl?: string, batch = 40): Promise<number> {
 
 export type FestivalRecord = FestivalResult & { girl: string | null };
 
+/**
+ * The favours met for `festival` so far — since the one before it, up to the
+ * end of `day` — each week asked by whoever was here at its start. 0 rather
+ * than failing: a festival is never lost over the bonus.
+ */
+export async function festivalFavours(
+  girl: string,
+  facts: WorkoutFact[],
+  festival: Festival,
+  day: Date
+): Promise<number> {
+  try {
+    const [picks, goal] = await Promise.all([listPicks(girl), getWeeklyGoal()]);
+    const after = new Date(`${previousFestival(festival).day}T12:00:00`);
+    return favoursMet(facts, after, day, (iso) => whoWasThere(picks, iso) ?? girl, goal);
+  } catch {
+    return 0;
+  }
+}
+
 /** Every festival she has been to, newest first. Empty before migrate.sql. */
 export async function listFestivalResults(): Promise<FestivalRecord[]> {
   const { data, error } = await supabase
@@ -2102,7 +2125,8 @@ export async function judgeFestival(
   if (error || (had as unknown[]).length) return null;
 
   const ledger = await getLedger(today);
-  const standing = standingAt(facts, ledger, new Date(`${festival.day}T12:00:00`));
+  const day = new Date(`${festival.day}T12:00:00`);
+  const standing = standingAt(facts, ledger, day, await festivalFavours(girl, facts, festival, day));
   const chosen = await getFestivalEntry(festival.key);
   const contest = CONTESTS.some((c) => c.id === chosen) ? (chosen as ContestId) : defaultEntry(standing);
   const result = judge(contest, standing, festival, festivalIndex(facts, festival));

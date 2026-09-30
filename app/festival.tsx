@@ -6,6 +6,7 @@ import { ScreenState } from '@/components/ScreenState';
 import { FestivalAhead } from '@/components/FestivalAhead';
 import { FestivalReveal } from '@/components/FestivalReveal';
 import {
+  festivalFavours,
   getLedger,
   judgeFestival,
   listFestivalResults,
@@ -37,6 +38,8 @@ type Loaded = {
   /** The festival shown with its drum roll, because it has not been seen yet. */
   unseen: string | null;
   entry: ContestId | null;
+  /** Favours met since the last festival, which the next one will count. */
+  favours: number;
 };
 
 /**
@@ -55,17 +58,18 @@ export default function FestivalScreen() {
       // The today screen normally gets here first; judging again is a no-op.
       await judgeFestival(girl.id, facts).catch(() => null);
       const next = nextFestival();
-      const [ledger, results, seen, chosen] = await Promise.all([
+      const [ledger, results, seen, chosen, favours] = await Promise.all([
         getLedger(),
         listFestivalResults(),
         getFestivalSeen(),
         getFestivalEntry(next.key),
+        festivalFavours(girl.id, facts, next, new Date()),
       ]);
       const latest = results[0];
       const unseen = latest && latest.key !== seen ? latest.key : null;
       if (unseen) void setFestivalSeen(unseen);
       const entry = CONTESTS.some((c) => c.id === chosen) ? (chosen as ContestId) : null;
-      setData({ facts, ledger, results, unseen, entry });
+      setData({ facts, ledger, results, unseen, entry, favours });
     })().catch((e) => setError(e.message));
   }, [girl.id]);
 
@@ -75,7 +79,7 @@ export default function FestivalScreen() {
 
   const today = new Date();
   const next = nextFestival(today);
-  const standing = standingAt(data.facts, data.ledger, today);
+  const standing = standingAt(data.facts, data.ledger, today, data.favours);
   const entry = data.entry ?? defaultEntry(standing);
   // The last one, while it is still that month's news.
   const recent = data.results.find((r) => r.key === latestFestival(today).key) ?? null;
