@@ -401,7 +401,7 @@ Devin MCP는 `https://mcp.devin.ai/mcp`. 키(실제로는 `cog_`가 아니었다
 ### 시험
 
 ```bash
-node --test lib/*.test.ts   # 621건
+node --test lib/*.test.ts   # 623건
 npx tsc --noEmit
 npx eslint .
 ```

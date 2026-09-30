@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Advisor } from '@/components/Advisor';
-import { festivalTitle, type Result } from '@/lib/festival';
+import { festivalTitle, rivalRemark, type Result } from '@/lib/festival';
 import { voiceOf } from '@/lib/voices';
 import { colors, paper, spacing } from '@/lib/theme';
 
@@ -36,6 +36,7 @@ export function FestivalReveal({ result, girl, prize, animate }: Props) {
   }, [shown, total]);
 
   const done = shown >= total;
+  const remark = rivalRemark(result);
   const winner = result.entries[0];
   const said = voiceOf(girl.id).festival.place[result.place](
     result.contestName,
@@ -78,6 +79,11 @@ export function FestivalReveal({ result, girl, prize, animate }: Props) {
 
       {done ? (
         <View style={styles.after}>
+          {remark && (
+            <Text style={styles.remark}>
+              <Text style={styles.remarkName}>{remark.name}</Text> 「{remark.line}」
+            </Text>
+          )}
           <Advisor name={girl.name} portrait={girl.base}>
             {said}
           </Advisor>
@@ -135,6 +141,8 @@ const styles = StyleSheet.create({
   score: { color: colors.text, fontSize: 17, fontWeight: '800', fontVariant: ['tabular-nums'] },
   hidden: { flex: 1, color: colors.faint, fontSize: 15, letterSpacing: 4 },
   after: { marginTop: spacing.lg, gap: spacing.md },
+  remark: { color: colors.textDim, fontSize: 13, lineHeight: 20, fontStyle: 'italic', textAlign: 'center' },
+  remarkName: { color: colors.text, fontWeight: '800', fontStyle: 'normal' },
   prize: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.xs },
   prizeText: { color: colors.text, fontSize: 13, fontWeight: '700' },
   skip: { marginTop: spacing.md, textAlign: 'center', color: colors.textDim, fontSize: 11 },

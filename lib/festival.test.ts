@@ -18,6 +18,7 @@ import {
   rumourOf,
   formDays,
   festivalTalk,
+  rivalRemark,
   scoreOf,
   standingAt,
   unresolved,
@@ -400,4 +401,30 @@ test('the festival waits behind her hunger, and goes before the rest', () => {
   const facts = [session(at(2026, 9, 26))];
   assert.equal(dailyLine(fed, facts, at(2026, 9, 27), null, null, 'geumhwa', undefined, said), said);
   assert.notEqual(dailyLine(hungry, facts, at(2026, 9, 27), null, null, 'geumhwa', undefined, said), said);
+});
+
+test('a rival has her word after the results: the winner, or the one ours beat', () => {
+  const festival = latestFestival(at(2026, 9, 30));
+  const lost = judge('ball', standingOf(monthOf(2)), festival, 0);
+  assert.equal(lost.entries[0].her, false);
+  const r1 = rivalRemark(lost)!;
+  assert.equal(r1.name, lost.entries[0].name);
+
+  const won = judge('tournament', standingOf(monthOf(2)), festival, 0);
+  assert.equal(won.entries[0].her, true);
+  const r2 = rivalRemark(won)!;
+  assert.equal(r2.name, won.entries[1].name);
+  assert.notEqual(r1.line, r2.line);
+});
+
+test('every rival can speak either way, and none of them sneers', () => {
+  for (const c of CONTESTS) {
+    for (const r of rivalsOf(c.id, 0, '2026-01')) {
+      const win = rivalRemark({ contest: c.id, entries: [{ ...r }, { name: '', from: '', score: 0, her: true }] });
+      const loss = rivalRemark({ contest: c.id, entries: [{ name: '', from: '', score: 99, her: true }, { ...r }] });
+      assert.ok(win && win.line.length > 0, r.name);
+      assert.ok(loss && loss.line.length > 0, r.name);
+      assert.doesNotMatch(loss.line, /못났|한심|별것/, loss.line);
+    }
+  }
 });

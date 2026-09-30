@@ -239,7 +239,17 @@ export function defaultEntry(s: Standing): ContestId {
 
 // ---------------------------------------------------------------- rivals
 
-type Rival = { id: string; name: string; from: string; start: number; cap: number };
+type Rival = {
+  id: string;
+  name: string;
+  from: string;
+  start: number;
+  cap: number;
+  /** Said when she takes first place. */
+  won: string;
+  /** Said when she came second to ours. Graceful: a rival who sneers is not one anyone looks forward to. */
+  lost: string;
+};
 
 /**
  * Three girls per contest: one to beat early, one to beat with work, and one
@@ -252,19 +262,55 @@ type Rival = { id: string; name: string; from: string; start: number; cap: numbe
  */
 const RIVALS: Record<ContestId, Rival[]> = {
   tournament: [
-    { id: 'cecile', name: '세실', from: '사냥꾼 집 딸', start: 28, cap: 72 },
-    { id: 'martha', name: '마르타', from: '대장간 집 딸', start: 45, cap: 82 },
-    { id: 'brienne', name: '브리엔', from: '붉은 사자 가문', start: 60, cap: 94 },
+    {
+      id: 'cecile', name: '세실', from: '사냥꾼 집 딸', start: 28, cap: 72,
+      won: '어? 제가 이긴 거예요? 활 말고 칼로요?',
+      lost: '활이었으면 몰랐을 거예요! …다음 달에 또 해요.',
+    },
+    {
+      id: 'martha', name: '마르타', from: '대장간 집 딸', start: 45, cap: 82,
+      won: '쇠는 두드릴수록 단단해지는 법이지.',
+      lost: '좋은 팔이네. 우리 대장간에서 일해 볼 생각 없어?',
+    },
+    {
+      id: 'brienne', name: '브리엔', from: '붉은 사자 가문', start: 60, cap: 94,
+      won: '붉은 사자는 물러서지 않아요. 다음 달에 또 봐요.',
+      lost: '…졌네요. 이 이름, 기억해 둘게요.',
+    },
   ],
   ball: [
-    { id: 'nell', name: '넬', from: '꽃집 아이', start: 28, cap: 72 },
-    { id: 'rosaline', name: '로잘린', from: '비단 상인 댁', start: 45, cap: 82 },
-    { id: 'isabel', name: '이자벨', from: '공작 댁 영애', start: 60, cap: 94 },
+    {
+      id: 'nell', name: '넬', from: '꽃집 아이', start: 28, cap: 72,
+      won: '꽃 냄새 덕분인가 봐요! 오늘은 제가 꽃이에요!',
+      lost: '춤추는 거 정말 예뻤어요. 꽃 한 송이 드릴게요.',
+    },
+    {
+      id: 'rosaline', name: '로잘린', from: '비단 상인 댁', start: 45, cap: 82,
+      won: '옷감이 좋으면 발도 가벼운 법이에요.',
+      lost: '그 몸가짐, 어디서 배우셨어요? 저도 좀 알려 주세요.',
+    },
+    {
+      id: 'isabel', name: '이자벨', from: '공작 댁 영애', start: 60, cap: 94,
+      won: '무도회는 태어날 때부터 배우는 거랍니다.',
+      lost: '…오늘 밤은 당신 거예요. 오늘 밤만요.',
+    },
   ],
   debate: [
-    { id: 'mira', name: '미라', from: '책방 아이', start: 28, cap: 72 },
-    { id: 'theodora', name: '테오도라', from: '수도원 필경사', start: 45, cap: 82 },
-    { id: 'ophelia', name: '오필리아', from: '학자 집안', start: 60, cap: 94 },
+    {
+      id: 'mira', name: '미라', from: '책방 아이', start: 28, cap: 72,
+      won: '책방에 있는 책은 다 읽었거든요!',
+      lost: '그 대답, 어느 책에서 보셨어요? 알려 주세요!',
+    },
+    {
+      id: 'theodora', name: '테오도라', from: '수도원 필경사', start: 45, cap: 82,
+      won: '베껴 쓴 만큼 외워지는 법입니다.',
+      lost: '훌륭한 답이었습니다. 기록해 두겠습니다.',
+    },
+    {
+      id: 'ophelia', name: '오필리아', from: '학자 집안', start: 60, cap: 94,
+      won: '질문을 고르는 것부터가 실력이에요.',
+      lost: '흥미롭네요. 다음엔 제가 질문할게요.',
+    },
   ],
 };
 
@@ -373,6 +419,19 @@ const PRIZES: Record<Place, number> = { 1: 150, 2: 80, 3: 40, 4: 20 };
 
 export function prizeFor(place: Place) {
   return PRIZES[place];
+}
+
+/**
+ * One rival's word after the results, or null: the winner's, if a rival
+ * won, or the runner-up's, if she did. Looked up by name so a result kept
+ * from months ago still finds who said it.
+ */
+export function rivalRemark(result: Pick<Result, 'contest' | 'entries'>): { name: string; line: string } | null {
+  const [first, second] = result.entries;
+  const speaker = first?.her ? second : first;
+  const rival = RIVALS[result.contest]?.find((r) => r.name === speaker?.name);
+  if (!rival) return null;
+  return { name: rival.name, line: first?.her ? rival.lost : rival.won };
 }
 
 // ---------------------------------------------------------------- which festival
