@@ -69,10 +69,53 @@ export type OnceKind =
  */
 export type GiftKind = `gift:${string}`;
 
-export type MemoryKind = OnceKind | GiftKind;
+/** A month's festival (lib/festival.ts), by its YYYY-MM: one each, ever. */
+export type FestivalKind = `festival:${string}`;
+
+export type MemoryKind = OnceKind | GiftKind | FestivalKind;
 
 export function isGift(kind: MemoryKind): kind is GiftKind {
   return kind.startsWith('gift:');
+}
+
+export function isFestival(kind: MemoryKind): kind is FestivalKind {
+  return kind.startsWith('festival:');
+}
+
+/**
+ * What she needs from a festival memory to speak of it. Read here rather
+ * than through lib/festival.ts, which reads this file — the detail is the
+ * judged result as JSON, and a malformed one is simply not spoken of.
+ */
+function festivalOf(detail: string | null): { contestName: string; place: 1 | 2 | 3 | 4; winner: string } | null {
+  try {
+    const r = JSON.parse(detail ?? '');
+    if (typeof r?.contestName !== 'string' || ![1, 2, 3, 4].includes(r.place)) return null;
+    return { contestName: r.contestName, place: r.place, winner: r.entries?.[0]?.name ?? '' };
+  } catch {
+    return null;
+  }
+}
+
+/** Her words for one memory, on the day it happened, or null if she has none. */
+function freshLine(m: Memory, girl?: string): string | null {
+  const voice = voiceOf(girl);
+  if (isGift(m.kind)) return voice.gift.fresh(m.detail ?? '');
+  if (isFestival(m.kind)) {
+    const f = festivalOf(m.detail);
+    return f ? voice.festival.place[f.place](f.contestName, f.winner) : null;
+  }
+  return voice.fresh[m.kind](m.detail ?? '');
+}
+
+function recallLine(m: Memory, when: string, girl?: string): string | null {
+  const voice = voiceOf(girl);
+  if (isGift(m.kind)) return voice.gift.recall(when, m.detail ?? '');
+  if (isFestival(m.kind)) {
+    const f = festivalOf(m.detail);
+    return f ? voice.festival.recall(when, f.contestName, f.place) : null;
+  }
+  return voice.recall[m.kind]?.(when, m.detail ?? '') ?? null;
 }
 
 export type Memory = {
@@ -237,14 +280,13 @@ export const RECALL_EVERY = 6;
  * a notice board, the same trap lessonLine fell into.
  */
 export function memoryLine(memories: Memory[], today = new Date(), girl?: string): string | null {
-  const voice = voiceOf(girl);
   const key = localDayKey(today);
   const fresh = memories.filter((m) => m.day === key);
   // Several can land on one day (a first day that is also a first 100kg);
   // the rarer one is the better news, and later in the list is rarer.
   if (fresh.length) {
-    const m = fresh[fresh.length - 1];
-    return isGift(m.kind) ? voice.gift.fresh(m.detail ?? '') : voice.fresh[m.kind](m.detail ?? '');
+    const said = freshLine(fresh[fresh.length - 1], girl);
+    if (said) return said;
   }
 
   const n = dayNumber(key);
@@ -252,8 +294,8 @@ export function memoryLine(memories: Memory[], today = new Date(), girl?: string
   const old = memories.filter((m) => n - dayNumber(m.day) >= 7);
   const when = (m: Memory) => whenItWas(m.day, today);
   const said = old.flatMap((m) => {
-    const recall = isGift(m.kind) ? voice.gift.recall : voice.recall[m.kind];
-    return recall ? [recall(when(m), m.detail ?? '')] : [];
+    const line = recallLine(m, when(m), girl);
+    return line ? [line] : [];
   });
   if (!said.length) return null;
   return said[Math.floor(n / RECALL_EVERY) % said.length];

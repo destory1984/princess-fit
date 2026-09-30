@@ -37,7 +37,20 @@ import type { BackupWorkout } from './backup';
 import { unseen } from './restore';
 import { diaryFor } from './diary';
 import { sulkOf, whileShe, whoWasThere, type Pick as GirlPick, type Sulk } from './picks';
-import { getChosenGirlId } from './prefs';
+import { getChosenGirlId, getFestivalEntry } from './prefs';
+import {
+  CONTESTS,
+  defaultEntry,
+  festivalIndex,
+  festivalMemory,
+  judge,
+  parseResult,
+  prizeFor,
+  standingAt,
+  unresolved,
+  type ContestId,
+  type Result as FestivalResult,
+} from './festival';
 import { DEFAULT_ADVISOR_ID } from './advisors';
 import { arrivedTotal, type ArrivedGift } from './friends';
 import {
@@ -2046,4 +2059,68 @@ export async function writeDiaries(girl?: string, batch = 40): Promise<number> {
   } catch {
     return 0;
   }
+}
+
+/*
+  The festival (lib/festival.ts, docs/festival.md). Judged once, on the first
+  open after the day. The memory row is the claim: it is written before the
+  prize is paid, and taken back if the purse cannot be saved, so neither a
+  second phone nor a second girl is paid for the same month.
+*/
+
+export type FestivalRecord = FestivalResult & { girl: string | null };
+
+/** Every festival she has been to, newest first. Empty before migrate.sql. */
+export async function listFestivalResults(): Promise<FestivalRecord[]> {
+  const { data, error } = await supabase
+    .from('memories')
+    .select('kind, detail, girl')
+    .like('kind', 'festival:%')
+    .order('day', { ascending: false });
+  if (error) return [];
+  return (data as { detail: string | null; girl: string | null }[]).flatMap((row) => {
+    const result = parseResult(row.detail);
+    return result ? [{ ...result, girl: row.girl }] : [];
+  });
+}
+
+/**
+ * Judge the festival just gone, if there is one waiting and nobody has yet.
+ * Returns what was judged and paid, or null when there was nothing to do.
+ * Never throws for want of the memories table — there is simply no festival
+ * until there is somewhere to keep it.
+ */
+export async function judgeFestival(
+  girl: string,
+  facts: WorkoutFact[],
+  today = new Date()
+): Promise<{ result: FestivalResult; prize: number } | null> {
+  const festival = unresolved(facts, today);
+  if (!festival) return null;
+  const kind = `festival:${festival.key}`;
+  const { data: had, error } = await supabase.from('memories').select('kind').eq('kind', kind).limit(1);
+  if (error || (had as unknown[]).length) return null;
+
+  const ledger = await getLedger(today);
+  const standing = standingAt(facts, ledger, new Date(`${festival.day}T12:00:00`));
+  const chosen = await getFestivalEntry(festival.key);
+  const contest = CONTESTS.some((c) => c.id === chosen) ? (chosen as ContestId) : defaultEntry(standing);
+  const result = judge(contest, standing, festival, festivalIndex(facts, festival));
+
+  const userId = await requireUserId();
+  const { error: claimError } = await supabase
+    .from('memories')
+    .insert({ user_id: userId, girl, ...festivalMemory(result) });
+  // Taken already — by another phone, a moment ago.
+  if (claimError) return null;
+
+  const prize = prizeFor(result.place);
+  try {
+    const { house } = await getLedger(today);
+    await saveHousehold({ ...house, gold: house.gold + prize });
+  } catch (e) {
+    await supabase.from('memories').delete().eq('kind', kind).eq('girl', girl);
+    throw e;
+  }
+  return { result, prize };
 }

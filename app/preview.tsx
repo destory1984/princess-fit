@@ -30,6 +30,10 @@ import { RestBar } from '@/components/RestBar';
 import { SetCard } from '@/components/SetCard';
 import { ShopShelves } from '@/components/ShopShelves';
 import { Purse } from '@/components/Purse';
+import { FestivalAhead } from '@/components/FestivalAhead';
+import { FestivalCard } from '@/components/FestivalCard';
+import { FestivalReveal } from '@/components/FestivalReveal';
+import { judge, latestFestival, nextFestival, type ContestId, type Standing } from '@/lib/festival';
 import { TrainingHall } from '@/components/TrainingHall';
 import { FURNITURE } from '@/lib/room';
 import { GARMENTS } from '@/lib/outfit';
@@ -124,8 +128,19 @@ const benchUsage = new Map([
   ['x3', { count: 2, lastOn: '2026-09-12' }],
 ]);
 
+/** A month of steady training and a little schooling, a few months in. */
+const benchStanding: Standing = {
+  stats: { strength: 82, stamina: 45, vitality: 70, balance: 67, discipline: 60 },
+  culture: { grace: 38, learning: 20, charm: 52 },
+  attire: 80,
+  form: 67,
+  factor: 0.91,
+};
+
 export default function PreviewScreen() {
   const [picking, setPicking] = useState(false);
+  const [entry, setEntry] = useState<ContestId>('tournament');
+  const [replay, setReplay] = useState(0);
   const [asking, setAsking] = useState(false);
   const [swapping, setSwapping] = useState<(typeof benchAll)[number] | null>(null);
   const girl = useGirl();
@@ -142,6 +157,39 @@ export default function PreviewScreen() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+      <Text style={styles.heading}>축제 · 오늘 화면의 알림</Text>
+      <FestivalCard
+        next={nextFestival()}
+        left={9}
+        contest="기사 대회"
+        news={{ title: '9월 수확제 결과가 나왔어요', sub: `${girl.name} · 기사 대회에 나갔어요` }}
+        onPress={() => setReplay((n) => n + 1)}
+      />
+      <FestivalCard next={nextFestival()} left={9} contest="기사 대회" news={null} onPress={() => {}} />
+
+      <Text style={styles.heading}>축제 · 결과 (누르면 처음부터)</Text>
+      <Pressable onLongPress={() => setReplay((n) => n + 1)}>
+        <FestivalReveal
+          key={replay}
+          result={judge('tournament', benchStanding, latestFestival(), 2)}
+          girl={girl}
+          prize={80}
+          animate
+        />
+      </Pressable>
+
+      <Text style={styles.heading}>축제 · 다음 축제</Text>
+      <FestivalAhead
+        festival={nextFestival()}
+        today={new Date()}
+        girl={girl}
+        standing={benchStanding}
+        formDays={8}
+        index={3}
+        entry={entry}
+        onChoose={setEntry}
+      />
+
       <Text style={styles.heading}>빈 방</Text>
       <TrainingHall
         today={new Date()}

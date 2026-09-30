@@ -349,3 +349,44 @@ export async function getChosenGirlId(): Promise<string | null> {
     return null;
   }
 }
+
+/*
+  The festival (lib/festival.ts). Which contest she was entered for, and
+  which result has already been shown. Both on the phone: the entry is only
+  a wish until the day is judged, and the result itself is kept on the
+  account as a memory.
+*/
+
+const FESTIVAL_ENTRY = 'refit.festivalEntry';
+const FESTIVAL_SEEN = 'refit.festivalSeen';
+
+/** The contest chosen for the festival `key` (YYYY-MM), or null if none was. */
+export async function getFestivalEntry(key: string): Promise<string | null> {
+  try {
+    const raw = JSON.parse((await AsyncStorage.getItem(FESTIVAL_ENTRY)) ?? 'null');
+    return raw?.key === key && typeof raw.contest === 'string' ? raw.contest : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function setFestivalEntry(key: string, contest: string) {
+  await AsyncStorage.setItem(FESTIVAL_ENTRY, JSON.stringify({ key, contest }));
+}
+
+/** The festival whose result was last shown, so it is announced once. */
+export async function getFestivalSeen() {
+  try {
+    return await AsyncStorage.getItem(FESTIVAL_SEEN);
+  } catch {
+    return null;
+  }
+}
+
+export async function setFestivalSeen(key: string) {
+  try {
+    await AsyncStorage.setItem(FESTIVAL_SEEN, key);
+  } catch {
+    // Announced once more than it should be, which is harmless.
+  }
+}

@@ -10,6 +10,7 @@ import { ConditionPicker } from '@/components/ConditionPicker';
 import { Purse } from '@/components/Purse';
 import { TrainingHall } from '@/components/TrainingHall';
 import { WalkCard } from '@/components/WalkCard';
+import { FestivalCard } from '@/components/FestivalCard';
 import {
   archetypeOf,
   computeStats,
@@ -31,7 +32,26 @@ import {
   type Bond,
   type Household,
 } from '@/lib/economy';
-import { DEFAULT_WEEKLY_GOAL, getAnswersSeenAt, getNudgeHour, getWeeklyGoal } from '@/lib/prefs';
+import {
+  DEFAULT_WEEKLY_GOAL,
+  getAnswersSeenAt,
+  getFestivalEntry,
+  getFestivalSeen,
+  getNudgeHour,
+  getWeeklyGoal,
+} from '@/lib/prefs';
+import {
+  CONTESTS,
+  contestById,
+  daysUntil,
+  defaultEntry,
+  festivalTitle,
+  latestFestival,
+  nextFestival,
+  standingAt,
+  type ContestId,
+} from '@/lib/festival';
+import { withParticle } from '@/lib/korean';
 import { answerNotice, unreadAnswers } from '@/lib/answers';
 import { listMyRequests } from '@/lib/requests';
 import { cancelStrayRestAlarms, scheduleDailyMessage } from '@/lib/notify';
@@ -46,7 +66,10 @@ import {
   listMuscleLoad,
   listSleepLogs,
   getLedger,
+  judgeFestival,
+  listFestivalResults,
   recentRoutineUse,
+  type Ledger,
   listWorkoutFacts,
   startWorkout,
   type WeeklyStats,
@@ -55,7 +78,7 @@ import { daysAgo } from '@/lib/format';
 import { summarise, type WorkoutFact } from '@/lib/gamification';
 import type { Routine, Workout } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
-import { useGirl } from '@/lib/girl';
+import { girlOf, useGirl } from '@/lib/girl';
 import { isRotation, nextInSplit, type RoutineUse } from '@/lib/split';
 
 async function armDailyMessage(
@@ -107,6 +130,11 @@ export default function TodayScreen() {
   const [error, setError] = useState<string | null>(null);
   const [answers, setAnswers] = useState<string | null>(null);
   const [lastDone, setLastDone] = useState<Map<string, string>>(new Map());
+  // Where she is going this month, and a result waiting to be looked at.
+  const [festival, setFestival] = useState<{
+    contest: string;
+    news: { title: string; sub: string } | null;
+  } | null>(null);
 
   /**
    * What the screen needs in order to exist, and nothing else.
@@ -147,8 +175,37 @@ export default function TodayScreen() {
             .catch(() => undefined),
           getWeeklyGoal().catch(() => undefined),
         ]).then(([sleep, muscles, weeklyGoal]) => ({ sleep, muscles, weeklyGoal }));
-        getLedger()
-          .then(async ({ house: h, furniture: mine, worn: dressed, lesson: course }) => {
+        // What the festival card says. Never allowed to hold the room up.
+        const readFestival = (ledger: Ledger) =>
+          Promise.all([listFestivalResults(), getFestivalSeen(), getFestivalEntry(nextFestival().key)])
+            .then(([results, seen, chosen]) => {
+              const latest = results[0];
+              const fresh = latest && latest.key !== seen && latest.key === latestFestival().key;
+              const who = latest?.girl ? girlOf(latest.girl).name : girl.name;
+              const id = CONTESTS.some((c) => c.id === chosen)
+                ? (chosen as ContestId)
+                : defaultEntry(standingAt(facts, ledger, new Date()));
+              setFestival({
+                contest: contestById(id).name,
+                news: fresh
+                  ? {
+                      title: `${festivalTitle(latest)} 결과가 나왔어요`,
+                      sub: `${withParticle(who, '이가')} ${latest.contestName}에 나갔어요`,
+                    }
+                  : null,
+              });
+            })
+            .catch(() => {});
+
+        // The festival is judged before the ledger is read: judging pays the
+        // prize into the purse, and a ledger read alongside it could write
+        // the gold from before the prize back over it.
+        judgeFestival(girl.id, facts)
+          .catch(() => null)
+          .then(() => getLedger())
+          .then(async (ledger) => {
+            const { house: h, furniture: mine, worn: dressed, lesson: course } = ledger;
+            void readFestival(ledger);
             setHouse(h);
             setFurniture(mine);
             setWorn(dressed);
@@ -288,6 +345,16 @@ export default function TodayScreen() {
         </View>
       )}
 
+      {festival?.news && (
+        <FestivalCard
+          next={nextFestival()}
+          left={daysUntil(nextFestival())}
+          contest={festival.contest}
+          news={festival.news}
+          onPress={() => router.push('/festival')}
+        />
+      )}
+
       {answers && (
         <Pressable style={styles.answers} onPress={() => router.push('/settings/requests')}>
           <Ionicons name="mail-unread-outline" size={18} color={colors.accent} />
@@ -325,6 +392,15 @@ export default function TodayScreen() {
               {house ? dailyLine(house, facts, new Date(), lesson, bond, girl.id, seen) : masterSays(stats, facts)}
             </Advisor>
           </Pressable>
+          {festival && !festival.news && (
+            <FestivalCard
+              next={nextFestival()}
+              left={daysUntil(nextFestival())}
+              contest={festival.contest}
+              news={null}
+              onPress={() => router.push('/festival')}
+            />
+          )}
         </>
       )}
 

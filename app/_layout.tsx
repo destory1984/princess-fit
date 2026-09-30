@@ -127,6 +127,7 @@ function RootNavigator() {
         />
         <Stack.Screen name="achievements" options={{ title: "품계와 업적" }} />
         <Stack.Screen name="memories" options={{ title: "함께한 날들" }} />
+        <Stack.Screen name="festival" options={{ title: "축제" }} />
         <Stack.Screen name="exercise/[id]" options={{ title: "운동 종목" }} />
         <Stack.Screen name="summary/[id]" options={{ title: "오늘의 기록" }} />
         <Stack.Screen name="greeting" options={{ title: "" }} />

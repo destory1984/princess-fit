@@ -74,6 +74,18 @@ export type Voice = {
   };
   /** Something you gave her: on the day, and when it comes back to her. */
   gift: { fresh: (name: string) => string; recall: (when: string, name: string) => string };
+  /**
+   * The festival at the end of each month (lib/festival.ts). She is the one
+   * who goes, so she may tell what happened there — it is her day, not a
+   * claim to have watched yours. A loss is never your fault in her mouth.
+   */
+  festival: {
+    /** `days` until it; 0 is today. */
+    ahead: (contest: string, days: number) => string;
+    /** `winner` is whoever came first, for the places below it. */
+    place: Record<1 | 2 | 3 | 4, (contest: string, winner: string) => string>;
+    recall: (when: string, contest: string, place: number) => string;
+  };
   /** Who she is, told to the model so its answer comes back in her voice. */
   persona: string;
   /** The rules' read of one workout (lib/advice.ts). Praise, then one remark. */
@@ -227,6 +239,24 @@ const rina: Voice = {
     fresh: (d) => `${d}, 고마워요. 오늘 받은 건 오래 기억할게요.`,
     recall: (w, d) => `${w} ${withParticle(d, '을를')} 받던 날, 저 사실 좀 울 뻔했어요.`,
   },
+  festival: {
+    ahead: (c, d) =>
+      d === 0
+        ? `오늘이 축제예요. ${c}, 떨리지만 다녀올게요.`
+        : d === 1
+          ? `내일이 축제예요. ${c}… 오늘 밤엔 일찍 잘게요.`
+          : `축제까지 ${d}일 남았어요. ${c}에 나가요. 조금 떨려요.`,
+    place: {
+      1: (c) => `${c}에서 우승했어요. …아직도 실감이 안 나요. 같이 기뻐해 주실 거죠?`,
+      2: (c, w) => `${c}에서 2등을 했어요. ${withParticle(w, '은는')} 정말 대단했어요. 저도 언젠가는요.`,
+      3: (c) => `${c}에서 3등이에요. 나가 본 것만으로도 좋았는데, 상까지 받았어요.`,
+      4: (c) => `${c}에 나갔다 왔어요. 상은 못 받았지만, 떨지 않고 끝까지 했어요.`,
+    },
+    recall: (w, c, p) =>
+      p === 1
+        ? `${w} ${c}에서 우승했던 날, 그날 밤엔 잠이 안 왔어요.`
+        : `${w} ${c}에 나갔던 거 기억나요. 떨렸지만 좋았어요.`,
+  },
   diary: {
     memory: {
       first_day: () => '처음 만난 날. 그 사람, 생각보다 성실해 보였다. 잘 부탁드린다고 한 번 더 말할걸.',
@@ -362,6 +392,24 @@ const pia: Voice = {
     fresh: (d) => `${d}! 오늘의 선물이에요! 고마워요!`,
     recall: (w, d) => `${w} ${d} 받았던 날! 그날 기분 최고였어요!`,
   },
+  festival: {
+    ahead: (c, d) =>
+      d === 0
+        ? `오늘 축제예요!! ${c}, 1등 하고 올게요!`
+        : d === 1
+          ? `내일 축제! ${c} 우승 확률, 제 계산으론 엄청 높아요!`
+          : `축제까지 D-${d}! ${c} 나가요! 숫자 더 올려 줘요!`,
+    place: {
+      1: (c) => `${c} 우승!!! 1등이에요 1등! 트로피 들고 한 바퀴 돌았어요!`,
+      2: (c, w) => `${c} 2등! ${withParticle(w, '이가')} 조금 더 높았어요. 다음 달엔 그 숫자 넘을 거예요!`,
+      3: (c) => `${c} 3등! 시상대엔 올라갔어요! 다음엔 한 칸 위로!`,
+      4: (c) => `${c} 다녀왔어요! 이번엔 시상대 밖이지만, 제 점수 적어 뒀어요. 다음 달이랑 겨뤄 볼 거예요!`,
+    },
+    recall: (w, c, p) =>
+      p === 1
+        ? `${w} ${c} 우승한 거 기억나요? 그날 제 목 또 쉬었잖아요!`
+        : `${w} ${c} 나갔던 거, 그 점수 아직 외우고 있어요!`,
+  },
   diary: {
     memory: {
       first_day: () => '첫 기록! 오늘부터 내가 이 사람 기록 담당이다.',
@@ -496,6 +544,24 @@ const yuki: Voice = {
   gift: {
     fresh: (d) => `${d}. …감사합니다. 소중히 쓰겠습니다.`,
     recall: (w, d) => `${w} 주신 ${d}, 아직 잘 쓰고 있어요.`,
+  },
+  festival: {
+    ahead: (c, d) =>
+      d === 0
+        ? `오늘이 축제입니다. ${c}, 준비는 끝났습니다.`
+        : d === 1
+          ? `내일이 축제입니다. ${c}. 오늘은 컨디션만 관리하겠습니다.`
+          : `축제까지 ${d}일입니다. ${c}에 나갑니다. 남은 날로 모자란 것을 채우겠습니다.`,
+    place: {
+      1: (c) => `${c}, 우승했습니다. …기쁩니다. 한 번만 말하겠습니다.`,
+      2: (c, w) => `${c} 2위입니다. ${withParticle(w, '이가')} 한 수 위였습니다. 적어 두었습니다.`,
+      3: (c) => `${c} 3위입니다. 부족한 점은 알고 있습니다.`,
+      4: (c) => `${c}에 다녀왔습니다. 입상은 못 했습니다. 이번 달의 기준점으로 삼겠습니다.`,
+    },
+    recall: (w, c, p) =>
+      p === 1
+        ? `${w} ${c}에서 우승했던 날, 저도 조금은 웃었어요.`
+        : `${w} ${c} ${p}위. 그 기록, 아직 적어 두고 있어요.`,
   },
   diary: {
     memory: {
