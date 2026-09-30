@@ -191,7 +191,8 @@ export default function TrainingLedgerScreen() {
           </View>
         ))}
         <Text style={styles.cultureHint}>
-          운동으로는 오르지 않아요. 상점의 수업에서만 자라요.
+          운동으로는 오르지 않아요. 상점의 수업에서만 자라요. 기품·매력은 무도회에서,
+          교양은 문답 대회에서 쓰여요.
         </Text>
       </Scroll>
 

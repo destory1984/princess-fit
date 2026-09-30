@@ -448,7 +448,8 @@ export function ShopShelves({ ledger, busy, onSpend }: Props) {
             ))}
           </View>
           <Text style={styles.hint}>
-            운동으로는 오르지 않는 것들이에요.
+            운동으로는 오르지 않는 것들이에요. 기품·매력은 무도회에서, 교양은 문답 대회에서
+            쓰여요.
             {standing.charm > culture.charm
               ? ` 지금 차림으로 매력 +${standing.charm - culture.charm}.`
               : ""}
