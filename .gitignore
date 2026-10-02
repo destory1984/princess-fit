@@ -40,3 +40,9 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# model relay: worker logs hold every prompt and answer
+relay/logs/
+
+# art orders: prompts, Codex logs and raw drawings (scripts/art-order.sh)
+art-orders/
