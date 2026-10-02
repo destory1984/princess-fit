@@ -409,6 +409,9 @@ Devin MCP는 `https://mcp.devin.ai/mcp`. 키(실제로는 `cog_`가 아니었다
 - `docs/relationship.md` — 일기 · 아이 바꾸기 · 토라짐. 2026-09-23 지음
 - `docs/festival.md` — 달마다 열리는 축제. 2026-09-30 지음 (`lib/festival.ts`, `app/festival.tsx`)
 - `docs/places.md` — 운동터와 그곳에서 할 수 있는 종목. 아직 안 지음, 설계만
+- 기획서 — https://claude.ai/code/artifact/ae607837-9cd0-4090-a598-594e0a3032bf
+  2026-10-03에 이 노트와 `docs/`를 모아 Claude 문서로 만들었다. 다듬는 일은 거기서 한다.
+  거기서 정해진 것은 이 노트로 옮긴다. 링크는 본인 계정으로만 열린다
 - `public/admin.html` — 관리자 페이지. `/admin.html`로 열림
 - `scripts/garment-fit.mjs` — 그림 자리 재기
 - `scripts/make-rug.mjs` — 양탄자 그리기 (`--tilt`로 각도)
