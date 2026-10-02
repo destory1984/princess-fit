@@ -973,6 +973,18 @@ export async function clearSavedAdvice(workoutId: string) {
   if (error) throw error;
 }
 
+/**
+ * Delete the caller's account and everything tied to it (supabase/account.sql).
+ *
+ * Takes no argument on purpose: the server deletes whoever is asking, so there
+ * is no id here to get wrong. Throws when the function is not installed —
+ * better than appearing to have deleted something.
+ */
+export async function deleteMyAccount() {
+  const { error } = await supabase.rpc('delete_my_account');
+  if (error) throw error;
+}
+
 export async function deleteWorkout(id: string) {
   const { error } = await supabase.from('workouts').delete().eq('id', id);
   if (error) throw error;

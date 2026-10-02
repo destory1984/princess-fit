@@ -5,8 +5,9 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { NudgeSetting } from '@/components/NudgeSetting';
 import { Portrait } from '@/components/Portrait';
 import { explain } from '@/lib/dbError';
-import { notify } from '@/lib/confirm';
-import { getLedger, listExercises, saveHousehold } from '@/lib/db';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { confirmAction, notify } from '@/lib/confirm';
+import { deleteMyAccount, getLedger, listExercises, saveHousehold } from '@/lib/db';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { GOALS, PLACES, type Goal, type Place } from '@/lib/onboarding';
@@ -33,6 +34,35 @@ export default function SettingsScreen() {
   // these, and nothing on screen said so — the picker quietly went unordered
   // and the findings quietly went unranked. The row says which it is.
   const [granting, setGranting] = useState<string | null>(null);
+  const [leaving, setLeaving] = useState(false);
+
+  /**
+   * Leaving for good. Asked twice, and the first time it points at the export:
+   * the records are the one thing here that cannot be made again.
+   *
+   * What the phone kept goes too — the chosen girl, the unsent writes, the
+   * cached advice. Left behind, the next account on this phone would open
+   * into someone else's leftovers.
+   */
+  function leave() {
+    confirmAction(
+      '계정 지우기',
+      '운동 기록, 아이와의 기억, 친구까지 모두 지워져요. 남겨 두고 싶으면 먼저 「기록 백업」에서 내보내 두세요.',
+      () =>
+        confirmAction('정말 지울까요?', '되돌릴 수 없어요.', async () => {
+          setLeaving(true);
+          try {
+            await deleteMyAccount();
+            await supabase.auth.signOut().catch(() => {});
+            await AsyncStorage.clear().catch(() => {});
+          } catch (e: any) {
+            notify('지우지 못했어요', explain(e));
+          } finally {
+            setLeaving(false);
+          }
+        }),
+    );
+  }
   const [askRoutine, setAskRoutineState] = useState(true);
   const [byModel, setByModelState] = useState(true);
   const [plan, setPlan] = useState<{
@@ -234,6 +264,13 @@ export default function SettingsScreen() {
         <Pressable style={styles.logout} onPress={() => supabase.auth.signOut()}>
           <Text style={styles.logoutText}>로그아웃</Text>
         </Pressable>
+        {/*
+          Small and last, under the way out that is not final. It has to be
+          findable by someone looking for it and missable by everyone else.
+        */}
+        <Pressable style={styles.leave} disabled={leaving} onPress={leave}>
+          <Text style={styles.leaveText}>{leaving ? '지우는 중이에요…' : '계정 지우기'}</Text>
+        </Pressable>
       </View>
     </ScrollView>
   );
@@ -265,4 +302,6 @@ const styles = StyleSheet.create({
   account: { color: colors.textDim },
   logout: { padding: spacing.md },
   logoutText: { color: colors.danger, fontWeight: '700' },
+  leave: { padding: spacing.sm },
+  leaveText: { color: colors.textDim, fontSize: 12, textDecorationLine: 'underline' },
 });

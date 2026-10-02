@@ -71,6 +71,12 @@
   「받음」 도장을 찍으면 나중에 채워도 못 받는다. 칸이 생기는 첫 실행에서만
   그때까지 끝난 운동을 모두 받은 것으로 찍는다(대부분 받았고, 저절로 닫힌
   몇은 가려낼 수 없다). 가져오기는 넣자마자 받은 것으로 찍는다.
+- **계정은 앱 안에서 지울 수 있다 (2026-10-03, `supabase/account.sql`).** 설정 탭 맨
+  아래의 작은 글씨다. 두 번 묻고, 처음 물을 때 내보내기를 가리킨다. 함수는 인자를 받지
+  않는다 — 지우는 것은 늘 부른 사람 자신이라, 틀릴 id가 없다. `auth.users`의 한 줄을
+  지우면 모든 표가 따라 지워진다. **표를 새로 만들 때 `on delete cascade`로 매지 않으면
+  그 표의 줄이 주인 없이 남는다.** 폰에 둔 것(고른 아이, 못 보낸 쓰기, 조언 사본)도
+  함께 지운다. 남겨 두면 그 폰의 다음 계정이 남의 것을 물려받는다.
 - **친구는 함수로만 본다.** 다른 사람의 표를 직접 읽는 정책은 없다.
   `supabase/social.sql`의 `security definer` 함수가 친구인지 먼저 묻고,
   이름·아이·옷·가구만 넘긴다. 세트·무게·메모·지갑은 넘기지 않는다.
@@ -452,6 +458,9 @@ Devin MCP는 `https://mcp.devin.ai/mcp`. 키(실제로는 `cog_`가 아니었다
 - **새 종목 79개는 기존 계정에 저절로 들어가지 않는다 (2026-10-03).** 설정 탭의
   「기본 종목 불러오기 · 정보 새로 고치기」를 한 번 눌러야 한다. 「직접 만들기」 줄은
   화면으로 못 봤다 — 진열대의 고르기 창에는 켜지 않았다(누르면 실제 계정에 종목이 생긴다).
+- **계정 지우기는 한 번도 눌러 본 적이 없다 (2026-10-03).** 설정 화면에 뜨는 것만 봤다.
+  실제 계정에서 누르면 그 계정이 사라지므로 시험용 계정으로 본다. 먼저
+  `supabase/account.sql`을 돌려야 한다. 볼 것은 `docs/tester-notice.md` 「확인할 것」.
 - **중계는 한 번도 돌려 본 적이 없다 (2026-10-03).** 규칙의 시험만 통과했다. 켜려면:
   ① `supabase/relay.sql`을 돌린다(`admin.sql` 뒤에). ② `relay/.env`에 URL과 service-role
   키를 넣는다. ③ `node --env-file=relay/.env relay/worker.mjs`. 그 뒤 운동을 하나 마치고
@@ -528,6 +537,8 @@ Devin MCP는 `https://mcp.devin.ai/mcp`. 키(실제로는 `cog_`가 아니었다
 - `supabase/fix-ended-at.sql` — 옛 기록의 끝난 시각을 마지막 세트로 당김. 한 번만 돌리면 되고, 또 돌려도 됨
 - `supabase/admin.sql` — 관리자·요청·프로필. 여러 번 돌려도 됨
 - `supabase/social.sql` — 친구·선물·함께 운동 보너스. 여러 번 돌려도 됨
+- `supabase/relay.sql` — 모델 중계의 줄과 「살아 있음」 표시. `admin.sql` 뒤에. 여러 번 돌려도 됨
+- `supabase/account.sql` — 제 계정 지우기. 여러 번 돌려도 됨
 - `supabase/templates/` — Supabase 대시보드에 붙여 넣을 메일 틀
 - `docs/competitors.md` — 다른 운동 앱과 견준 것, 다음에 지을 것
 - `docs/companion.md` — 아이가 기억하고 자라는 것. 2026-09-23 지음 (`lib/companion.ts`, `app/memories.tsx`)
@@ -536,6 +547,7 @@ Devin MCP는 `https://mcp.devin.ai/mcp`. 키(실제로는 `cog_`가 아니었다
 - `docs/places.md` — 운동터와 그곳에서 할 수 있는 종목. 아직 안 지음, 설계만
 - `docs/direction.md` — **방향 기획서. 2026-10-03, 가장 새 기획서다.** 목표, 방향,
   결정 10가지, 짓는 순서 9단계가 있다. 다음에 무엇을 지을지는 이 문서의 5절을 따른다
+- `docs/tester-notice.md` — 시험 사용자에게 보낼 안내문 초안과, 보내기 전에 확인할 것
 - `docs/relay.md` · `docs/first-day.md` · `docs/art-order.md` — 기획서의 AI 조언 중계,
   첫날 한 바퀴, 그림 주문
 - 옛 기획서 — https://claude.ai/code/artifact/ae607837-9cd0-4090-a598-594e0a3032bf
