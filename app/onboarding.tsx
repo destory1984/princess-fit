@@ -61,7 +61,7 @@ const HOURS = [8, 12, 18, 20, 22];
  * account exactly as it was, rather than half-configured by someone who
  * changed their mind.
  */
-export default function OnboardingScreen() {
+export default function OnboardingScreen({ bench = false }: { bench?: boolean }) {
   const router = useRouter();
   const girl = useGirl();
   const [step, setStep] = useState<Step>('meet');
@@ -71,12 +71,16 @@ export default function OnboardingScreen() {
   const [preset, setPreset] = useState<RoutinePreset | null>(null);
   const [hour, setHour] = useState<number | null>(DEFAULT_NUDGE_HOUR);
   const [busy, setBusy] = useState<string | null>(null);
-  const [checking, setChecking] = useState(true);
+  // On the development bench there is no account to ask and nowhere to send
+  // anyone. The check below is what kept the bench from opening at all while
+  // signed in: the account has routines, so the whole page was sent home.
+  const [checking, setChecking] = useState(!bench);
 
   // An account that already has routines has been through this once, on
   // another device or before the flow existed. Greeting them as a stranger and
   // offering to build a routine they already wrote would be worse than useless.
   useEffect(() => {
+    if (bench) return;
     let alive = true;
     listRoutines()
       .then(async (routines) => {
@@ -92,7 +96,7 @@ export default function OnboardingScreen() {
     return () => {
       alive = false;
     };
-  }, [router]);
+  }, [router, bench]);
 
   // The goal steers which presets are offered, not only what she says about
   // them — a stamina answer that still produced a bodybuilding split would be
@@ -115,7 +119,9 @@ export default function OnboardingScreen() {
    * can name exercises in it, so these are ordered rather than raced.
    */
   async function finish() {
-    if (busy) return;
+    // The bench shows the steps; it must not write a routine into whichever
+    // account happens to be signed in.
+    if (busy || bench) return;
     try {
       setBusy('약속을 적어 두는 중이에요');
       await Promise.all([setWeeklyGoal(perWeek), setGoal(goal), setPlace(place)]);
@@ -150,6 +156,7 @@ export default function OnboardingScreen() {
   }
 
   async function skip() {
+    if (bench) return;
     await markOnboarded();
     router.replace('/');
   }

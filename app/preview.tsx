@@ -272,7 +272,7 @@ export default function PreviewScreen() {
 
       <Text style={styles.heading}>첫 인사 (화면 전체)</Text>
       <View style={styles.framedTall}>
-        <OnboardingScreen />
+        <OnboardingScreen bench />
       </View>
 
       <Text style={styles.heading}>내 운동 계획 (화면 전체)</Text>
