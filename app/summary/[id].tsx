@@ -6,6 +6,7 @@ import { captureRef } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
 import { AdviceCard } from '@/components/AdviceCard';
 import { BragCard } from '@/components/BragCard';
+import { FirstDayCard } from '@/components/FirstDayCard';
 import { ScreenState } from '@/components/ScreenState';
 import { explain } from '@/lib/dbError';
 import { notify } from '@/lib/confirm';
@@ -20,11 +21,12 @@ import {
   type SessionLine,
   listWorkoutFacts,
   repeatWorkout,
+  type Ledger,
   type WorkoutDetailExercise,
   writeDiaries,
 } from '@/lib/db';
+import { firstDayStep, isFirstWorkout } from '@/lib/firstDay';
 import { girlOf, useGirl } from '@/lib/girl';
-import { dressedFor } from '@/lib/outfit';
 import { formatDate } from '@/lib/format';
 import { GOALS, PLACES } from '@/lib/onboarding';
 import { getGoal, getPlace, getWeeklyGoal } from '@/lib/prefs';
@@ -55,7 +57,7 @@ export default function SummaryScreen() {
     null
   );
   const [error, setError] = useState<string | null>(null);
-  const [worn, setWorn] = useState<string[]>([]);
+  const [ledger, setLedger] = useState<Ledger | null>(null);
 
   const load = useCallback(() => {
     if (!id) return;
@@ -80,10 +82,12 @@ export default function SummaryScreen() {
         setFacts(facts);
         setSummary(summarise(facts));
 
-        // The card is from the gym, so she is in her gym clothes on it; the
-        // ledger only brings the ribbon in her hair.
+        // The card is what gets sent to other people, and on it she wears
+        // what she was given (docs/direction.md) — it was her gym clothes
+        // until 2026-10-03. Read on every focus, so coming back from the shop
+        // on the first day shows her in the gift.
         getLedger()
-          .then((ledger) => setWorn(dressedFor(ledger.worn, 'gym')))
+          .then(setLedger)
           .catch(() => {});
 
         // Only feeds the adviser's 「지난번보다」, so the screen never waits.
@@ -263,18 +267,36 @@ export default function SummaryScreen() {
 
   if (!workout || !fact || !summary) return <ScreenState error={error} onRetry={load} />;
 
+  // Nothing of the first day is decided until the ledger answers: the offer
+  // depends on the purse, and guessing would flash a button and take it away.
+  const firstDay = ledger
+    ? firstDayStep(facts, workout.id, ledger.house.gold, ledger.giftedOn !== null)
+    : ({ step: 'none' } as const);
+  const isFirst = isFirstWorkout(facts, workout.id);
+
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+      {isFirst && (
+        <FirstDayCard
+          diary={workout.diary ?? null}
+          girlName={girlOf(workout.diary_by ?? girl.id).name}
+          step={firstDay}
+          gold={ledger?.house.gold ?? 0}
+          onGift={() => router.push('/shop')}
+        />
+      )}
+
       <BragCard
         ref={card}
         workout={workout}
         items={items}
         fact={fact}
         summary={summary}
-        worn={worn}
+        worn={ledger?.worn ?? []}
       />
 
-      {workout.diary && (
+      {/* On the first day her entry is at the top, large; not said twice. */}
+      {workout.diary && !isFirst && (
         <View style={styles.diaryBox}>
           <Text style={styles.diary}>
             {workout.diary}

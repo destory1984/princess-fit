@@ -3,7 +3,9 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Redirect } from 'expo-router';
 import { Advisor } from '@/components/Advisor';
 import { BigStepper } from '@/components/BigStepper';
+import { cheapestGift } from '@/lib/firstDay';
 import { BragCard } from '@/components/BragCard';
+import { FirstDayCard } from '@/components/FirstDayCard';
 import { Cheer } from '@/components/Cheer';
 import { ConditionPicker } from '@/components/ConditionPicker';
 import { SwapSheet } from '@/components/SwapSheet';
@@ -225,6 +227,29 @@ export default function PreviewScreen() {
 
       <Text style={styles.heading}>지갑</Text>
       <Purse house={house} opensShop />
+
+      <Text style={styles.heading}>첫날 · 마친 화면 맨 위 (선물 전 / 선물 뒤 / 골드가 모자랄 때)</Text>
+      <FirstDayCard
+        diary="오늘 처음 같이 했다. 가슴이랑 팔, 다섯 세트. 내일도 올까."
+        girlName={girl.name}
+        step={{ step: 'invite', gift: cheapestGift() }}
+        gold={243}
+        onGift={() => {}}
+      />
+      <FirstDayCard
+        diary="오늘 처음 같이 했다. 가슴이랑 팔, 다섯 세트. 내일도 올까."
+        girlName={girl.name}
+        step={{ step: 'given' }}
+        gold={93}
+        onGift={() => {}}
+      />
+      <FirstDayCard
+        diary="오늘 처음 같이 했다. 가슴이랑 팔, 다섯 세트. 내일도 올까."
+        girlName={girl.name}
+        step={{ step: 'none' }}
+        gold={40}
+        onGift={() => {}}
+      />
 
       <Text style={styles.heading}>운동을 마친 카드</Text>
       <BragCard
