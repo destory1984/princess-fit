@@ -1343,6 +1343,7 @@ export default function WorkoutScreen() {
                           index={current.set_no}
                           total={exerciseSets.length}
                           tint={tint}
+                          barbell={exercise?.equipment === "바벨"}
                           onChange={(patch) => persist(current.id, patch)}
                           onComplete={() =>
                             // Stamped here rather than on the server, because

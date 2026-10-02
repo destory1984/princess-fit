@@ -1,8 +1,9 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { BigStepper } from '@/components/BigStepper';
 import { nextWeight, onRack } from '@/lib/weight';
+import { BAR, plateWord } from '@/lib/plates';
 import { successFeedback, tapFeedback } from '@/lib/feedback';
 import type { TrackType, WorkoutSet } from '@/lib/types';
 import { otherSide, SIDE_LABEL } from '@/lib/sides';
@@ -18,6 +19,8 @@ type Props = {
   index: number;
   total: number;
   tint: string;
+  /** Loaded on a bar, so the weight can be turned into plates. */
+  barbell?: boolean;
   onChange: (patch: Partial<WorkoutSet>) => void;
   onComplete: () => void;
   onRemove: () => void;
@@ -29,12 +32,17 @@ export function SetCard({
   index,
   total,
   tint,
+  barbell = false,
   onChange,
   onComplete,
   onRemove,
 }: Props) {
   // Created once, without reading a ref during render.
   const scale = useMemo(() => new Animated.Value(1), []);
+  // Stays open from one set to the next: whoever asked once is loading a bar,
+  // and will be loading it again in two minutes.
+  const [platesOpen, setPlatesOpen] = useState(false);
+  const plates = barbell && track === 'weight_reps' ? plateWord(set.weight_kg) : null;
 
   useEffect(() => {
     scale.setValue(0.96);
@@ -113,6 +121,7 @@ export function SetCard({
               // fine steps live on: from 11kg it landed on 21, and 2.5 at a
               // time from there is 23.5, 26, 28.5 — arithmetic, not weights.
               onChange={(v) => change({ weight_kg: onRack(v) })}
+              onPressValue={plates ? () => setPlatesOpen((open) => !open) : undefined}
             />
             <View style={styles.divider} />
             <BigStepper
@@ -160,6 +169,28 @@ export function SetCard({
           </>
         )}
       </View>
+
+      {/*
+        The plates for one side, on a row that is there before it is asked
+        for. Pressing the weight opens it too, but a number that turns out to
+        be a button is found by accident or not at all — so the row says what
+        it holds while it is still shut.
+
+        Only on a bar, and only from the bar's own weight up (`plateWord`
+        answers nothing below it). The bar is named because it is a guess: an
+        EZ bar is not 20kg and the app cannot see which one is in the rack.
+      */}
+      {plates && (
+        <Pressable
+          style={styles.plates}
+          hitSlop={4}
+          onPress={() => setPlatesOpen((open) => !open)}>
+          <Ionicons name="disc-outline" size={14} color={colors.textDim} />
+          <Text style={styles.platesText}>
+            {platesOpen ? `봉 ${BAR}kg · ${plates}` : '원판 보기'}
+          </Text>
+        </Pressable>
+      )}
 
       {/*
         Deleting sat as a bare ✕ in the corner, where it read as 「close this
@@ -212,6 +243,13 @@ const styles = StyleSheet.create({
   label: { color: colors.textDim, fontSize: 13, fontWeight: '600' },
   steppers: { flexDirection: 'row', alignItems: 'center' },
   divider: { width: 1, height: 52, backgroundColor: colors.border },
+  plates: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+  },
+  platesText: { color: colors.textDim, fontSize: 13, fontWeight: '600' },
   actions: { flexDirection: 'row', gap: spacing.sm },
   remove: {
     flex: 1,

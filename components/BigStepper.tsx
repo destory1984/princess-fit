@@ -16,6 +16,8 @@ type Props = {
    */
   nextAt?: (value: number, direction: 1 | -1) => number;
   decimals?: number;
+  /** Makes the number itself a button — the weight opens its plates. */
+  onPressValue?: () => void;
   onChange: (next: number) => void;
 };
 
@@ -32,6 +34,7 @@ export function BigStepper({
   bigStep,
   nextAt,
   decimals = 0,
+  onPressValue,
   onChange,
 }: Props) {
   /*
@@ -65,12 +68,17 @@ export function BigStepper({
 
   return (
     <View style={styles.wrap}>
-      <View style={styles.readout}>
+      <Pressable
+        style={styles.readout}
+        disabled={!onPressValue}
+        onPress={onPressValue}
+        hitSlop={4}
+      >
         <Text style={styles.value}>
           {decimals ? value.toFixed(decimals) : value}
         </Text>
         <Text style={styles.unit}>{unit}</Text>
-      </View>
+      </Pressable>
       <View style={styles.buttons}>
         {amounts.map((amount, i) => {
           /*

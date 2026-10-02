@@ -413,6 +413,9 @@ export default function PreviewScreen() {
           index={index}
           total={total}
           tint={colors.accent}
+          // The first shows the plates row; the second is under the bar's own
+          // weight, where there is nothing to load and the row must not appear.
+          barbell={track === 'weight_reps'}
           set={{
             id: `preview-${i}`,
             workout_id: 'w',
