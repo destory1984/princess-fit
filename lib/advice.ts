@@ -362,7 +362,51 @@ export async function requestAdvice(
  * call fails, times out, comes back empty, or says a number that is not in
  * `facts`. Every caller has rules to fall back on, so a throw is never shown.
  */
-export async function askModel(prompt: string, facts: string, signal?: AbortSignal) {
+export async function askModel(
+  prompt: string,
+  facts: string,
+  signal?: AbortSignal,
+  kind = 'advice'
+) {
+  const text = (await transport(kind, prompt, signal)).trim();
+  if (!text) throw new Error('빈 응답');
+  // A reply that invented numbers invented the advice with them. The rules
+  // have something true to say about the same facts, so use that instead
+  // of passing on a target nobody can stand behind.
+  //
+  // Checked here, on the phone, whichever way the reply came: straight from
+  // Ollama, or through the relay from Ollama or the ChatGPT CLI. A check that
+  // lived with one of them would not cover the others.
+  if (!staysInTheFacts(text, facts)) throw new Error('사실 밖의 숫자');
+  return text;
+}
+
+/**
+ * How a prompt reaches a model. `kind` says what was asked (advice, body) and
+ * is only for telling the lines apart in the relay's log.
+ */
+export type ModelTransport = (kind: string, prompt: string, signal?: AbortSignal) => Promise<string>;
+
+/*
+  Set once at start-up by the app (`app/_layout.tsx`) to go through the relay.
+  It is a setting rather than an import because the relay needs the database
+  client, and this file is tested with node and nothing else — importing the
+  client here would end that.
+*/
+let transport: ModelTransport = askDirect;
+
+export function setModelTransport(next: ModelTransport) {
+  transport = next;
+}
+
+/**
+ * Straight to an Ollama server this device can reach.
+ *
+ * What every request used before the relay, and still the way when the relay's
+ * worker is not running: on the PC itself the model is one hop away and there
+ * is nothing to gain by asking the database to carry the question.
+ */
+export async function askDirect(_kind: string, prompt: string, signal?: AbortSignal) {
   const provider = configuredProvider();
   // AbortSignal.any/timeout are not on every runtime this ships to.
   const controller = new AbortController();
@@ -387,13 +431,7 @@ export async function askModel(prompt: string, facts: string, signal?: AbortSign
     });
     if (!res.ok) throw new Error(`${res.status}`);
     const body = (await res.json()) as { response?: string };
-    const text = body.response?.trim();
-    if (!text) throw new Error('빈 응답');
-    // A reply that invented numbers invented the advice with them. The rules
-    // have something true to say about the same facts, so use that instead
-    // of passing on a target nobody can stand behind.
-    if (!staysInTheFacts(text, facts)) throw new Error('사실 밖의 숫자');
-    return text;
+    return body.response ?? '';
   } finally {
     clearTimeout(timer);
     signal?.removeEventListener('abort', onAbort);

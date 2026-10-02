@@ -86,3 +86,16 @@ const raw = await askRelay(supabaseRelayStore(supabase), kind, prompt, { signal 
 - 일꾼이 살아 있는지 폰이 미리 알 길이 없다. 꺼져 있으면 매번 45초를 기다린다.
   일꾼이 1분마다 「살아 있음」 줄을 적고 폰이 그것을 먼저 보게 하면 기다림이 없어진다.
   기다림이 실제로 거슬리면 짓는다.
+
+## 앱에 이음 (2026-10-03)
+
+위 「앱 쪽에 남은 한 군데」와 「아직 안 한 것」의 둘째를 지었다. 적힌 것과 달라진 점:
+
+- `askModel`이 중계를 직접 부르지 않는다. `lib/advice.ts`는 node만으로 시험하므로 DB
+  클라이언트를 들이지 않고, 길을 `setModelTransport`로 끼운다(`app/_layout.tsx`).
+- **일꾼이 살아 있는지 먼저 본다.** 일꾼이 1분마다 `relay_heartbeat`에 시각을 적는다.
+  2분 넘게 끊겼으면 폰은 줄을 넣지 않고 곧장 Ollama로 간다. `relay.sql`을 다시 돌려야
+  이 표가 생긴다.
+- 그래서 `warmUpAdvice`와 `EXPO_PUBLIC_ADVICE_URL`·`EXPO_PUBLIC_ADVICE_MODEL`은 **지우지
+  않았다.** 일꾼이 꺼져 있을 때의 길이 그것을 쓴다. 중계가 자리 잡으면 지운다.
+- `kind`는 `'advice'`와 `'body'` 둘이다.

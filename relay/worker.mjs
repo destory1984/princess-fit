@@ -15,6 +15,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createClient } from '@supabase/supabase-js';
+import { HEARTBEAT_EVERY_MS } from '../lib/relay.ts';
 import { cleanAnswer, codexPrompt, isStale, logEntry, logFileName, providersFor, shortError } from '../lib/relayWorker.ts';
 
 const env = process.env;
@@ -209,15 +210,33 @@ async function closeOrphans() {
   if (data?.length) event('끊긴 줄을 닫음', `${data.length}건`);
 }
 
+// 「살아 있음」. 폰은 이것이 2분 넘게 끊기면 묻지 않는다(lib/relay.ts). 줄을 처리하는
+// 동안에도 적히도록 일하는 고리와 따로 돈다. 못 적어도 일꾼은 죽지 않는다 — 그동안
+// 폰이 규칙의 답을 쓸 뿐이다.
+let beatFailures = 0;
+async function beat() {
+  const { error } = await db.from('relay_heartbeat').upsert({ id: 1, beat_at: new Date().toISOString() });
+  if (!error) {
+    beatFailures = 0;
+    return;
+  }
+  beatFailures++;
+  if (beatFailures <= 3 || beatFailures % 30 === 0) event('살아 있음을 못 적음', error.message);
+}
+
 let running = true;
+let beating = null;
 process.on('SIGINT', () => {
   running = false;
+  if (beating) clearInterval(beating);
   event('멈춤 요청');
 });
 
 async function main() {
   event('일꾼 시작', `ollama=${config.ollamaEnabled ? config.ollamaModel : '끔'} codex=${config.codexScope}`);
   await closeOrphans();
+  await beat();
+  beating = setInterval(() => void beat(), HEARTBEAT_EVERY_MS);
   if (config.ollamaEnabled) askOllama('.').catch((err) => event('Ollama 예열 실패', shortError(err)));
 
   let quietErrors = 0;

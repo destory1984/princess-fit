@@ -5,11 +5,30 @@ import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { NotificationRouter } from "@/components/NotificationRouter";
+import { askDirect, setModelTransport } from "@/lib/advice";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { GirlProvider } from "@/lib/girl";
 import { listRoutines } from "@/lib/db";
 import { getOnboardedAt, markOnboarded } from "@/lib/prefs";
+import { askRelay, relayThenDirect, supabaseRelayStore } from "@/lib/relay";
+import { supabase } from "@/lib/supabase";
 import { colors } from "@/lib/theme";
+
+/*
+  Every question to a model goes through the relay from here on: a row in
+  Supabase, answered by the worker on the PC (docs/relay.md). Set at module
+  load, before any screen can ask.
+
+  While the worker is not running — and on a database where relay.sql has not
+  been run at all — nothing changes: the question goes straight to Ollama as
+  it always did, without waiting.
+*/
+setModelTransport(
+  relayThenDirect(
+    (kind, prompt, signal) => askRelay(supabaseRelayStore(supabase), kind, prompt, { signal }),
+    askDirect,
+  ),
+);
 
 function RootNavigator() {
   const { session, loading } = useAuth();

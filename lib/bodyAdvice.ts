@@ -122,7 +122,7 @@ export async function requestBodyAdvice(
   // Nothing recorded is nothing to read; the rules say how to start.
   if (!useModel || logs.length === 0) return { text: bodyRuleAdvice(logs, today, girl), source: 'rules' };
   try {
-    const text = await askModel(buildBodyPrompt(logs, today, girl), describeBody(logs, today), signal);
+    const text = await askModel(buildBodyPrompt(logs, today, girl), describeBody(logs, today), signal, 'body');
     return { text, source: 'model' };
   } catch {
     return { text: bodyRuleAdvice(logs, today, girl), source: 'rules' };

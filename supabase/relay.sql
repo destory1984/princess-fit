@@ -49,6 +49,21 @@ drop policy if exists "admins read model requests" on model_requests;
 create policy "admins read model requests" on model_requests
   for select using (is_admin());
 
+-- 일꾼이 살아 있다는 표시. 줄은 하나뿐이고 일꾼이 1분마다 시각을 고쳐 적는다.
+-- 폰은 이것을 먼저 보고, 2분 넘게 끊겼으면 묻지 않고 바로 규칙의 답을 쓴다
+-- (lib/relay.ts의 relayAlive). PC가 꺼져 있는 동안 매번 45초를 기다리지 않게 한다.
+create table if not exists relay_heartbeat (
+  id int primary key default 1 check (id = 1),
+  beat_at timestamptz not null default now()
+);
+
+alter table relay_heartbeat enable row level security;
+
+-- 로그인한 사람은 누구나 읽는다. 적힌 것은 시각 하나뿐이다. 쓰는 것은 일꾼(service-role)만.
+drop policy if exists "anyone signed in reads the heartbeat" on relay_heartbeat;
+create policy "anyone signed in reads the heartbeat" on relay_heartbeat
+  for select using (auth.uid() is not null);
+
 -- 하루 60건. 한 사람이 PC 하나를 붙잡지 못하게 한다. 운동 하나에 조언·신체·통계를
 -- 다 물어도 열 건이 안 되니, 넘는 것은 고장이거나 남용이다.
 create or replace function model_requests_daily_cap()
