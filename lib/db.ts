@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { carryTies } from './superset';
 import type { Exercise, Routine, RoutineExercise, Workout, WorkoutSet } from './types';
 import { localDayKey } from './format';
 import { abandonedEnd, isAbandoned } from './abandoned';
@@ -541,6 +542,22 @@ export async function startWorkout(
       // Starting from zero is worse, not broken.
     }
 
+    // Tied the way the last session of this routine ended (lib/superset.ts).
+    // A convenience like the weights above: any failure starts untied.
+    let ties: (string | null)[] = [];
+    try {
+      const board = await lastBoardOf(routineId, workout.id);
+      let n = 0;
+      ties = carryTies(
+        board,
+        routineExercises.map((re) => ({ exerciseId: re.exercise_id })),
+        // Only has to be unlike the other marks in this one session.
+        () => `${workout.id}:${(n += 1)}`
+      );
+    } catch {
+      // Untied is how every session started before there were ties.
+    }
+
     const sets = routineExercises.flatMap((re, position) => {
       // Timed and cardio movements are one entry, not a stack of sets.
       const weighted = trackTypes.get(re.exercise_id) === 'weight_reps';
@@ -562,6 +579,10 @@ export async function startWorkout(
         set_no: i + 1,
         reps: s.reps,
         weight_kg: s.weight,
+        // The column is named only when there is a tie to write. A database
+        // that has not been migrated has no such column and no ties either,
+        // and naming it there would fail the whole insert.
+        ...(ties[position] ? { superset: ties[position] } : {}),
       }));
     });
     if (sets.length) {
@@ -571,6 +592,32 @@ export async function startWorkout(
   }
 
   return workout;
+}
+
+/**
+ * The blocks of this routine's last finished session, in order, with their
+ * ties. Empty when there has not been one.
+ */
+async function lastBoardOf(routineId: string, notThis: string) {
+  const { data, error } = await supabase
+    .from('workouts')
+    .select('id')
+    .eq('routine_id', routineId)
+    .not('ended_at', 'is', null)
+    .neq('id', notThis)
+    .order('started_at', { ascending: false })
+    .limit(1);
+  if (error) throw error;
+  const last = (data as { id: string }[] | null)?.[0];
+  if (!last) return [];
+
+  const blocks = new Map<number, { exerciseId: string; superset: string | null }>();
+  for (const s of await listWorkoutSets(last.id)) {
+    if (!blocks.has(s.position)) {
+      blocks.set(s.position, { exerciseId: s.exercise_id, superset: s.superset ?? null });
+    }
+  }
+  return [...blocks.entries()].sort((a, b) => a[0] - b[0]).map(([, block]) => block);
 }
 
 /**
@@ -725,6 +772,9 @@ export async function repeatWorkout(sourceId: string) {
     reps: s.reps,
     duration_sec: s.duration_sec,
     distance_km: s.distance_km,
+    // 「그대로 다시」 includes what was done in turn. Named only where there is
+    // one, for the same reason as in startWorkout.
+    ...(s.superset ? { superset: `${workout.id}:${s.superset}` } : {}),
   }));
   if (rows.length) {
     const { error: setsError } = await supabase.from('workout_sets').insert(rows);

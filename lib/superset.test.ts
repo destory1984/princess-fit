@@ -1,6 +1,15 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { canLink, link, mates, movesWith, nextTurn, unlink, type Block } from './superset.ts';
+import {
+  canLink,
+  carryTies,
+  link,
+  mates,
+  movesWith,
+  nextTurn,
+  unlink,
+  type Block,
+} from './superset.ts';
 
 const b = (blockId: string, superset: string | null, left: number): Block => ({
   blockId,
@@ -121,4 +130,78 @@ test('bringing one forward brings its group', () => {
   const board = [b('0', null, 3), b('1', 's', 3), b('2', 's', 3)];
   assert.deepEqual(movesWith(board, '2'), ['1', '2']);
   assert.deepEqual(movesWith(board, '0'), ['0']);
+});
+
+const marks = () => {
+  let n = 0;
+  return () => `m${(n += 1)}`;
+};
+
+test('a routine starts tied the way its last session ended', () => {
+  const last = [
+    { exerciseId: 'bench', superset: 's' },
+    { exerciseId: 'row', superset: 's' },
+    { exerciseId: 'curl', superset: null },
+  ];
+  const today = [{ exerciseId: 'bench' }, { exerciseId: 'row' }, { exerciseId: 'curl' }];
+  assert.deepEqual(carryTies(last, today, marks()), ['m1', 'm1', null]);
+});
+
+test('nothing tied last time, nothing tied today', () => {
+  const last = [
+    { exerciseId: 'bench', superset: null },
+    { exerciseId: 'row', superset: null },
+  ];
+  assert.deepEqual(carryTies(last, [{ exerciseId: 'bench' }, { exerciseId: 'row' }], marks()), [
+    null,
+    null,
+  ]);
+});
+
+test('a tie is dropped when the routine no longer has them together', () => {
+  const last = [
+    { exerciseId: 'bench', superset: 's' },
+    { exerciseId: 'row', superset: 's' },
+  ];
+  // Something was put between them, or the order was turned round.
+  assert.deepEqual(
+    carryTies(last, [{ exerciseId: 'bench' }, { exerciseId: 'squat' }, { exerciseId: 'row' }], marks()),
+    [null, null, null]
+  );
+  assert.deepEqual(carryTies(last, [{ exerciseId: 'row' }, { exerciseId: 'bench' }], marks()), [
+    null,
+    null,
+  ]);
+  assert.deepEqual(carryTies(last, [{ exerciseId: 'bench' }], marks()), [null]);
+});
+
+test('two groups come across as two, each under its own mark', () => {
+  const last = [
+    { exerciseId: 'a', superset: 'x' },
+    { exerciseId: 'b', superset: 'x' },
+    { exerciseId: 'c', superset: 'y' },
+    { exerciseId: 'd', superset: 'y' },
+  ];
+  const today = ['a', 'b', 'c', 'd'].map((exerciseId) => ({ exerciseId }));
+  assert.deepEqual(carryTies(last, today, marks()), ['m1', 'm1', 'm2', 'm2']);
+});
+
+test('a tie follows its movements to wherever they now stand', () => {
+  const last = [
+    { exerciseId: 'squat', superset: null },
+    { exerciseId: 'bench', superset: 's' },
+    { exerciseId: 'row', superset: 's' },
+  ];
+  const today = [{ exerciseId: 'bench' }, { exerciseId: 'row' }, { exerciseId: 'squat' }];
+  assert.deepEqual(carryTies(last, today, marks()), ['m1', 'm1', null]);
+});
+
+test('a movement on the board twice is tied once, where it was', () => {
+  const last = [
+    { exerciseId: 'bench', superset: 's' },
+    { exerciseId: 'row', superset: 's' },
+    { exerciseId: 'bench', superset: null },
+  ];
+  const today = [{ exerciseId: 'bench' }, { exerciseId: 'row' }, { exerciseId: 'bench' }];
+  assert.deepEqual(carryTies(last, today, marks()), ['m1', 'm1', null]);
 });

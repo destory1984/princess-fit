@@ -125,3 +125,52 @@ export function movesWith(blocks: Block[], blockId: string): string[] {
   const group = mates(blocks, blockId);
   return group.length ? group.map((b) => b.blockId) : [blockId];
 }
+
+/**
+ * The ties from last time, laid onto today's board.
+ *
+ * A routine does not store its supersets; the last session of it does, the
+ * same way it holds the weights. So a new session of that routine starts tied
+ * as the last one ended, and untying once is remembered just as tying once is.
+ *
+ * A group comes across only if today's board has the same movements standing
+ * together in the same order. If the routine has been edited so that they no
+ * longer do, the tie is dropped rather than bent to fit: tying two movements
+ * that were never done in turn is a guess about someone's training.
+ *
+ * `mark` makes the marks, so this stays a pure function. Returns one entry
+ * per block of `next`: its mark, or null.
+ */
+export function carryTies(
+  previous: { exerciseId: string; superset: string | null }[],
+  next: { exerciseId: string }[],
+  mark: () => string
+): (string | null)[] {
+  const out: (string | null)[] = next.map(() => null);
+
+  const asBlocks: Block[] = previous.map((b, i) => ({
+    blockId: String(i),
+    superset: b.superset,
+    left: 1,
+  }));
+  const seen = new Set<number>();
+  for (let i = 0; i < asBlocks.length; i += 1) {
+    if (seen.has(i)) continue;
+    const group = mates(asBlocks, String(i));
+    if (group.length === 0) continue;
+    const members = group.map((b) => Number(b.blockId));
+    for (const m of members) seen.add(m);
+
+    const wanted = members.map((m) => previous[m].exerciseId);
+    for (let at = 0; at + wanted.length <= next.length; at += 1) {
+      const fits = wanted.every(
+        (exerciseId, k) => next[at + k].exerciseId === exerciseId && out[at + k] === null
+      );
+      if (!fits) continue;
+      const fresh = mark();
+      for (let k = 0; k < wanted.length; k += 1) out[at + k] = fresh;
+      break;
+    }
+  }
+  return out;
+}
