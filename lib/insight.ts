@@ -1,3 +1,4 @@
+import type { Stage } from './companion.ts';
 import { localDayKey } from './format.ts';
 import { bestWeeklyCoverage, streakOf, type WorkoutFact } from './gamification.ts';
 import { voiceOf } from './voices.ts';
@@ -38,9 +39,19 @@ function within(workouts: WorkoutFact[], days: number, today: Date) {
   return workouts.filter((w) => new Date(w.started_at).getTime() >= since);
 }
 
-export function insightsFor(workouts: WorkoutFact[], today = new Date(), girl?: string): Insight[] {
+export function insightsFor(
+  workouts: WorkoutFact[],
+  today = new Date(),
+  girl?: string,
+  stage: Stage = 'new'
+): Insight[] {
   if (workouts.length < MIN_WORKOUTS) return [];
-  const say = voiceOf(girl).insight;
+  // The words follow the stage for a girl whose speech does (Yuki). Not
+  // knowing the stage reads as the first one: stiffer than it should be is a
+  // smaller mistake than familiar too soon.
+  const voice = voiceOf(girl);
+  const eased = stage === 'comfortable' || stage === 'old';
+  const say = (eased && voice.insightEased) || voice.insight;
   const said = (id: string, tone: Tone, [title, detail]: [string, string]): Insight => ({ id, tone, title, detail });
 
   const found: Insight[] = [];
@@ -101,7 +112,12 @@ export function insightsFor(workouts: WorkoutFact[], today = new Date(), girl?: 
 }
 
 /** The one thing worth saying first, when there is only room for one. */
-export function headline(workouts: WorkoutFact[], today = new Date(), girl?: string): Insight | null {
-  const all = insightsFor(workouts, today, girl);
+export function headline(
+  workouts: WorkoutFact[],
+  today = new Date(),
+  girl?: string,
+  stage: Stage = 'new'
+): Insight | null {
+  const all = insightsFor(workouts, today, girl, stage);
   return all.find((i) => i.tone === 'watch') ?? all[0] ?? null;
 }

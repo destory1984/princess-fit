@@ -97,3 +97,43 @@ test('nothing is said about the month before there has been a month', () => {
   for (const id of ['sparse', 'neglected', 'cardio']) assert.ok(!found.includes(id), id);
   assert.ok(ids(insightsFor([...newcomer, LONG_AGO], TODAY)).includes('sparse'));
 });
+
+// 유키 starts in 합쇼체 and eases into 해요체 once the two are comfortable
+// (lib/voices.ts). The stats screen was the one place she never did.
+const STIFF = /습니다|십시오/;
+const yukiSays = (stage?: 'new' | 'familiar' | 'comfortable' | 'old') => {
+  const history = [LONG_AGO, ...Array.from({ length: 6 }, (_, i) => on(i * 4))];
+  const found = insightsFor(history, TODAY, 'seora', stage);
+  assert.ok(found.length > 0, 'the history should give her something to say');
+  return found.map((i) => `${i.title} ${i.detail}`).join(' ');
+};
+
+test('yuki is formal on the stats screen until the two are comfortable', () => {
+  assert.match(yukiSays('new'), STIFF);
+  assert.match(yukiSays('familiar'), STIFF);
+  // Not knowing the stage is not a licence to be familiar.
+  assert.match(yukiSays(undefined), STIFF);
+});
+
+test('once comfortable she eases there too', () => {
+  assert.doesNotMatch(yukiSays('comfortable'), STIFF);
+  assert.doesNotMatch(yukiSays('old'), STIFF);
+});
+
+test('easing changes how she says it, not what she finds', () => {
+  const history = [LONG_AGO, ...Array.from({ length: 6 }, (_, i) => on(i * 4))];
+  assert.deepEqual(
+    ids(insightsFor(history, TODAY, 'seora', 'new')),
+    ids(insightsFor(history, TODAY, 'seora', 'old'))
+  );
+});
+
+test('the others speak the same at every stage', () => {
+  const history = [LONG_AGO, ...Array.from({ length: 6 }, (_, i) => on(i * 4))];
+  for (const girl of ['geumhwa', 'dohwa']) {
+    assert.deepEqual(
+      insightsFor(history, TODAY, girl, 'new'),
+      insightsFor(history, TODAY, girl, 'old')
+    );
+  }
+});

@@ -132,6 +132,13 @@ export type Voice = {
     cardio: (minutes: number) => [string, string];
     sparse: (days: number) => [string, string];
   };
+  /**
+   * The same findings once the two of you are comfortable, for a girl whose
+   * way of speaking changes with the stage. Only Yuki has one: she thaws from
+   * 합쇼체 into 해요체, and until 2026-10-03 the stats screen was the one place
+   * she never did. The others speak the same at every stage and leave it out.
+   */
+  insightEased?: Voice['insight'];
 };
 
 const rina: Voice = {
@@ -567,6 +574,19 @@ const yuki: Voice = {
     lopsided: (g, pct) => [`${g}에 절반 넘게 몰려 있습니다`, `최근 30일 운동의 ${pct}%가 ${g}입니다. 치우쳤습니다.`],
     cardio: (m) => ['유산소가 부족합니다', m === 0 ? '한 달 동안 0분입니다. 운동 끝에 10분 걸으십시오.' : `한 달 동안 ${m}분입니다. 끝에 10분씩 더하십시오.`],
     sparse: (d) => ['한 달에 여덟 번이 안 됩니다', `최근 30일 중 ${d}일입니다. 주 2회는 지키십시오.`],
+  },
+  // Softer in the ending, not in what is asked. She still names the gap first.
+  insightEased: {
+    streak: (n) => [`${n}일 연속이에요`, '좋아요. 쉬는 날이 와도 다음 날은 빠지지 마세요.'],
+    moreOften: (more, month, before) => [`지난달보다 ${more}번 더 오셨어요`, `최근 30일 ${month}회 · 그 전 30일 ${before}회.`],
+    balanced: (n) => ['한 주에 온몸을 고루 쓰셨어요', `한 주 안에 ${n}개 부위. 빈 데가 없어요.`],
+    neglected: (named, rest) => [
+      rest > 0 ? `${named} 외 ${rest}개 부위를 한 달째 안 하셨어요` : `${withParticle(named, '은는')} 한 달째 안 하셨어요`,
+      '다음 운동에 꼭 하나 넣으세요.',
+    ],
+    lopsided: (g, pct) => [`${g}에 절반 넘게 몰려 있어요`, `최근 30일 운동의 ${pct}%가 ${g}예요. 치우쳤어요.`],
+    cardio: (m) => ['유산소가 부족해요', m === 0 ? '한 달 동안 0분이에요. 운동 끝에 10분 걸으세요.' : `한 달 동안 ${m}분이에요. 끝에 10분씩 더하세요.`],
+    sparse: (d) => ['한 달에 여덟 번이 안 돼요', `최근 30일 중 ${d}일이에요. 주 2회는 지키세요.`],
   },
   gift: {
     fresh: (d) => `${d}. …감사합니다. 소중히 쓰겠습니다.`,

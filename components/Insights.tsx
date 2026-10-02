@@ -6,6 +6,8 @@ import type { WorkoutFact } from '@/lib/gamification';
 import type { Goal } from '@/lib/onboarding';
 import { rankByGoal, watchingWord } from '@/lib/plan';
 import { getGoal } from '@/lib/prefs';
+import type { Stage } from '@/lib/companion';
+import { getBond } from '@/lib/db';
 import { colors, paper, radius, spacing } from '@/lib/theme';
 import { useGirl } from '@/lib/girl';
 
@@ -38,7 +40,20 @@ export function Insights({ workouts, limit = 3 }: Props) {
     };
   }, []);
 
-  const all = insightsFor(workouts, undefined, girl.id);
+  // How close the two of them are, because one of the girls speaks by it.
+  // Until it answers she uses the first stage's words.
+  const [stage, setStage] = useState<Stage>('new');
+  useEffect(() => {
+    let alive = true;
+    getBond(girl.id)
+      .then((bond) => alive && setStage(bond.stage))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [girl.id]);
+
+  const all = insightsFor(workouts, undefined, girl.id, stage);
   const watching = watchingWord(goal);
 
   if (all.length === 0) {
