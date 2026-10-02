@@ -35,9 +35,20 @@ done
 
 # What every order needs said, before the order's own words.
 {
-  echo "이 폴더의 참고 그림을 먼저 보십시오: $(for r in "$@"; do printf '%s ' "$(basename "$r")"; done)"
+  # An order with no references has to say so. Told to look at pictures that
+  # were not there, Codex answered that the folder was empty and drew nothing
+  # — seven orders came back that way on 2026-10-03.
+  if [ "$#" -gt 0 ]; then
+    echo "이 폴더의 참고 그림을 먼저 보십시오: $(for r in "$@"; do printf '%s ' "$(basename "$r")"; done)"
+  else
+    echo "참고 그림은 없습니다. 아래 글만 보고 새로 그리십시오."
+  fi
   echo "할 일: 이미지 생성 기능으로 그림 한 장을 만들어 이 폴더에 $out 라는 이름으로 저장하십시오."
-  echo "코드(PIL, 캔버스 등)로 그리지 말고 반드시 이미지 생성 기능을 쓰십시오. 참고 그림을 입력으로 함께 넣으십시오."
+  if [ "$#" -gt 0 ]; then
+    echo "코드(PIL, 캔버스 등)로 그리지 말고 반드시 이미지 생성 기능을 쓰십시오. 참고 그림을 입력으로 함께 넣으십시오."
+  else
+    echo "코드(PIL, 캔버스 등)로 그리지 말고 반드시 이미지 생성 기능을 쓰십시오."
+  fi
   echo "끝나면 저장한 파일의 경로와 가로세로 크기만 한 줄로 답하십시오. 다른 파일은 만들거나 고치지 마십시오."
   echo
   echo "그릴 그림:"
