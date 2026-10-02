@@ -1036,6 +1036,9 @@ export async function listBackup(): Promise<BackupWorkout[]> {
       duration_sec: row.duration_sec,
       distance_km: row.distance_km,
       done: row.done,
+      ...(row.warmup ? { warmup: true } : {}),
+      ...(row.side ? { side: row.side } : {}),
+      ...(typeof row.rir === 'number' ? { rir: row.rir } : {}),
     });
   }
 
@@ -1117,9 +1120,21 @@ export async function restoreBackup(workouts: BackupWorkout[]) {
           duration_sec: set.duration_sec,
           distance_km: set.distance_km,
           done: set.done,
+          warmup: set.warmup === true,
+          side: set.side ?? null,
+          rir: set.rir ?? null,
         });
       }
       position += 1;
+    }
+    // A column is named only if some set in this session uses it, and then on
+    // every row: rows sent together share their columns, and a row that left
+    // `warmup` out would arrive as null where the column does not allow it.
+    // A file with none of them names none — so it still restores into a
+    // database from before those columns existed.
+    for (const key of ['warmup', 'side', 'rir'] as const) {
+      const used = rows.some((row) => row[key] !== null && row[key] !== false);
+      if (!used) for (const row of rows) delete row[key];
     }
     if (rows.length) {
       const { error: setsError } = await supabase.from('workout_sets').insert(rows);

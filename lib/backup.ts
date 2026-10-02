@@ -25,6 +25,21 @@ export type BackupSet = {
   duration_sec: number;
   distance_km: number;
   done: boolean;
+  /*
+    What a set was, beyond its numbers. Written only when it says something —
+    a warm-up, a side, an answer about effort — so a file from before these
+    were kept reads the same as one whose sets simply had none.
+
+    Without them a restore turned every warm-up into working volume, and a
+    year of left-and-right into one undivided column. The JSON keeps them; the
+    CSV is a sheet for a person and stays as it was.
+
+    Which movements were done in turn (`superset`) is not kept. It is how a
+    session was arranged, not what was lifted.
+  */
+  warmup?: boolean;
+  side?: 'L' | 'R';
+  rir?: number;
 };
 
 export type BackupWorkout = {

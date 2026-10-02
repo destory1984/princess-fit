@@ -247,3 +247,56 @@ test('importing the same CSV twice adds nothing the second time', () => {
     0
   );
 });
+
+const sets = (list: BackupWorkout['exercises'][number]['sets']) =>
+  workout({ exercises: [{ name: '덤벨 컬', muscle_group: '팔', sets: list }] });
+const base = { weight_kg: 20, reps: 8, duration_sec: 0, distance_km: 0, done: true };
+
+// A warm-up restored as a working set is counted in every sum it was kept out
+// of. This is the round trip that keeps it a warm-up.
+test('a warm-up, a side and an effort answer survive the round trip', () => {
+  const original = [
+    sets([
+      { set_no: 1, ...base, weight_kg: 10, warmup: true },
+      { set_no: 2, ...base, side: 'L', rir: 2 },
+      { set_no: 3, ...base, side: 'R', rir: 0 },
+    ]),
+  ];
+  assert.deepEqual(read(toJson(original)).workouts, original);
+});
+
+test('a set that was none of those is written without them', () => {
+  const [w] = JSON.parse(toJson([sets([{ set_no: 1, ...base }])])).workouts;
+  assert.deepEqual(Object.keys(w.exercises[0].sets[0]).sort(), [
+    'distance_km', 'done', 'duration_sec', 'reps', 'set_no', 'weight_kg',
+  ]);
+});
+
+test('a file from before these were kept reads as it always did', () => {
+  const old = JSON.stringify({
+    workouts: [{ started_at: '2026-01-05T10:00:00', exercises: [{ name: '덤벨 컬', sets: [{ set_no: 1, ...base }] }] }],
+  });
+  const [w] = read(old).workouts;
+  assert.deepEqual(w.exercises[0].sets[0], { set_no: 1, ...base });
+});
+
+test('anything that is not exactly a mark is left off, not guessed', () => {
+  const odd = JSON.stringify({
+    workouts: [
+      {
+        started_at: '2026-01-05T10:00:00',
+        exercises: [
+          {
+            name: '덤벨 컬',
+            sets: [{ set_no: 1, ...base, warmup: 'yes', side: 'left', rir: 2.5 }, { set_no: 2, ...base, rir: -1 }],
+          },
+        ],
+      },
+    ],
+  });
+  for (const set of read(odd).workouts[0].exercises[0].sets) {
+    assert.equal('warmup' in set, false);
+    assert.equal('side' in set, false);
+    assert.equal('rir' in set, false);
+  }
+});

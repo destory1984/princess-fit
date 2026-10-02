@@ -54,6 +54,7 @@ function readSet(raw: unknown, index: number): BackupSet | null {
   // Every number must be readable and not negative. A missing one is not a
   // zero: 0kg × 0회 is a claim about what happened, and a wrong one.
   if (reps < 0 || weight < 0 || seconds < 0 || distance < 0) return null;
+  const rir = num(r.rir, -1);
   return {
     set_no: num(r.set_no, index + 1),
     weight_kg: weight,
@@ -61,6 +62,12 @@ function readSet(raw: unknown, index: number): BackupSet | null {
     duration_sec: seconds,
     distance_km: distance,
     done: r.done === true,
+    // Each kept only when it is exactly what the export writes. Anything else
+    // is left out rather than guessed: a set wrongly marked a warm-up drops
+    // out of every sum, which is a worse mistake than not marking one.
+    ...(r.warmup === true ? { warmup: true } : {}),
+    ...(r.side === 'L' || r.side === 'R' ? { side: r.side } : {}),
+    ...(Number.isInteger(rir) && rir >= 0 && rir <= 10 ? { rir } : {}),
   };
 }
 
