@@ -253,6 +253,7 @@ export default function RoutineScreen() {
         onSelect={(e) => add(e.id)}
         onClose={() => setPicking(false)}
         onSeeded={load}
+        creatable
       />
     </View>
   );

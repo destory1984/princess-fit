@@ -5,6 +5,8 @@ import { colors, muscleColor, radius, spacing } from '@/lib/theme';
 
 type Props = {
   visible: boolean;
+  /** What was already typed where this was opened from — a search that found nothing. */
+  initialName?: string;
   onCreate: (name: string, group: string, gear: string, track: TrackType) => Promise<void>;
   onClose: () => void;
 };
@@ -20,8 +22,8 @@ type Props = {
  * Every row is asked as a question now. 「가슴 등 어깨」 on its own is a set of
  * words; 「어느 부위인가요?」 above them is a form.
  */
-export function NewExerciseSheet({ visible, onCreate, onClose }: Props) {
-  const [name, setName] = useState('');
+export function NewExerciseSheet({ visible, initialName = '', onCreate, onClose }: Props) {
+  const [name, setName] = useState(initialName);
   const [group, setGroup] = useState<string>(MUSCLE_GROUPS[0]);
   const [gear, setGear] = useState<string>(EQUIPMENT[0]);
   const [track, setTrack] = useState<TrackType>('weight_reps');

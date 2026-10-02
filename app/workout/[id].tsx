@@ -1652,6 +1652,7 @@ export default function WorkoutScreen() {
         onSelect={(e) => addExercise(e)}
         onClose={() => setPicking(false)}
         onSeeded={load}
+        creatable
       />
 
       <SwapSheet

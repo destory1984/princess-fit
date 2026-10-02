@@ -12,10 +12,11 @@ import {
 } from 'react-native';
 import { ExerciseThumb } from '@/components/ExerciseThumb';
 import { MuscleTag } from '@/components/MuscleTag';
+import { NewExerciseSheet } from '@/components/NewExerciseSheet';
 import { seedDefaultExercises } from '@/lib/catalog';
 import { explain } from '@/lib/dbError';
 import { notify } from '@/lib/confirm';
-import { setExerciseFavourite } from '@/lib/db';
+import { createExercise, setExerciseFavourite } from '@/lib/db';
 import { sortByUsage, SORT_NAME, type Sort, type UsageMap } from '@/lib/exerciseUsage';
 import { matchesAny } from '@/lib/hangul';
 import { aliasesOf } from '@/lib/aliases';
@@ -33,6 +34,13 @@ type Props = {
   onSelect: (exercise: Exercise) => void;
   onClose: () => void;
   onSeeded?: () => void;
+  /**
+   * Offer to make the movement that was searched for and not found.
+   *
+   * Off where the picker only chooses among what has a history (the stats
+   * screen): a movement made there would have nothing to show.
+   */
+  creatable?: boolean;
 };
 
 export function ExercisePicker({
@@ -42,7 +50,9 @@ export function ExercisePicker({
   onSelect,
   onClose,
   onSeeded,
+  creatable = false,
 }: Props) {
+  const [creating, setCreating] = useState(false);
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<Sort>('all');
   // Stars changed in this sheet, before the parent reloads its exercises.
@@ -138,6 +148,27 @@ export function ExercisePicker({
     onClose();
   }
 
+  /**
+   * Make it and put it on the board in one go.
+   *
+   * Someone who typed a name, found nothing and made it wants to do it now —
+   * sending them back to search for what they just wrote is a second errand.
+   * The parent is told to reload first, so the new movement has a name on the
+   * card it is about to appear on.
+   */
+  async function create(name: string, muscle: string, equipment: string, track: Exercise['track_type']) {
+    try {
+      const made = await createExercise(name, muscle, equipment, track);
+      onSeeded?.();
+      close();
+      onSelect(made);
+    } catch (e: any) {
+      notify('추가 실패', explain(e));
+      // Thrown on, so the sheet keeps what was typed.
+      throw e;
+    }
+  }
+
   async function seed() {
     setSeeding(true);
     try {
@@ -222,6 +253,17 @@ export function ExercisePicker({
                 keyboardShouldPersistTaps="handled"
                 initialNumToRender={8}
                 windowSize={5}
+                // Under whatever was found, not only when nothing was: 「한발
+                // 데드」 finds 데드리프트, which is a result and still not the
+                // movement that was typed.
+                ListFooterComponent={
+                  creatable && query.trim() !== '' ? (
+                    <Pressable style={styles.create} onPress={() => setCreating(true)}>
+                      <Ionicons name="add-circle-outline" size={18} color={colors.accent} />
+                      <Text style={styles.createText}>「{query.trim()}」 직접 만들기</Text>
+                    </Pressable>
+                  ) : null
+                }
                 ListEmptyComponent={
                   <Text style={styles.emptyText}>
                     {sort === 'all'
@@ -265,6 +307,15 @@ export function ExercisePicker({
           )}
         </Pressable>
       </Pressable>
+      {/* Mounted only while open, so it starts from what is in the search box now. */}
+      {creating && (
+        <NewExerciseSheet
+          visible
+          initialName={query.trim()}
+          onCreate={create}
+          onClose={() => setCreating(false)}
+        />
+      )}
     </Modal>
   );
 }
@@ -291,6 +342,14 @@ function Chip({
 }
 
 const styles = StyleSheet.create({
+  create: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.md,
+  },
+  createText: { color: colors.accent, fontWeight: '700', fontSize: 14 },
   backdrop: { flex: 1, backgroundColor: '#000B', justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: colors.surface,
