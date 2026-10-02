@@ -14,7 +14,7 @@
    npm install
    ```
 
-4. 앱에 로그인한 뒤 **설정 탭 → 기본 종목 불러오기 · 정보 새로 고치기**를 한 번 누른다. 67개 종목이 기구·근육·하는 법과 함께 채워진다.
+4. 앱에 로그인한 뒤 **설정 탭 → 기본 종목 불러오기 · 정보 새로 고치기**를 한 번 누른다. 159개 종목이 기구·근육·하는 법과 함께 채워진다.
 
 > 스키마를 다시 실행한 뒤에는 이 버튼을 한 번 더 눌러야 새로 생긴 칸(기구, 근육, 기록 방식, 하는 법 등)이 기존 종목에도 채워진다. 이미 채워진 값은 건드리지 않는다.
 
@@ -47,7 +47,7 @@ EXPO_PUBLIC_ADVICE_MODEL=qwen3.8:27b
 - `app/` — Expo Router 화면. `(tabs)/`가 하단 탭(오늘·루틴·기록·통계·설정), `workout/[id]`가 운동 세션, `summary/[id]`가 운동 결과 카드, `routine/[id]`가 루틴 편집, `exercise/[id]`가 종목 상세, `achievements`가 수련부.
 - `lib/db.ts` — Supabase 쿼리 전부. 화면은 이 함수들만 호출한다.
 - 순수 로직은 DB 없이 시험할 수 있게 떼어 두었다 — `lib/stats.ts`(집계), `lib/gamification.ts`(경험치·품계·업적), `lib/character.ts`(능력치·유형), `lib/advice.ts`(프롬프트·규칙 조언), `lib/exerciseCopy.ts`(소개·조언 문구), `lib/format.ts`.
-- `lib/catalog.ts` + `lib/howTo.ts` — 기본 종목 67개와 하는 법.
+- `lib/catalog.ts` + `lib/howTo.ts` — 기본 종목 159개와 하는 법.
 - `components/` — `BodyMap`(해부도), `OrnateFrame`(금테 장식), `TrainingHall`(수련관), `SetCard`/`BigStepper`(세트 입력) 등.
 - `supabase/schema.sql` — 테이블과 RLS 정책. 모든 행은 `auth.uid()` 기준으로 본인 것만 보인다.
 - `patches/` — `react-native-body-highlighter`가 SVG에 붙이던 잘못된 prop을 걷어낸다. `npm install` 시 자동 적용된다.

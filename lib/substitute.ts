@@ -21,6 +21,7 @@
  * the truth.
  */
 
+import { DEFAULT_EXERCISES } from './exerciseCatalog.ts';
 import { withParticle } from './korean.ts';
 import { slugsOf, type WorkedExercise } from './muscles.ts';
 import type { Place } from './onboarding.ts';
@@ -54,6 +55,13 @@ export function overlapOf(a: WorkedExercise, b: WorkedExercise) {
   let shared = 0;
   for (const slug of left) if (right.has(slug)) shared += 1;
   return shared / (left.size + right.size - shared);
+}
+
+const STAPLE_ORDER = new Map(DEFAULT_EXERCISES.map((e, i) => [e.name, i]));
+
+/** Where a movement stands in the catalogue; after all of it when not in it. */
+function staple(name: string) {
+  return STAPLE_ORDER.get(name) ?? STAPLE_ORDER.size;
 }
 
 /**
@@ -91,6 +99,12 @@ export function substitutesFor<T extends Substitutable>(
         // Among equally close movements, the one on other equipment first:
         // that is the one that answers the question actually being asked.
         Number(a.sameGear) - Number(b.sameGear) ||
+        // Then the staple before the variation. The catalogue is written
+        // staples first, and once it held three kinds of push-up, spelling
+        // decided which one stood in for the bench press: 「니 푸시업」 sorts
+        // ahead of 「덤벨 프레스」. A movement the person wrote themselves has
+        // no place in that order and comes after, by name.
+        staple(a.exercise.name) - staple(b.exercise.name) ||
         a.exercise.name.localeCompare(b.exercise.name)
     )
     .slice(0, limit);
