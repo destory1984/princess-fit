@@ -113,6 +113,15 @@ export type WorkoutSet = {
   distance_km: number;
   done: boolean;
   /**
+   * The mark shared by blocks done in turn (`lib/superset.ts`).
+   *
+   * On the set rather than on a table of its own, like `position`: a block is
+   * its sets, and has nowhere else to keep anything. Missing on rows made
+   * before the column and on accounts that have not run migrate.sql, which
+   * reads as "not tied to anything".
+   */
+  superset?: string | null;
+  /**
    * When this set was marked done.
    *
    * The session's real end, because pressing 운동 종료 is something people do

@@ -67,6 +67,9 @@ alter table workout_sets add column if not exists side text;
 
 alter table workout_sets add column if not exists done_at timestamptz;
 
+-- Blocks done in turn share a mark (lib/superset.ts). Null is "on its own".
+alter table workout_sets add column if not exists superset text;
+
 alter table workouts add column if not exists advice        text;
 alter table workouts add column if not exists advice_source text;
 alter table workouts add column if not exists advice_speaker text;

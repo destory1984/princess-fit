@@ -44,6 +44,13 @@ export type SetPatch = {
   warmup?: boolean;
   side?: 'L' | 'R' | null;
   done_at?: string | null;
+  /**
+   * Only sent with a new set joining a block that is already tied. Tying and
+   * untying do not go through the queue: on an account without the column
+   * that write fails every time, and a write that can never land would hold
+   * up every set queued behind it.
+   */
+  superset?: string | null;
 };
 
 /** The columns a set needs before it can exist at all. */

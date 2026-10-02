@@ -23,7 +23,8 @@ import {
   cancelStrayRestAlarms,
   scheduleRestAlarm,
 } from "@/lib/notify";
-import { celebrateFeedback, successFeedback } from "@/lib/feedback";
+import { celebrateFeedback, successFeedback, tapFeedback } from "@/lib/feedback";
+import { withParticle } from "@/lib/korean";
 
 import { formatDate, formatDuration, formatKm, localDayKey } from "@/lib/format";
 import { arrivedLines, type ArrivedGift } from "@/lib/friends";
@@ -50,6 +51,7 @@ import {
   listRoutineExercises,
   addRoutineExercise,
   reorderWorkoutBlocks,
+  markSuperset,
   updateWorkout,
   clampRest,
   DEFAULT_REST_SEC,
@@ -101,6 +103,7 @@ import {
 } from "@/lib/outboxStore";
 import { remainingSeconds, remainingWord } from "@/lib/duration";
 import { bringForward, canBringForward } from "@/lib/order";
+import { canLink, link, mates, movesWith, nextTurn, unlink } from "@/lib/superset";
 import { balanceOf, balanceWord, isUnilateral, nextSide, type Side } from "@/lib/sides";
 import { warmupFor, warmupWord, workingWeightOf } from "@/lib/warmup";
 import { colors, muscleColor, radius, spacing } from "@/lib/theme";
@@ -385,6 +388,7 @@ export default function WorkoutScreen() {
         position,
         exerciseId: list[0].exercise_id,
         exercise: byId.get(list[0].exercise_id) ?? null,
+        superset: list[0].superset ?? null,
         sets: [...list].sort((a, b) => a.set_no - b.set_no),
       }))
       // Ordered by the stored position rather than by whatever order the rows
@@ -399,6 +403,14 @@ export default function WorkoutScreen() {
   const boardOrder = grouped.map((g) => ({
     blockId: g.blockId,
     done: g.sets.every((x) => x.done),
+  }));
+
+  // The same board as the superset rules read it: who is tied to whom, and
+  // how much each still has to do.
+  const tied = grouped.map((g) => ({
+    blockId: g.blockId,
+    superset: g.superset,
+    left: g.sets.filter((x) => !x.done).length,
   }));
 
   const worked = useMemo(
@@ -485,10 +497,24 @@ export default function WorkoutScreen() {
       const forExercise = finished?.exercise_id ?? null;
       const seconds = byId.get(forExercise ?? "")?.rest_sec ?? DEFAULT_REST_SEC;
       setRestFor(forExercise);
+      /*
+        In a superset the set just done hands over to the next movement, and
+        the rest waits for the round to end (`lib/superset.ts`). `tied` is the
+        board from before this press, so the set is counted off here.
+
+        The card is opened by hand only inside a group. Alone, `opened` is
+        left as the person set it, as it always was.
+      */
+      const block = finished ? String(finished.position) : "";
+      const turn = nextTurn(
+        tied.map((b) => (b.blockId === block ? { ...b, left: Math.max(0, b.left - 1) } : b)),
+        block,
+      );
+      if (mates(tied, block).length > 0) setOpened(turn.open);
       // persist runs from a press, never during render; the rule cannot tell
       // the difference for a function declared in the component body.
       // eslint-disable-next-line react-hooks/purity
-      restUntil(Date.now() + seconds * 1000);
+      restUntil(turn.rest ? Date.now() + seconds * 1000 : null);
       successFeedback();
 
       // Carry the weight onto the sets still waiting, so a set laid out in
@@ -564,8 +590,16 @@ export default function WorkoutScreen() {
       side,
       warmup,
     } as WorkoutSet;
+    // A set added to a tied block is tied too, or the block would be half in
+    // the superset: the mark is read off the sets already there.
+    const mark = sets.find((x) => x.position === position)?.superset ?? null;
+    if (mark) set.superset = mark;
     setSets((prev) => [...prev, set]);
-    await saveSet(row.id, { weight_kg: weight, reps, side, warmup }, row);
+    await saveSet(
+      row.id,
+      { weight_kg: weight, reps, side, warmup, ...(mark ? { superset: mark } : {}) },
+      row,
+    );
     return set;
   }
 
@@ -578,7 +612,11 @@ export default function WorkoutScreen() {
    */
   async function bringForwardTo(blockId: string) {
     if (!id) return;
-    const next = bringForward(boardOrder, blockId);
+    // A tied block brings its group. Last member first, so that each lands in
+    // front of the one before and the group arrives in its own order.
+    const next = [...movesWith(tied, blockId)]
+      .reverse()
+      .reduce((board, member) => bringForward(board, member), boardOrder);
     if (next === boardOrder) return;
 
     const setsOf = new Map(grouped.map((g) => [g.blockId, g.sets.map((x) => x.id)]));
@@ -596,6 +634,35 @@ export default function WorkoutScreen() {
     } catch (e: any) {
       notify("순서 바꾸기 실패", explain(e));
       load();
+    }
+  }
+
+  /**
+   * Tie this block to the one below, or set its whole group free.
+   *
+   * Straight to the server rather than through the queue. A database that has
+   * not been migrated refuses this write every time, and queued it would sit
+   * in front of every set saved after it. So it either lands or says why.
+   */
+  async function tieBlocks(marks: Map<string, string | null>) {
+    if (marks.size === 0) return;
+    const before = sets;
+    const markOf = (x: WorkoutSet) => marks.get(String(x.position));
+    setSets((prev) =>
+      prev.map((x) => (markOf(x) === undefined ? x : { ...x, superset: markOf(x) })),
+    );
+    try {
+      const byMark = new Map<string | null, string[]>();
+      for (const x of before) {
+        const mark = markOf(x);
+        if (mark === undefined) continue;
+        byMark.set(mark, [...(byMark.get(mark) ?? []), x.id]);
+      }
+      await Promise.all([...byMark].map(([mark, ids]) => markSuperset(ids, mark)));
+      tapFeedback();
+    } catch (e: any) {
+      setSets(before);
+      notify("묶지 못했어요", explain(e));
     }
   }
 
@@ -1060,6 +1127,12 @@ export default function WorkoutScreen() {
           const isRecord =
             track === "weight_reps" && previousBest > 0 && top > previousBest;
           const expanded = blockId === expandedId;
+          // Who this alternates with, and who stands below it to be tied to.
+          const group = mates(tied, blockId);
+          const others = group
+            .filter((b) => b.blockId !== blockId)
+            .map((b) => grouped.find((g) => g.blockId === b.blockId)?.exercise?.name ?? "종목");
+          const below = grouped[grouped.findIndex((g) => g.blockId === blockId) + 1];
 
           return (
             <View key={blockId} style={styles.card}>
@@ -1072,6 +1145,16 @@ export default function WorkoutScreen() {
                   <Text style={styles.cardTitle}>
                     {exercise?.name ?? "삭제된 종목"}
                   </Text>
+                  {/*
+                    Said on every card of the group, open or shut, because the
+                    board is about to jump between them and a jump with no
+                    reason given reads as the app losing its place.
+                  */}
+                  {others.length > 0 && (
+                    <Text style={styles.tied}>
+                      슈퍼세트 · {withParticle(others.join(", "), "와과")} 번갈아
+                    </Text>
+                  )}
                   {expanded && !!exercise?.muscle_detail && (
                     <Text style={styles.cardSub}>
                       {exercise.muscle_detail} · {exercise.equipment}
@@ -1430,6 +1513,39 @@ export default function WorkoutScreen() {
                             color={colors.accent}
                           />
                           <Text style={styles.addSetText}>세트 추가</Text>
+                        </Pressable>
+                      )}
+
+                      {/*
+                        Tying is offered on the card it starts from, in the
+                        words of what will happen, and only when it can: both
+                        movements need sets left, and three is the most.
+
+                        Untying frees the whole group. Taking one out of three
+                        is a second question nobody has asked yet.
+                      */}
+                      {!done && group.length > 0 && (
+                        <Pressable
+                          style={styles.tie}
+                          onPress={() =>
+                            tieBlocks(new Map(unlink(tied, blockId).map((b) => [b, null])))
+                          }
+                        >
+                          <Ionicons name="close-circle-outline" size={15} color={colors.textDim} />
+                          <Text style={styles.tieText}>슈퍼세트 풀기</Text>
+                        </Pressable>
+                      )}
+                      {!done && below && canLink(tied, blockId) && (
+                        <Pressable
+                          style={styles.tie}
+                          onPress={() => tieBlocks(link(tied, blockId, Crypto.randomUUID()))}
+                        >
+                          <Ionicons name="link-outline" size={15} color={colors.textDim} />
+                          <Text style={styles.tieText}>
+                            {group.length > 0
+                              ? `아래 ${below.exercise?.name ?? "종목"}도 묶기`
+                              : `아래 ${withParticle(below.exercise?.name ?? "종목", "와과")} 번갈아 하기 (슈퍼세트)`}
+                          </Text>
                         </Pressable>
                       )}
                     </>
@@ -1813,6 +1929,16 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   addSetText: { color: colors.accent, fontWeight: "600" },
+  tie: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  tieText: { color: colors.textDim, fontSize: 13, fontWeight: "600" },
+  tied: { color: colors.accent, fontSize: 12, fontWeight: "700", marginTop: 2 },
   secondary: {
     borderColor: colors.border,
     borderWidth: 1,

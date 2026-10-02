@@ -1130,10 +1130,24 @@ export async function updateWorkoutSet(
       | 'warmup'
       | 'side'
       | 'done_at'
+      | 'superset'
     >
   >
 ) {
   const { error } = await supabase.from('workout_sets').update(patch).eq('id', id);
+  if (error) throw error;
+}
+
+/**
+ * Tie these sets into a superset, or set them free with null.
+ *
+ * One statement, so the blocks are never half tied. Throws on an account
+ * whose database has no `superset` column yet — the caller says so rather
+ * than queueing a write that cannot land.
+ */
+export async function markSuperset(setIds: string[], superset: string | null) {
+  if (setIds.length === 0) return;
+  const { error } = await supabase.from('workout_sets').update({ superset }).in('id', setIds);
   if (error) throw error;
 }
 
