@@ -539,6 +539,8 @@ Devin MCP는 `https://mcp.devin.ai/mcp`. 키(실제로는 `cog_`가 아니었다
 - `supabase/social.sql` — 친구·선물·함께 운동 보너스. 여러 번 돌려도 됨
 - `supabase/relay.sql` — 모델 중계의 줄과 「살아 있음」 표시. `admin.sql` 뒤에. 여러 번 돌려도 됨
 - `supabase/account.sql` — 제 계정 지우기. 여러 번 돌려도 됨
+- `supabase/metrics.sql` — 시험 2주 뒤에 볼 숫자 넷(둘째 주 잔존, 첫날 선물, 손수 만든 종목,
+  조언 중계). 읽기만 한다. **한 번도 돌려 본 적이 없다** — 처음 돌릴 때 오류가 나면 고친다
 - `supabase/templates/` — Supabase 대시보드에 붙여 넣을 메일 틀
 - `docs/competitors.md` — 다른 운동 앱과 견준 것, 다음에 지을 것
 - `docs/companion.md` — 아이가 기억하고 자라는 것. 2026-09-23 지음 (`lib/companion.ts`, `app/memories.tsx`)
