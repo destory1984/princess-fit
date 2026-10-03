@@ -1,6 +1,6 @@
 # Turns a drawing ordered from ChatGPT into a sprite the app can use.
 #
-#   python -X utf8 scripts/sprite-clean.py <drawing.png> [more.png ...] [--height 64] [--colours 16]
+#   python -X utf8 scripts/sprite-clean.py <drawing.png> [more.png ...] [--height 88] [--colours 16]
 #
 # Writes <name>.sprite.png (one image pixel per dot) and <name>.sprite@6x.png (to look
 # at) next to each drawing. See docs/art-order.md, "받은 뒤".
@@ -16,6 +16,14 @@
 #      the average, which is what keeps an outline black instead of brown.
 #   3. The colours are cut to --colours. The palette is chosen from the solid dots only.
 #
+# The default height is the drawing's own: a standing figure comes back about 88 of its
+# own dots tall (one is 15 or 16 px, measured by native_dot below), and the body was
+# settled at 88 so that nothing is shrunk. Asked for fewer, say 64, the drawing's dots are
+# smaller than the dots asked for: an outline one dot thick is three quarters of a new dot, and
+# where it falls across two of them it is the commonest colour in neither. The first
+# version voted it away there and the limbs came out with gaps. Now a dark line takes any
+# dot it covers half its own thickness of, which it always does in at least one of the two.
+#
 # Adapted from Space Oddity's build/sprite-clean.py, which did the first and third for
 # sheets already at their final size.
 import argparse
@@ -24,6 +32,32 @@ from pathlib import Path
 
 import numpy as np
 from PIL import Image
+
+
+# Anything darker than this is outline. The outlines ordered are near-black navy (about
+# 25); the darkest thing that is not outline, the shadow in an eye, is about 90.
+OUTLINE_BELOW = 60
+
+
+def native_dot(pixels: np.ndarray, solid: np.ndarray) -> float:
+    """How many real pixels one of the drawing's own dots is, from where its edges fall."""
+    flat = np.where(solid[..., None], pixels[..., :3].astype(int), -255)
+    gaps: list[int] = []
+    for axis in (0, 1):
+        step = np.abs(np.diff(flat, axis=axis)).sum(axis=2) > 60
+        strength = step.sum(axis=1 - axis)
+        floor = strength.max() * 0.08
+        edges = [i for i in range(3, len(strength) - 3)
+                 if strength[i] > floor and strength[i] == strength[i - 3:i + 4].max()]
+        gaps += np.diff(edges).tolist()
+    # Edges inside a dot (soft shading) give short gaps, flat stretches give long ones.
+    # The dot is the commonest gap; its neighbours are averaged in because the blocks
+    # are not all the same size.
+    common = Counter(g for g in gaps if g >= 4).most_common(1)
+    if not common:
+        return 0.0
+    near = [g for g in gaps if abs(g - common[0][0]) <= 2]
+    return float(np.mean(near))
 
 
 def clean(path: Path, height: int, colours: int) -> None:
@@ -38,6 +72,15 @@ def clean(path: Path, height: int, colours: int) -> None:
     cell = (bottom - top) / height
     width = max(1, round((right - left) / cell))
 
+    # A line `native` px thick lying across two dots covers at least native / 2 of one of
+    # them. Asking a shade less than that share is what guarantees it one dot, and almost
+    # never gives it both. When the dots asked for are no bigger than the drawing's own,
+    # the line fills its dot and the ordinary vote already keeps it.
+    native = native_dot(pixels, solid)
+    line_share = min(0.5, native / cell / 2 * 0.97) if native else 0.5
+    luma = pixels[..., :3].astype(int) @ np.array([299, 587, 114]) // 1000
+    outline = solid & (luma < OUTLINE_BELOW)
+
     dots = np.zeros((height, width, 3), dtype=np.uint8)
     there = np.zeros((height, width), dtype=bool)
     for y in range(height):
@@ -46,9 +89,14 @@ def clean(path: Path, height: int, colours: int) -> None:
             x0, x1 = int(left + x * cell), max(int(left + (x + 1) * cell), int(left + x * cell) + 1)
             block = pixels[y0:y1, x0:x1]
             mask = solid[y0:y1, x0:x1]
-            # A dot exists when most of its block does. Half is the honest line: less
-            # thins the outline away, more fattens the figure by a dot all round.
-            if mask.mean() < 0.5:
+            dark = outline[y0:y1, x0:x1]
+            # The outline first, counted against the whole block: at the figure's edge
+            # the rest of the block is empty, and the line must not go with it.
+            if dark.mean() >= line_share:
+                mask = dark
+            # Otherwise a dot exists when most of its block does. Half is the honest
+            # line: less thins the figure away, more fattens it by a dot all round.
+            elif mask.mean() < 0.5:
                 continue
             there[y, x] = True
             # Coarsened before counting, so two near-identical shades are one vote.
@@ -69,13 +117,15 @@ def clean(path: Path, height: int, colours: int) -> None:
     sprite.save(target, optimize=True)
     sprite.resize((width * 6, height * 6), Image.NEAREST).save(path.with_suffix('.sprite@6x.png'))
     used = len({tuple(c) for c in out[there][:, :3].tolist()})
-    print(f'{target}: {width} x {height} dots, {used} colours, one dot was {cell:.1f} px')
+    print(f'{target}: {width} x {height} dots, {used} colours, one dot is {cell:.1f} px; '
+          f"the drawing's own dot is {native:.1f} px, so it stood {(bottom - top) / native:.0f} tall"
+          if native else f'{target}: {width} x {height} dots, {used} colours, one dot is {cell:.1f} px')
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('drawings', nargs='+', type=Path)
-    parser.add_argument('--height', type=int, default=64)
+    parser.add_argument('--height', type=int, default=88)
     parser.add_argument('--colours', type=int, default=16)
     args = parser.parse_args()
     for drawing in args.drawings:
