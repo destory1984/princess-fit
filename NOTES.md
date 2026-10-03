@@ -386,10 +386,12 @@
    먼저 챙기도록 고쳤다(끊긴 점 42 → 2). 그래도 64점에서는 눈 흰자가 거의 사라져서
    **몸 높이를 88점으로 바꿨다** — 받은 그림을 줄이지 않고 제 격자대로 쓴다(`docs/art-order.md`).
    몸틀은 `base-clean.sprite.png`(40 × 88점)다. 폰 너비 375에서는 3배(120 × 264)까지 들어간다.
-   **세 아이도 그 몸틀 위에 받았다**(`rina2` · `yuki2` · `pia2`, 나란히 본 것은 `girls-sheet.png`).
-   몸이 몸틀과 2픽셀 안으로 겹친다. 남은 것: 피아는 포니테일이 그림 위에 닿고 반창고와 입이
-   뭉쳐 다시 받을 만하다. 세 아이를 앱에 넣는 일과 머리·옷을 따로 겹치는 그림으로 떼는 일은
-   아직 안 했다.
+   **세 아이도 그 몸틀 위에 받았다**(`rina2` · `yuki2` · `pia4`, 나란히 본 것은 `girls-sheet.png`).
+   몸이 몸틀과 서너 픽셀 안으로 겹친다. **몸 · 옷 · 머리 세 장으로도 뗐다**
+   (`scripts/sprite-layers.py`, 나란히 본 것은 `layers-sheet.png`). 따로 주문하지 않고 몸틀과
+   견줘서 뗀다. 다시 겹치면 원본과 한 점도 다르지 않다. 얼굴 안의 머리카락 몇 점은 몸에
+   남는다(머리가 늘 얹히니 보이지 않는다). **앱에 넣는 일은 아직 안 했다** — 그림은 이 PC의
+   `art-orders/`에만 있고 `assets/`에는 없다.
    아래는 고르기 전의 기록이다. Space Oddity의 아이와 같은 몸통으로 하기로 정했고(`docs/art-order.md`),
    그 그림을 참고로 받은 후보가 셋이다: `art-orders/2026-10-03/base-ref1` → `base-ref3`.
    나란히 본 것은 `ref-sheet.png`(맨 왼쪽이 참고 그림). 셋 다 64점에서 눈이 남는다.
@@ -591,6 +593,8 @@ Devin MCP는 `https://mcp.devin.ai/mcp`. 키(실제로는 `cog_`가 아니었다
   이제는 `docs/direction.md`가 대신한다. 링크는 본인 계정으로만 열린다
 - `public/admin.html` — 관리자 페이지. `/admin.html`로 열림
 - `scripts/garment-fit.mjs` — 그림 자리 재기
+- `scripts/art-order.sh` · `sprite-clean.py` · `sprite-layers.py` — 그림 주문, 받은 그림을 도트로
+  줄이기, 아이 한 장을 몸 · 옷 · 머리로 떼기 (`docs/art-order.md`)
 - `scripts/make-rug.mjs` — 양탄자 그리기 (`--tilt`로 각도)
 
 ### 시험
