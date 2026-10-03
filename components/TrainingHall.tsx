@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, PixelRatio, StyleSheet, Text, View } from "react-native";
 import { OrnateFrame } from "@/components/OrnateFrame";
 import { PaperDoll } from "@/components/PaperDoll";
 import { STAT_META, STAT_ORDER, type Stats } from "@/lib/character";
+import { wholeDots } from "@/lib/dots";
 import { artFor } from "@/lib/furnitureArt";
+import { DOLL_ASPECT, DOLL_DOTS_TALL } from "@/lib/outfitArt";
 import { roomContents } from "@/lib/room";
 import type { Girl } from "@/lib/girl";
 import { colors, paper } from "@/lib/theme";
@@ -58,12 +60,13 @@ export function TrainingHall({
   // the layout gives us and set every size from that, in real pixels.
   const [width, setWidth] = useState(0);
   const scene = { width, height: (width * 2) / 3 };
-  const girlHeight = scene.height * 0.7;
+  // About 0.7 of the room, nudged to where each of her dots is a whole number of pixels.
+  const girlHeight = wholeDots(scene.height * 0.7, DOLL_DOTS_TALL, PixelRatio.get());
 
   const inRoom = roomContents(furniture).filter((piece) => !piece.paintedIn);
   const drawn = inRoom.filter((piece) => artFor(piece.id));
   const unpictured = inRoom.filter((piece) => !artFor(piece.id));
-  const girlWidth = girlHeight * (1086 / 1448);
+  const girlWidth = girlHeight * DOLL_ASPECT;
 
   return (
     <View style={styles.frameOuter}>
@@ -112,8 +115,9 @@ export function TrainingHall({
               style={{
                 position: "absolute",
                 bottom: scene.height * 0.02,
-                // Centred at 42% across: at the foot of the bed.
-                left: scene.width * 0.42 - girlWidth / 2,
+                // Centred at 34% across: at the foot of the bed, and far enough
+                // left that her head, which is half her height now, clears the plaque.
+                left: scene.width * 0.34 - girlWidth / 2,
                 width: girlWidth,
                 height: girlHeight,
               }}
@@ -201,7 +205,7 @@ const styles = StyleSheet.create({
     pointerEvents: "none",
     position: "absolute",
     bottom: "3%",
-    left: "34%",
+    left: "26%",
     width: "16%",
     height: 10,
     borderRadius: 999,

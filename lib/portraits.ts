@@ -1,18 +1,18 @@
-/**
- * Roster portraits, kept out of `./advisors` so that file stays importable
- * without a bundler. These are full-body illustrations in their own outfits —
- * they are for the picker, not for the paper doll, whose base is drawn in gym
- * clothes so garments can be layered over it.
- */
-const PORTRAITS: Record<string, number> = {
-  geumhwa: require('../assets/advisors/geumhwa.png'),
-  dana: require('../assets/advisors/dana.png'),
-  munhui: require('../assets/advisors/munhui.png'),
-  dohwa: require('../assets/advisors/dohwa.png'),
-  cheongram: require('../assets/advisors/cheongram.png'),
-  seora: require('../assets/advisors/seora.png'),
-};
+import { girlArt } from './outfitArt';
+import { DEFAULT_ADVISOR_ID } from './advisors';
 
+/**
+ * Roster portraits for the picker: the same dot girl the doll draws, whole.
+ *
+ * These used to be separate full-body illustrations in the girls' own outfits
+ * (`assets/advisors/`). The picker showing one girl and the room another is the
+ * mismatch the dots were ordered to end, so both now come from one drawing. The
+ * three not-yet-playable girls have only the old illustrations and no entry.
+ */
 export function portraitOf(advisorId: string): number {
-  return PORTRAITS[advisorId] ?? PORTRAITS.geumhwa;
+  try {
+    return girlArt(advisorId).whole;
+  } catch {
+    return girlArt(DEFAULT_ADVISOR_ID).whole;
+  }
 }

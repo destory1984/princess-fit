@@ -149,3 +149,18 @@ python -X utf8 scripts/sprite-layers.py art-orders/2026-10-03/base-clean/base-cl
   그늘 몇 점이 몸에 남는다. 머리는 늘 얹혀 있으니 겹친 그림은 같다. 머리 없이 몸만 보일 일이
   생기면 그때 손으로 지운다.
 - 몸의 속옷은 몸틀의 회색 그대로다. 운동복보다 좁은 옷을 입히면 그 회색이 보인다.
+
+## 앱에 넣기 (2026-10-03, `scripts/girl-assets.py`)
+
+```bash
+python -X utf8 scripts/girl-assets.py art-orders/2026-10-03/base-clean/base-clean.sprite.png   art-orders/2026-10-03/rina2/rina2.sprite.png geumhwa
+```
+
+떼어 낸 세 장과 온몸 한 장을 64 × 96점 캔버스에 얹고(몸틀의 왼쪽 위가 12,8) 8배로 키워
+`assets/girls/<아이 id>_{whole,body,clothes,hair}.png`로 쓴다. 아이 id는 리나 `geumhwa`, 유키
+`seora`, 피아 `dohwa`. 캔버스에 안 들어가면 멈춘다.
+
+**옷을 도트로 주문할 때는 이 캔버스에 맞춘다.** 몸틀(`base-clean.png`)을 참고 그림으로 넣어
+같은 자리에 선 몸 위에 옷을 입혀 받고, `sprite-clean.py --like`로 줄인 뒤 몸틀과 견줘 옷만
+떼면 된다(`sprite-layers.py`가 머리 없는 그림에서도 옷을 떼는지는 아직 안 해 봤다).
+그다음 `lib/outfitArt.ts`의 `DOT_GARMENT_ART`에 넣으면 아이가 입는다.

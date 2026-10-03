@@ -9,33 +9,72 @@
  */
 type Art = { source: number; aspect: number };
 
-export const BASE_GIRL: Art = {
-  source: require('../assets/outfit/base.png'),
-  aspect: 1086 / 1448,
-};
+/**
+ * A girl as the doll stacks her: body, then her gym clothes, then her hair. A present
+ * goes on between the body and the hair — 리나's plait hangs down in front of her top,
+ * so hair has to be the last thing drawn. `whole` is the three already put together,
+ * for the round portraits.
+ *
+ * The three layers are cut from one drawing by `scripts/sprite-layers.py` and laid on
+ * a canvas every girl shares by `scripts/girl-assets.py` (64 x 96 dots, the body in the
+ * same place on each). That shared canvas is what lets one wardrobe fit all three.
+ */
+export type GirlArt = { whole: number; body: number; clothes: number; hair: number; aspect: number };
+
+/** Width over height of the canvas every girl, and every garment drawn for her, is on. */
+export const DOLL_ASPECT = 64 / 96;
+/** How many dots tall that canvas is, for sizing her to whole pixels per dot. */
+export const DOLL_DOTS_TALL = 96;
 
 /**
- * Each girl's gym-clothes base, keyed by advisor id.
+ * Each girl's art, keyed by advisor id.
  *
- * A girl is playable exactly when she has one of these: garments are drawn to
- * layer over this body, so a portrait alone can be shown in the roster but
- * never dressed. `advisors.ts` carries the matching `playable` flag — it stays
- * free of `require` so the tests can import it, which is why the two have to
- * be kept in step by hand.
+ * A girl is playable exactly when she has an entry here. `advisors.ts` carries the
+ * matching `playable` flag — it stays free of `require` so the tests can import it,
+ * which is why the two have to be kept in step by hand.
  */
-const BASE_ART: Record<string, Art> = {
-  geumhwa: BASE_GIRL,
-  // Drawn on the same canvas as 리나, which is what lets one wardrobe fit all
-  // three: a garment's placement is in fractions of this box, so a base of a
-  // different shape would wear every dress crooked.
-  seora: { source: require('../assets/outfit/base_seora.png'), aspect: 1086 / 1448 },
-  dohwa: { source: require('../assets/outfit/base_dohwa.png'), aspect: 1086 / 1448 },
+const GIRL_ART: Record<string, GirlArt> = {
+  geumhwa: {
+    whole: require('../assets/girls/geumhwa_whole.png'),
+    body: require('../assets/girls/geumhwa_body.png'),
+    clothes: require('../assets/girls/geumhwa_clothes.png'),
+    hair: require('../assets/girls/geumhwa_hair.png'),
+    aspect: DOLL_ASPECT,
+  },
+  seora: {
+    whole: require('../assets/girls/seora_whole.png'),
+    body: require('../assets/girls/seora_body.png'),
+    clothes: require('../assets/girls/seora_clothes.png'),
+    hair: require('../assets/girls/seora_hair.png'),
+    aspect: DOLL_ASPECT,
+  },
+  dohwa: {
+    whole: require('../assets/girls/dohwa_whole.png'),
+    body: require('../assets/girls/dohwa_body.png'),
+    clothes: require('../assets/girls/dohwa_clothes.png'),
+    hair: require('../assets/girls/dohwa_hair.png'),
+    aspect: DOLL_ASPECT,
+  },
 };
 
-export function baseArt(advisorId: string): Art {
-  const art = BASE_ART[advisorId];
-  if (!art) throw new Error(`no gym-clothes base for ${advisorId}`);
+export function girlArt(advisorId: string): GirlArt {
+  const art = GIRL_ART[advisorId];
+  if (!art) throw new Error(`no art for ${advisorId}`);
   return art;
+}
+
+/**
+ * Garments redrawn as dots on the girls' canvas, keyed by garment id. Empty for now.
+ *
+ * The garments below were drawn for the tall body the girls had before, and placed on
+ * it by measured fractions. On the dot body they would hang somewhere around the knees,
+ * so the doll does not draw them: a garment shows on her once it has an entry here.
+ * It still counts for charm and the shop still shows its picture.
+ */
+const DOT_GARMENT_ART: Record<string, number> = {};
+
+export function dotGarmentArt(garmentId: string): number | undefined {
+  return DOT_GARMENT_ART[garmentId];
 }
 
 const GARMENT_ART: Record<string, Art> = {

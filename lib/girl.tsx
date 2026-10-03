@@ -9,7 +9,7 @@ import {
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ADVISORS, DEFAULT_ADVISOR_ID, type Advisor } from './advisors';
-import { baseArt } from './outfitArt';
+import { girlArt, type GirlArt } from './outfitArt';
 import { recordPick } from './db';
 
 /**
@@ -31,16 +31,18 @@ import { recordPick } from './db';
 const KEY = 'refit.girl';
 
 export type Girl = Advisor & {
-  /** Her gym-clothes base, which every garment layers over. */
+  /** Her whole picture in gym clothes, for the round portraits. */
   base: number;
   aspect: number;
+  /** The same girl in the layers the doll stacks, so a present can go between them. */
+  art: GirlArt;
 };
 
 /** The girl by id, falling back to the first playable one for an unknown id. */
 export function girlOf(id: string): Girl {
   const advisor = ADVISORS.find((a) => a.id === id && a.playable) ?? ADVISORS[0];
-  const art = baseArt(advisor.id);
-  return { ...advisor, base: art.source, aspect: art.aspect };
+  const art = girlArt(advisor.id);
+  return { ...advisor, base: art.whole, aspect: art.aspect, art };
 }
 
 /** Everyone whose base has been drawn, and who can therefore be dressed. */
