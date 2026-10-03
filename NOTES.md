@@ -221,6 +221,10 @@
   몸인지만 정하고, 그 지도대로 받은 그림을 잘라 쓴다. 파일은 한 점이 10픽셀(640 × 960)이다.
   부드럽게 줄여 그리므로 **「정수배로만 키운다」는 규칙과 웹의 `pixelated`는 버렸다**
   (`lib/pixel.ts`, `lib/dots.ts`를 지었다가 지웠다).
+- **몸틀은 다리를 가늘게 다시 받은 `base-slim`이다 (2026-10-03).** 받은 그림을 그대로 써도
+  다리가 굵다는 말이 남았다. 윗몸이 옛 몸틀과 1 → 2픽셀 안으로 같아서, 세 아이는 다시 주문하지
+  않고 반바지 밑단 아래만 새 다리로 바꿨다(`scripts/girl-legs.py`) — 다시 받으면 얼굴이 바뀐다.
+  옷 열 벌도 그대로 맞는다. 앞으로의 주문은 `base-slim.png`를 참고 그림으로 넣는다.
 - **고르는 화면의 초상도 같은 도트 그림이다.** 전에는 제 옷을 입은 다른 그림이었다
   (`assets/advisors/`). 고르는 화면과 방의 아이가 달라 보이던 것이 없어졌다. 옛 그림 파일
   (`assets/advisors/*`, `assets/outfit/base*.png`)은 이제 아무도 부르지 않는다. 지우지는 않았다.
@@ -632,7 +636,7 @@ Devin MCP는 `https://mcp.devin.ai/mcp`. 키(실제로는 `cog_`가 아니었다
   이제는 `docs/direction.md`가 대신한다. 링크는 본인 계정으로만 열린다
 - `public/admin.html` — 관리자 페이지. `/admin.html`로 열림
 - `scripts/garment-fit.mjs` — 그림 자리 재기
-- `scripts/art-order.sh` · `sprite-clean.py` · `sprite-layers.py` · `girl-assets.py` · `garment-assets.py` — 그림 주문,
+- `scripts/art-order.sh` · `sprite-clean.py` · `sprite-layers.py` · `girl-legs.py` · `girl-assets.py` · `garment-assets.py` · `hires.py` — 그림 주문,
   받은 그림을 도트로 줄이기, 아이 한 장을 몸 · 옷 · 머리로 떼기, 앱의 캔버스에 얹어 `assets/girls/`에
   넣기, 몸틀이 입은 옷을 떼어 `assets/garments/`에 넣기 (`docs/art-order.md`)
 - `scripts/make-rug.mjs` — 양탄자 그리기 (`--tilt`로 각도)

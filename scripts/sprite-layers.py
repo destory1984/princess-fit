@@ -74,9 +74,13 @@ def layers(base_path: Path, girl_path: Path) -> None:
     base_small = np.array(Image.open(base_path).convert('RGBA'))
     girl = np.array(Image.open(girl_path).convert('RGBA'))
     gh, gw = girl.shape[:2]
-    if base_small.shape[0] > gh or base_small.shape[1] > gw:
+    # Two cuts of the same body can come out a dot apart in width (40 and 41): the last
+    # column is a fingertip's outline, half in one dot and half in the next. More than
+    # that and she was not cut with --like.
+    if base_small.shape[0] > gh + 2 or base_small.shape[1] > gw + 2:
         print(f'{girl_path}: smaller than the base; was it cut with --like?')
         return
+    base_small = base_small[:gh, :gw]
 
     dy, dx = place(base_small[..., 3] > 0, girl[..., 3] > 0)
     base = np.zeros_like(girl)

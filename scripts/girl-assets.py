@@ -37,9 +37,10 @@ base_path, girl_path, name = Path(sys.argv[1]), Path(sys.argv[2]), sys.argv[3]
 
 base = np.array(Image.open(base_path).convert('RGBA'))
 girl = np.array(Image.open(girl_path).convert('RGBA'))
-dy, dx = layers.place(base[..., 3] > 0, girl[..., 3] > 0)
-left, top = BASE_AT[0] - dx, BASE_AT[1] - dy
 gh, gw = girl.shape[:2]
+# The base may be a dot wider than she is; see sprite-layers.py.
+dy, dx = layers.place(base[:gh, :gw, 3] > 0, girl[..., 3] > 0)
+left, top = BASE_AT[0] - dx, BASE_AT[1] - dy
 if left < 0 or top < 0 or left + gw > CANVAS[0] or top + gh > CANVAS[1]:
     sys.exit(f'{girl_path}: does not fit the {CANVAS[0]} x {CANVAS[1]} canvas with the base at {BASE_AT}')
 
