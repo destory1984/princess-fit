@@ -64,14 +64,25 @@ export function girlArt(advisorId: string): GirlArt {
 }
 
 /**
- * Garments redrawn as dots on the girls' canvas, keyed by garment id. Empty for now.
+ * Garments redrawn as dots on the girls' canvas, keyed by garment id.
  *
- * The garments below were drawn for the tall body the girls had before, and placed on
- * it by measured fractions. On the dot body they would hang somewhere around the knees,
- * so the doll does not draw them: a garment shows on her once it has an entry here.
- * It still counts for charm and the shop still shows its picture.
+ * This is what the doll draws. `GARMENT_ART` below is the older art, drawn for the tall
+ * body the girls had before; on the dot body it would hang somewhere around the knees,
+ * so the doll never draws it, and a garment without an entry here simply does not show
+ * on her. The shop's shelves still use the older pictures.
  */
-const DOT_GARMENT_ART: Record<string, number> = {};
+const DOT_GARMENT_ART: Record<string, number> = {
+  ribbon: require('../assets/garments/ribbon.png'),
+  blouse: require('../assets/garments/blouse.png'),
+  gown: require('../assets/garments/gown.png'),
+  skirt_white: require('../assets/garments/skirt_white.png'),
+  skirt_orange: require('../assets/garments/skirt_orange.png'),
+  skirt_blue: require('../assets/garments/skirt_blue.png'),
+  trousers_orange: require('../assets/garments/trousers_orange.png'),
+  trousers_blue: require('../assets/garments/trousers_blue.png'),
+  necklace: require('../assets/garments/necklace.png'),
+  bouquet: require('../assets/garments/bouquet.png'),
+};
 
 export function dotGarmentArt(garmentId: string): number | undefined {
   return DOT_GARMENT_ART[garmentId];

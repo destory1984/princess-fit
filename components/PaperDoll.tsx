@@ -9,7 +9,7 @@ import {
   type ViewStyle,
 } from "react-native";
 import { DOLL_ASPECT, dotGarmentArt } from "@/lib/outfitArt";
-import { layersOf } from "@/lib/outfit";
+import { stackOf, type Garment } from "@/lib/outfit";
 import { crisp } from "@/lib/pixel";
 import { useGirl, type Girl } from '@/lib/girl';
 
@@ -32,7 +32,7 @@ type Props = {
 
 /**
  * The girl and everything she has on, stacked back to front: her body, what she
- * wears, her hair.
+ * wears, her hair, and over the hair what is tied in it or held (`stackOf`).
  *
  * Every layer is the same canvas (`DOLL_ASPECT`), so each one simply fills the box
  * and they line up — there is no per-garment placement any more. A garment is drawn
@@ -83,17 +83,21 @@ export function PaperDoll({ worn, style, idle, girl: visiting }: Props) {
     ],
   };
 
+  const stack = stackOf(worn);
+  const layer = (garment: Garment) => {
+    const source = dotGarmentArt(garment.id);
+    return source ? (
+      <Image key={garment.id} source={source} style={styles.layer} resizeMode="contain" />
+    ) : null;
+  };
+
   return (
     <Animated.View style={[styles.doll, style, idle ? drift : null]}>
       <Image source={girl.art.body} style={styles.layer} resizeMode="contain" />
       <Image source={girl.art.clothes} style={styles.layer} resizeMode="contain" />
-      {layersOf(worn).map((garment) => {
-        const source = dotGarmentArt(garment.id);
-        return source ? (
-          <Image key={garment.id} source={source} style={styles.layer} resizeMode="contain" />
-        ) : null;
-      })}
+      {stack.under.map(layer)}
       <Image source={girl.art.hair} style={styles.layer} resizeMode="contain" />
+      {stack.over.map(layer)}
     </Animated.View>
   );
 }

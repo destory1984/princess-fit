@@ -44,6 +44,13 @@ export const LAYER_ORDER: OutfitSlot[] = [
   'hand',
 ];
 
+/**
+ * What is drawn over her hair rather than under it. Everything else goes between her
+ * body and her hair, because 리나's plait hangs down in front of whatever she has on;
+ * but a ribbon tied under the hair is no ribbon, and what she holds is in front of all.
+ */
+export const OVER_HAIR: OutfitSlot[] = ['head', 'hand'];
+
 export type Fit = { x: number; y: number; w: number };
 
 /*
@@ -226,6 +233,15 @@ export function layersOf(worn: string[]): Garment[] {
 }
 
 /** Charm from what she has on, which is not the same as what she owns. */
+/** The worn garments in drawing order, split at her hair. */
+export function stackOf(worn: string[]): { under: Garment[]; over: Garment[] } {
+  const layers = layersOf(worn);
+  return {
+    under: layers.filter((g) => !OVER_HAIR.includes(g.slot)),
+    over: layers.filter((g) => OVER_HAIR.includes(g.slot)),
+  };
+}
+
 export function outfitCharm(worn: string[]) {
   return layersOf(worn).reduce((sum, g) => sum + g.charm, 0);
 }

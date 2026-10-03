@@ -160,7 +160,32 @@ python -X utf8 scripts/girl-assets.py art-orders/2026-10-03/base-clean/base-clea
 `assets/girls/<아이 id>_{whole,body,clothes,hair}.png`로 쓴다. 아이 id는 리나 `geumhwa`, 유키
 `seora`, 피아 `dohwa`. 캔버스에 안 들어가면 멈춘다.
 
-**옷을 도트로 주문할 때는 이 캔버스에 맞춘다.** 몸틀(`base-clean.png`)을 참고 그림으로 넣어
-같은 자리에 선 몸 위에 옷을 입혀 받고, `sprite-clean.py --like`로 줄인 뒤 몸틀과 견줘 옷만
-떼면 된다(`sprite-layers.py`가 머리 없는 그림에서도 옷을 떼는지는 아직 안 해 봤다).
-그다음 `lib/outfitArt.ts`의 `DOT_GARMENT_ART`에 넣으면 아이가 입는다.
+## 옷 열 벌 (2026-10-03, `scripts/garment-assets.py`)
+
+```bash
+python -X utf8 scripts/sprite-clean.py --like art-orders/2026-10-03/base-clean/base-clean.png   art-orders/2026-10-03/garments/gown/gown.png
+python -X utf8 scripts/garment-assets.py art-orders/2026-10-03/base-clean/base-clean.sprite.png   art-orders/2026-10-03/garments/gown/gown.sprite.png gown
+```
+
+몸틀이 그 옷 하나를 입은 그림을 받고(주문 글과 차례는 `garments/order.sh`), 몸틀과 견줘 옷만
+떼어 `assets/garments/<옷 id>.png`로 쓴다. 옆에 `<이름>.sprite.tried@5x.png`가 생긴다: 받은 그림,
+떼어 낸 옷, 세 아이에게 입힌 모습. 열 벌을 모두 입힌 것은 `garments/wardrobe-sheet.png`.
+`lib/outfitArt.ts`의 `DOT_GARMENT_ART`에 넣으면 아이가 입는다.
+
+- **옷만 따로 그리게 하지 않는다.** 몸이 자리를 잡아 주므로 어디에 걸리는지 잴 일이 없다.
+  열 장 모두 몸틀 외곽선의 72 → 96%를 그대로 지켰다.
+- **주문 글에 꼭 넣을 것**: 「머리카락을 그리지 않는다」, 「새 옷에 가려지지 않는 회색 옷은 그대로
+  둔다」, 「새로 그리는 것에는 회색과 살색을 쓰지 않는다」, 「흰 옷의 그림자는 옅은 하늘색으로」.
+  몸틀의 속옷이 회색이고 몸이 살색이라, 그 두 색은 옷인지 다시 그린 몸인지 가릴 수 없다.
+- **옷이 아닌 것으로 치는 것**: 살색 자리의 살색과 회색 자리의 회색(얼마나 다르든), 눈(받을
+  때마다 파랑이 다르다), 몸틀에도 있는 외곽선, 가장 큰 조각의 4분의 1이 안 되는 조각(목선의
+  잔 줄, 정강이의 밝은 점).
+- **흰 옷이 처음에 통째로 버려졌다.** 「몸 색에 가까우면 몸」이라 했더니 흰 블라우스가 눈 흰자에
+  가까웠다. 몸 색 전체가 아니라 살색만, 그것도 살색 가운데값에서 60 안쪽만 살로 친다.
+- **잘게 그린 것은 도트로 줄이면 사라진다.** 첫 목걸이는 한 점의 반 크기로 그려 와서 한 점도
+  남지 않았다. 「참고 그림의 픽셀과 똑같은 크기의 픽셀로, 더 잘게 쪼개지 않는다, 줄은 한 칸
+  굵기로, 외곽선 없이」로 다시 받았다(`necklace2`). 첫 꽃다발은 짙은 잎에 흰 꽃이 묻혀 「대부분이
+  흰색으로 보여야 한다, 잎을 어둡게 칠하지 않는다」로 다시 받았다(`bouquet2`).
+- **목걸이는 아직 약하다.** 노란 Y자 27점이고, 리나의 연두 옷과 피아의 주황 옷 위에서 거의 안
+  보인다.
+- 앞의 다섯 장은 12분, 뒤의 다섯 장은 9분쯤 걸렸다(다섯 장씩 한꺼번에).

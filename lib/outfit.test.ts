@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  stackOf,
   dressedFor,
   GARMENTS,
   garmentById,
@@ -72,4 +73,16 @@ test('at the gym she is in her gym clothes, with her hair left as it was', () =>
   assert.deepEqual(dressedFor(chosen, 'gym'), ['ribbon']);
   assert.deepEqual(dressedFor(chosen, 'home'), chosen);
   assert.deepEqual(dressedFor([], 'gym'), []);
+});
+
+test('a ribbon and a bouquet go over her hair, everything else under it', () => {
+  const { under, over } = stackOf(['ribbon', 'blouse', 'bouquet', 'skirt_white', 'necklace']);
+  assert.deepEqual(over.map((g) => g.id), ['ribbon', 'bouquet']);
+  assert.deepEqual(under.map((g) => g.id), ['skirt_white', 'blouse', 'necklace']);
+});
+
+test('the stack loses nothing and adds nothing', () => {
+  const worn = ['gown', 'skirt_blue', 'ribbon'];
+  const { under, over } = stackOf(worn);
+  assert.deepEqual([...under, ...over].map((g) => g.id).sort(), layersOf(worn).map((g) => g.id).sort());
 });
