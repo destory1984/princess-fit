@@ -10,16 +10,26 @@
 type Art = { source: number; aspect: number };
 
 /**
- * A girl as the doll stacks her: body, then her gym clothes, then her hair. A present
- * goes on between the body and the hair — 리나's plait hangs down in front of her top,
- * so hair has to be the last thing drawn. `whole` is the three already put together,
- * for the round portraits.
+ * A girl as the doll stacks her: body, then her own clothes in three pieces (bottom,
+ * feet, top), then her hair. A present goes on between her clothes and her hair —
+ * 리나's hair falls in front of whatever she has on, so hair has to come after. Her own
+ * top is a separate piece so that a blouse given to her can take its place: her jacket
+ * has sleeves, and they would show under anything sleeveless. `whole` is all of it
+ * already put together, for the round portraits.
  *
- * The three layers are cut from one drawing by `scripts/sprite-layers.py` and laid on
- * a canvas every girl shares by `scripts/girl-assets.py` (64 x 96 dots, the body in the
+ * The layers are cut from one drawing by `scripts/sprite-layers.py` and laid on a
+ * canvas every girl shares by `scripts/girl-assets.py` (64 x 96 dots, the body in the
  * same place on each). That shared canvas is what lets one wardrobe fit all three.
  */
-export type GirlArt = { whole: number; body: number; clothes: number; hair: number; aspect: number };
+export type GirlArt = {
+  whole: number;
+  body: number;
+  bottom: number;
+  feet: number;
+  top: number;
+  hair: number;
+  aspect: number;
+};
 
 /** Width over height of the canvas every girl, and every garment drawn for her, is on. */
 export const DOLL_ASPECT = 64 / 96;
@@ -35,21 +45,27 @@ const GIRL_ART: Record<string, GirlArt> = {
   geumhwa: {
     whole: require('../assets/girls/geumhwa_whole.png'),
     body: require('../assets/girls/geumhwa_body.png'),
-    clothes: require('../assets/girls/geumhwa_clothes.png'),
+    bottom: require('../assets/girls/geumhwa_bottom.png'),
+    feet: require('../assets/girls/geumhwa_feet.png'),
+    top: require('../assets/girls/geumhwa_top.png'),
     hair: require('../assets/girls/geumhwa_hair.png'),
     aspect: DOLL_ASPECT,
   },
   seora: {
     whole: require('../assets/girls/seora_whole.png'),
     body: require('../assets/girls/seora_body.png'),
-    clothes: require('../assets/girls/seora_clothes.png'),
+    bottom: require('../assets/girls/seora_bottom.png'),
+    feet: require('../assets/girls/seora_feet.png'),
+    top: require('../assets/girls/seora_top.png'),
     hair: require('../assets/girls/seora_hair.png'),
     aspect: DOLL_ASPECT,
   },
   dohwa: {
     whole: require('../assets/girls/dohwa_whole.png'),
     body: require('../assets/girls/dohwa_body.png'),
-    clothes: require('../assets/girls/dohwa_clothes.png'),
+    bottom: require('../assets/girls/dohwa_bottom.png'),
+    feet: require('../assets/girls/dohwa_feet.png'),
+    top: require('../assets/girls/dohwa_top.png'),
     hair: require('../assets/girls/dohwa_hair.png'),
     aspect: DOLL_ASPECT,
   },

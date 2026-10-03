@@ -27,7 +27,7 @@
 - 매달 마지막 토요일에 축제가 열린다. 지어낸 맞수 셋과 겨루고, 최근 4주에 운동한 날이 가장 큰 몫을 차지한다.
 - 운동을 쉬어도 아이는 토라지지 않는다. 순위표도 없다.
 
-<img src="docs/img/wardrobe.png" alt="세 아이가 옷 열 가지를 하나씩 입은 모습." width="720">
+<img src="docs/img/wardrobe.png" alt="세 아이의 기본 차림과, 옷 열 가지를 하나씩 입은 모습." width="720">
 
 ## 처음 한 번만
 
@@ -92,7 +92,7 @@ node --env-file=relay/.env relay/worker.mjs
 - `lib/` — 규칙이 사는 곳. 화면과 DB 없이 Node만으로 시험한다. 다음에 올릴 무게(`progress.ts`), 못 보낸 쓰기(`outbox.ts`), 골드와 상점(`economy.ts`, `shop.ts`), 아이의 말과 일기(`voices.ts`, `diary.ts`), 축제(`festival.ts`), 조언(`advice.ts`)이 여기 있다.
 - `lib/db.ts` — Supabase 질의 전부. 화면은 이 함수들만 부른다.
 - `components/` — `PaperDoll`(아이와 입은 옷을 겹쳐 그린다), `TrainingHall`(방), `ShopShelves`(상점), `SetCard`(세트 입력) 등.
-- `assets/girls/`, `assets/garments/` — 아이 셋과 옷 열 가지의 도트 그림. 아이는 몸 · 운동복 · 머리 세 장으로 나뉘어 있고, 선물한 옷은 몸과 머리 사이에 겹친다.
+- `assets/girls/`, `assets/garments/` — 아이 셋과 옷 열 가지의 도트 그림. 아이는 몸 · 아래옷 · 신발 · 윗옷 · 머리 다섯 장으로 나뉘어 있고, 선물한 옷은 제 옷과 머리 사이에 겹친다.
 - `supabase/` — SQL. 모든 줄은 `auth.uid()`에 매여 본인 것만 보인다.
 - `relay/worker.mjs` — 조언 중계의 일꾼.
 - `public/admin.html` — 관리자 페이지. `/admin.html`로 연다.
@@ -117,4 +117,4 @@ npx tsc --noEmit
 npx eslint .
 ```
 
-시험은 703건이고 DB도 모델도 필요 없다. 개발 서버가 200을 돌려주는 것은 묶음이 지어진다는 뜻이지 앱이 돈다는 뜻이 아니다. 새 탭을 열어 콘솔을 본다.
+시험은 704건이고 DB도 모델도 필요 없다. 개발 서버가 200을 돌려주는 것은 묶음이 지어진다는 뜻이지 앱이 돈다는 뜻이 아니다. 새 탭을 열어 콘솔을 본다.

@@ -2,8 +2,8 @@
 #
 #   python -X utf8 scripts/girl-assets.py <base.sprite.png> <girl.sprite.png> <advisor id>
 #
-# Writes assets/girls/<id>_{whole,body,clothes,hair}.png. All girls share one canvas,
-# 64 x 96 dots with the body base's top-left at 12,8, so that a garment drawn once on
+# Writes assets/girls/<id>_{whole,body,bottom,feet,top,hair}.png. All girls share one canvas,
+# 64 x 96 dots with the body base's top-left at 12,6, so that a garment drawn once on
 # that canvas sits right on every one of them, and the margin holds Pia's pony tail and
 # leaves room above the head for a hat. See docs/art-order.md.
 #
@@ -29,7 +29,8 @@ def load(name: str):
 
 layers, hires = load('sprite-layers'), load('hires')
 CANVAS, BASE_AT = hires.CANVAS, hires.BASE_AT
-BODY, CLOTHES, HAIR = 1, 2, 3
+BODY, TOP, HAIR, BOTTOM, FEET = 1, 2, 3, 4, 5
+WORN = (TOP, BOTTOM, FEET)
 
 if len(sys.argv) != 4:
     sys.exit('usage: girl-assets.py <base.sprite.png> <girl.sprite.png> <advisor id>')
@@ -50,8 +51,26 @@ alpha = lambda part: np.array(Image.open(f'{stem}.{part}.png').convert('RGBA'))[
 labels = np.zeros((CANVAS[1], CANVAS[0]), dtype=int)
 area = labels[top:top + gh, left:left + gw]
 area[girl[..., 3] > 0] = BODY
-area[alpha('clothes')] = CLOTHES
+area[alpha('clothes')] = TOP
 area[alpha('hair')] = HAIR
+
+# Her clothes in three pieces, so that a blouse given to her can replace her own top
+# without taking her shorts and shoes with it. Told apart by where they are on the base:
+# the feet are everything below the hem of its shorts by a hand's breadth, the bottom is
+# what lies from its waist down between its hips, and the top is the rest — sleeves
+# included, which hang lower than the waist but outside the hips.
+canvas_base = np.zeros((CANVAS[1], CANVAS[0], 4), dtype=np.uint8)
+canvas_base[BASE_AT[1]:BASE_AT[1] + base.shape[0], BASE_AT[0]:BASE_AT[0] + base.shape[1]] = base
+grey = (canvas_base[..., 3] > 0) & layers.is_grey(canvas_base[..., :3])
+counts = grey.sum(axis=1)
+neck = next(y for y in range(CANVAS[1]) if counts[y:y + 3].min() >= 4)
+hem = max(y for y in range(CANVAS[1]) if counts[y] >= 4)
+waist = round(neck + (hem - neck) * 0.68)
+hips = np.nonzero(grey[waist:hem + 1].any(axis=0))[0]
+rows, cols = np.arange(CANVAS[1])[:, None], np.arange(CANVAS[0])[None, :]
+worn = labels == TOP
+labels[worn & (rows >= waist) & (cols >= hips.min() - 1) & (cols <= hips.max() + 1)] = BOTTOM
+labels[worn & (rows >= hem + 5)] = FEET
 labels = hires.spread(labels)
 
 whole = hires.on_canvas(hires.drawing_of(girl_path), (gw, gh), (left, top))
@@ -59,18 +78,20 @@ bare = hires.on_canvas(hires.drawing_of(base_path), (base.shape[1], base.shape[0
 
 # Her body: her own drawing where it shows, the base's where hair or clothes hide it.
 body = Image.new('RGBA', whole.size)
-for hidden in (CLOTHES, HAIR):
+for hidden in (*WORN, HAIR):
     body.alpha_composite(hires.cut(bare, labels, hidden))
 body.alpha_composite(hires.cut(whole, labels, BODY))
 
 out = HERE.parent / 'assets' / 'girls'
 out.mkdir(parents=True, exist_ok=True)
-parts = {'whole': whole, 'body': body, 'clothes': hires.cut(whole, labels, CLOTHES), 'hair': hires.cut(whole, labels, HAIR)}
+parts = {'whole': whole, 'body': body, 'bottom': hires.cut(whole, labels, BOTTOM), 'feet': hires.cut(whole, labels, FEET),
+         'top': hires.cut(whole, labels, TOP), 'hair': hires.cut(whole, labels, HAIR)}
+(out / f'{name}_clothes.png').unlink(missing_ok=True)  # one layer before it was three
 for part, picture in parts.items():
     picture.save(out / f'{name}_{part}.png', optimize=True)
 
 again = Image.new('RGBA', whole.size)
-for part in ('body', 'clothes', 'hair'):
+for part in ('body', 'bottom', 'feet', 'top', 'hair'):
     again.alpha_composite(parts[part])
 off = np.abs(np.array(again).astype(int) - np.array(whole).astype(int)).max(axis=-1)
 print(f'{out / name}_*.png: girl at {left},{top} on {CANVAS[0]} x {CANVAS[1]} dots, {whole.size[0]} x {whole.size[1]} px; '

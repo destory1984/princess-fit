@@ -14,7 +14,9 @@ import numpy as np
 from PIL import Image
 
 CANVAS = (64, 96)   # dots, shared by every girl and every garment
-BASE_AT = (12, 8)   # where the body base's top-left dot sits on it
+# Where the body base's top-left dot sits on it. Six dots above the head for hair and a
+# hat, two below the feet for the soles of shoes, which stand lower than bare feet do.
+BASE_AT = (12, 6)
 PER_DOT = 10        # pixels a dot in the files the app loads: 640 x 960
 
 

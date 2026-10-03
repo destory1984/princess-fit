@@ -9,7 +9,7 @@ import {
   type ViewStyle,
 } from "react-native";
 import { DOLL_ASPECT, dotGarmentArt } from "@/lib/outfitArt";
-import { stackOf, type Garment } from "@/lib/outfit";
+import { keepsOwnTop, stackOf, type Garment } from "@/lib/outfit";
 import { useGirl, type Girl } from '@/lib/girl';
 
 // react-native-web has no native animation driver, so asking for one there
@@ -30,8 +30,9 @@ type Props = {
 };
 
 /**
- * The girl and everything she has on, stacked back to front: her body, what she
- * wears, her hair, and over the hair what is tied in it or held (`stackOf`).
+ * The girl and everything she has on, stacked back to front: her body, her own
+ * clothes, what she has been given, her hair, and over the hair what is tied in it or
+ * held (`stackOf`). Her own top comes off when she is given one (`keepsOwnTop`).
  *
  * Every layer is the same canvas (`DOLL_ASPECT`), so each one simply fills the box
  * and they line up — there is no per-garment placement any more. A garment is drawn
@@ -93,7 +94,11 @@ export function PaperDoll({ worn, style, idle, girl: visiting }: Props) {
   return (
     <Animated.View style={[styles.doll, style, idle ? drift : null]}>
       <Image source={girl.art.body} style={styles.layer} resizeMode="contain" />
-      <Image source={girl.art.clothes} style={styles.layer} resizeMode="contain" />
+      <Image source={girl.art.bottom} style={styles.layer} resizeMode="contain" />
+      <Image source={girl.art.feet} style={styles.layer} resizeMode="contain" />
+      {keepsOwnTop(worn) && (
+        <Image source={girl.art.top} style={styles.layer} resizeMode="contain" />
+      )}
       {stack.under.map(layer)}
       <Image source={girl.art.hair} style={styles.layer} resizeMode="contain" />
       {stack.over.map(layer)}

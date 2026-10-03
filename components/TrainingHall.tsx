@@ -113,9 +113,9 @@ export function TrainingHall({
               style={{
                 position: "absolute",
                 bottom: scene.height * 0.02,
-                // Centred at 34% across: at the foot of the bed, and far enough
-                // left that her head, which is half her height now, clears the plaque.
-                left: scene.width * 0.34 - girlWidth / 2,
+                // Centred at 31% across: at the foot of the bed, and far enough
+                // left that her hair, which is wider than her shoulders, clears the plaque.
+                left: scene.width * 0.31 - girlWidth / 2,
                 width: girlWidth,
                 height: girlHeight,
               }}
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
     pointerEvents: "none",
     position: "absolute",
     bottom: "3%",
-    left: "26%",
+    left: "23%",
     width: "16%",
     height: 10,
     borderRadius: 999,

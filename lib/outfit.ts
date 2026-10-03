@@ -233,6 +233,15 @@ export function layersOf(worn: string[]): Garment[] {
 }
 
 /** Charm from what she has on, which is not the same as what she owns. */
+/**
+ * Whether she keeps her own top on. A garment worn as a top takes its place: her own
+ * may have sleeves or a hood, and they would stick out from under a sleeveless blouse.
+ * Her shorts and shoes stay whatever she is given — a skirt simply goes over the shorts.
+ */
+export function keepsOwnTop(worn: string[]): boolean {
+  return !layersOf(worn).some((g) => g.slot === 'top');
+}
+
 /** The worn garments in drawing order, split at her hair. */
 export function stackOf(worn: string[]): { under: Garment[]; over: Garment[] } {
   const layers = layersOf(worn);

@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  keepsOwnTop,
   stackOf,
   dressedFor,
   GARMENTS,
@@ -85,4 +86,12 @@ test('the stack loses nothing and adds nothing', () => {
   const worn = ['gown', 'skirt_blue', 'ribbon'];
   const { under, over } = stackOf(worn);
   assert.deepEqual([...under, ...over].map((g) => g.id).sort(), layersOf(worn).map((g) => g.id).sort());
+});
+
+test('she keeps her own top until she is given one', () => {
+  assert.equal(keepsOwnTop([]), true);
+  assert.equal(keepsOwnTop(['skirt_white', 'ribbon', 'necklace']), true);
+  assert.equal(keepsOwnTop(['blouse']), false);
+  // The gown is worn as a top and covers the bottom too.
+  assert.equal(keepsOwnTop(['gown']), false);
 });

@@ -103,6 +103,8 @@ def layers(base_path: Path, girl_path: Path) -> None:
     b_dark = b_there & (luma(b) < OUTLINE_BELOW)
     b_skin = b_there & ~b_dark & ~is_grey(b)
     rows = np.arange(gh)[:, None]
+    cols = np.arange(gw)[None, :]
+    gi, bi = g.astype(int), b.astype(int)
 
     def colours(mask: np.ndarray, share: float) -> set:
         votes = Counter(key(c) for c in g[mask & g_there])
@@ -111,57 +113,85 @@ def layers(base_path: Path, girl_path: Path) -> None:
     def has(found: set) -> np.ndarray:
         return np.array([[key(g[y, x]) in found for x in range(gw)] for y in range(gh)]) & g_there
 
-    # Her skin: what she has on the base's bare legs. Taken out of the other two sets,
-    # or a shadow on a knee is read as a scrap of cloth.
-    skin = colours(b_skin & (rows > top + (gh - top) // 2), 0.02)
-    # Her clothes' colours: what she has, undarkened, where the base is grey.
-    cloth = colours(worn & ~g_dark, 0.03) - skin
-
-    in_cloth, in_skin = has(cloth), has(skin)
-    # What she has that the base has not: a dot outside its outline, or one of another
-    # colour than the base's there. Her skin is a shade off the base's and is not news,
-    # and an outline dot the base also has is the body's outline.
-    far = np.abs(g.astype(int) - b.astype(int)).sum(axis=-1) > 60
-    new = g_there & (~b_there | (far & ~in_skin)) & ~(b_dark & g_dark)
-
-    # On the crown, the head above the brow, everything new is hair. Its colours are
-    # read there. (Not from what lies outside the base's outline: Yuki's bob sits inside
-    # the bald head's outline almost entirely.)
-    eyes = b_there & ~b_dark & (rows < top) & (
-        ~b_skin | (np.abs(b.astype(int) - np.median(b[b_skin], axis=0)).sum(axis=-1) > 120))
-    eye_rows, eye_cols = np.nonzero(eyes)
-    brow = eye_rows.min() - 4
-    crown = new & (rows < brow)
-    # The outline's own colour is not a hair colour, though Yuki's hair is nearly as dark.
-    line = colours(b_dark & g_dark, 0.1)
-    hair_colours = colours(crown, 0.005) - skin - line
-
-    # The face is the one place where something new is not hair: her eyes, her mouth,
-    # her glasses. There only her hair's own colours count, and the dark dots right
-    # beside them, which are the edge of her fringe.
-    cols = np.arange(gw)[None, :]
-    face = (rows >= brow) & (rows < top) & (cols >= eye_cols.min() - 3) & (cols <= eye_cols.max() + 3)
     def around(mask: np.ndarray) -> np.ndarray:
         """How many of a dot's eight neighbours are in mask."""
         pad = np.pad(mask.astype(int), 1)
         return sum(pad[oy:oy + gh, ox:ox + gw] for oy in (0, 1, 2) for ox in (0, 1, 2)) - mask
 
-    in_hair = has(hair_colours)
-    coloured = new & in_hair
-    may = np.where(face, coloured | (new & has(line) & (around(coloured) > 0)), new)
-    # Below the neck a colour her clothes use is clothes. Where her hair uses it too
-    # (the brown of Rina's plait is the brown of her waistband) the dots around decide,
-    # and where they cannot (Pia's hair and top are one orange) it is clothes.
-    only_hair, only_cloth = in_hair & ~in_cloth, in_cloth & ~in_hair
-    is_cloth = in_cloth & ~(in_hair & (around(only_hair) > around(only_cloth)))
-    may &= ~((rows >= top) & is_cloth)
-    # Only what hangs together with the crown. A stray outline dot where her arm is one
-    # dot wider than the base's is her arm, not her hair.
-    hair = connected(may, crown)
+    # Skin is the base's skin, a little widened. (It used to be read off her own legs,
+    # which stopped working the day she was drawn in socks: the socks became "skin".)
+    median_skin = np.median(bi[b_skin], axis=0)
+    skin = np.array([c for c, n in Counter(map(tuple, bi[b_skin].tolist())).items()
+                     if n >= 3 and np.abs(np.array(c) - median_skin).sum() <= 60])
+    like_skin = (np.abs(gi[:, :, None, :] - skin[None, None, :, :]).sum(axis=-1).min(axis=-1) < 30) & g_there
 
-    # Everything she has where the base wears grey goes with her clothes, even the few
-    # dots of skin where her neckline sits lower: the body keeps its underclothes whole.
-    clothes = g_there & ~hair & (rows >= top) & (is_cloth | worn)
+    # What she has that the base has not: a dot outside its outline, or one far from the
+    # base's colour there. Skin over skin is not news whatever its shade, nor is an
+    # outline dot the base also has, nor a sliver of arm one dot wider than the base's.
+    far = np.abs(gi - bi).sum(axis=-1) > 30
+    new = g_there & ~(b_dark & g_dark) & np.where(b_there, far & ~(b_skin & like_skin), ~like_skin)
+
+    # The crown is the head above the brow, where everything new is hair; her hair's
+    # colours are read there. (Not from what lies outside the base's outline: Yuki's bob
+    # sits inside the bald head's outline almost entirely.)
+    eyes = b_there & ~b_dark & (rows < top) & (~b_skin | (np.abs(bi - median_skin).sum(axis=-1) > 120))
+    eye_rows, eye_cols = np.nonzero(eyes)
+    brow = eye_rows.min() - 4
+    crown = new & (rows < brow)
+    line = colours(b_dark & g_dark, 0.1)  # the outline's own colour is nobody's
+    hair_colours = colours(crown, 0.005) - line
+    # Her clothes' colours: what is new where the base wears grey.
+    # Counted generously, outlines and trim included: a ribbon in her hair makes its
+    # green a "hair colour", and the jacket's green edge must not follow it up there.
+    cloth = colours(new & worn, 0.002) - line
+    in_hair, in_cloth = has(hair_colours), has(cloth)
+
+    # From the chin down a colour her clothes use is clothes. Where her hair uses it too
+    # the dots around decide, and where they cannot (Pia's hair and hood are one orange)
+    # it is clothes.
+    below = rows >= top - 3
+    only_hair, only_cloth = in_hair & ~in_cloth, in_cloth & ~in_hair
+    is_cloth = below & in_cloth & ~(in_hair & (around(only_hair) > around(only_cloth)))
+
+    # In the face only her hair's own colours count as hair, with the dark dots right
+    # beside them (the edge of her fringe): her eyes, mouth and glasses are new too.
+    # Below the chin the same, or a shoe would be hair for being new.
+    face = (rows >= brow) & (rows < top) & (cols >= eye_cols.min() - 3) & (cols <= eye_cols.max() + 3)
+    coloured = new & in_hair
+    strict = coloured | (new & has(line) & (around(coloured) > 0))
+    may = np.where(face | below, strict, new) & ~is_cloth
+    # Never her eyes, though they may be the very colour of her hair and touch her fringe.
+    wide = np.pad(eyes, 1)
+    may &= ~(sum(wide[oy:oy + gh, ox:ox + gw] for oy in (0, 1, 2) for ox in (0, 1, 2)) > 0)
+    # Hair hangs together with the crown — or is a tail that comes out from behind her
+    # shoulder, joined to nothing that shows: hair-coloured, and outside the body.
+    hair = connected(may, crown | (below & coloured & ~b_there & ~is_cloth))
+    # Highlights the colour of skin, ringed by hair, are hair.
+    for _ in range(2):
+        hair |= g_there & ~face & (rows < top) & (around(hair) >= 5)
+
+    # Everything else new from the chin down is what she wears: shoes and wristbands as
+    # much as the shirt. And all she has where the base wears grey goes with it, even a
+    # dot of skin where her neckline sits lower, so the body keeps its underclothes whole.
+    clothes = g_there & ~hair & ((below & new) | ((rows >= top) & worn))
+    # But not the crumbs: a few dark dots where her arm's outline fell one dot from the
+    # base's are new and are not clothing. A patch with no cloth colour in it, and small,
+    # stays with the body.
+    seen = np.zeros_like(clothes)
+    for y, x in zip(*np.nonzero(clothes)):
+        if seen[y, x]:
+            continue
+        seed = np.zeros_like(clothes)
+        seed[y, x] = True
+        patch = connected(clothes, seed)
+        seen |= patch
+        if patch.sum() < 12 and not (patch & in_cloth & ~g_dark).any():
+            clothes &= ~patch
+        # Nor a scrap that hangs in the air beside her and has her hair's colour in it:
+        # that is the end of a tail, with the tie that holds it.
+        elif (patch & b_there).sum() <= patch.sum() * 0.1 and (patch & in_hair).any():
+            clothes &= ~patch
+            hair |= patch
 
     def picture(mask: np.ndarray, source: np.ndarray) -> np.ndarray:
         out = np.zeros_like(girl)

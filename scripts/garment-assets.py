@@ -1,6 +1,6 @@
 # Takes a garment off the body base it was drawn on and puts it into the app.
 #
-#   python -X utf8 scripts/garment-assets.py <base.sprite.png> <worn.sprite.png> <garment id>
+#   python -X utf8 scripts/garment-assets.py <base.sprite.png> <worn.sprite.png> <garment id> [smallest share]
 #
 # <worn> is the body base wearing one new thing, ordered with the base as reference and
 # cut by scripts/sprite-clean.py --like the base. Writes assets/garments/<id>.png on the
@@ -37,9 +37,13 @@ CANVAS, BASE_AT = hires.CANVAS, hires.BASE_AT
 SMALLEST = 8  # dots; a patch smaller than this is a redrawn dot, not a garment
 GIRLS = ('geumhwa', 'seora', 'dohwa')
 
-if len(sys.argv) != 4:
-    sys.exit('usage: garment-assets.py <base.sprite.png> <worn.sprite.png> <garment id>')
+if len(sys.argv) not in (4, 5):
+    sys.exit('usage: garment-assets.py <base.sprite.png> <worn.sprite.png> <garment id> [smallest share]')
 base_path, worn_path, name = Path(sys.argv[1]), Path(sys.argv[2]), sys.argv[3]
+# How small a separate patch may be, as a share of the largest, and still be kept. A
+# quarter suits one garment; a whole outfit has shoes and wristbands a long way from the
+# shirt and far smaller than it, and is cut with something like 0.01.
+SHARE = float(sys.argv[4]) if len(sys.argv) == 5 else 0.25
 
 base_small = np.array(Image.open(base_path).convert('RGBA'))
 worn_small = np.array(Image.open(worn_path).convert('RGBA'))
@@ -122,7 +126,7 @@ for y, x in zip(*np.nonzero(garment)):
 garment = np.zeros_like(garment)
 largest = max((size for size, _ in patches), default=0)
 for size, patch in patches:
-    if size >= max(SMALLEST, largest * 0.25):
+    if size >= max(SMALLEST, largest * SHARE):
         garment |= patch
 
 # The piece itself comes from the drawing, not the sprite (scripts/hires.py): the dots

@@ -11,10 +11,10 @@ type Props = {
 
 // The art is full-body, with the face in the upper half. Blown up and pulled upward,
 // the round frame lands on the head instead of the whole doll. On the 96-dot canvas
-// the head is rows 8 to 50, so its middle is 0.31 of the way down, and at this scale
+// the head is rows 6 to 48, so its middle is 0.29 of the way down, and at this scale
 // the frame is a little narrower than the head: hair touches the ring, the face fills it.
 const SCALE = 2.1;
-const FACE_FROM_TOP = 0.31;
+const FACE_FROM_TOP = 0.29;
 
 /** A round bust crop of a full-body portrait. */
 export function Portrait({ source, size, active }: Props) {
