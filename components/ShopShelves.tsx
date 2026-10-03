@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { PaperDoll } from "@/components/PaperDoll";
+import { shelfArt } from "@/lib/outfitArt";
 import { Purse } from "@/components/Purse";
 // The purchase itself is handed to `onSpend`, which decides whether to run it.
 // On the bench it never runs, so these are only ever built, never called.
@@ -81,9 +82,13 @@ type Props = {
  */
 type Shop = Props & { spend: Spend };
 
+/** What a garment's row shows when there is nothing to say about it. */
+const PLAIN_GARMENT = "shirt-outline";
+
 function Row({
   id,
   icon,
+  picture,
   name,
   detail,
   price,
@@ -95,6 +100,11 @@ function Row({
 }: {
   id: string;
   icon: string;
+  /**
+   * The thing itself, where there is a drawing of it. The icon then shrinks to a
+   * badge on its corner and is shown only when it says something (worn, trying on).
+   */
+  picture?: number;
   name: string;
   detail: string;
   price: number;
@@ -110,13 +120,24 @@ function Row({
       disabled={disabled || busy === id}
       onPress={onPress}
     >
-      <View style={styles.icon}>
-        <Ionicons
-          name={(owned ? "checkmark" : icon) as any}
-          size={20}
-          color={owned ? colors.gold : colors.accent}
-        />
-      </View>
+      {picture ? (
+        <View style={styles.picture}>
+          <Image source={picture} resizeMode="contain" style={styles.pictureArt} />
+          {icon !== PLAIN_GARMENT && (
+            <View style={styles.badge}>
+              <Ionicons name={icon as any} size={11} color={colors.accent} />
+            </View>
+          )}
+        </View>
+      ) : (
+        <View style={styles.icon}>
+          <Ionicons
+            name={(owned ? "checkmark" : icon) as any}
+            size={20}
+            color={owned ? colors.gold : colors.accent}
+          />
+        </View>
+      )}
       <View style={styles.body}>
         <Text style={styles.name}>{name}</Text>
         <Text style={styles.detail}>{detail}</Text>
@@ -238,7 +259,8 @@ function GarmentRow({
     <Row
       id={garment.id}
       busy={shop.busy}
-      icon={on ? "checkmark" : tryingOn ? "eye-outline" : "shirt-outline"}
+      icon={on ? "checkmark" : tryingOn ? "eye-outline" : PLAIN_GARMENT}
+      picture={shelfArt(garment.id)}
       name={garment.name}
       detail={garment.detail}
       price={garment.price}
@@ -589,6 +611,30 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     backgroundColor: paper.bgAlt,
+    borderColor: colors.gold,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  picture: {
+    width: 48,
+    height: 48,
+    borderRadius: radius.sm,
+    backgroundColor: paper.bgAlt,
+    borderColor: colors.gold,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  pictureArt: { width: 40, height: 40 },
+  badge: {
+    position: "absolute",
+    right: -5,
+    bottom: -5,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: paper.bg,
     borderColor: colors.gold,
     borderWidth: 1,
     alignItems: "center",

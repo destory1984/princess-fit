@@ -4,7 +4,8 @@
 #
 # <worn> is the body base wearing one new thing, ordered with the base as reference and
 # cut by scripts/sprite-clean.py --like the base. Writes assets/garments/<id>.png on the
-# girls' canvas (see scripts/girl-assets.py), and next to <worn> a <worn>.tried@5x.png
+# girls' canvas (see scripts/girl-assets.py), <id>_shelf.png (the piece alone, for the
+# shop), and next to <worn> a <worn>.tried.png
 # with the garment on each of the three girls, which is the picture to look at.
 #
 # The garment is what the drawing has that the base has not: dots outside the base's
@@ -31,9 +32,9 @@ def load(name: str):
     return module
 
 
-layers = load('sprite-layers')
-CANVAS, BASE_AT, SCALE = (64, 96), (12, 8), 8
-SMALLEST = 5  # dots; a patch smaller than this is a redrawn dot, not a garment
+layers, hires = load('sprite-layers'), load('hires')
+CANVAS, BASE_AT = hires.CANVAS, hires.BASE_AT
+SMALLEST = 8  # dots; a patch smaller than this is a redrawn dot, not a garment
 GIRLS = ('geumhwa', 'seora', 'dohwa')
 
 if len(sys.argv) != 4:
@@ -124,30 +125,44 @@ for size, patch in patches:
     if size >= max(SMALLEST, largest * 0.25):
         garment |= patch
 
-out = np.zeros_like(worn)
-out[garment] = worn[garment]
-out[garment, 3] = 255
-piece = Image.fromarray(out, 'RGBA')
+# The piece itself comes from the drawing, not the sprite (scripts/hires.py): the dots
+# above only say which of its pixels are the garment.
+GARMENT, REST = 1, 2
+labels = np.where(garment, GARMENT, np.where(g_there, REST, 0))
+labels = hires.spread(labels)
+drawn = hires.on_canvas(hires.drawing_of(worn_path), (worn_small.shape[1], worn_small.shape[0]), (left, top))
+piece = hires.cut(drawn, labels, GARMENT)
 
 target = HERE.parent / 'assets' / 'garments'
 target.mkdir(parents=True, exist_ok=True)
-piece.resize((CANVAS[0] * SCALE, CANVAS[1] * SCALE), Image.NEAREST).save(target / f'{name}.png', optimize=True)
+piece.save(target / f'{name}.png', optimize=True)
+
+# The same piece alone for the shop's shelf: cut to its own box, centred on a square one
+# dot larger all round, so a ribbon and a gown each fill their frame.
+box = piece.getbbox()
+if box:
+    alone = piece.crop(box)
+    side = max(alone.size) + 2 * hires.PER_DOT
+    shelf = Image.new('RGBA', (side, side))
+    shelf.paste(alone, ((side - alone.width) // 2, (side - alone.height) // 2))
+    shelf.save(target / f'{name}_shelf.png', optimize=True)
 
 # To look at: the drawing as it came, the piece alone, then on each girl. Above the hair
 # for what is worn on the head or held, under it for everything else — as the app stacks.
 over_hair = name in ('ribbon', 'bouquet')
-k, gap = 5, 16
-shown = [Image.fromarray(worn, 'RGBA'), piece]
+gap = 16
+shown = [drawn, piece]
 for girl in GIRLS:
-    part = lambda p: Image.open(HERE.parent / 'assets' / 'girls' / f'{girl}_{p}.png').resize(CANVAS, Image.NEAREST)  # noqa: E731
-    doll = Image.new('RGBA', CANVAS)
+    part = lambda p: Image.open(HERE.parent / 'assets' / 'girls' / f'{girl}_{p}.png').convert('RGBA')  # noqa: E731
+    doll = Image.new('RGBA', drawn.size)
     for layer in (part('body'), part('clothes'), *((part('hair'), piece) if over_hair else (piece, part('hair')))):
-        doll.alpha_composite(layer.convert('RGBA'))
+        doll.alpha_composite(layer)
     shown.append(doll)
-sheet = Image.new('RGBA', ((CANVAS[0] * k + gap) * len(shown) + gap, CANVAS[1] * k + gap * 2), (96, 104, 112, 255))
+w, h = drawn.size[0] // 2, drawn.size[1] // 2
+sheet = Image.new('RGBA', ((w + gap) * len(shown) + gap, h + gap * 2), (96, 104, 112, 255))
 for i, picture in enumerate(shown):
-    sheet.alpha_composite(picture.resize((CANVAS[0] * k, CANVAS[1] * k), Image.NEAREST), (gap + i * (CANVAS[0] * k + gap), gap))
-sheet.save(worn_path.with_suffix('.tried@5x.png'))
+    sheet.alpha_composite(picture.resize((w, h), Image.LANCZOS), (gap + i * (w + gap), gap))
+sheet.save(worn_path.with_suffix('.tried.png'))
 
 ys, xs = np.nonzero(garment)
 box = f'{xs.min()},{ys.min()} to {xs.max()},{ys.max()}' if garment.any() else 'nothing'

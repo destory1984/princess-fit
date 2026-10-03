@@ -10,7 +10,6 @@ import {
 } from "react-native";
 import { DOLL_ASPECT, dotGarmentArt } from "@/lib/outfitArt";
 import { stackOf, type Garment } from "@/lib/outfit";
-import { crisp } from "@/lib/pixel";
 import { useGirl, type Girl } from '@/lib/girl';
 
 // react-native-web has no native animation driver, so asking for one there
@@ -110,6 +109,5 @@ const styles = StyleSheet.create({
     left: 0,
     width: "100%",
     height: "100%",
-    ...crisp,
   },
 });

@@ -1,6 +1,5 @@
 import { Image, StyleSheet, View } from "react-native";
 import { DOLL_ASPECT } from "@/lib/outfitArt";
-import { crisp } from "@/lib/pixel";
 import { colors, paper } from "@/lib/theme";
 
 type Props = {
@@ -33,13 +32,13 @@ export function Portrait({ source, size, active }: Props) {
       <Image
         source={source}
         resizeMode="contain"
-        style={[crisp, {
+        style={{
           position: "absolute",
           width,
           height,
           top: size / 2 - height * FACE_FROM_TOP,
           left: (size - width) / 2,
-        }]}
+        }}
       />
     </View>
   );

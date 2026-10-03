@@ -23,8 +23,6 @@ export type GirlArt = { whole: number; body: number; clothes: number; hair: numb
 
 /** Width over height of the canvas every girl, and every garment drawn for her, is on. */
 export const DOLL_ASPECT = 64 / 96;
-/** How many dots tall that canvas is, for sizing her to whole pixels per dot. */
-export const DOLL_DOTS_TALL = 96;
 
 /**
  * Each girl's art, keyed by advisor id.
@@ -69,7 +67,7 @@ export function girlArt(advisorId: string): GirlArt {
  * This is what the doll draws. `GARMENT_ART` below is the older art, drawn for the tall
  * body the girls had before; on the dot body it would hang somewhere around the knees,
  * so the doll never draws it, and a garment without an entry here simply does not show
- * on her. The shop's shelves still use the older pictures.
+ * on her. Nothing draws the older art any more.
  */
 const DOT_GARMENT_ART: Record<string, number> = {
   ribbon: require('../assets/garments/ribbon.png'),
@@ -86,6 +84,24 @@ const DOT_GARMENT_ART: Record<string, number> = {
 
 export function dotGarmentArt(garmentId: string): number | undefined {
   return DOT_GARMENT_ART[garmentId];
+}
+
+/** The same garments alone, each cut to its own square, for the shop's shelves. */
+const SHELF_ART: Record<string, number> = {
+  ribbon: require('../assets/garments/ribbon_shelf.png'),
+  blouse: require('../assets/garments/blouse_shelf.png'),
+  gown: require('../assets/garments/gown_shelf.png'),
+  skirt_white: require('../assets/garments/skirt_white_shelf.png'),
+  skirt_orange: require('../assets/garments/skirt_orange_shelf.png'),
+  skirt_blue: require('../assets/garments/skirt_blue_shelf.png'),
+  trousers_orange: require('../assets/garments/trousers_orange_shelf.png'),
+  trousers_blue: require('../assets/garments/trousers_blue_shelf.png'),
+  necklace: require('../assets/garments/necklace_shelf.png'),
+  bouquet: require('../assets/garments/bouquet_shelf.png'),
+};
+
+export function shelfArt(garmentId: string): number | undefined {
+  return SHELF_ART[garmentId];
 }
 
 const GARMENT_ART: Record<string, Art> = {

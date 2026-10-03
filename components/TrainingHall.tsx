@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { Image, PixelRatio, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
 import { OrnateFrame } from "@/components/OrnateFrame";
 import { PaperDoll } from "@/components/PaperDoll";
 import { STAT_META, STAT_ORDER, type Stats } from "@/lib/character";
-import { wholeDots } from "@/lib/dots";
 import { artFor } from "@/lib/furnitureArt";
-import { DOLL_ASPECT, DOLL_DOTS_TALL } from "@/lib/outfitArt";
+import { DOLL_ASPECT } from "@/lib/outfitArt";
 import { roomContents } from "@/lib/room";
 import type { Girl } from "@/lib/girl";
 import { colors, paper } from "@/lib/theme";
@@ -60,8 +59,7 @@ export function TrainingHall({
   // the layout gives us and set every size from that, in real pixels.
   const [width, setWidth] = useState(0);
   const scene = { width, height: (width * 2) / 3 };
-  // About 0.7 of the room, nudged to where each of her dots is a whole number of pixels.
-  const girlHeight = wholeDots(scene.height * 0.7, DOLL_DOTS_TALL, PixelRatio.get());
+  const girlHeight = scene.height * 0.7;
 
   const inRoom = roomContents(furniture).filter((piece) => !piece.paintedIn);
   const drawn = inRoom.filter((piece) => artFor(piece.id));
