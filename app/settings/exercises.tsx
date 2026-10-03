@@ -13,6 +13,7 @@ import { MuscleTag } from '@/components/MuscleTag';
 import { NewExerciseSheet } from '@/components/NewExerciseSheet';
 import { ScreenState } from '@/components/ScreenState';
 import { seedDefaultExercises } from '@/lib/catalog';
+import { DEFAULT_EXERCISES } from '@/lib/exerciseCatalog';
 import { explain } from '@/lib/dbError';
 import { confirmAction, notify } from '@/lib/confirm';
 import {
@@ -233,7 +234,7 @@ export default function ExercisesScreen() {
               </Text>
               {!seeding && (
                 <Text style={styles.seedButtonSub}>
-                  앱에 들어 있는 기본 71종목 중 빠진 것만 채워요.{'\n'}
+                  앱에 들어 있는 기본 {DEFAULT_EXERCISES.length}종목 중 빠진 것만 채워요.{'\n'}
                   직접 만드신 종목과 지금 설정은 그대로예요.
                 </Text>
               )}
