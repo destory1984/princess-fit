@@ -75,7 +75,7 @@ npx expo start
 저장소 설정에서 한 번만 해 둘 것 두 가지.
 
 1. Settings → Pages → Source를 「GitHub Actions」로 고른다.
-2. Settings → Secrets and variables → Actions → Variables에 `EXPO_PUBLIC_SUPABASE_URL`과
+2. Settings → Environments → github-pages의 Environment variables에 `EXPO_PUBLIC_SUPABASE_URL`과
    `EXPO_PUBLIC_SUPABASE_ANON_KEY`를 넣는다. 둘 다 공개되어도 되는 값이라 Secrets가 아니라
    Variables에 둔다.
 

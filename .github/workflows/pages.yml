@@ -2,7 +2,8 @@
 #
 # One-time setup in the repository's settings:
 #   Settings → Pages → Source: GitHub Actions
-#   Settings → Secrets and variables → Actions → Variables:
+#   Settings → Environments → github-pages → Environment variables
+#   (or Settings → Secrets and variables → Actions → Variables):
 #     EXPO_PUBLIC_SUPABASE_URL, EXPO_PUBLIC_SUPABASE_ANON_KEY
 # Both are public by design (the anon key ends up in the bundle, and row level
 # security is what guards the data), so they are variables rather than secrets —
@@ -27,6 +28,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # The two Supabase values live on the github-pages environment, and a job
+    # sees an environment's variables only when it names that environment.
+    environment: github-pages
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
