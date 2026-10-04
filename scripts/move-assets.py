@@ -38,8 +38,51 @@ while len(runs) > frames:
     gaps = [runs[i + 1][0] - runs[i][1] for i in range(len(runs) - 1)]
     i = int(np.argmin(gaps))
     runs[i:i + 2] = [(runs[i][0], runs[i + 1][1])]
+masks = None
 if len(runs) != frames:
-    sys.exit(f'{src}: found {len(runs)} figures, wanted {frames} (they may touch)')
+    # Figures lying down reach into each other's columns (her feet in a push-up end
+    # under the next figure's hands) and leave no empty column, so they are told apart
+    # as connected pieces instead: the largest ones are the figures, and every smaller
+    # piece (a dumbbell held away from her) goes to the figure it is nearest.
+    small = solid[::4, ::4]
+    label = np.zeros(small.shape, dtype=int)
+    pieces = []
+    for y0, x0 in zip(*np.nonzero(small)):
+        if label[y0, x0]:
+            continue
+        n = len(pieces) + 1
+        stack, cells = [(y0, x0)], []
+        label[y0, x0] = n
+        while stack:
+            y, x = stack.pop()
+            cells.append((y, x))
+            for dy in (-1, 0, 1):
+                for dx in (-1, 0, 1):
+                    v, u = y + dy, x + dx
+                    if 0 <= v < small.shape[0] and 0 <= u < small.shape[1] and small[v, u] and not label[v, u]:
+                        label[v, u] = n
+                        stack.append((v, u))
+        pieces.append(np.array(cells))
+    if len(pieces) < frames:
+        sys.exit(f'{src}: the figures touch; found {len(pieces)} pieces, wanted {frames}')
+    order = sorted(range(len(pieces)), key=lambda i: -len(pieces[i]))
+    figures = sorted(order[:frames], key=lambda i: pieces[i][:, 1].mean())
+    centre = [pieces[i][:, 1].mean() for i in figures]
+    owner = {i: k for k, i in enumerate(figures)}
+    for i in order[frames:]:
+        owner[i] = int(np.argmin([abs(pieces[i][:, 1].mean() - c) for c in centre]))
+    which = np.zeros(small.shape, dtype=int)
+    for i, k in owner.items():
+        which[pieces[i][:, 0], pieces[i][:, 1]] = k + 1
+    big = np.kron(which, np.ones((4, 4), dtype=int))[:solid.shape[0], :solid.shape[1]]
+    full = np.zeros(solid.shape, dtype=int)
+    full[:big.shape[0], :big.shape[1]] = big
+    masks = [solid & (full == k + 1) for k in range(frames)]
+    runs = []
+    for m in masks:
+        xs = np.flatnonzero(m.any(axis=0))
+        runs.append((int(xs.min()), int(xs.max()) + 1))
+    print(f'{src.name}: no empty columns between the figures; told apart as pieces')
 
 rows = np.flatnonzero(solid.any(axis=1))
 top, bottom = int(rows.min()), int(rows.max()) + 1
@@ -48,7 +91,12 @@ scale = CELL / side
 strip = Image.new('RGBA', (CELL * frames, CELL))
 whole = Image.fromarray(pixels, 'RGBA')
 for i, (a, b) in enumerate(runs):
-    cut = whole.crop((a, top, b, bottom))
+    frame = whole
+    if masks is not None:
+        only = pixels.copy()
+        only[~masks[i]] = 0
+        frame = Image.fromarray(only, 'RGBA')
+    cut = frame.crop((a, top, b, bottom))
     size = (max(1, round(cut.width * scale)), max(1, round(cut.height * scale)))
     # Premultiplied through the resize, or the transparent black bleeds into the rim.
     cut = cut.convert('RGBa').resize(size, Image.LANCZOS).convert('RGBA')
