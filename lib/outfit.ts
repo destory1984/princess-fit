@@ -22,7 +22,7 @@ export type OutfitSlot =
 
 export const OUTFIT_SLOT_NAME: Record<OutfitSlot, string> = {
   feet: '신발',
-  bottom: '치마',
+  bottom: '아래옷',
   top: '상의',
   neck: '목',
   head: '머리',

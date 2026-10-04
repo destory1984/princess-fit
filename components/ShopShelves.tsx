@@ -69,7 +69,16 @@ type Props = {
   /** Id of the row waiting on the server, or null. */
   busy: string | null;
   onSpend: Spend;
+  /** Id of something the visitor was sent here to give: its shelf opens first. */
+  gift?: string;
 };
+
+function shelfOf(gift: string | undefined): Shelf {
+  if (GARMENTS.some((g) => g.id === gift)) return "옷장";
+  if (ACCESSORIES.some((a) => a.id === gift)) return "장신구";
+  if (FURNITURE.some((f) => f.id === gift)) return "방";
+  return "부엌";
+}
 
 /**
  * Everything a row needs to draw itself and to spend: the ledger it reads and
@@ -276,7 +285,7 @@ function GarmentRow({
       // Never disabled for want of gold: looking is free, and a row you
       // cannot even press is a row that cannot tell you why.
       disabled={false}
-      owned={on || tryingOn}
+      owned={owned}
       onPress={() =>
         owned
           ? shop.spend(garment.id, garment.name, 0, "clothes", () =>
@@ -328,14 +337,16 @@ function FurnitureRow({ piece, shop }: { piece: Furniture; shop: Shop }) {
  * be put in front of made-up data on the development bench — which is the only
  * way anyone has been able to look at it without an account.
  */
-export function ShopShelves({ ledger, busy, onSpend }: Props) {
-  const [shelf, setShelf] = useState<Shelf>("부엌");
+export function ShopShelves({ ledger, busy, onSpend, gift }: Props) {
+  const [shelf, setShelf] = useState<Shelf>(() => shelfOf(gift));
   // A garment she does not own, held up against her.
   //
   // Everything on this shelf costs a fortnight of training, and until now the
   // only way to see one on her was to buy it — which is a strange way to sell
   // clothes and the reason "어떻게 봐? 안 보이는데" was a fair question.
-  const [tryingOn, setTryingOn] = useState<string | null>(null);
+  const [tryingOn, setTryingOn] = useState<string | null>(() =>
+    GARMENTS.some((g) => g.id === gift) ? gift ?? null : null,
+  );
   const shop: Shop = { ledger, busy, onSpend, spend: onSpend };
 
   const { house, wardrobe, worn, culture } = ledger;
@@ -343,7 +354,12 @@ export function ShopShelves({ ledger, busy, onSpend }: Props) {
   const standing = effectiveCulture(culture, wardrobe, worn);
 
   const enrolled = ledger.lesson;
-  const previewed = tryingOn ? GARMENTS.find((g) => g.id === tryingOn) ?? null : null;
+  // Only what she does not have can be tried on: a gift already given that is
+  // still named in the address must not read as 「아직 산 건 아니에요」.
+  const previewed =
+    tryingOn && !wardrobe.includes(tryingOn)
+      ? GARMENTS.find((g) => g.id === tryingOn) ?? null
+      : null;
   const shownWorn = previewed ? wearing(worn, previewed) : worn;
 
 

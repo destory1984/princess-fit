@@ -282,7 +282,14 @@ export default function SummaryScreen() {
           girlName={girlOf(workout.diary_by ?? girl.id).name}
           step={firstDay}
           gold={ledger?.house.gold ?? 0}
-          onGift={() => router.push('/shop')}
+          // Straight to the thing the card just named. The shop opens on the
+          // kitchen, and the ribbon is nine rows down another shelf.
+          onGift={() =>
+            router.push({
+              pathname: '/shop',
+              params: firstDay.step === 'invite' ? { gift: firstDay.gift.id } : {},
+            })
+          }
         />
       )}
 

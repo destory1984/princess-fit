@@ -205,7 +205,10 @@ export default function WorkoutScreen() {
   // has gone missing falls back to the default rather than counting as zero.
   const restOfExercise = (exerciseId: string) =>
     exercises.find((e) => e.id === exerciseId)?.rest_sec ?? DEFAULT_REST_SEC;
-  const leftWord = remainingWord(remainingSeconds(sets, restOfExercise));
+  const leftWord = remainingWord(
+    remainingSeconds(sets, restOfExercise),
+    sets.some((s) => s.done),
+  );
 
   const load = useCallback(() => {
     if (!id) return;

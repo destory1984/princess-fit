@@ -53,6 +53,14 @@ test('the last few minutes stop being counted at you', () => {
   assert.equal(remainingWord(280), '거의 다 하셨어요');
 });
 
+test('a short board not yet begun is not almost done', () => {
+  // One movement of three sets is under five minutes before a single set is
+  // ticked. 「거의 다 하셨어요」 over 0/3 praises work nobody has done.
+  assert.equal(remainingWord(280, false), '금방 끝나요');
+  assert.equal(remainingWord(280, true), '거의 다 하셨어요');
+  assert.equal(remainingWord(22 * 60, false), '20분쯤 남았어요');
+});
+
 test('minutes are rounded to something a person would say', () => {
   // Never 37분: the estimate is not good to the minute, and a precise-looking
   // figure invites being held to it.

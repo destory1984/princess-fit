@@ -136,12 +136,14 @@ export function moodOf(house: Household, workouts: WorkoutFact[], today = new Da
   const lastDay = workouts.length
     ? Math.max(...workouts.map((w) => new Date(w.started_at).getTime()))
     : 0;
-  const away = lastDay ? daysBetween(localDayKey(new Date(lastDay)), localDayKey(today)) : 99;
+  // Null when she has never seen a session: there is no day to have been
+  // away since, and missing someone takes having met them.
+  const away = lastDay ? daysBetween(localDayKey(new Date(lastDay)), localDayKey(today)) : null;
 
   if (house.satiety <= 30) return 'hungry';
   if (house.attire <= 30) return 'shabby';
-  if (away >= 4) return 'lonely';
-  if (house.satiety >= 70 && house.attire >= 70 && away <= 1) return 'happy';
+  if (away !== null && away >= 4) return 'lonely';
+  if (house.satiety >= 70 && house.attire >= 70 && away !== null && away <= 1) return 'happy';
   return 'fine';
 }
 

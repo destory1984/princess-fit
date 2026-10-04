@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { ScreenState } from "@/components/ScreenState";
 import { ShopShelves, type Spend } from "@/components/ShopShelves";
 import { explain } from '@/lib/dbError';
@@ -17,6 +17,7 @@ import { useGirl } from '@/lib/girl';
  */
 export default function ShopScreen() {
   const girl = useGirl();
+  const { gift } = useLocalSearchParams<{ gift?: string }>();
   const [ledger, setLedger] = useState<Ledger | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
@@ -60,5 +61,7 @@ export default function ShopScreen() {
 
   if (!ledger) return <ScreenState error={error} onRetry={load} />;
 
-  return <ShopShelves ledger={ledger} busy={busy} onSpend={spend} />;
+  // Keyed by the gift so arriving with one opens its shelf even when the tab
+  // was already open on another.
+  return <ShopShelves key={gift ?? ""} ledger={ledger} busy={busy} onSpend={spend} gift={gift} />;
 }

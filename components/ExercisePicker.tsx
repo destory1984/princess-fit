@@ -18,7 +18,7 @@ import { explain } from '@/lib/dbError';
 import { notify } from '@/lib/confirm';
 import { createExercise, setExerciseFavourite } from '@/lib/db';
 import { sortByUsage, SORT_NAME, type Sort, type UsageMap } from '@/lib/exerciseUsage';
-import { matchesAny } from '@/lib/hangul';
+import { isInitialsOnly, matchesAny } from '@/lib/hangul';
 import { aliasesOf } from '@/lib/aliases';
 import type { Place } from '@/lib/onboarding';
 import { byPlace } from '@/lib/plan';
@@ -255,9 +255,10 @@ export function ExercisePicker({
                 windowSize={5}
                 // Under whatever was found, not only when nothing was: 「한발
                 // 데드」 finds 데드리프트, which is a result and still not the
-                // movement that was typed.
+                // movement that was typed. Not for bare consonants, though:
+                // 「ㅂㅊㅍㄹㅅ」 is a way of searching, never a name.
                 ListFooterComponent={
-                  creatable && query.trim() !== '' ? (
+                  creatable && query.trim() !== '' && !isInitialsOnly(query) ? (
                     <Pressable style={styles.create} onPress={() => setCreating(true)}>
                       <Ionicons name="add-circle-outline" size={18} color={colors.accent} />
                       <Text style={styles.createText}>「{query.trim()}」 직접 만들기</Text>

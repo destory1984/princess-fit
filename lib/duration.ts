@@ -109,12 +109,16 @@ export function estimateWord(seconds: number): string | null {
  * good to the minute and a figure that looks precise invites being held to it.
  * Under five minutes it stops guessing and says so, because at that point the
  * answer to 「얼마나 남았어요」 is 「거의 다 하셨어요」.
+ *
+ * Unless nothing has been done yet. A board of one movement is under five
+ * minutes from the start, and 「거의 다 하셨어요」 over 0/3 is praise for work
+ * nobody did.
  */
-export function remainingWord(seconds: number): string | null {
+export function remainingWord(seconds: number, begun = true): string | null {
   if (seconds <= 0) return null;
   // Measured against the seconds rather than the rounded minutes, so the
   // boundary is where it reads — 4분 40초 is not five minutes to anyone.
-  if (seconds < 5 * 60) return '거의 다 하셨어요';
+  if (seconds < 5 * 60) return begun ? '거의 다 하셨어요' : '금방 끝나요';
   const minutes = Math.round(seconds / 60);
   const rounded = minutes < 60 ? Math.round(minutes / 5) * 5 : Math.round(minutes / 10) * 10;
   if (rounded < 60) return `${rounded}분쯤 남았어요`;

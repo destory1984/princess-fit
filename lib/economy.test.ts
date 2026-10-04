@@ -92,6 +92,13 @@ test('a long absence with a full belly reads as lonely', () => {
   assert.equal(moodOf(house, old, new Date(2026, 8, 20)), 'lonely');
 });
 
+test('someone she has never seen train has not been away', () => {
+  // A new account has no last day to count from. 「며칠 안 보이셔서요」 on the
+  // first morning claims days she never saw.
+  const house: Household = { gold: 150, satiety: 100, attire: 100, settledOn: '2026-09-20' };
+  assert.equal(moodOf(house, [], new Date(2026, 8, 20)), 'fine');
+});
+
 test('the same day always says the same thing', () => {
   const day = new Date(2026, 8, 20);
   assert.equal(messageFor('hungry', day), messageFor('hungry', day));
