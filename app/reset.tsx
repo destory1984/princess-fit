@@ -9,6 +9,7 @@ import {
   TextInput,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import PasswordInput from '@/components/PasswordInput';
 import { notify } from '@/lib/confirm';
 import { explain } from '@/lib/dbError';
 import { supabase } from '@/lib/supabase';
@@ -126,11 +127,9 @@ export default function ResetScreen() {
             value={code}
             onChangeText={setCode}
           />
-          <TextInput
-            style={styles.input}
+          <PasswordInput
+            style={styles.password}
             placeholder="새 비밀번호"
-            placeholderTextColor={colors.textDim}
-            secureTextEntry
             value={password}
             onChangeText={setPassword}
           />
@@ -173,6 +172,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
     lineHeight: 20,
   },
+  password: { marginBottom: spacing.sm },
   input: {
     backgroundColor: colors.surface,
     borderColor: colors.border,

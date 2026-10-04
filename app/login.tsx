@@ -9,6 +9,7 @@ import {
   TextInput,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import PasswordInput from '@/components/PasswordInput';
 import { notify } from '@/lib/confirm';
 import {
   enabledProviders,
@@ -77,11 +78,9 @@ export default function LoginScreen() {
         value={email}
         onChangeText={setEmail}
       />
-      <TextInput
-        style={styles.input}
+      <PasswordInput
+        style={styles.password}
         placeholder="비밀번호"
-        placeholderTextColor={colors.textDim}
-        secureTextEntry
         value={password}
         onChangeText={setPassword}
       />
@@ -150,6 +149,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     marginBottom: spacing.md,
   },
+  password: { marginBottom: spacing.md },
   button: {
     backgroundColor: colors.accent,
     borderRadius: radius.md,
