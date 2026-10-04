@@ -159,7 +159,7 @@ shown = [drawn, piece]
 for girl in GIRLS:
     part = lambda p: Image.open(HERE.parent / 'assets' / 'girls' / f'{girl}_{p}.png').convert('RGBA')  # noqa: E731
     doll = Image.new('RGBA', drawn.size)
-    for layer in (part('body'), part('clothes'), *((part('hair'), piece) if over_hair else (piece, part('hair')))):
+    for layer in (part('body'), part('bottom'), part('feet'), part('top'), *((part('hair'), piece) if over_hair else (piece, part('hair')))):
         doll.alpha_composite(layer)
     shown.append(doll)
 w, h = drawn.size[0] // 2, drawn.size[1] // 2
