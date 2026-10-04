@@ -2,8 +2,8 @@
 #
 # One-time setup in the repository's settings:
 #   Settings → Pages → Source: GitHub Actions
-#   Settings → Environments → EXPO_PUBLIC_SUPABASE_URL → Environment variables
-#   (or Settings → Secrets and variables → Actions → Variables):
+#   Settings → Secrets and variables → Actions → Variables → Repository variables:
+#   (not Environment variables: a job sees those only if it names the environment)
 #     EXPO_PUBLIC_SUPABASE_URL, EXPO_PUBLIC_SUPABASE_ANON_KEY
 # Both are public by design (the anon key ends up in the bundle, and row level
 # security is what guards the data), so they are variables rather than secrets —
@@ -28,10 +28,6 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # The two Supabase values live on an environment, and a job sees an
-    # environment's variables only when it names that environment. The environment
-    # was made by hand with a variable's name for its own; that is its name.
-    environment: EXPO_PUBLIC_SUPABASE_URL
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

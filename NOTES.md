@@ -270,9 +270,9 @@
 - **`404.html`은 `index.html`의 사본이다.** 앱은 한 장짜리(`web.output`의 기본값 `single`)라
   `/refit/shop` 같은 주소 뒤에는 파일이 없다. Pages가 404로 내주는 것이 앱 자신이어야 새로고침이
   된다. `.nojekyll`이 없으면 Jekyll이 `_expo` 폴더를 버린다.
-- **Supabase 주소와 공개용 키는 GitHub의 「환경」 변수에 있다. 환경 이름이 `EXPO_PUBLIC_SUPABASE_URL`이다.**
-  손으로 만들 때 환경 이름 칸에 변수 이름이 들어갔다. 빌드 작업이 그 환경을 이름으로 부른다
-  (`environment:`). 환경의 변수는 그 환경을 부른 작업만 본다 — 처음 세 번의 배포가 여기서 멈췄다.
+- **Supabase 주소와 공개용 키는 GitHub의 저장소 변수(Repository variables)에 있다.** 처음엔 같은
+  화면의 「환경 변수」에 들어갔고, 환경의 변수는 그 환경을 이름으로 부른 작업만 봐서 배포가 세 번
+  멈췄다. 저장소 변수로 옮겼다.
   묶음 파일에 담겨 공개되는 값이지만 저장소 자체에는 넣지 않는다. 변수가 없으면 빌드가 스스로
   멈추고 까닭을 말한다. 배포 결과는 로그인 없이 볼 수 있다:
   `https://api.github.com/repos/destory1984/refit/actions/runs?per_page=1`.
