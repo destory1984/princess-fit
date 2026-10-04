@@ -2251,5 +2251,9 @@ export async function judgeFestival(
     await supabase.from('memories').delete().eq('kind', kind).eq('girl', girl);
     throw e;
   }
+  // Her first cup is its own memory, apart from the month's result: the
+  // result line is one of twelve a year, and the first time is only once.
+  // The key (user, girl, kind) refuses a second, so every win may try.
+  if (result.place === 1) void remember(eventMemory('first_win', result.contestName, day), girl);
   return { result, prize };
 }

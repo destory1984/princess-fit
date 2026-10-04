@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { voiceOf } from './voices.ts';
 import {
   giftMonthLine,
   daysTogether,
@@ -211,4 +212,14 @@ test('a gift on the 31st is a month old on the last day of a shorter month', () 
   // Only gifts: a first day is not a present.
   const first = { kind: 'first_day', day: '2026-09-04', line: '', detail: null } as Memory;
   assert.equal(giftMonthLine([first], new Date(2026, 9, 4)), null);
+});
+
+test('the first cup is a memory of its own, dated to the festival and said back later', () => {
+  const m = eventMemory('first_win', '기사 대회', new Date(2026, 9, 31));
+  assert.equal(m.kind, 'first_win');
+  assert.equal(m.day, '2026-10-31');
+  assert.match(m.line, /처음 우승한 날 — 기사 대회/);
+  for (const girl of ['geumhwa', 'dohwa', 'seora']) {
+    assert.match(voiceOf(girl).recall.first_win!('지난달에', '기사 대회'), /기사 대회/);
+  }
 });

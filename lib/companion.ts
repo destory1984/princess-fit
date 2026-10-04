@@ -61,7 +61,8 @@ export type OnceKind =
   | 'first_lesson'
   | 'first_friend'
   | 'first_sulk'
-  | 'first_makeup';
+  | 'first_makeup'
+  | 'first_win';
 
 /**
  * A gift is remembered by what it was — `gift:<item id>` — so each thing
@@ -219,7 +220,7 @@ export function memoriesFrom(sessions: Session[]): Memory[] {
 
 /** A memory from something bought or made rather than lifted. */
 export function eventMemory(
-  kind: 'first_garment' | 'first_lesson' | 'first_friend' | 'first_sulk' | 'first_makeup',
+  kind: 'first_garment' | 'first_lesson' | 'first_friend' | 'first_sulk' | 'first_makeup' | 'first_win',
   detail: string,
   today = new Date()
 ): Memory {
@@ -229,6 +230,7 @@ export function eventMemory(
     first_friend: `처음으로 친구가 생긴 날 — ${detail}`,
     first_sulk: '처음 토라진 날',
     first_makeup: '처음 화해한 날',
+    first_win: `축제에서 처음 우승한 날 — ${detail}`,
   }[kind];
   return { kind, day: localDayKey(today), line, detail };
 }
