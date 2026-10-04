@@ -6,7 +6,8 @@
 #     EXPO_PUBLIC_SUPABASE_URL, EXPO_PUBLIC_SUPABASE_ANON_KEY
 # Both are public by design (the anon key ends up in the bundle, and row level
 # security is what guards the data), so they are variables rather than secrets —
-# but they stay out of the repository itself.
+# but they stay out of the repository itself. Read from Secrets too, because the
+# two tabs sit side by side and the first attempt put them in the other one.
 name: pages
 
 on:
@@ -38,17 +39,17 @@ jobs:
       - run: npx tsc --noEmit
       - name: Stop if the Supabase variables are missing
         env:
-          URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL }}
-          KEY: ${{ vars.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+          URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL || secrets.EXPO_PUBLIC_SUPABASE_URL }}
+          KEY: ${{ vars.EXPO_PUBLIC_SUPABASE_ANON_KEY || secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
         run: |
           if [ -z "$URL" ] || [ -z "$KEY" ]; then
-            echo "::error::Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY under Settings → Secrets and variables → Actions → Variables."
+            echo "::error::Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY under Settings → Secrets and variables → Actions → Variables (repository variables, not environment variables)."
             exit 1
           fi
       - run: npx expo export -p web
         env:
-          EXPO_PUBLIC_SUPABASE_URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL }}
-          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+          EXPO_PUBLIC_SUPABASE_URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL || secrets.EXPO_PUBLIC_SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.EXPO_PUBLIC_SUPABASE_ANON_KEY || secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
       # Pages runs Jekyll unless told not to, and Jekyll drops Expo's _expo folder.
       # The app is one page that routes in the browser, so a deep link (/refit/shop)
       # has no file behind it: Pages serves 404.html, which is the app itself.
