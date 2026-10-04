@@ -52,5 +52,6 @@
     "postinstall": "patch-package",
     "lint": "expo lint"
   },
+  "license": "SEE LICENSE IN LICENSE",
   "private": true
 }

@@ -1,3 +1,64 @@
+Refit
+Copyright (c) 2026 destory1984
+
+This repository is licensed in three parts.
+
+1. Source code
+   Everything in this repository is licensed under the MIT License below,
+   except the material listed in parts 2 and 3.
+
+2. Reserved: all rights reserved, NOT licensed under the MIT License
+   - The three girls, Rina (리나), Yuki (유키) and Pia (피아): their designs
+     and every drawing of them in assets/girls/ and assets/advisors/, and the
+     body base they are drawn on in assets/outfit/.
+   - The drawings of clothes and accessories in assets/garments/ and
+     assets/outfit/.
+   - The drawing of the room in assets/room.png and of its furniture in
+     assets/room/.
+   - The pictures of the app in docs/img/.
+   You may view this material here, but you may not copy, modify, publish or
+   sell it, or use it in your own work, without written permission from the
+   copyright holder. Forks that reuse the MIT-licensed code must replace the
+   girls, their clothes and the room with their own.
+
+3. Third-party material keeps its own terms.
+   - The project was started from the Expo template. What remains of it — the
+     placeholder icons assets/icon.png, assets/android-icon-*.png,
+     assets/splash-icon.png and assets/favicon.png, and parts of the
+     configuration — is under the MIT License, Copyright (c) 2015-present
+     650 Industries, Inc. (aka Expo). That notice is kept at the end of this
+     file.
+   - The packages listed in package.json are not part of this repository and
+     each keeps its own licence.
+
+--------------------------------------------------------------------------------
+
+MIT License
+
+Copyright (c) 2026 destory1984
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+--------------------------------------------------------------------------------
+
+For the material from the Expo template (part 3):
+
 The MIT License (MIT)
 
 Copyright (c) 2015-present 650 Industries, Inc. (aka Expo)
