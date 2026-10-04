@@ -75,6 +75,11 @@ export function NudgeSetting() {
 
   const silenced = hour !== null && quiet !== null && isQuiet(hour, quiet[0], quiet[1]);
 
+  // A browser cannot be sent her message. The switches here would set a time
+  // for something that never arrives, above a line saying so — the same dead
+  // card the walk counter was on the web. So on the web there is none.
+  if (Platform.OS === 'web') return null;
+
   return (
     <View style={styles.wrap}>
       <View style={styles.head}>
@@ -157,10 +162,6 @@ export function NudgeSetting() {
           </Text>
         )}
       </View>
-
-      {Platform.OS === 'web' && (
-        <Text style={styles.note}>알림은 폰에서만 와요.</Text>
-      )}
     </View>
   );
 }
