@@ -3,6 +3,8 @@ import { Platform, Pressable, StyleSheet, Switch, Text, View } from 'react-nativ
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect } from 'expo-router';
 import { explain } from '@/lib/dbError';
+import { useGirl } from '@/lib/girl';
+import { withParticle } from '@/lib/korean';
 import { notify } from '@/lib/confirm';
 import { cancelDailyMessage } from '@/lib/notify';
 import {
@@ -27,6 +29,8 @@ const QUIET_WINDOWS: [number, number][] = [
 
 /** Whether she sends her one message a day, and when. */
 export function NudgeSetting() {
+  // Whoever is here now sends it. The name was written in as 리나 when she was the only one.
+  const girl = useGirl();
   const [hour, setHour] = useState<number | null>(DEFAULT_NUDGE_HOUR);
   const [quiet, setQuiet] = useState<[number, number] | null>([
     DEFAULT_QUIET_FROM,
@@ -78,11 +82,11 @@ export function NudgeSetting() {
           <Ionicons name="chatbubble-outline" size={22} color={colors.accent} />
         </View>
         <View style={styles.body}>
-          <Text style={styles.title}>리나의 안부</Text>
+          <Text style={styles.title}>{girl.name}의 안부</Text>
           <Text style={styles.sub}>
             {hour === null
               ? '받지 않음'
-              : `매일 ${hour}시, 리나가 한 마디 보내요`}
+              : `매일 ${hour}시, ${withParticle(girl.name, '이가')} 한 마디 보내요`}
           </Text>
         </View>
         <Switch
@@ -127,7 +131,7 @@ export function NudgeSetting() {
         {quiet && (
           <>
             <Text style={styles.quietSub}>
-              {quiet[0]}시부터 {quiet[1]}시까지는 리나가 말을 걸지 않아요.
+              {quiet[0]}시부터 {quiet[1]}시까지는 {withParticle(girl.name, '이가')} 말을 걸지 않아요.
             </Text>
             <View style={styles.row}>
               {QUIET_WINDOWS.map(([from, to]) => {
