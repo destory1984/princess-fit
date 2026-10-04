@@ -223,6 +223,12 @@ export default function PreviewScreen() {
         caption="침대 하나뿐인 방이에요."
       />
 
+      <Text style={styles.heading}>저녁의 방 · 가구를 다 들임</Text>
+      <TrainingHall today={new Date(2026, 9, 5, 18)} furniture={allFurniture} />
+
+      <Text style={styles.heading}>밤의 방 · 가구를 다 들임</Text>
+      <TrainingHall today={new Date(2026, 9, 5, 22)} furniture={allFurniture} />
+
       <Text style={styles.heading}>가구를 다 들인 방 · 드레스 차림</Text>
       <TrainingHall
         today={new Date()}
