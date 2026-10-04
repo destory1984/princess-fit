@@ -46,6 +46,22 @@ if (Platform.OS === "web" && typeof document !== "undefined") {
     body { max-width: 430px; margin: 0 auto; transform: translateX(0); }
   `;
   document.head.appendChild(style);
+
+  // What 「홈 화면에 추가」 reads: her face for the icon and the app's own name
+  // under it, rather than a screenshot of the page and its address. Added here
+  // because the single-page export has no HTML of its own to put them in, and
+  // prefixed by hand because the site lives under /refit on GitHub Pages.
+  // The development server serves from the root whatever the base path is set to.
+  const base = __DEV__ ? "" : (process.env.EXPO_BASE_URL ?? "");
+  const head = (tag: "link" | "meta", attrs: Record<string, string>) => {
+    const node = document.createElement(tag);
+    for (const [name, value] of Object.entries(attrs)) node.setAttribute(name, value);
+    document.head.appendChild(node);
+  };
+  head("link", { rel: "manifest", href: `${base}/manifest.json` });
+  head("link", { rel: "apple-touch-icon", href: `${base}/apple-touch-icon.png` });
+  head("meta", { name: "apple-mobile-web-app-title", content: "프린세스 핏" });
+  head("meta", { name: "theme-color", content: colors.chrome });
 }
 
 function RootNavigator() {

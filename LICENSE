@@ -16,18 +16,18 @@ This repository is licensed in three parts.
    - The drawing of the room in assets/room.png and of its furniture in
      assets/room/.
    - The pictures of the app in docs/img/.
+   - The app icons: assets/icon.png, assets/splash-icon.png, assets/favicon.png,
+     assets/android-icon-*.png, public/icon-*.png and public/apple-touch-icon.png.
    You may view this material here, but you may not copy, modify, publish or
    sell it, or use it in your own work, without written permission from the
    copyright holder. Forks that reuse the MIT-licensed code must replace the
    girls, their clothes and the room with their own.
 
 3. Third-party material keeps its own terms.
-   - The project was started from the Expo template. What remains of it — the
-     placeholder icons assets/icon.png, assets/android-icon-*.png,
-     assets/splash-icon.png and assets/favicon.png, and parts of the
-     configuration — is under the MIT License, Copyright (c) 2015-present
-     650 Industries, Inc. (aka Expo). That notice is kept at the end of this
-     file.
+   - The project was started from the Expo template. What remains of it —
+     parts of the configuration — is under the MIT License, Copyright (c)
+     2015-present 650 Industries, Inc. (aka Expo). That notice is kept at the
+     end of this file.
    - The packages listed in package.json are not part of this repository and
      each keeps its own licence.
 
