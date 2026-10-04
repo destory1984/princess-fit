@@ -4,6 +4,7 @@ import { Greeting } from '@/components/Greeting';
 import { getLedger, listWorkoutFacts } from '@/lib/db';
 import { messageFor, moodOf } from '@/lib/economy';
 import { useGirl } from '@/lib/girl';
+import { adorned } from '@/lib/shop';
 
 /**
  * Where a tapped message lands. The line travels on the notification so she
@@ -23,7 +24,7 @@ export default function GreetingScreen() {
       Promise.all([getLedger(), listWorkoutFacts()])
         .then(([ledger, facts]) => {
           if (!alive) return;
-          setWorn(ledger.worn);
+          setWorn(adorned(ledger.worn, ledger.wardrobe));
           if (!line) setSpoken(messageFor(moodOf(ledger.house, facts), new Date(), 'new', girl.id));
         })
         .catch(() => {

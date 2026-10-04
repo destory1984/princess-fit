@@ -8,7 +8,7 @@ import {
   type StyleProp,
   type ViewStyle,
 } from "react-native";
-import { DOLL_ASPECT, dotGarmentArt } from "@/lib/outfitArt";
+import { accessoryArt, DOLL_ASPECT, dotGarmentArt } from "@/lib/outfitArt";
 import { keepsOwnTop, stackOf, type Garment } from "@/lib/outfit";
 import { useGirl, type Girl } from '@/lib/girl';
 
@@ -17,7 +17,7 @@ import { useGirl, type Girl } from '@/lib/girl';
 const NATIVE_DRIVER = Platform.OS !== 'web';
 
 type Props = {
-  /** Ids of the garments she has on. */
+  /** Ids of the garments she has on, and of the accessories she owns (`adorned`). */
   worn: string[];
   style?: StyleProp<ViewStyle>;
   /**
@@ -91,6 +91,16 @@ export function PaperDoll({ worn, style, idle, girl: visiting }: Props) {
     ) : null;
   };
 
+  // Accessories ride in the same list. They are not garments, so `stackOf`
+  // passes over them and they are picked out here.
+  const trinket = (overHair: boolean) =>
+    worn.map((id) => {
+      const art = accessoryArt(id);
+      return art && art.overHair === overHair ? (
+        <Image key={id} source={art.source} style={styles.layer} resizeMode="contain" />
+      ) : null;
+    });
+
   return (
     <Animated.View style={[styles.doll, style, idle ? drift : null]}>
       <Image source={girl.art.body} style={styles.layer} resizeMode="contain" />
@@ -100,8 +110,10 @@ export function PaperDoll({ worn, style, idle, girl: visiting }: Props) {
         <Image source={girl.art.top} style={styles.layer} resizeMode="contain" />
       )}
       {stack.under.map(layer)}
+      {trinket(false)}
       <Image source={girl.art.hair} style={styles.layer} resizeMode="contain" />
       {stack.over.map(layer)}
+      {trinket(true)}
     </Animated.View>
   );
 }

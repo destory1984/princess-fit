@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { ACCESSORIES, buy, effectiveCulture, FOOD, givenToday, refusalFor, wornCharm } from './shop.ts';
+import { ACCESSORIES, adorned, buy, effectiveCulture, FOOD, givenToday, refusalFor, wornCharm } from './shop.ts';
 import { FURNITURE, ROOM_TOTAL } from './room.ts';
 import { GARMENTS, OUTFIT_TOTAL } from './outfit.ts';
 import { EMPTY_CULTURE, LESSONS } from './lessons.ts';
@@ -151,4 +151,16 @@ test('every effect a shelf advertises actually happens', () => {
     const worn = effectiveCulture(EMPTY_CULTURE, [], [garment.id]);
     assert.equal(worn.charm, garment.charm, `${garment.id} adds the charm it says`);
   }
+});
+
+test('an accessory shows on her from the day it is given', () => {
+  // There is no wearing or taking off an accessory: its charm counts once it
+  // is owned, so the drawing has to show it then too.
+  assert.deepEqual(adorned(['ribbon'], ['ribbon', 'tiara', 'gown']), ['ribbon', 'tiara']);
+  assert.deepEqual(adorned([], []), []);
+});
+
+test('she takes her accessories off to train', async () => {
+  const { dressedFor } = await import('./outfit.ts');
+  assert.deepEqual(dressedFor(adorned(['ribbon', 'gown'], ['tiara', 'gloves']), 'gym'), ['ribbon']);
 });

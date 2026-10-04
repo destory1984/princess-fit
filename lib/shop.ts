@@ -110,6 +110,17 @@ export function buy(item: Item, house: Household, wardrobe: string[]): Purchase 
   return { house: { ...house, gold }, wardrobe: [...wardrobe, item.id] };
 }
 
+/**
+ * Everything to draw on her: what she has on, and every accessory she owns.
+ *
+ * An accessory has no putting on or taking off — its charm counts from the day
+ * it is given (`wornCharm`), so that is also the day it shows. For the doll
+ * only: charm is still reckoned from `worn` and the wardrobe separately.
+ */
+export function adorned(worn: string[], wardrobe: string[]): string[] {
+  return [...worn, ...ACCESSORIES.filter((a) => wardrobe.includes(a.id)).map((a) => a.id)];
+}
+
 /** Charm earned by what she is wearing, on top of what lessons taught. */
 export function wornCharm(wardrobe: string[]) {
   return ACCESSORIES.filter((a) => wardrobe.includes(a.id)).reduce((s, a) => s + (a.charm ?? 0), 0);

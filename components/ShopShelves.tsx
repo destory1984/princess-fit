@@ -42,6 +42,7 @@ import {
 } from "@/lib/room";
 import {
   ACCESSORIES,
+  adorned,
   effectiveCulture,
   FOOD,
   givenToday,
@@ -166,7 +167,10 @@ function ItemRow({ item, shop }: { item: Item; shop: Shop }) {
     <Row
       id={item.id}
       busy={shop.busy}
-      icon={item.icon}
+      // An accessory has a drawing, so the row shows the thing itself, and the
+      // badge on its corner says only that she already has it.
+      picture={shelfArt(item.id)}
+      icon={shelfArt(item.id) ? (refusal === "owned" ? "checkmark" : PLAIN_GARMENT) : item.icon}
       name={item.name}
       detail={item.detail}
       price={item.price}
@@ -396,7 +400,7 @@ export function ShopShelves({ ledger, busy, onSpend, gift }: Props) {
       {shelf === "옷장" && (
         <>
           <View style={styles.dollRow}>
-            <PaperDoll worn={shownWorn} style={styles.doll} />
+            <PaperDoll worn={adorned(shownWorn, wardrobe)} style={styles.doll} />
             <View style={styles.dollBody}>
               <Text style={styles.hint}>
                 {previewed
@@ -458,9 +462,11 @@ export function ShopShelves({ ledger, busy, onSpend, gift }: Props) {
       {shelf === "장신구" && (
         <>
           <Text style={styles.hint}>
-            옷만큼 비싸지 않고, 매력이 조금씩 붙어요. 아직 그림이 없어서 리나가
-            걸친 모습은 보이지 않아요.
+            옷만큼 비싸지 않고, 매력이 조금씩 붙어요. 받은 날부터 늘 하고 있어요.
           </Text>
+          <View style={styles.dollRow}>
+            <PaperDoll worn={adorned(worn, wardrobe)} style={styles.doll} />
+          </View>
           {ACCESSORIES.map((item) => (
             <ItemRow key={item.id} item={item} shop={shop} />
           ))}

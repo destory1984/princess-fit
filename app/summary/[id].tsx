@@ -33,6 +33,7 @@ import { getGoal, getPlace, getWeeklyGoal } from '@/lib/prefs';
 import { computeStats } from '@/lib/character';
 import { summarise, type WorkoutFact } from '@/lib/gamification';
 import type { Workout } from '@/lib/types';
+import { adorned } from '@/lib/shop';
 import { colors, radius, spacing } from '@/lib/theme';
 
 export default function SummaryScreen() {
@@ -299,7 +300,7 @@ export default function SummaryScreen() {
         items={items}
         fact={fact}
         summary={summary}
-        worn={ledger?.worn ?? []}
+        worn={ledger ? adorned(ledger.worn, ledger.wardrobe) : []}
       />
 
       {/* On the first day her entry is at the top, large; not said twice. */}

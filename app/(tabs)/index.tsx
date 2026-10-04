@@ -25,6 +25,7 @@ import type { Condition } from '@/lib/condition';
 import type { Enrolment } from '@/lib/lessons';
 import { roomMood } from '@/lib/room';
 import { dressedFor } from '@/lib/outfit';
+import { adorned } from '@/lib/shop';
 import type { Seen } from '@/lib/notice';
 import { recoveryOf } from '@/lib/recovery';
 import {
@@ -216,7 +217,8 @@ export default function TodayScreen() {
 
         getLedger()
           .then(async (ledger) => {
-            const { house: h, furniture: mine, worn: dressed, lesson: course } = ledger;
+            const { house: h, furniture: mine, lesson: course } = ledger;
+            const dressed = adorned(ledger.worn, ledger.wardrobe);
             void readFestival(ledger);
             setHouse(h);
             setFurniture(mine);

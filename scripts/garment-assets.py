@@ -153,7 +153,7 @@ if box:
 
 # To look at: the drawing as it came, the piece alone, then on each girl. Above the hair
 # for what is worn on the head or held, under it for everything else — as the app stacks.
-over_hair = name in ('ribbon', 'bouquet')
+over_hair = name in ('ribbon', 'bouquet', 'tiara')
 gap = 16
 shown = [drawn, piece]
 for girl in GIRLS:

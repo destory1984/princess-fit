@@ -114,6 +114,9 @@ const SHELF_ART: Record<string, number> = {
   trousers_blue: require('../assets/garments/trousers_blue_shelf.png'),
   necklace: require('../assets/garments/necklace_shelf.png'),
   bouquet: require('../assets/garments/bouquet_shelf.png'),
+  brooch: require('../assets/garments/brooch_shelf.png'),
+  gloves: require('../assets/garments/gloves_shelf.png'),
+  tiara: require('../assets/garments/tiara_shelf.png'),
 };
 
 export function shelfArt(garmentId: string): number | undefined {
@@ -137,4 +140,19 @@ export function garmentArt(garmentId: string): Art {
   const art = GARMENT_ART[garmentId];
   if (!art) throw new Error(`no art for garment ${garmentId}`);
   return art;
+}
+
+/**
+ * Accessories on the girls' canvas, keyed by item id (lib/shop.ts). Drawn like a
+ * garment, but she has one on from the day it is given (`adorned`). `overHair`
+ * is for what sits on her head: under the hair a tiara is no tiara.
+ */
+const ACCESSORY_ART: Record<string, { source: number; overHair: boolean }> = {
+  brooch: { source: require('../assets/garments/brooch.png'), overHair: false },
+  gloves: { source: require('../assets/garments/gloves.png'), overHair: false },
+  tiara: { source: require('../assets/garments/tiara.png'), overHair: true },
+};
+
+export function accessoryArt(itemId: string) {
+  return ACCESSORY_ART[itemId];
 }
