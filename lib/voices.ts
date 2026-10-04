@@ -38,6 +38,8 @@ export type Voice = {
     starts: (name: string) => string;
     lastDay: (name: string) => string;
     twoLeft: (name: string) => string;
+    /** The notice on the last evening, booked the day the course is paid for. */
+    over: (name: string) => string;
   };
   /** Said on the day it happens. `d` is the memory's detail. */
   fresh: Record<OnceKind, (d: string) => string>;
@@ -139,6 +141,20 @@ export type Voice = {
    * she never did. The others speak the same at every stage and leave it out.
    */
   insightEased?: Voice['insight'];
+  /**
+   * Beside the board while you train (lib/cheer.ts). `left` is the sets still
+   * to do. Counting is all she does here: the board is the only thing she can see.
+   */
+  cheer: {
+    pick: string;
+    first: string;
+    going: (left: number) => string;
+    half: (left: number) => string;
+    last: string;
+    done: string;
+  };
+  /** The same once comfortable, for a girl whose speech thaws (Yuki). */
+  cheerEased?: Voice['cheer'];
 };
 
 const rina: Voice = {
@@ -185,6 +201,7 @@ const rina: Voice = {
     // Said as something she is doing, not as a bare noun with a number after
     // it. 「예의범절, 이제 이틀 남았어요」 is a calendar entry.
     twoLeft: (n) => `${n} 배우는 중이에요. 이제 이틀 남았어요.`,
+    over: (n) => `${n}, 오늘로 끝났어요. 배운 건 어디 안 가니까요.`,
   },
   fresh: {
     first_day: () => '오늘 처음 뵈었네요. 앞으로 잘 부탁드려요.',
@@ -309,6 +326,14 @@ const rina: Voice = {
     fickle: ['오늘은 저예요? …내일은 또 누굴까요.', '오셨네요. 이번엔 오래 계실 건가요?'],
     madeUp: ['오늘 와 주셔서… 이제 괜찮아요. 정말로요.', '됐어요. 서운했던 거, 오늘로 다 풀렸어요.'],
   },
+  cheer: {
+    pick: '종목을 하나 골라볼까요?',
+    first: '첫 세트가 제일 무거워요. 가볍게 시작해요.',
+    going: (left) => `좋아요, 그 속도예요. ${left}세트 남았어요.`,
+    half: (left) => `절반 넘었어요. ${left}세트 남았어요.`,
+    last: '마지막 한 세트예요. 여기까지 왔잖아요.',
+    done: '다 끝냈어요! 오늘 정말 잘하셨어요.',
+  },
 };
 
 const pia: Voice = {
@@ -349,6 +374,7 @@ const pia: Voice = {
     starts: (n) => `오늘부터 ${n} 배우러 가요! 두근두근!`,
     lastDay: (n) => `${n} 수업, 오늘이 마지막이에요! 끝까지 신나게 할게요!`,
     twoLeft: (n) => `${n} 배우는 중이에요! 이틀만 더 가면 돼요!`,
+    over: (n) => `${n} 수업 끝났어요! 배운 거 보여 드릴게요!`,
   },
   fresh: {
     first_day: () => '처음 뵙겠습니다! 앞으로 매일매일 손 흔들게요!',
@@ -470,6 +496,14 @@ const pia: Voice = {
     fickle: ['또 바꿨죠? 이번 주에만 몇 번째예요! 흥!', '저 이번 주 몇 번째 선수예요? 세고 있거든요!'],
     madeUp: ['됐어요, 풀렸어요! 오늘 기록 보고 다 용서했어요!', '화해 기념 기록! 이건 제가 따로 적어 둘 거예요!'],
   },
+  cheer: {
+    pick: '뭐부터 할까요? 하나 골라요!',
+    first: '자, 첫 세트! 시작이 반이에요!',
+    going: (left) => `좋아요, 붙었어요! ${left}세트 남았어요!`,
+    half: (left) => `절반 넘겼어요! ${left}세트만 더요!`,
+    last: '마지막 한 세트! 여기서 물러나면 안 돼요!',
+    done: '다 했어요! 오늘은 우리가 이겼어요!',
+  },
 };
 
 const yuki: Voice = {
@@ -510,6 +544,7 @@ const yuki: Voice = {
     starts: (n) => `오늘부터 ${n} 수업에 나갑니다. 결석은 없습니다.`,
     lastDay: (n) => `${n} 수업은 오늘로 끝입니다. 마무리까지 정확하게 하겠습니다.`,
     twoLeft: (n) => `${n} 수업, 이틀 남았습니다. 흐트러지지 않겠습니다.`,
+    over: (n) => `${n} 수업을 마쳤습니다. 배운 것은 잊지 않겠습니다.`,
   },
   fresh: {
     first_day: () => '처음 뵙겠습니다. 빠진 날, 빠진 부위, 전부 적어 두겠습니다.',
@@ -643,6 +678,22 @@ const yuki: Voice = {
     ],
     fickle: ['이번 주에 몇 번 바꾸셨는지 세고 있습니다. 결정은 신중히 하십시오.'],
     madeUp: ['…오늘 기록, 확인했습니다. 됐습니다. 없던 일로 하겠습니다.'],
+  },
+  cheer: {
+    pick: '종목을 하나 고르십시오.',
+    first: '첫 세트입니다. 서두르지 않으셔도 됩니다.',
+    going: (left) => `${left}세트 남았습니다. 그대로 가십시오.`,
+    half: (left) => `절반을 넘었습니다. ${left}세트 남았습니다.`,
+    last: '마지막 한 세트입니다. 끝까지 적어 두겠습니다.',
+    done: '모두 마쳤습니다. 수고하셨습니다.',
+  },
+  cheerEased: {
+    pick: '종목을 하나 골라 주세요.',
+    first: '첫 세트예요. 서두르지 않아도 돼요.',
+    going: (left) => `${left}세트 남았어요. 그대로 가요.`,
+    half: (left) => `절반 넘었어요. ${left}세트 남았어요.`,
+    last: '마지막 한 세트예요. 끝까지 적어 둘게요.',
+    done: '다 마쳤어요. 수고했어요.',
   },
 };
 

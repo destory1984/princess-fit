@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { Greeting } from '@/components/Greeting';
-import { getLedger, listWorkoutFacts } from '@/lib/db';
+import { getBond, getLedger, listWorkoutFacts } from '@/lib/db';
 import { messageFor, moodOf } from '@/lib/economy';
 import { useGirl } from '@/lib/girl';
 import { adorned } from '@/lib/shop';
@@ -21,11 +21,13 @@ export default function GreetingScreen() {
   useFocusEffect(
     useCallback(() => {
       let alive = true;
-      Promise.all([getLedger(), listWorkoutFacts()])
-        .then(([ledger, facts]) => {
+      // The bond is how she speaks at this stage. Without it she speaks as at
+      // the first, which is what this screen always did until 2026-10-04.
+      Promise.all([getLedger(), listWorkoutFacts(), getBond(girl.id).catch(() => null)])
+        .then(([ledger, facts, bond]) => {
           if (!alive) return;
           setWorn(adorned(ledger.worn, ledger.wardrobe));
-          if (!line) setSpoken(messageFor(moodOf(ledger.house, facts), new Date(), 'new', girl.id));
+          if (!line) setSpoken(messageFor(moodOf(ledger.house, facts), new Date(), bond?.stage ?? 'new', girl.id));
         })
         .catch(() => {
           // She still shows up; only the outfit and the fallback line are lost.

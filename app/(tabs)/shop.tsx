@@ -8,6 +8,7 @@ import { getLedger, type Ledger } from "@/lib/db";
 import { thanksFor } from "@/lib/economy";
 import { courseTrip } from "@/lib/lessons";
 import { scheduleLessonTrip } from "@/lib/notify";
+import { voiceOf } from "@/lib/voices";
 import { useGirl } from '@/lib/girl';
 
 /**
@@ -48,7 +49,10 @@ export default function ShopScreen() {
       if (kind === "lesson" && next.lesson) {
         void scheduleLessonTrip(
           girl.name,
-          label,
+          {
+            leaves: voiceOf(girl.id).lesson.starts(label),
+            returns: voiceOf(girl.id).lesson.over(label),
+          },
           courseTrip(next.lesson),
         ).catch(() => {});
       }

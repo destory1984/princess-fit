@@ -44,3 +44,13 @@ test('only the line that asks for something says it is asking', () => {
 test('an inviting line is phrased as a question, so tapping it makes sense', () => {
   assert.ok(cheerFor(0, 0).line.endsWith('?'));
 });
+
+test('each girl cheers in her own voice, and 유키 thaws with the stage', () => {
+  const lines = ['geumhwa', 'dohwa', 'seora'].map((girl) => cheerFor(1, 5, girl).line);
+  assert.equal(new Set(lines).size, 3);
+  for (const line of lines) assert.match(line, /4세트/);
+  assert.match(cheerFor(1, 5, 'seora').line, /습니다|십시오/);
+  assert.doesNotMatch(cheerFor(1, 5, 'seora', 'comfortable').line, /습니다|십시오/);
+  // Whatever the voice, the empty board is still a question that can be tapped.
+  assert.equal(cheerFor(0, 0, 'seora').invites, true);
+});

@@ -42,7 +42,8 @@ export async function ensureNotificationPermission() {
   if (Platform.OS === 'android') {
     // Android 13+ wants the channel to exist before the prompt.
     await Notifications.setNotificationChannelAsync(CHANNEL, {
-      name: '리나의 안부',
+      // Not her name: the channel is made once and outlives a change of girl.
+      name: '아이의 안부',
       importance: Notifications.AndroidImportance.DEFAULT,
       vibrationPattern: [0, 200],
     });
@@ -105,19 +106,18 @@ function said(speaker: string, body: string) {
   return { title: speaker, body, data: { line: body } };
 }
 
-const goodbye = (speaker: string, lesson: string) =>
-  said(speaker, `오늘부터 ${lesson} 배우러 다녀요.`);
-
-const welcome = (speaker: string, lesson: string) =>
-  said(speaker, `${lesson}, 오늘로 끝났어요. 배운 건 어디 안 가니까요.`);
-
 /**
  * A course is days of going every morning: she says so on the first and tells
  * you it is over on the last. Two one-off messages, booked when the course is
  * paid for — nothing checks in between, so what she says at the end is written
  * at the start.
  */
-export async function scheduleLessonTrip(speaker: string, lesson: string, trip: Trip) {
+export async function scheduleLessonTrip(
+  speaker: string,
+  /** What she says on the first morning and the last evening, in her own voice. */
+  lines: { leaves: string; returns: string },
+  trip: Trip
+) {
   if (!supported) return false;
   if (!(await ensureNotificationPermission())) return false;
 
@@ -125,7 +125,7 @@ export async function scheduleLessonTrip(speaker: string, lesson: string, trip: 
   const at = (moment: Date) => (quiet ? whenAudible(moment, quiet[0], quiet[1]) : moment);
 
   await Notifications.scheduleNotificationAsync({
-    content: goodbye(speaker, lesson),
+    content: said(speaker, lines.leaves),
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DATE,
       date: at(trip.leaves),
@@ -133,7 +133,7 @@ export async function scheduleLessonTrip(speaker: string, lesson: string, trip: 
     },
   });
   await Notifications.scheduleNotificationAsync({
-    content: welcome(speaker, lesson),
+    content: said(speaker, lines.returns),
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DATE,
       date: at(trip.returns),

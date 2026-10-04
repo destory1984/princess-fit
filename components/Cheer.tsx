@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Portrait } from '@/components/Portrait';
@@ -5,6 +6,8 @@ import { cheerFor } from '@/lib/cheer';
 import { offerWord, type Suggestion } from '@/lib/suggest';
 import { colors, paper, radius, spacing } from '@/lib/theme';
 import { useGirl } from '@/lib/girl';
+import { getBond } from '@/lib/db';
+import type { Stage } from '@/lib/companion';
 
 type Props = {
   doneSets: number;
@@ -18,7 +21,7 @@ type Props = {
 };
 
 /**
- * 리나, beside the board, saying how it is going.
+ * Her, beside the board, saying how it is going.
  *
  * The workout screen is otherwise numbers and steppers — a spreadsheet you
  * happen to sweat next to. One face and one line is enough to make it someone
@@ -32,7 +35,19 @@ export function Cheer({
   onAccept,
 }: Props) {
   const girl = useGirl();
-  const { line, done, invites } = cheerFor(doneSets, totalSets);
+  // How close the two of them are, because one of the girls speaks by it.
+  // Until it answers she uses the first stage's words.
+  const [stage, setStage] = useState<Stage>('new');
+  useEffect(() => {
+    let alive = true;
+    getBond(girl.id)
+      .then((bond) => alive && setStage(bond.stage))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [girl.id]);
+  const { line, done, invites } = cheerFor(doneSets, totalSets, girl.id, stage);
   // 「종목을 하나 골라볼까요?」 read as a button and was not one. A question you
   // cannot answer by tapping it is a question only in shape — and now that the
   // app knows what has rested, where you train and what you use, handing back
