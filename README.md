@@ -67,6 +67,20 @@ npx expo start
 
 웹에서만 다르게 도는 것이 있다. `Alert`는 아무 일도 하지 않고(`lib/confirm.ts`가 대신한다), 숫자 자판, 햅틱, 걸음 수, 안전 영역은 폰에서만 드러난다.
 
+## 웹으로 배포
+
+`master`에 푸시하면 GitHub Actions(`.github/workflows/pages.yml`)가 시험 3종 가운데 둘(시험, 타입)을
+돌리고 웹판을 빌드해 GitHub Pages에 올린다. 주소는 `https://<계정>.github.io/refit/`이다.
+
+저장소 설정에서 한 번만 해 둘 것 두 가지.
+
+1. Settings → Pages → Source를 「GitHub Actions」로 고른다.
+2. Settings → Secrets and variables → Actions → Variables에 `EXPO_PUBLIC_SUPABASE_URL`과
+   `EXPO_PUBLIC_SUPABASE_ANON_KEY`를 넣는다. 둘 다 공개되어도 되는 값이라 Secrets가 아니라
+   Variables에 둔다.
+
+웹판에서는 알림, 걸음 수, 헬스 커넥트가 되지 않는다.
+
 ## AI 조언 (선택)
 
 운동을 마치면 아이가 조언을 한마디 한다. 모델이 없으면 규칙으로 지은 조언이 나오므로 설정하지 않아도 된다. 모델의 답에 든 숫자가 넘겨준 기록 안에 없으면 그 답은 버리고 규칙의 답을 쓴다.
