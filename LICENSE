@@ -15,7 +15,11 @@ This repository is licensed in three parts.
      assets/outfit/.
    - The drawing of the room in assets/room.png and of its furniture in
      assets/room/.
-   - The pictures of the app in docs/img/.
+   - The drawings of the girls doing each exercise in assets/moves/.
+   - The drawings of the shop's dishes and lessons in assets/shop/.
+   - The drawings of the festival's rivals and its trophy in assets/rivals/.
+   - The pictures of the app in docs/img/, and the link preview picture
+     public/og.jpg.
    - The app icons: assets/icon.png, assets/splash-icon.png, assets/favicon.png,
      assets/android-icon-*.png, public/icon-*.png and public/apple-touch-icon.png.
    You may view this material here, but you may not copy, modify, publish or
