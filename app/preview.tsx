@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Redirect } from 'expo-router';
 import { Advisor } from '@/components/Advisor';
+import { MoveDemo } from '@/components/MoveDemo';
+import { MOVE_NAMES } from '@/lib/moves';
 import { messageFor } from '@/lib/economy';
 import { faceArt } from '@/lib/outfitArt';
 import { voiceOf } from '@/lib/voices';
@@ -233,6 +235,17 @@ export default function PreviewScreen() {
           {face === 'sulky' ? voiceOf(girl.id).sulk.fickle[0] : messageFor(face, new Date(), 'new', girl.id)}
         </Advisor>
       ))}
+
+      {/* Every movement that has been drawn; one with no strip yet draws nothing. */}
+      <Text style={styles.heading}>종목 시범</Text>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+        {MOVE_NAMES.map((name) => (
+          <View key={name} style={{ width: '33%', alignItems: 'center' }}>
+            <MoveDemo name={name} size={110} />
+            <Text style={{ fontSize: 11 }}>{name}</Text>
+          </View>
+        ))}
+      </View>
 
       <Text style={styles.heading}>지갑</Text>
       <Purse house={house} opensShop />

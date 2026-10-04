@@ -5,6 +5,7 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { BodyMap, workedParts } from '@/components/BodyMap';
 import { LineChart } from '@/components/LineChart';
 import { Advisor } from '@/components/Advisor';
+import { MoveDemo } from '@/components/MoveDemo';
 import { MuscleTag } from '@/components/MuscleTag';
 import { OrnateFrame } from '@/components/OrnateFrame';
 import { ScreenState } from '@/components/ScreenState';
@@ -191,6 +192,12 @@ export default function ExerciseScreen() {
               color={exercise.favourite ? colors.accent : colors.faint}
             />
           </Pressable>
+        </View>
+
+        {/* What it is, before which muscles it works: the name alone means
+            nothing to someone who has never done it. */}
+        <View style={styles.demo}>
+          <MoveDemo name={exercise.name} />
         </View>
 
         <View style={styles.body}>
@@ -393,6 +400,7 @@ function Stat({ value, label }: { value: string; label: string }) {
 }
 
 const styles = StyleSheet.create({
+  demo: { alignItems: 'center' },
   restRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   restValue: { color: colors.text, fontSize: 24, fontWeight: '800' },
   restButtons: { flexDirection: 'row', gap: spacing.xs, marginLeft: 'auto' },
