@@ -3,6 +3,7 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { Greeting } from '@/components/Greeting';
 import { getBond, getLedger, listWorkoutFacts } from '@/lib/db';
 import { messageFor, moodOf } from '@/lib/economy';
+import { faceArt } from '@/lib/outfitArt';
 import { useGirl } from '@/lib/girl';
 import { adorned } from '@/lib/shop';
 
@@ -17,6 +18,7 @@ export default function GreetingScreen() {
   const girl = useGirl();
   const [worn, setWorn] = useState<string[]>([]);
   const [spoken, setSpoken] = useState(line ?? '');
+  const [portrait, setPortrait] = useState<number | undefined>(undefined);
 
   useFocusEffect(
     useCallback(() => {
@@ -27,7 +29,13 @@ export default function GreetingScreen() {
         .then(([ledger, facts, bond]) => {
           if (!alive) return;
           setWorn(adorned(ledger.worn, ledger.wardrobe));
-          if (!line) setSpoken(messageFor(moodOf(ledger.house, facts), new Date(), bond?.stage ?? 'new', girl.id));
+          // A tapped message was written yesterday, in a mood nobody kept; only
+          // the line she makes up now has a face that is known to go with it.
+          if (!line) {
+            const mood = moodOf(ledger.house, facts);
+            setSpoken(messageFor(mood, new Date(), bond?.stage ?? 'new', girl.id));
+            setPortrait(faceArt(girl.id, mood));
+          }
         })
         .catch(() => {
           // She still shows up; only the outfit and the fallback line are lost.
@@ -39,6 +47,6 @@ export default function GreetingScreen() {
   );
 
   return (
-    <Greeting worn={worn} line={spoken || '왔어요?'} onDone={() => router.replace('/')} />
+    <Greeting worn={worn} line={spoken || '왔어요?'} portrait={portrait} onDone={() => router.replace('/')} />
   );
 }

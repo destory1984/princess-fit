@@ -6,6 +6,7 @@ import { cheerFor } from '@/lib/cheer';
 import { offerWord, type Suggestion } from '@/lib/suggest';
 import { colors, paper, radius, spacing } from '@/lib/theme';
 import { useGirl } from '@/lib/girl';
+import { faceArt } from '@/lib/outfitArt';
 import { getBond } from '@/lib/db';
 import type { Stage } from '@/lib/companion';
 
@@ -57,7 +58,8 @@ export function Cheer({
 
   const head = (
     <>
-      <Portrait source={girl.base} size={40} active={done} />
+      {/* Finishing is the one thing here she is plainly glad of. */}
+      <Portrait source={done ? faceArt(girl.id, 'happy') : girl.base} size={40} active={done} />
       <View style={styles.body}>
         <Text style={styles.name}>{girl.name}</Text>
         <Text style={styles.line}>{offering ? offerWord(suggestion!) : line}</Text>

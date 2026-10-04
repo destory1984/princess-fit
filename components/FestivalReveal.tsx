@@ -5,6 +5,7 @@ import { Advisor } from '@/components/Advisor';
 import { festivalTitle, rivalRemark, type Result } from '@/lib/festival';
 import { Portrait } from '@/components/Portrait';
 import { rivalArt, TROPHY } from '@/lib/festivalArt';
+import { faceArt } from '@/lib/outfitArt';
 import { voiceOf } from '@/lib/voices';
 import { colors, paper, spacing } from '@/lib/theme';
 
@@ -91,7 +92,7 @@ export function FestivalReveal({ result, girl, prize, animate }: Props) {
               <Text style={styles.remarkName}>{remark.name}</Text> 「{remark.line}」
             </Text>
           )}
-          <Advisor name={girl.name} portrait={girl.base}>
+          <Advisor name={girl.name} portrait={result.place === 1 ? faceArt(girl.id, 'happy') : girl.base}>
             {said}
           </Advisor>
           {prize ? (

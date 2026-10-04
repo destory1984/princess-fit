@@ -55,6 +55,7 @@ import {
   latestFestival,
   nextFestival,
   standingAt,
+  trophiesOf,
   type ContestId,
 } from '@/lib/festival';
 import { withParticle } from '@/lib/korean';
@@ -394,6 +395,7 @@ export default function TodayScreen() {
             // Mid-workout she is at the gym with you, and dressed for it.
             worn={dressedFor(worn, active ? 'gym' : 'home')}
             caption={roomMood(furniture)}
+            trophies={trophiesOf(bond?.memories ?? [])}
           />
           {house && (
             <Pressable onPress={() => router.push('/shop')}>

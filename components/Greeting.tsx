@@ -8,6 +8,8 @@ import { useGirl } from '@/lib/girl';
 const ROOM = require("../assets/room.png");
 
 type Props = {
+  /** Her face for this line, when the caller knows her mood. Her everyday one otherwise. */
+  portrait?: number;
   /** What she has on. */
   worn: string[];
   /** What she says — the exact line that was tapped. */
@@ -22,7 +24,7 @@ type Props = {
  * fills a phone. She breathes rather than posing — a greeting wave would mean
  * drawing her again, and drift costs nothing.
  */
-export function Greeting({ worn, line, onDone }: Props) {
+export function Greeting({ worn, line, portrait, onDone }: Props) {
   const girl = useGirl();
   const [stage, setStage] = useState({ width: 0, height: 0 });
   const height = stage.height * 0.96;
@@ -45,7 +47,7 @@ export function Greeting({ worn, line, onDone }: Props) {
         )}
       </View>
 
-      <Advisor name={girl.name} portrait={girl.base}>
+      <Advisor name={girl.name} portrait={portrait ?? girl.base}>
         {line}
       </Advisor>
 

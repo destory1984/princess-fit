@@ -507,6 +507,19 @@ export function festivalMemory(result: Result): Memory {
   };
 }
 
+/** The most cups the room shows. More are won; the sill holds three. */
+export const TROPHIES_SHOWN = 3;
+
+/**
+ * How many cups stand in her room: one for each festival she came first in,
+ * read from the same memory lines that keep the results. Nothing new is stored,
+ * so a win from before the cup was drawn stands there too.
+ */
+export function trophiesOf(memories: Pick<Memory, 'kind' | 'detail'>[]): number {
+  const won = memories.filter((m) => m.kind.startsWith('festival:') && parseResult(m.detail ?? null)?.place === 1);
+  return Math.min(TROPHIES_SHOWN, won.length);
+}
+
 export function festivalTitle(r: Pick<Result, 'key' | 'festival'>) {
   return `${Number(r.key.slice(5))}월 ${r.festival}`;
 }

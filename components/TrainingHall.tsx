@@ -4,12 +4,18 @@ import { OrnateFrame } from "@/components/OrnateFrame";
 import { PaperDoll } from "@/components/PaperDoll";
 import { STAT_META, STAT_ORDER, type Stats } from "@/lib/character";
 import { artFor } from "@/lib/furnitureArt";
+import { TROPHY } from "@/lib/festivalArt";
 import { DOLL_ASPECT } from "@/lib/outfitArt";
 import { roomContents } from "@/lib/room";
 import type { Girl } from "@/lib/girl";
 import { colors, paper } from "@/lib/theme";
 
 const ROOM = require("../assets/room.png");
+
+// Where the first cup stands on the sill, as fractions of the room, and how far
+// along the next one is. Placed by eye against the room art (the sill runs from
+// 0.52 to 0.70 across, at 0.56 down).
+const TROPHY_AT = { x: 0.535, y: 0.475, w: 0.05, step: 0.055 };
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -35,6 +41,8 @@ type Props = Partial<Status> & {
   worn?: string[];
   /** A line about how furnished the room is, shown beneath it. */
   caption?: string;
+  /** Cups she has won at the festival (lib/festival.ts trophiesOf), stood on the window sill. */
+  trophies?: number;
 };
 
 /** The main hall: a room you stand in, with plaques pinned to its corners. */
@@ -51,6 +59,7 @@ export function TrainingHall({
   worn = [],
   caption,
   girl,
+  trophies = 0,
 }: Props) {
   // Everything in the scene — the girl, every piece of furniture — is placed
   // as a fraction of it, so the scene has to be exactly the artwork's 3:2.
@@ -103,6 +112,29 @@ export function TrainingHall({
                 />
               );
             })}
+
+          {/*
+            What she won, where it can be seen from the door: on the window
+            sill, behind the bench and clear of the curtains. Won, never
+            bought, so it is not furniture and has no slot.
+          */}
+          {scene.width > 0 &&
+            Array.from({ length: trophies }, (_, i) => (
+              <Image
+                key={`trophy-${i}`}
+                source={TROPHY}
+                resizeMode="contain"
+                style={[
+                  styles.piece,
+                  {
+                    left: scene.width * (TROPHY_AT.x + i * TROPHY_AT.step),
+                    top: scene.height * TROPHY_AT.y,
+                    width: scene.width * TROPHY_AT.w,
+                    height: scene.width * TROPHY_AT.w,
+                  },
+                ]}
+              />
+            ))}
 
           {/* Without the shadow she floats a little above the floorboards. */}
           <View style={styles.girlShadow} />

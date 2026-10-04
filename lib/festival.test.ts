@@ -7,6 +7,8 @@ import {
   festivalDay,
   festivalIndex,
   festivalMemory,
+  trophiesOf,
+  TROPHIES_SHOWN,
   formOf,
   isFestival,
   judge,
@@ -427,4 +429,17 @@ test('every rival can speak either way, and none of them sneers', () => {
       assert.doesNotMatch(loss.line, /못났|한심|별것/, loss.line);
     }
   }
+});
+
+test('a cup stands in her room for each festival she won, and only for those', () => {
+  const line = (key: string, place: number) => ({ kind: `festival:${key}`, detail: JSON.stringify({ place, entries: [] }) });
+  const other = { kind: 'first_day', detail: null };
+  assert.equal(trophiesOf([]), 0);
+  assert.equal(trophiesOf([line('2026-09', 3), other] as never), 0);
+  assert.equal(trophiesOf([line('2026-09', 1), line('2026-10', 2), line('2026-11', 1)] as never), 2);
+  // The sill holds only so many, however many were won.
+  const many = ['01', '02', '03', '04', '05'].map((m) => line(`2027-${m}`, 1));
+  assert.equal(trophiesOf(many as never), TROPHIES_SHOWN);
+  // A line that cannot be read is not a win.
+  assert.equal(trophiesOf([{ kind: 'festival:2026-09', detail: 'not json' }] as never), 0);
 });

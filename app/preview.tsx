@@ -223,6 +223,7 @@ export default function PreviewScreen() {
         worn={['gown', 'bouquet']}
         penalty="돌봄이 부족해 능력이 12% 낮게 나와요"
         caption="더 들일 것이 없는 방이 되었어요."
+        trophies={3}
       />
 
       <Text style={styles.heading}>말풍선</Text>
