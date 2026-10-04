@@ -9,6 +9,7 @@
 const MOVE_ART: Record<string, Record<string, number>> = {
   back_extension: {
     geumhwa: require('../assets/moves/back_extension_geumhwa.png'),
+    seora: require('../assets/moves/back_extension_seora.png'),
   },
   barbell_curl: {
     dohwa: require('../assets/moves/barbell_curl_dohwa.png'),
@@ -82,6 +83,7 @@ const MOVE_ART: Record<string, Record<string, number>> = {
   },
   front_raise: {
     geumhwa: require('../assets/moves/front_raise_geumhwa.png'),
+    seora: require('../assets/moves/front_raise_seora.png'),
   },
   glute_bridge: {
     dohwa: require('../assets/moves/glute_bridge_dohwa.png'),
@@ -95,6 +97,7 @@ const MOVE_ART: Record<string, Record<string, number>> = {
   },
   hanging_leg_raise: {
     geumhwa: require('../assets/moves/hanging_leg_raise_geumhwa.png'),
+    seora: require('../assets/moves/hanging_leg_raise_seora.png'),
   },
   hip_thrust: {
     dohwa: require('../assets/moves/hip_thrust_dohwa.png'),
@@ -108,12 +111,15 @@ const MOVE_ART: Record<string, Record<string, number>> = {
   },
   incline_dumbbell_press: {
     geumhwa: require('../assets/moves/incline_dumbbell_press_geumhwa.png'),
+    seora: require('../assets/moves/incline_dumbbell_press_seora.png'),
   },
   jump_rope: {
     geumhwa: require('../assets/moves/jump_rope_geumhwa.png'),
+    seora: require('../assets/moves/jump_rope_seora.png'),
   },
   kettlebell_swing: {
     geumhwa: require('../assets/moves/kettlebell_swing_geumhwa.png'),
+    seora: require('../assets/moves/kettlebell_swing_seora.png'),
   },
   lat_pulldown: {
     dohwa: require('../assets/moves/lat_pulldown_dohwa.png'),
@@ -192,6 +198,7 @@ const MOVE_ART: Record<string, Record<string, number>> = {
   },
   rear_delt_fly: {
     geumhwa: require('../assets/moves/rear_delt_fly_geumhwa.png'),
+    seora: require('../assets/moves/rear_delt_fly_seora.png'),
   },
   romanian_deadlift: {
     dohwa: require('../assets/moves/romanian_deadlift_dohwa.png'),
@@ -200,6 +207,7 @@ const MOVE_ART: Record<string, Record<string, number>> = {
   },
   rowing_machine: {
     geumhwa: require('../assets/moves/rowing_machine_geumhwa.png'),
+    seora: require('../assets/moves/rowing_machine_seora.png'),
   },
   running: {
     dohwa: require('../assets/moves/running_dohwa.png'),
@@ -208,6 +216,7 @@ const MOVE_ART: Record<string, Record<string, number>> = {
   },
   russian_twist: {
     geumhwa: require('../assets/moves/russian_twist_geumhwa.png'),
+    seora: require('../assets/moves/russian_twist_seora.png'),
   },
   seated_row: {
     dohwa: require('../assets/moves/seated_row_dohwa.png'),
