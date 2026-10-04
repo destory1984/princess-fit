@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect } from 'expo-router';
 import { creditWalk } from '@/lib/db';
@@ -101,6 +101,12 @@ export function WalkCard({ onFed, dense = false }: Props) {
     setGoal(next);
     await setStepGoal(next);
   }
+
+  // A browser has no step counter, and the card could only say so: 「걸음 수는
+  // 폰에서만 셀 수 있어요」, read on a phone, by someone who opened the web app
+  // on it. A card that can do nothing and says something untrue-sounding is
+  // worse than no card, so on the web there is none.
+  if (Platform.OS === 'web') return null;
 
   const share = steps === null ? 0 : walkShare(steps, goal);
   const note = walkNote(fed);
