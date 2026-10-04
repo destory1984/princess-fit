@@ -30,6 +30,24 @@ setModelTransport(
   ),
 );
 
+/*
+  On a desktop browser the app is held to the width of a phone. It is a phone
+  app: stretched across a monitor, the bars run a metre long and none of it
+  looks the way it will in the hand, so nothing seen there can be trusted.
+
+  The transform is what keeps sheets and pickers inside the column too. They
+  are fixed to the viewport, and a transformed ancestor becomes the viewport
+  for anything fixed inside it.
+*/
+if (Platform.OS === "web" && typeof document !== "undefined") {
+  const style = document.createElement("style");
+  style.textContent = `
+    html { background-color: ${colors.chrome}; }
+    body { max-width: 430px; margin: 0 auto; transform: translateX(0); }
+  `;
+  document.head.appendChild(style);
+}
+
 function RootNavigator() {
   const { session, loading } = useAuth();
   const segments = useSegments();
