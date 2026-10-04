@@ -66,7 +66,7 @@ export default function LoginScreen() {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <Text style={styles.logo}>Refit</Text>
+      <Text style={styles.logo}>프린세스 핏</Text>
       <Text style={styles.tagline}>어제보다 하나 더</Text>
 
       <TextInput

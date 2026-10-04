@@ -183,7 +183,7 @@ export const BragCard = forwardRef<View, Props>(function BragCard(
           </Text>
         )}
 
-        <Text style={styles.brand}>Refit</Text>
+        <Text style={styles.brand}>프린세스 핏</Text>
       </OrnateFrame>
     </View>
   );

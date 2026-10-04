@@ -92,7 +92,7 @@ export default function FriendsScreen() {
   async function shareCode() {
     if (!code) return;
     try {
-      await Share.share({ message: `Refit 친구 코드 ${code}` });
+      await Share.share({ message: `프린세스 핏 친구 코드 ${code}` });
     } catch {
       // Sharing is not everywhere; the code is on screen to read out.
       notify('내 친구 코드', code);
