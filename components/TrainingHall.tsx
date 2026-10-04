@@ -113,8 +113,7 @@ export function TrainingHall({
               style={{
                 position: "absolute",
                 bottom: scene.height * 0.02,
-                // Centred at 31% across: at the foot of the bed, and far enough
-                // left that her hair, which is wider than her shoulders, clears the plaque.
+                // Centred at 31% across: at the foot of the bed, clear of the window.
                 left: scene.width * 0.31 - girlWidth / 2,
                 width: girlWidth,
                 height: girlHeight,
@@ -132,13 +131,23 @@ export function TrainingHall({
             </Text>
           </OrnateFrame>
 
-          {stats && (
-            <OrnateFrame compact style={styles.statusPanel}>
-              <Text style={styles.statusName}>{archetype}</Text>
-              <Text style={styles.statusRank}>
-                제 {level} 품 · {rank}
-              </Text>
-              <Text style={styles.statusCondition}>{condition}</Text>
+        </View>
+
+        {/*
+          Her plaque sits under the room, not in it. Pinned to the top right
+          corner it covered the right half of the scene on a phone — the
+          window, the curtain, the bench, the bookcase — so most of what had
+          been bought for the room could not be seen in it.
+        */}
+        {stats && (
+          <View style={styles.statusPanel}>
+            <View style={styles.statusHead}>
+              <View style={styles.statusWho}>
+                <Text style={styles.statusName}>{archetype}</Text>
+                <Text style={styles.statusRank}>
+                  제 {level} 품 · {rank}
+                </Text>
+              </View>
               <View style={styles.statusNumbers}>
                 {STAT_ORDER.map((key) => (
                   <View key={key} style={styles.statusStat}>
@@ -149,15 +158,18 @@ export function TrainingHall({
                   </View>
                 ))}
               </View>
+            </View>
+            <Text style={styles.statusCondition}>
+              {condition}
               {!!streak && (
-                <Text style={styles.statusStreak}>연속 {streak}일</Text>
+                <Text style={styles.statusStreak}> · 연속 {streak}일</Text>
               )}
-              {penalty ? (
-                <Text style={styles.statusPenalty}>{penalty}</Text>
-              ) : null}
-            </OrnateFrame>
-          )}
-        </View>
+            </Text>
+            {penalty ? (
+              <Text style={styles.statusPenalty}>{penalty}</Text>
+            ) : null}
+          </View>
+        )}
 
         {caption ? <Text style={styles.caption}>{caption}</Text> : null}
 
@@ -269,25 +281,32 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 
-  statusPanel: { position: "absolute", top: 10, right: 10, minWidth: 146 },
-  statusName: { color: paper.ink, fontSize: 14, fontWeight: "800" },
+  statusPanel: {
+    backgroundColor: paper.bgAlt,
+    paddingHorizontal: 12,
+    paddingTop: 8,
+    paddingBottom: 6,
+    borderBottomColor: paper.lineSoft,
+    borderBottomWidth: 1,
+  },
+  statusHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+  },
+  statusWho: { flexShrink: 1 },
+  statusName: { color: paper.ink, fontSize: 15, fontWeight: "800" },
   statusRank: { color: paper.inkDim, fontSize: 10, fontWeight: "700" },
   statusCondition: {
     color: paper.accent,
     fontSize: 11,
     fontWeight: "700",
-    marginTop: 2,
-  },
-  statusNumbers: {
-    flexDirection: "row",
-    gap: 4,
     marginTop: 4,
-    borderTopColor: paper.lineSoft,
-    borderTopWidth: 1,
-    paddingTop: 3,
   },
-  statusStat: { alignItems: "center", minWidth: 26 },
+  statusNumbers: { flexDirection: "row", gap: 6 },
+  statusStat: { alignItems: "center", minWidth: 28 },
   statusStatLabel: { color: paper.inkDim, fontSize: 9, fontWeight: "700" },
-  statusStatValue: { color: paper.ink, fontSize: 12, fontWeight: "800" },
-  statusStreak: { color: paper.inkDim, fontSize: 10, marginTop: 2 },
+  statusStatValue: { color: paper.ink, fontSize: 14, fontWeight: "800" },
+  statusStreak: { color: paper.inkDim, fontSize: 10, fontWeight: "400" },
 });
