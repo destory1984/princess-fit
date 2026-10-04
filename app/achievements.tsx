@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect } from 'expo-router';
 import { BodyMap, workedParts } from '@/components/BodyMap';
@@ -36,6 +36,7 @@ import {
 } from '@/lib/gamification';
 import { colors, paper, radius, spacing } from '@/lib/theme';
 import { useGirl } from '@/lib/girl';
+import { rankArt } from '@/lib/rankArt';
 
 export default function TrainingLedgerScreen() {
   const girl = useGirl();
@@ -107,6 +108,7 @@ export default function TrainingLedgerScreen() {
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <Scroll>
         <View style={styles.nameplate}>
+          <Image source={rankArt(summary.level)} style={styles.rankBadge} />
           <Text style={styles.rank}>제 {summary.level} 품 · {summary.title}</Text>
           <Text style={styles.archetype}>{archetype.name}</Text>
           <Text style={styles.archetypeDetail}>{archetype.detail}</Text>
@@ -200,6 +202,11 @@ export default function TrainingLedgerScreen() {
         <View style={styles.rankRow}>
           {LEVEL_TITLES.map((title, i) => (
             <View key={title} style={[styles.rankCell, i + 1 === summary.level && styles.rankNow]}>
+              {/* A rank not yet reached shows its badge faintly: what is ahead, not a lock. */}
+              <Image
+                source={rankArt(i + 1)}
+                style={[styles.rankCellBadge, i + 1 > summary.level && styles.rankAhead]}
+              />
               <Text
                 style={[
                   styles.rankCellText,
@@ -350,7 +357,13 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     paddingVertical: 5,
     paddingHorizontal: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
   },
+  rankBadge: { width: 64, height: 64, marginBottom: 4 },
+  rankCellBadge: { width: 22, height: 22 },
+  rankAhead: { opacity: 0.35 },
   rankNow: { backgroundColor: paper.fill, borderColor: paper.line },
   rankCellText: { color: colors.faint, fontSize: 12, lineHeight: 17 },
   rankReached: { color: paper.inkDim },

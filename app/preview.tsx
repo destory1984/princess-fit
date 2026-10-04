@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { BAR, nextBar } from '@/lib/plates';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Redirect } from 'expo-router';
 import { Advisor } from '@/components/Advisor';
 import { MoveDemo } from '@/components/MoveDemo';
@@ -45,7 +45,8 @@ import { judge, latestFestival, nextFestival, type ContestId, type Standing } fr
 import { TrainingHall } from '@/components/TrainingHall';
 import { FURNITURE } from '@/lib/room';
 import { GARMENTS } from '@/lib/outfit';
-import { summarise } from '@/lib/gamification';
+import { LEVEL_TITLES, summarise } from '@/lib/gamification';
+import { rankArt } from '@/lib/rankArt';
 import { colors, spacing } from '@/lib/theme';
 import { useGirl } from '@/lib/girl';
 
@@ -199,6 +200,16 @@ export default function PreviewScreen() {
         entry={entry}
         onChoose={setEntry}
       />
+
+      <Text style={styles.heading}>품계 배지 열둘</Text>
+      <View style={styles.ranks}>
+        {LEVEL_TITLES.map((title, i) => (
+          <View key={title} style={styles.rankSample}>
+            <Image source={rankArt(i + 1)} style={styles.rankSampleArt} />
+            <Text style={styles.rankSampleName}>{title}</Text>
+          </View>
+        ))}
+      </View>
 
       <Text style={styles.heading}>빈 방</Text>
       <TrainingHall
@@ -566,6 +577,10 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xl },
   heading: { color: colors.text, fontSize: 15, fontWeight: '800', marginTop: spacing.md },
+  ranks: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  rankSample: { width: 76, alignItems: 'center', gap: 2 },
+  rankSampleArt: { width: 56, height: 56 },
+  rankSampleName: { color: colors.textDim, fontSize: 11 },
   steppers: { flexDirection: 'row', gap: spacing.md },
   openPicker: {
     borderColor: colors.accent,

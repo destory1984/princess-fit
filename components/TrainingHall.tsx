@@ -5,6 +5,7 @@ import { PaperDoll } from "@/components/PaperDoll";
 import { STAT_META, STAT_ORDER, type Stats } from "@/lib/character";
 import { artFor } from "@/lib/furnitureArt";
 import { TROPHY } from "@/lib/festivalArt";
+import { rankArt } from "@/lib/rankArt";
 import { DOLL_ASPECT } from "@/lib/outfitArt";
 import { roomContents } from "@/lib/room";
 import type { Girl } from "@/lib/girl";
@@ -174,11 +175,14 @@ export function TrainingHall({
         {stats && (
           <View style={styles.statusPanel}>
             <View style={styles.statusHead}>
-              <View style={styles.statusWho}>
-                <Text style={styles.statusName}>{archetype}</Text>
-                <Text style={styles.statusRank}>
-                  제 {level} 품 · {rank}
-                </Text>
+              <View style={styles.statusLead}>
+                <Image source={rankArt(level ?? 1)} style={styles.statusBadge} />
+                <View style={styles.statusWho}>
+                  <Text style={styles.statusName}>{archetype}</Text>
+                  <Text style={styles.statusRank}>
+                    제 {level} 품 · {rank}
+                  </Text>
+                </View>
               </View>
               <View style={styles.statusNumbers}>
                 {STAT_ORDER.map((key) => (
@@ -327,6 +331,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     gap: 8,
   },
+  statusLead: { flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 1 },
+  statusBadge: { width: 32, height: 32 },
   statusWho: { flexShrink: 1 },
   statusName: { color: paper.ink, fontSize: 15, fontWeight: "800" },
   statusRank: { color: paper.inkDim, fontSize: 10, fontWeight: "700" },
