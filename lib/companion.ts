@@ -268,6 +268,34 @@ export function whenItWas(day: string, today = new Date()) {
 }
 
 
+/**
+ * The day a month after `day`, as a key: the same date next month, or that
+ * month's last day when it has no such date (the 31st → the 30th, or the 28th).
+ */
+function monthAfter(day: string): string {
+  const [y, m, d] = day.split('-').map(Number);
+  const last = new Date(y, m + 1, 0).getDate();
+  return localDayKey(new Date(y, m, Math.min(d, last)));
+}
+
+/**
+ * What she says a month to the day after a gift, or null.
+ *
+ * The design asked whether a gift's month-day passing unmarked should make
+ * her sulk, and settled that it should not: an app holding a date against
+ * someone is pressure. She brings it up herself instead, once, and asks for
+ * nothing (docs/relationship.md, 「여쭐 것」 3).
+ *
+ * Only the first month: a girl who marks every month of every ribbon is a
+ * calendar. Several gifts on one day cannot happen (one a day), so there is
+ * at most one to say.
+ */
+export function giftMonthLine(memories: Memory[], today = new Date(), girl?: string): string | null {
+  const key = localDayKey(today);
+  const gift = memories.find((m) => isGift(m.kind) && monthAfter(m.day) === key);
+  return gift ? voiceOf(girl).gift.month(gift.detail ?? '') : null;
+}
+
 /** Roughly how often an old memory comes up: one day in this many. */
 export const RECALL_EVERY = 6;
 

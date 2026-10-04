@@ -76,7 +76,12 @@ export type Voice = {
     madeUp: string[];
   };
   /** Something you gave her: on the day, and when it comes back to her. */
-  gift: { fresh: (name: string) => string; recall: (when: string, name: string) => string };
+  gift: {
+    fresh: (name: string) => string;
+    recall: (when: string, name: string) => string;
+    /** A month to the day since it was given. She brings it up; nothing is asked of you. */
+    month: (name: string) => string;
+  };
   /**
    * The festival at the end of each month (lib/festival.ts). She is the one
    * who goes, so she may tell what happened there — it is her day, not a
@@ -280,6 +285,7 @@ const rina: Voice = {
   gift: {
     fresh: (d) => `${d}, 고마워요. 오늘 받은 건 오래 기억할게요.`,
     recall: (w, d) => `${w} ${withParticle(d, '을를')} 받던 날, 저 사실 좀 울 뻔했어요.`,
+    month: (d) => `${withParticle(d, '을를')} 받은 지 오늘로 딱 한 달이에요. 아직 아껴 쓰고 있어요.`,
   },
   festival: {
     ahead: (c, d) =>
@@ -451,6 +457,7 @@ const pia: Voice = {
   gift: {
     fresh: (d) => `${d}! 오늘의 선물이에요! 고마워요!`,
     recall: (w, d) => `${w} ${d} 받았던 날! 그날 기분 최고였어요!`,
+    month: (d) => `${d} 받은 지 오늘로 한 달이에요! 저 날짜 세고 있었어요!`,
   },
   festival: {
     ahead: (c, d) =>
@@ -635,6 +642,7 @@ const yuki: Voice = {
   gift: {
     fresh: (d) => `${d}. …감사합니다. 소중히 쓰겠습니다.`,
     recall: (w, d) => `${w} 주신 ${d}, 아직 잘 쓰고 있어요.`,
+    month: (d) => `${withParticle(d, '을를')} 받은 지 한 달이에요. 날짜는 적어 뒀어요.`,
   },
   festival: {
     ahead: (c, d) =>

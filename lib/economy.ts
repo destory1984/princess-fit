@@ -1,6 +1,6 @@
 import { localDayKey } from './format.ts';
 import { isEmptyWorkout, type WorkoutFact } from './gamification.ts';
-import { memoryLine, type Memory, type Stage } from './companion.ts';
+import { giftMonthLine, memoryLine, type Memory, type Stage } from './companion.ts';
 import { insightsFor } from './insight.ts';
 import { voiceOf } from './voices.ts';
 import { noticeFor, type Seen } from './notice.ts';
@@ -308,6 +308,11 @@ export function dailyLine(
   const remembered = bond ? memoryLine(bond.memories, today, girl) : null;
   const freshToday = bond?.memories.some((m) => m.day === localDayKey(today));
   if (remembered && freshToday) return remembered;
+
+  // A month to the day since a gift. It happens on one day only, so it goes
+  // where the day's own news goes rather than waiting behind the numbers.
+  const month = bond ? giftMonthLine(bond.memories, today, girl) : null;
+  if (month) return month;
 
   // The festival, in the few days either side of it (lib/festival.ts
   // festivalTalk, worked out by the caller). Her own big day comes before

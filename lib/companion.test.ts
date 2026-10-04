@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  giftMonthLine,
   daysTogether,
   eventMemory,
   giftMemory,
@@ -190,4 +191,24 @@ test('every gift is its own day, and she says so in her own voice', () => {
   const said = ['geumhwa', 'dohwa', 'seora'].map((g) => memoryLine([bow], today, g));
   assert.equal(new Set(said).size, 3);
   for (const l of said) assert.match(l!, /리본/);
+});
+
+test('a month to the day after a gift she brings it up, once, each in her own way', () => {
+  const ribbon = { kind: 'gift:ribbon', day: '2026-09-04', line: '', detail: '머리 리본' } as Memory;
+  const said = ['geumhwa', 'dohwa', 'seora'].map((girl) => giftMonthLine([ribbon], new Date(2026, 9, 4), girl));
+  for (const line of said) assert.match(line!, /머리 리본/);
+  assert.equal(new Set(said).size, 3);
+  // The day before and the day after, nothing; and not again the month after.
+  assert.equal(giftMonthLine([ribbon], new Date(2026, 9, 3)), null);
+  assert.equal(giftMonthLine([ribbon], new Date(2026, 9, 5)), null);
+  assert.equal(giftMonthLine([ribbon], new Date(2026, 10, 4)), null);
+});
+
+test('a gift on the 31st is a month old on the last day of a shorter month', () => {
+  const gown = { kind: 'gift:gown', day: '2026-01-31', line: '', detail: '드레스' } as Memory;
+  assert.ok(giftMonthLine([gown], new Date(2026, 1, 28)));
+  assert.equal(giftMonthLine([gown], new Date(2026, 2, 3)), null);
+  // Only gifts: a first day is not a present.
+  const first = { kind: 'first_day', day: '2026-09-04', line: '', detail: null } as Memory;
+  assert.equal(giftMonthLine([first], new Date(2026, 9, 4)), null);
 });
