@@ -45,6 +45,16 @@ const MOVES: Record<string, Move> = {
   러닝: { id: 'running', frames: 3 },
   '체스트 프레스 머신': { id: 'chest_press_machine', frames: 3 },
   걷기: { id: 'walking', frames: 3 },
+  '인클라인 벤치프레스': { id: 'incline_bench_press', frames: 3 },
+  '케이블 크로스오버': { id: 'cable_crossover', frames: 3 },
+  '페이스 풀': { id: 'face_pull', frames: 3 },
+  '해머 컬': { id: 'hammer_curl', frames: 3 },
+  '오버헤드 트라이셉스 익스텐션': { id: 'overhead_triceps_extension', frames: 3 },
+  '윗몸 일으키기': { id: 'sit_up', frames: 3 },
+  '펙덱 플라이': { id: 'pec_deck_fly', frames: 3 },
+  '불가리안 스플릿 스쿼트': { id: 'bulgarian_split_squat', frames: 3 },
+  '글루트 브릿지': { id: 'glute_bridge', frames: 3 },
+  사이클: { id: 'cycling', frames: 3 },
 };
 
 /** The movement drawn for an exercise of this name, if one was. */
@@ -56,11 +66,11 @@ export const MOVE_NAMES = Object.keys(MOVES);
 
 /**
  * Which frame to show at a tick: there and back again (0 1 2 1 0 1 …), because a
- * repetition goes down and comes up. Walking and running go round instead
- * (0 1 2 0 1 2 …): a stride does not rewind.
+ * repetition goes down and comes up. Walking, running and cycling go round
+ * instead (0 1 2 0 1 2 …): a stride does not rewind, nor does a pedal.
  */
 export function frameAt(move: Move, tick: number): number {
   if (move.frames === 1) return 0;
-  if (move.id === 'running' || move.id === 'walking') return tick % 3;
+  if (move.id === 'running' || move.id === 'walking' || move.id === 'cycling') return tick % 3;
   return [0, 1, 2, 1][tick % 4];
 }
