@@ -197,6 +197,19 @@ export function favourFor(girl: string, facts: WorkoutFact[], today: Date, weekl
 }
 
 /**
+ * The favour this session met, or null: asked by `girl` for the session's
+ * week, not yet met when the session began and met once it was done. A favour
+ * only goes up, so each week has at most one such session — the one her diary
+ * can say it in.
+ */
+export function favourMetBy(girl: string, facts: WorkoutFact[], session: WorkoutFact, weeklyGoal: number): Favour | null {
+  const at = new Date(session.started_at);
+  if (favourFor(girl, facts, at, weeklyGoal, at).done) return null;
+  const after = favourFor(girl, facts, at, weeklyGoal, new Date(at.getTime() + 1));
+  return after.done ? after : null;
+}
+
+/**
  * How many weeks' favours were met between two festivals — what she takes
  * into the second with her. A week belongs to the festival after its Monday,
  * so every week counts towards exactly one; `after` is the day of the one

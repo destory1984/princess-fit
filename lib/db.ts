@@ -39,7 +39,7 @@ import { unseen } from './restore';
 import { diaryFor } from './diary';
 import { sulkOf, whileShe, whoWasThere, type Pick as GirlPick, type Sulk } from './picks';
 import { getChosenGirlId, getFestivalEntry, getWeeklyGoal } from './prefs';
-import { favoursMet } from './favour';
+import { favourMetBy, favoursMet, weekStart } from './favour';
 import {
   CONTESTS,
   defaultEntry,
@@ -2106,7 +2106,7 @@ export async function writeDiaries(girl?: string, batch = 40): Promise<number> {
       .limit(batch);
     if (error || !missing?.length) return 0;
 
-    const [facts, sessions, stored, picks] = await Promise.all([
+    const [facts, sessions, stored, picks, goal] = await Promise.all([
       listWorkoutFacts(),
       listMemorySessions(),
       // With the girl each was given to, so another girl's gift does not make
@@ -2120,6 +2120,7 @@ export async function writeDiaries(girl?: string, batch = 40): Promise<number> {
           return (plain.data as GirlMemory[] | null) ?? [];
         }),
       listPicks(girl),
+      getWeeklyGoal().catch(() => 3),
     ]);
     const firstGirl = picks[0]?.girl ?? girl;
     const memories = [...memoriesFrom(sessions), ...stored.filter((m) => isGift(m.kind as MemoryKind))];
@@ -2153,6 +2154,12 @@ export async function writeDiaries(girl?: string, batch = 40): Promise<number> {
             new Date(today.started_at)
           )
         : null;
+      // The week's favour, if this is the session that met it — and if the
+      // girl writing is the one who asked. A week is asked by whoever was here
+      // on its Monday (as `favoursMet` counts it); it was not the other's favour.
+      const monday = weekStart(new Date(today.started_at)).toISOString();
+      const asker = whoWasThere(picks, monday) ?? girl;
+      const favour = hand && asker === hand ? favourMetBy(hand, facts, today, goal) : null;
       const entry = diaryFor(
         {
           today,
@@ -2161,6 +2168,7 @@ export async function writeDiaries(girl?: string, batch = 40): Promise<number> {
           bestBefore,
           memories: memories.filter((m) => m.day === day),
           sulk,
+          favour,
         },
         hand
       );

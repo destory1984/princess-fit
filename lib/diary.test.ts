@@ -115,3 +115,23 @@ test('sulking in the diary is jealous, never possessive, and still only what was
     }
   }
 });
+
+test('the session that met the favour of the week says what was asked', () => {
+  const twice = diaryFor(input(fact('2026-09-23'), { favour: { kind: 'twice', target: 2, group: null } }), 'geumhwa')!;
+  assert.match(twice, /부탁/);
+  const sets = diaryFor(input(fact('2026-09-23'), { favour: { kind: 'sets', target: 1200, group: null } }), 'dohwa')!;
+  assert.match(sets, /1,200개/);
+  const part = diaryFor(input(fact('2026-09-23'), { favour: { kind: 'neglected', target: 1, group: '하체' } }), 'seora')!;
+  assert.match(part, /하체, 부탁한 대로/);
+});
+
+test('a favour comes before a best, after a sulk, and only from the girl who asks that kind', () => {
+  const favour = { kind: 'twice' as const, target: 2, group: null };
+  const lifts = [{ exercise: '벤치프레스', kg: 62.5 }];
+  const bestBefore = new Map([['벤치프레스', 60]]);
+  assert.match(diaryFor(input(fact('2026-09-23'), { favour, lifts, bestBefore }), 'geumhwa')!, /부탁/);
+  const sulk = { reason: 'fickle' as const, other: null, away: 0 };
+  assert.doesNotMatch(diaryFor(input(fact('2026-09-23'), { favour, sulk }), 'geumhwa')!, /부탁/);
+  // 피아 never asks for 「두 번」: with no line of hers for it, the day is written as usual.
+  assert.match(diaryFor(input(fact('2026-09-23'), { favour }), 'dohwa')!, /가슴 10세트/);
+});

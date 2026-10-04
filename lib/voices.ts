@@ -68,6 +68,11 @@ export type Voice = {
      * line as her speech — she noticed, she never says you may not go.
      */
     sulked: { returned: (other: string, away: number) => string; fickle: string };
+    /**
+     * The session that met the week's favour (lib/favour.ts), by kind as
+     * `favour.ask` is. Out loud she thanks you; here she says what it was.
+     */
+    favour: Partial<Record<FavourKind, (target: string, group: string) => string>>;
   };
   /**
    * Sulking (lib/picks.ts). Only for being left and come back to, or picked
@@ -342,6 +347,11 @@ const rina: Voice = {
         `${n}일 만에 돌아왔다. ${withParticle(o, '와과')} 지낸 동안이 조금 서운했는데, 말은 못 했다. 오늘 기록을 적다 보니 다 풀렸다.`,
       fickle: '이번 주에 몇 번이나 바뀌었다. 나도 곧 바뀌려나 싶어 말이 짧아졌다. 그래도 오늘 기록은 내가 적었다.',
     },
+    favour: {
+      twice: () => '이번 주에 두 번만 와 달라고 했는데, 오늘로 두 번이 됐다. 부탁을 들어준 거다. 괜히 기분이 좋다.',
+      cardio: (n) => `숨이 차는 운동 ${n}분, 부탁한 만큼을 오늘 채웠다. 심장도 챙겨 준 것 같아 마음이 놓인다.`,
+      light: () => '한 번쯤 가볍게 하자고 했더니 오늘은 가볍게 끝났다. 부탁을 기억해 준 걸까.',
+    },
   },
   sulk: {
     returned: (o, n) => [
@@ -520,6 +530,11 @@ const pia: Voice = {
       returned: (o, n) =>
         `${n}일 동안 ${withParticle(o, '와과')} 했다니, 솔직히 분했다! 근데 오늘 기록을 보니까 화가 안 난다. 그게 더 분하다.`,
       fickle: '이번 주에만 몇 번을 바꾼 건지! 삐졌었다. 근데 오늘 기록이 내 칸에 찍혔으니까 봐준다.',
+    },
+    favour: {
+      more_days: (n) => `이번 주 ${n}일 달성! 내가 부탁한 숫자다! 달력에 동그라미 ${n}개 다 그렸다.`,
+      sets: (n) => `이번 주 세트 ${n}개 돌파! 부탁 성공! 하나하나 내가 다 셌다.`,
+      best_session: (n) => `한 번에 ${n}kg을 넘겼다! 내가 부탁한 그 숫자! 축제 때 자랑해야지.`,
     },
   },
   sulk: {
@@ -712,6 +727,11 @@ const yuki: Voice = {
       returned: (o, n) =>
         `${n}일 만. ${withParticle(o, '와과')} 했다고 한다. 말이 짧았던 것은 그 때문이다. 오늘 기록으로 정리한다.`,
       fickle: '이번 주, 여러 번 바뀌었다. 신경 쓰지 않는다고 적으려다 지웠다. 오늘 기록은 받았다.',
+    },
+    favour: {
+      neglected: (_, g) => `${g}, 부탁한 대로 했다. 가장 오래 비어 있던 칸이 채워졌다.`,
+      goal: (n) => `이번 주 ${n}회. 부탁한 목표가 지켜졌다. …적어 둔다.`,
+      coverage: (n) => `이번 주 ${n}부위. 부탁한 대로 고루 썼다. 인정한다.`,
     },
   },
   sulk: {

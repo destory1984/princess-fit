@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { FAVOURS_OF, favourFor, favoursMet, weekStart, type FavourKind } from './favour.ts';
+import { FAVOURS_OF, favourFor, favourMetBy, favoursMet, weekStart, type FavourKind } from './favour.ts';
 import { VOICES, type VoiceId } from './voices.ts';
 import type { WorkoutFact } from './gamification.ts';
 
@@ -193,4 +193,30 @@ test('the week just after a festival counts towards the next one', () => {
   // 28 Sep, 5, 12, 19 and 26 Oct.
   assert.equal(weeks.length, 5);
   assert.equal(weeks[0], weekStart(at(2026, 9, 28)).toISOString());
+});
+
+test('one session a week meets the favour: the one that took it over the line', () => {
+  // Find a week 리나 asks for 「두 번」, then come three times in it.
+  let start = new Date(monday);
+  while (favourFor('geumhwa', [], start, 3).kind !== 'twice') start.setDate(start.getDate() + 7);
+  const on = (offset: number) => {
+    const d = new Date(start);
+    d.setDate(d.getDate() + offset);
+    return session(d);
+  };
+  const [first, second, third] = [on(0), on(2), on(4)];
+  const facts = [first, second, third];
+  assert.equal(favourMetBy('geumhwa', facts, first, 3), null, 'one day is not two');
+  assert.equal(favourMetBy('geumhwa', facts, second, 3)?.kind, 'twice');
+  assert.equal(favourMetBy('geumhwa', facts, third, 3), null, 'already met');
+});
+
+test('an empty session meets nothing', () => {
+  let start = new Date(monday);
+  while (favourFor('geumhwa', [], start, 3).kind !== 'twice') start.setDate(start.getDate() + 7);
+  const later = new Date(start);
+  later.setDate(later.getDate() + 2);
+  const first = session(start);
+  const empty = session(later, { doneSets: 0, volume: 0, groups: [] });
+  assert.equal(favourMetBy('geumhwa', [first, empty], empty, 3), null);
 });

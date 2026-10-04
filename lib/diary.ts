@@ -4,6 +4,7 @@ import { isGift, type Memory, type OnceKind } from './companion.ts';
 import { voiceOf } from './voices.ts';
 import { ADVISORS } from './advisors.ts';
 import type { Sulk } from './picks.ts';
+import type { Favour } from './favour.ts';
 
 /**
  * Her diary: a line or two about each session, written the day it was paid.
@@ -35,6 +36,8 @@ export type DiaryInput = {
    * this is the session that made it up — the one day the diary can say it.
    */
   sulk?: Sulk | null;
+  /** The week's favour, when this is the session that met it (`favourMetBy`). */
+  favour?: Pick<Favour, 'kind' | 'target' | 'group'> | null;
 };
 
 /** Which of the day's memories is the news, rarest first. */
@@ -77,6 +80,13 @@ export function diaryFor(input: DiaryInput, girl?: string): string | null {
     if (input.sulk.reason === 'fickle') return write.sulked.fickle;
     const other = ADVISORS.find((a) => a.id === input.sulk!.other)?.name ?? '다른 애';
     return write.sulked.returned(other, input.sulk.away);
+  }
+
+  // The week's favour, met by this session. Once a week at most, so it goes
+  // before a new best, which a beginner sets every time.
+  if (input.favour) {
+    const met = write.favour[input.favour.kind];
+    if (met) return met(input.favour.target.toLocaleString(), input.favour.group ?? '');
   }
 
   // A new best, on something done before.
