@@ -155,6 +155,13 @@ export type Voice = {
   };
   /** The same once comfortable, for a girl whose speech thaws (Yuki). */
   cheerEased?: Voice['cheer'];
+  /**
+   * The day after the first session there has ever been (docs/first-day.md 4).
+   * `what` is what was recorded, already written out: 「가슴, 팔 6세트」. Each
+   * girl points at it the way she would at anything: 리나 at the body, 피아 at
+   * the number, 유키 at the record. Only what the app recorded.
+   */
+  firstNight: (what: string) => string;
 };
 
 const rina: Voice = {
@@ -334,6 +341,7 @@ const rina: Voice = {
     last: '마지막 한 세트예요. 여기까지 왔잖아요.',
     done: '다 끝냈어요! 오늘 정말 잘하셨어요.',
   },
+  firstNight: (what) => `어제 ${what}, 적어 뒀어요. 오늘은 좀 뻐근할 텐데, 그게 한 만큼이에요.`,
 };
 
 const pia: Voice = {
@@ -504,6 +512,7 @@ const pia: Voice = {
     last: '마지막 한 세트! 여기서 물러나면 안 돼요!',
     done: '다 했어요! 오늘은 우리가 이겼어요!',
   },
+  firstNight: (what) => `어제 ${what}! 그게 첫 기록이에요. 다음엔 그 숫자부터 넘어 봐요!`,
 };
 
 const yuki: Voice = {
@@ -695,6 +704,7 @@ const yuki: Voice = {
     last: '마지막 한 세트예요. 끝까지 적어 둘게요.',
     done: '다 마쳤어요. 수고했어요.',
   },
+  firstNight: (what) => `어제 ${what}, 기록해 두었습니다. 다음에 견줄 기준이 생겼습니다.`,
 };
 
 export const VOICES: Record<VoiceId, Voice> = { geumhwa: rina, dohwa: pia, seora: yuki };

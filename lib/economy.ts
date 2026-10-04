@@ -228,6 +228,24 @@ function feelingLine(bond: Bond | null, today: Date, girl?: string): string | nu
   return pickOf(say.returned(other, bond.sulk.away));
 }
 
+/**
+ * What she says the day after the only session there has been, or null.
+ * Counted over sessions with something in them. An imported history has
+ * many, so it never reads as a first day.
+ */
+function firstNightLine(workouts: WorkoutFact[], today: Date, girl?: string): string | null {
+  const real = workouts.filter((w) => !isEmptyWorkout(w));
+  if (real.length !== 1) return null;
+  const [only] = real;
+  if (daysBetween(localDayKey(new Date(only.started_at)), localDayKey(today)) !== 1) return null;
+  const what = only.groups.length
+    ? only.groups.join(', ')
+    : only.durationSec > 0
+      ? `유산소 ${Math.round(only.durationSec / 60)}분`
+      : '운동';
+  return voiceOf(girl).firstNight(only.doneSets > 0 ? `${what} ${only.doneSets}세트` : what);
+}
+
 /** The faces she has been drawn with: one for each mood, and one for a sulk. */
 export type Face = Mood | 'sulky';
 
@@ -295,6 +313,14 @@ export function dailyLine(
   // festivalTalk, worked out by the caller). Her own big day comes before
   // her classes and before what the numbers noticed.
   if (festival) return festival;
+
+  // The day after the very first session: she points at what was recorded
+  // (docs/first-day.md 4). Nothing she usually watches has a second point to
+  // compare with yet, so without this the second day opens on a stock line —
+  // and the second day is the one that decides whether there is a third.
+  // Behind the festival, which is her own day and was settled to go first.
+  const first = firstNightLine(workouts, today, girl);
+  if (first) return first;
 
   // A course she is part-way through is the most concrete thing in her week,
   // and it only exists because gold was spent on it — so it should reach the

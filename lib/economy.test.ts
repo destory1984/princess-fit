@@ -249,3 +249,21 @@ test('her face follows what she says: a sulk before hunger, and glad the day it 
   assert.equal(faceFor(hungry, [], { ...bond, sulk: { reason: 'fickle' } } as unknown as Bond, today), 'sulky');
   assert.equal(faceFor(hungry, [], { ...bond, madeUp: true } as Bond, today), 'happy');
 });
+
+test('the day after the first session she points at what was recorded, each in her own way', () => {
+  const house: Household = { gold: 150, satiety: 100, attire: 100, settledOn: '2026-09-20' };
+  const only = [fact({ started_at: '2026-09-20T10:00:00', groups: ['가슴', '팔'], doneSets: 6 })];
+  const nextDay = new Date(2026, 8, 21);
+  const said = ['geumhwa', 'dohwa', 'seora'].map((girl) => dailyLine(house, only, nextDay, null, null, girl));
+  for (const line of said) assert.match(line, /가슴, 팔 6세트/);
+  assert.equal(new Set(said).size, 3);
+  // It is what tomorrow's notification carries on the first evening.
+  assert.match(tomorrowsMessage(house, only, new Date(2026, 8, 20), null, null, 'geumhwa'), /가슴, 팔 6세트/);
+  // Not on the day itself, not two days on, and not once there is a second session.
+  assert.doesNotMatch(dailyLine(house, only, new Date(2026, 8, 20), null, null, 'geumhwa'), /6세트/);
+  assert.doesNotMatch(dailyLine(house, only, new Date(2026, 8, 22), null, null, 'geumhwa'), /6세트/);
+  const two = [...only, fact({ id: 'x', started_at: '2026-09-19T10:00:00', doneSets: 3 })];
+  assert.doesNotMatch(dailyLine(house, two, nextDay, null, null, 'geumhwa'), /6세트/);
+  // Hunger is about her, and still comes first.
+  assert.doesNotMatch(dailyLine({ ...house, satiety: 10 }, only, nextDay, null, null, 'geumhwa'), /6세트/);
+});
