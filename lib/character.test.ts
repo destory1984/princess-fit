@@ -96,3 +96,15 @@ test('a well-kept girl is told nothing; a neglected one is told why', () => {
   assert.equal(conditionPenalty(1), null);
   assert.match(conditionPenalty(0.7)!, /30% 낮게/);
 });
+
+test('one modest session does not read as most of a year of strength', () => {
+  // Two sets on the first evening came to 1,060kg and 근력 74, with the title
+  // 괴력의 전사 to go with it. Strength has to leave the year something to fill.
+  const day = new Date(2026, 9, 4);
+  const first = computeStats([fact({ started_at: '2026-10-04T10:00:00', volume: 1_060, doneSets: 2 })], day);
+  assert.equal(first.strength, 30);
+  const strong = computeStats([fact({ started_at: '2026-10-04T10:00:00', volume: 6_000 })], day);
+  assert.equal(strong.strength, 71);
+  const capped = computeStats([fact({ started_at: '2026-10-04T10:00:00', volume: 20_000 })], day);
+  assert.equal(capped.strength, 100);
+});

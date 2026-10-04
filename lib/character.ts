@@ -33,6 +33,19 @@ function curve(value: number, target: number) {
   return Math.min(100, Math.round((100 * Math.log1p(value)) / Math.log1p(target)));
 }
 
+/**
+ * Slower than `curve`, for a value that is already large on the first day.
+ *
+ * Volume is counted in kilograms, so one modest session is a thousand of them
+ * and the logarithm calls that three quarters of the way to the cap: two sets
+ * on the first evening read 근력 74. The square root puts the same session at
+ * 30 and leaves the rest of the year something to fill.
+ */
+function root(value: number, target: number) {
+  if (value <= 0) return 0;
+  return Math.min(100, Math.round(100 * Math.sqrt(value / target)));
+}
+
 export type Stats = Record<StatKey, number>;
 
 export function computeStats(workouts: WorkoutFact[], today = new Date()): Stats {
@@ -51,7 +64,7 @@ export function computeStats(workouts: WorkoutFact[], today = new Date()): Stats
   ).size;
 
   return {
-    strength: curve(heaviest, 12_000),
+    strength: root(heaviest, 12_000),
     stamina: curve(cardioMin + km * 6, 900),
     vitality: curve(totalSets, 900),
     balance: Math.round((Math.min(coverage, 6) / 6) * 100),
