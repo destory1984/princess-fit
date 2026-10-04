@@ -55,6 +55,16 @@ const MOVES: Record<string, Move> = {
   '불가리안 스플릿 스쿼트': { id: 'bulgarian_split_squat', frames: 3 },
   '글루트 브릿지': { id: 'glute_bridge', frames: 3 },
   사이클: { id: 'cycling', frames: 3 },
+  '인클라인 덤벨 프레스': { id: 'incline_dumbbell_press', frames: 3 },
+  '리어 델트 플라이': { id: 'rear_delt_fly', frames: 3 },
+  '프론트 레이즈': { id: 'front_raise', frames: 3 },
+  '로잉 머신': { id: 'rowing_machine', frames: 3 },
+  '백 익스텐션': { id: 'back_extension', frames: 3 },
+  '스모 데드리프트': { id: 'sumo_deadlift', frames: 3 },
+  '케틀벨 스윙': { id: 'kettlebell_swing', frames: 3 },
+  '행잉 레그 레이즈': { id: 'hanging_leg_raise', frames: 3 },
+  '러시안 트위스트': { id: 'russian_twist', frames: 3 },
+  줄넘기: { id: 'jump_rope', frames: 3 },
 };
 
 /** The movement drawn for an exercise of this name, if one was. */
@@ -64,13 +74,16 @@ export function moveOf(name: string): Move | undefined {
 
 export const MOVE_NAMES = Object.keys(MOVES);
 
+const ROUND = new Set(['running', 'walking', 'cycling', 'jump_rope']);
+
 /**
  * Which frame to show at a tick: there and back again (0 1 2 1 0 1 …), because a
- * repetition goes down and comes up. Walking, running and cycling go round
- * instead (0 1 2 0 1 2 …): a stride does not rewind, nor does a pedal.
+ * repetition goes down and comes up. Walking, running, cycling and skipping
+ * go round instead (0 1 2 0 1 2 …): a stride does not rewind, nor does a pedal
+ * or a rope.
  */
 export function frameAt(move: Move, tick: number): number {
   if (move.frames === 1) return 0;
-  if (move.id === 'running' || move.id === 'walking' || move.id === 'cycling') return tick % 3;
+  if (ROUND.has(move.id)) return tick % 3;
   return [0, 1, 2, 1][tick % 4];
 }
