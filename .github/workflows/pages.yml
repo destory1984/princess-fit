@@ -51,6 +51,9 @@ jobs:
         env:
           EXPO_PUBLIC_SUPABASE_URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL || secrets.EXPO_PUBLIC_SUPABASE_URL }}
           EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.EXPO_PUBLIC_SUPABASE_ANON_KEY || secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+          # Unset until the project sends mail of its own; "on" shows the
+          # forgotten-password and resend links on the login screen.
+          EXPO_PUBLIC_MAIL: ${{ vars.EXPO_PUBLIC_MAIL }}
       # Pages runs Jekyll unless told not to, and Jekyll drops Expo's _expo folder.
       # The app is one page that routes in the browser, so a deep link (/refit/shop)
       # has no file behind it: Pages serves 404.html, which is the app itself.
