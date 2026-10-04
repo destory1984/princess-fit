@@ -88,6 +88,7 @@ import {
   forgetAdvice,
   setBar,
 } from "@/lib/prefs";
+import { ringBell, wakeBell } from "@/lib/bell";
 import { BAR, nextBar } from "@/lib/plates";
 import { recoveryOf, type Muscle } from "@/lib/recovery";
 import { suggestExercise } from "@/lib/suggest";
@@ -159,6 +160,8 @@ export default function WorkoutScreen() {
     // eslint-disable-next-line react-hooks/purity
     setNow(Date.now());
     setRestEnd(end);
+    // A rest starting is the touch that lets the web ring when it ends.
+    if (end !== null) wakeBell();
   }
   // Lazy, so the clock is read once on mount rather than on every render.
   const [now, setNow] = useState(() => Date.now());
@@ -280,6 +283,8 @@ export default function WorkoutScreen() {
       if (at >= restEnd) {
         setRestEnd(null);
         celebrateFeedback();
+        // The web has no notification to ring for it (lib/bell.ts).
+        ringBell();
       }
     }, 500);
     return () => clearInterval(timer);
