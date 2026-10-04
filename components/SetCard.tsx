@@ -3,7 +3,7 @@ import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-nat
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { BigStepper } from '@/components/BigStepper';
 import { nextWeight, onRack } from '@/lib/weight';
-import { BAR, plateWord } from '@/lib/plates';
+import { BAR, BARS, plateWord } from '@/lib/plates';
 import { successFeedback, tapFeedback } from '@/lib/feedback';
 import type { TrackType, WorkoutSet } from '@/lib/types';
 import { otherSide, SIDE_LABEL } from '@/lib/sides';
@@ -21,6 +21,10 @@ type Props = {
   tint: string;
   /** Loaded on a bar, so the weight can be turned into plates. */
   barbell?: boolean;
+  /** The bar this exercise is done with. The full-size one unless told. */
+  bar?: number;
+  /** Change it to the next one. Without this the bar is only named. */
+  onChangeBar?: () => void;
   onChange: (patch: Partial<WorkoutSet>) => void;
   onComplete: () => void;
   onRemove: () => void;
@@ -33,6 +37,8 @@ export function SetCard({
   total,
   tint,
   barbell = false,
+  bar = BAR,
+  onChangeBar,
   onChange,
   onComplete,
   onRemove,
@@ -42,7 +48,11 @@ export function SetCard({
   // Stays open from one set to the next: whoever asked once is loading a bar,
   // and will be loading it again in two minutes.
   const [platesOpen, setPlatesOpen] = useState(false);
-  const plates = barbell && track === 'weight_reps' ? plateWord(set.weight_kg) : null;
+  const onBar = barbell && track === 'weight_reps';
+  const plates = onBar ? plateWord(set.weight_kg, bar) : null;
+  // The row stays for any weight the lightest bar could be: someone who moved
+  // to a heavier bar by mistake has to be able to move back.
+  const platesRow = onBar && set.weight_kg >= BARS[BARS.length - 1];
 
   useEffect(() => {
     scale.setValue(0.96);
@@ -180,16 +190,30 @@ export function SetCard({
         answers nothing below it). The bar is named because it is a guess: an
         EZ bar is not 20kg and the app cannot see which one is in the rack.
       */}
-      {plates && (
-        <Pressable
-          style={styles.plates}
-          hitSlop={4}
-          onPress={() => setPlatesOpen((open) => !open)}>
-          <Ionicons name="disc-outline" size={14} color={colors.textDim} />
-          <Text style={styles.platesText}>
-            {platesOpen ? `봉 ${BAR}kg · ${plates}` : '원판 보기'}
-          </Text>
-        </Pressable>
+      {platesRow && (
+        <View style={styles.plates}>
+          <Pressable
+            style={styles.platesOpen}
+            hitSlop={4}
+            onPress={() => setPlatesOpen((open) => !open)}>
+            <Ionicons name="disc-outline" size={14} color={colors.textDim} />
+            <Text style={styles.platesText}>
+              {!platesOpen ? '원판 보기' : plates ?? '봉보다 가벼운 무게예요'}
+            </Text>
+          </Pressable>
+          {/* Which bar, and the way to say it is another one. */}
+          {platesOpen && (
+            <Pressable
+              style={styles.bar}
+              hitSlop={6}
+              disabled={!onChangeBar}
+              onPress={onChangeBar}
+              accessibilityLabel={`봉 ${bar}kg, 눌러서 바꾸기`}>
+              <Text style={styles.barText}>봉 {bar}kg</Text>
+              {onChangeBar && <Ionicons name="swap-horizontal" size={12} color={colors.accent} />}
+            </Pressable>
+          )}
+        </View>
       )}
 
       {/*
@@ -247,8 +271,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.xs,
+    gap: spacing.sm,
   },
+  platesOpen: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  bar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  barText: { color: colors.accent, fontSize: 12, fontWeight: '700' },
   platesText: { color: colors.textDim, fontSize: 13, fontWeight: '600' },
   actions: { flexDirection: 'row', gap: spacing.sm },
   remove: {

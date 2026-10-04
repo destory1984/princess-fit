@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { BAR, nextBar } from '@/lib/plates';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Redirect } from 'expo-router';
 import { Advisor } from '@/components/Advisor';
@@ -146,6 +147,7 @@ const benchStanding: Standing = {
 };
 
 export default function PreviewScreen() {
+  const [benchBar, setBenchBar] = useState(BAR);
   const [picking, setPicking] = useState(false);
   const [entry, setEntry] = useState<ContestId>('tournament');
   const [replay, setReplay] = useState(0);
@@ -464,6 +466,8 @@ export default function PreviewScreen() {
           // The first shows the plates row; the second is under the bar's own
           // weight, where there is nothing to load and the row must not appear.
           barbell={track === 'weight_reps'}
+          bar={benchBar}
+          onChangeBar={() => setBenchBar(nextBar(benchBar))}
           set={{
             id: `preview-${i}`,
             workout_id: 'w',

@@ -403,3 +403,25 @@ export async function setFestivalSeen(key: string) {
     // Announced once more than it should be, which is harmless.
   }
 }
+
+const BARS_KEY = 'refit.bars';
+
+/**
+ * Which bar each exercise is done with, by exercise id, where it is not the
+ * full-size one. Kept on the phone: it is a fact about the gym this phone goes
+ * to, and nothing on the server reads it.
+ */
+export async function getBars(): Promise<Record<string, number>> {
+  try {
+    const parsed = JSON.parse((await AsyncStorage.getItem(BARS_KEY)) ?? '{}');
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+export async function setBar(exerciseId: string, bar: number) {
+  const bars = await getBars();
+  bars[exerciseId] = bar;
+  await AsyncStorage.setItem(BARS_KEY, JSON.stringify(bars));
+}

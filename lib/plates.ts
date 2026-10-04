@@ -6,13 +6,27 @@
  * that — in their head, between sets, usually while out of breath. This does
  * that sum and writes the answer for one side.
  *
- * It is only true for a 20kg bar. An EZ bar or a Smith machine weighs
- * something else, and the app does not know which one is in the hands — so
- * the card names the bar it assumed.
+ * It is only true for the bar it was told. The app cannot see which one is in
+ * the hands, so it starts from a full-size 20kg bar, names that guess on the
+ * card, and lets it be changed there (`BARS`). The choice is kept per exercise
+ * on the phone: the same person curls with a short bar and squats with a long one.
  */
 
 /** A full-size bar. The same 20 that `PLATE_THRESHOLD` stands on. */
 export const BAR = 20;
+
+/**
+ * The bars a gym has, heaviest first: the full-size bar, the lighter 15kg one,
+ * and the short or EZ bar at about 10. A Smith machine's bar is counterweighted
+ * to anything from 5 to 20 and differs by maker, so it is not guessed at here.
+ */
+export const BARS = [20, 15, 10];
+
+/** The bar after this one, going round. An unknown weight starts again from the top. */
+export function nextBar(bar: number): number {
+  const at = BARS.indexOf(bar);
+  return BARS[(at + 1) % BARS.length];
+}
 
 /** What a rack carries, heaviest first. The 1.25s are why the bar moves by 2.5. */
 export const PLATES = [25, 20, 15, 10, 5, 2.5, 1.25];

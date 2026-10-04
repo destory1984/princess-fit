@@ -81,11 +81,14 @@ import type { Place } from "@/lib/onboarding";
 import {
   getAdviceByModel,
   getAskRoutine,
+  getBars,
   getPlace,
   getRestEnd,
   setRestEnd as rememberRestEnd,
   forgetAdvice,
+  setBar,
 } from "@/lib/prefs";
+import { BAR, nextBar } from "@/lib/plates";
 import { recoveryOf, type Muscle } from "@/lib/recovery";
 import { suggestExercise } from "@/lib/suggest";
 import * as Crypto from "expo-crypto";
@@ -118,6 +121,17 @@ export default function WorkoutScreen() {
     new Map(),
   );
   const [bests, setBests] = useState<Map<string, number>>(new Map());
+  // Which bar each exercise is loaded on, where someone has said it is not the
+  // full-size one (lib/plates.ts). Read once; changed from a set card.
+  const [bars, setBars] = useState<Record<string, number>>({});
+  useEffect(() => {
+    getBars().then(setBars);
+  }, []);
+  const changeBar = (exerciseId: string) => {
+    const bar = nextBar(bars[exerciseId] ?? BAR);
+    setBars((all) => ({ ...all, [exerciseId]: bar }));
+    void setBar(exerciseId, bar).catch(() => {});
+  };
   const [picking, setPicking] = useState(false);
   // The block whose remaining sets are being handed to something else. The
   // block and not the movement: the same movement may be on the board twice,
@@ -1430,6 +1444,8 @@ export default function WorkoutScreen() {
                           total={exerciseSets.length}
                           tint={tint}
                           barbell={exercise?.equipment === "바벨"}
+                          bar={bars[current.exercise_id] ?? BAR}
+                          onChangeBar={() => changeBar(current.exercise_id)}
                           onChange={(patch) => persist(current.id, patch)}
                           onComplete={() =>
                             // Stamped here rather than on the server, because

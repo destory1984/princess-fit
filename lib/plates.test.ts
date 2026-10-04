@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { BAR, PLATES, plateWord, platesFor } from './plates.ts';
+import { BAR, BARS, nextBar, PLATES, plateWord, platesFor } from './plates.ts';
 import { nextWeight, PLATE_THRESHOLD } from './weight.ts';
 
 test('the plates go on one side, heaviest first', () => {
@@ -58,4 +58,23 @@ test('the same plate twice is written once, with a count', () => {
 test('nonsense is not a weight', () => {
   assert.equal(platesFor(Number.NaN), null);
   assert.equal(platesFor(-40), null);
+});
+
+test('the bars go round, and start from the full-size one', () => {
+  assert.equal(BARS[0], BAR);
+  let bar = BAR;
+  const seen = [];
+  for (let i = 0; i < BARS.length; i++) seen.push((bar = nextBar(bar)));
+  assert.deepEqual(seen, [15, 10, 20]);
+  // A weight nobody offered (an old stored value) starts again from the top.
+  assert.equal(nextBar(7), BAR);
+});
+
+test('a lighter bar takes more plates for the same number', () => {
+  assert.equal(plateWord(40), '한쪽에 10');
+  assert.equal(plateWord(40, 15), '한쪽에 10 · 2.5');
+  assert.equal(plateWord(40, 10), '한쪽에 15');
+  // And is a bar at a weight the full-size one is not.
+  assert.equal(plateWord(15), null);
+  assert.equal(plateWord(15, 15), '빈 봉');
 });
