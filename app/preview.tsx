@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Redirect } from 'expo-router';
 import { Advisor } from '@/components/Advisor';
+import { messageFor } from '@/lib/economy';
+import { faceArt } from '@/lib/outfitArt';
+import { voiceOf } from '@/lib/voices';
 import { BigStepper } from '@/components/BigStepper';
 import { cheapestGift } from '@/lib/firstDay';
 import { BragCard } from '@/components/BragCard';
@@ -224,6 +227,12 @@ export default function PreviewScreen() {
       <Advisor name={girl.name} portrait={girl.base}>
         오늘은 오시려나 했어요.
       </Advisor>
+      {/* Every face she has, each beside a line of that mood. */}
+      {(['happy', 'hungry', 'shabby', 'lonely', 'sulky'] as const).map((face) => (
+        <Advisor key={face} name={girl.name} portrait={faceArt(girl.id, face)}>
+          {face === 'sulky' ? voiceOf(girl.id).sulk.fickle[0] : messageFor(face, new Date(), 'new', girl.id)}
+        </Advisor>
+      ))}
 
       <Text style={styles.heading}>지갑</Text>
       <Purse house={house} opensShop />

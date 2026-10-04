@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import type { ReactNode } from 'react';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Advisor } from '@/components/Advisor';
 import {
@@ -13,6 +14,9 @@ import {
   type Festival,
   type Standing,
 } from '@/lib/festival';
+import { rivalArt } from '@/lib/festivalArt';
+import { Portrait } from '@/components/Portrait';
+import { faceArt } from '@/lib/outfitArt';
 import { voiceOf } from '@/lib/voices';
 import { colors, paper, spacing } from '@/lib/theme';
 
@@ -102,9 +106,15 @@ export function FestivalAhead({ festival, today, girl, standing, formDays, index
               )}
             </View>
             <Text style={styles.hint}>{c.hint}</Text>
-            <Bar label={`${girl.name} (지금)`} value={mine} her />
+            <Bar label={`${girl.name} (지금)`} value={mine} her face={<Portrait source={faceArt(girl.id, 'fine')} size={FACE} />} />
             {rivals.map((r) => (
-              <Bar key={r.name} label={`${r.name} · ${r.from}`} value={r.about} about />
+              <Bar
+                key={r.name}
+                label={`${r.name} · ${r.from}`}
+                value={r.about}
+                about
+                face={rivalArt(r.name) ? <Image source={rivalArt(r.name)} style={styles.face} /> : undefined}
+              />
             ))}
           </Pressable>
         );
@@ -118,9 +128,26 @@ export function FestivalAhead({ festival, today, girl, standing, formDays, index
   );
 }
 
-function Bar({ label, value, her, about }: { label: string; value: number; her?: boolean; about?: boolean }) {
+/** The width of a face at the head of a bar. */
+const FACE = 24;
+
+function Bar({
+  label,
+  value,
+  her,
+  about,
+  face,
+}: {
+  label: string;
+  value: number;
+  her?: boolean;
+  about?: boolean;
+  /** Who the bar is: a rival you can picture is one you look forward to meeting. */
+  face?: ReactNode;
+}) {
   return (
     <View style={styles.bar}>
+      {face ?? <View style={styles.face} />}
       <Text style={[styles.barLabel, her && styles.barLabelHer]} numberOfLines={1}>
         {label}
       </Text>
@@ -167,7 +194,8 @@ const styles = StyleSheet.create({
   pick: { color: colors.textDim, fontSize: 12, fontWeight: '700' },
   hint: { color: colors.textDim, fontSize: 12, lineHeight: 17, marginBottom: spacing.xs },
   bar: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  barLabel: { width: 128, color: colors.textDim, fontSize: 11 },
+  face: { width: FACE, height: FACE },
+  barLabel: { width: 118, color: colors.textDim, fontSize: 11 },
   barLabelHer: { color: colors.accent, fontWeight: '800' },
   track: { flex: 1, height: 6, borderRadius: 3, backgroundColor: colors.surfaceAlt, overflow: 'hidden' },
   fill: { height: '100%', backgroundColor: colors.faint },

@@ -228,6 +228,25 @@ function feelingLine(bond: Bond | null, today: Date, girl?: string): string | nu
   return pickOf(say.returned(other, bond.sulk.away));
 }
 
+/** The faces she has been drawn with: one for each mood, and one for a sulk. */
+export type Face = Mood | 'sulky';
+
+/**
+ * The face beside what `dailyLine` says. The same order as the line, so the two
+ * never disagree: a sulk shows before hunger does, and the day she comes round
+ * she is glad of it whatever else is true.
+ */
+export function faceFor(
+  house: Household,
+  workouts: WorkoutFact[],
+  bond: Bond | null = null,
+  today = new Date()
+): Face {
+  if (bond?.madeUp) return 'happy';
+  if (bond?.sulk) return 'sulky';
+  return moodOf(house, workouts, today);
+}
+
 export type GiftKind = 'food' | 'clothes' | 'accessory' | 'furniture' | 'lesson';
 
 /**

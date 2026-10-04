@@ -237,7 +237,9 @@ function LessonRow({
     <Row
       id={lesson.id}
       busy={shop.busy}
-      icon={busyWithThis ? "school-outline" : lesson.icon}
+      // With a drawing, the badge speaks only while she is taking this course.
+      picture={shelfArt(lesson.id)}
+      icon={busyWithThis ? "school-outline" : shelfArt(lesson.id) ? PLAIN_GARMENT : lesson.icon}
       name={lesson.name}
       detail={busyWithThis || busyWithOther ? lesson.detail : `${lengthWord(lesson)} 과정`}
       price={lesson.price}

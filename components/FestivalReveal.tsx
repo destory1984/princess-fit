@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Advisor } from '@/components/Advisor';
 import { festivalTitle, rivalRemark, type Result } from '@/lib/festival';
+import { Portrait } from '@/components/Portrait';
+import { rivalArt, TROPHY } from '@/lib/festivalArt';
 import { voiceOf } from '@/lib/voices';
 import { colors, paper, spacing } from '@/lib/theme';
 
@@ -63,6 +65,11 @@ export function FestivalReveal({ result, girl, prize, animate }: Props) {
               </View>
               {visible ? (
                 <>
+                  {e.her ? (
+                    <Portrait source={girl.base} size={36} />
+                  ) : rivalArt(e.name) ? (
+                    <Image source={rivalArt(e.name)} style={styles.face} />
+                  ) : null}
                   <View style={styles.who}>
                     <Text style={[styles.name, e.her && styles.nameHer]}>{e.her ? girl.name : e.name}</Text>
                     <Text style={styles.from}>{e.her ? '우리 집' : e.from}</Text>
@@ -89,7 +96,11 @@ export function FestivalReveal({ result, girl, prize, animate }: Props) {
           </Advisor>
           {prize ? (
             <View style={styles.prize}>
-              <Ionicons name="trophy-outline" size={16} color={colors.gold} />
+              {result.place === 1 ? (
+                <Image source={TROPHY} style={styles.trophy} />
+              ) : (
+                <Ionicons name="trophy-outline" size={16} color={colors.gold} />
+              )}
               <Text style={styles.prizeText}>상금 +{prize}G</Text>
             </View>
           ) : null}
@@ -134,6 +145,8 @@ const styles = StyleSheet.create({
   },
   medalText: { color: colors.textDim, fontWeight: '800', fontSize: 12 },
   medalTextOn: { color: '#fff' },
+  face: { width: 36, height: 36 },
+  trophy: { width: 36, height: 36 },
   who: { flex: 1 },
   name: { color: colors.text, fontSize: 15, fontWeight: '700' },
   nameHer: { color: colors.accent },

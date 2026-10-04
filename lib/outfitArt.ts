@@ -7,6 +7,8 @@
  * and still have a defined height. An image given only a width falls back to
  * its intrinsic pixel size, which for this art is over a thousand pixels tall.
  */
+import type { Face } from './economy';
+
 type Art = { source: number; aspect: number };
 
 /**
@@ -71,6 +73,41 @@ const GIRL_ART: Record<string, GirlArt> = {
   },
 };
 
+/**
+ * Her head and shoulders with another look on her face, on the same canvas as `whole`
+ * so the round portrait takes either. The everyday face is `whole` itself. Only the
+ * box her face is in differs (`scripts/girl-face.py`): her hair does not move when her
+ * mood does.
+ */
+const FACE_ART: Record<string, Partial<Record<Face, number>>> = {
+  geumhwa: {
+    happy: require('../assets/girls/geumhwa_face_happy.png'),
+    hungry: require('../assets/girls/geumhwa_face_hungry.png'),
+    shabby: require('../assets/girls/geumhwa_face_shabby.png'),
+    lonely: require('../assets/girls/geumhwa_face_lonely.png'),
+    sulky: require('../assets/girls/geumhwa_face_sulky.png'),
+  },
+  seora: {
+    happy: require('../assets/girls/seora_face_happy.png'),
+    hungry: require('../assets/girls/seora_face_hungry.png'),
+    shabby: require('../assets/girls/seora_face_shabby.png'),
+    lonely: require('../assets/girls/seora_face_lonely.png'),
+    sulky: require('../assets/girls/seora_face_sulky.png'),
+  },
+  dohwa: {
+    happy: require('../assets/girls/dohwa_face_happy.png'),
+    hungry: require('../assets/girls/dohwa_face_hungry.png'),
+    shabby: require('../assets/girls/dohwa_face_shabby.png'),
+    lonely: require('../assets/girls/dohwa_face_lonely.png'),
+    sulky: require('../assets/girls/dohwa_face_sulky.png'),
+  },
+};
+
+/** Her portrait with that face on, or her everyday one where it has not been drawn. */
+export function faceArt(advisorId: string, face: Face): number {
+  return FACE_ART[advisorId]?.[face] ?? girlArt(advisorId).whole;
+}
+
 export function girlArt(advisorId: string): GirlArt {
   const art = GIRL_ART[advisorId];
   if (!art) throw new Error(`no art for ${advisorId}`);
@@ -102,7 +139,11 @@ export function dotGarmentArt(garmentId: string): number | undefined {
   return DOT_GARMENT_ART[garmentId];
 }
 
-/** The same garments alone, each cut to its own square, for the shop's shelves. */
+/**
+ * The same garments alone, each cut to its own square, for the shop's shelves, and
+ * with them the things on the other shelves that are drawn but never worn: the four
+ * dishes and the seven lessons (`scripts/shelf-assets.py`).
+ */
 const SHELF_ART: Record<string, number> = {
   ribbon: require('../assets/garments/ribbon_shelf.png'),
   blouse: require('../assets/garments/blouse_shelf.png'),
@@ -117,6 +158,17 @@ const SHELF_ART: Record<string, number> = {
   brooch: require('../assets/garments/brooch_shelf.png'),
   gloves: require('../assets/garments/gloves_shelf.png'),
   tiara: require('../assets/garments/tiara_shelf.png'),
+  bread: require('../assets/shop/bread.png'),
+  stew: require('../assets/shop/stew.png'),
+  roast: require('../assets/shop/roast.png'),
+  feast: require('../assets/shop/feast.png'),
+  etiquette: require('../assets/shop/etiquette.png'),
+  dance: require('../assets/shop/dance.png'),
+  voice: require('../assets/shop/voice.png'),
+  painting: require('../assets/shop/painting.png'),
+  literature: require('../assets/shop/literature.png'),
+  mathematics: require('../assets/shop/mathematics.png'),
+  theology: require('../assets/shop/theology.png'),
 };
 
 export function shelfArt(garmentId: string): number | undefined {

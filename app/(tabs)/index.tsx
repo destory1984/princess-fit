@@ -26,11 +26,13 @@ import type { Enrolment } from '@/lib/lessons';
 import { roomMood } from '@/lib/room';
 import { dressedFor } from '@/lib/outfit';
 import { adorned } from '@/lib/shop';
+import { faceArt } from '@/lib/outfitArt';
 import type { Seen } from '@/lib/notice';
 import { recoveryOf } from '@/lib/recovery';
 import {
   conditionFactor,
   dailyLine,
+  faceFor,
   tomorrowsMessage,
   type Bond,
   type Household,
@@ -402,7 +404,10 @@ export default function TodayScreen() {
           <WalkCard onFed={load} dense />
           {/* She is the way in to what she remembers. */}
           <Pressable onPress={() => router.push('/memories')}>
-            <Advisor name={girl.name} portrait={girl.base}>
+            {/* Her face goes with what she says: the same order as dailyLine. */}
+            <Advisor
+              name={girl.name}
+              portrait={house ? faceArt(girl.id, faceFor(house, facts, bond)) : girl.base}>
               {house
                 ? dailyLine(
                     house,

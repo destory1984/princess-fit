@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View, Image } from 'react-native';
+import { TROPHY } from '@/lib/festivalArt';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import type { Festival } from '@/lib/festival';
 import { colors, paper, radius, spacing } from '@/lib/theme';
@@ -23,7 +24,7 @@ export function FestivalCard({ next, left, contest, news, onPress }: Props) {
   if (news) {
     return (
       <Pressable style={[styles.card, styles.news]} onPress={onPress}>
-        <Ionicons name="trophy" size={22} color={colors.gold} />
+        <Image source={TROPHY} style={{ width: 32, height: 32 }} />
         <View style={styles.body}>
           <Text style={styles.newsTitle}>{news.title}</Text>
           <Text style={styles.newsSub}>{news.sub}</Text>

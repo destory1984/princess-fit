@@ -4,6 +4,7 @@ import {
   afterWorkout,
   conditionFactor,
   DAILY_UPKEEP,
+  faceFor,
   messageFor,
   moodOf,
   newHousehold,
@@ -13,6 +14,7 @@ import {
   dailyLine,
   thanksFor,
   workoutGold,
+  type Bond,
   type GiftKind,
   type Household,
 } from './economy.ts';
@@ -237,4 +239,13 @@ test('a sulk comes before everything, and never reaches a notification', () => {
   assert.doesNotMatch(tomorrowsMessage(hungry, [], today, null, sulking, 'geumhwa'), /피아|만이에요/);
   const madeUp = { stage: 'new' as const, memories: [], madeUp: true };
   assert.match(dailyLine(hungry, [], today, null, madeUp, 'dohwa'), /풀렸|화해/);
+});
+
+test('her face follows what she says: a sulk before hunger, and glad the day it ends', () => {
+  const hungry: Household = { gold: 0, satiety: 10, attire: 100, settledOn: '2026-09-20' };
+  const today = new Date(2026, 8, 20);
+  const bond = { stage: 'new', memories: [] } as unknown as Bond;
+  assert.equal(faceFor(hungry, [], null, today), 'hungry');
+  assert.equal(faceFor(hungry, [], { ...bond, sulk: { reason: 'fickle' } } as unknown as Bond, today), 'sulky');
+  assert.equal(faceFor(hungry, [], { ...bond, madeUp: true } as Bond, today), 'happy');
 });
