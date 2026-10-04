@@ -63,6 +63,11 @@ export type Voice = {
     short: string;
     /** `what` is already 「가슴, 팔 12세트」 or 「유산소 30분」. */
     plain: (what: string) => string;
+    /**
+     * The session that ended a sulk: what she did not say out loud. The same
+     * line as her speech — she noticed, she never says you may not go.
+     */
+    sulked: { returned: (other: string, away: number) => string; fickle: string };
   };
   /**
    * Sulking (lib/picks.ts). Only for being left and come back to, or picked
@@ -332,6 +337,11 @@ const rina: Voice = {
     heavy: '평소보다 훨씬 많이 들었다. 오늘 밤엔 푹 자야 할 텐데.',
     short: '오늘은 짧게 끝났다. 바빴나 보다. 그래도 와 준 게 어디야.',
     plain: (what) => `오늘은 ${what}. 별일 없이 끝나서 다행이다.`,
+    sulked: {
+      returned: (o, n) =>
+        `${n}일 만에 돌아왔다. ${withParticle(o, '와과')} 지낸 동안이 조금 서운했는데, 말은 못 했다. 오늘 기록을 적다 보니 다 풀렸다.`,
+      fickle: '이번 주에 몇 번이나 바뀌었다. 나도 곧 바뀌려나 싶어 말이 짧아졌다. 그래도 오늘 기록은 내가 적었다.',
+    },
   },
   sulk: {
     returned: (o, n) => [
@@ -506,6 +516,11 @@ const pia: Voice = {
     heavy: '오늘 볼륨 최고치급! 숫자가 쭉쭉 올라갔다.',
     short: '오늘은 짧았다. 그래도 기록은 기록! 0보다 크면 다 이긴 거다.',
     plain: (what) => `${what} 완료! 오늘도 한 줄 추가.`,
+    sulked: {
+      returned: (o, n) =>
+        `${n}일 동안 ${withParticle(o, '와과')} 했다니, 솔직히 분했다! 근데 오늘 기록을 보니까 화가 안 난다. 그게 더 분하다.`,
+      fickle: '이번 주에만 몇 번을 바꾼 건지! 삐졌었다. 근데 오늘 기록이 내 칸에 찍혔으니까 봐준다.',
+    },
   },
   sulk: {
     returned: (o, n) => [
@@ -693,6 +708,11 @@ const yuki: Voice = {
     heavy: '평소보다 많이 들었다. 내일은 쉬게 할 것.',
     short: '짧게 끝남. 한 부위라도 끝까지 한 것은 인정.',
     plain: (what) => `${what}. 특이사항 없음.`,
+    sulked: {
+      returned: (o, n) =>
+        `${n}일 만. ${withParticle(o, '와과')} 했다고 한다. 말이 짧았던 것은 그 때문이다. 오늘 기록으로 정리한다.`,
+      fickle: '이번 주, 여러 번 바뀌었다. 신경 쓰지 않는다고 적으려다 지웠다. 오늘 기록은 받았다.',
+    },
   },
   sulk: {
     returned: (_o, n) => [

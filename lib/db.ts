@@ -2084,6 +2084,8 @@ export async function getBond(girl: string, today = new Date()): Promise<Bond> {
   one entry, written once by the girl chosen at the time and never rewritten.
 */
 
+type GirlMemory = Memory & { girl?: string | null };
+
 /**
  * Write the entries still missing, newest first, a batch at a time. Called
  * when a session is paid (so it is hers who was there) and when the history
@@ -2107,12 +2109,19 @@ export async function writeDiaries(girl?: string, batch = 40): Promise<number> {
     const [facts, sessions, stored, picks] = await Promise.all([
       listWorkoutFacts(),
       listMemorySessions(),
+      // With the girl each was given to, so another girl's gift does not make
+      // up for this one's sulk. Without, where the column is not there yet.
       supabase
         .from('memories')
-        .select(MEMORY_COLUMNS)
-        .then(({ data: rows }) => (rows as Memory[] | null) ?? []),
+        .select(`${MEMORY_COLUMNS}, girl`)
+        .then(async ({ data: rows, error: noGirl }) => {
+          if (!noGirl) return (rows as GirlMemory[] | null) ?? [];
+          const plain = await supabase.from('memories').select(MEMORY_COLUMNS);
+          return (plain.data as GirlMemory[] | null) ?? [];
+        }),
       listPicks(girl),
     ]);
+    const firstGirl = picks[0]?.girl ?? girl;
     const memories = [...memoriesFrom(sessions), ...stored.filter((m) => isGift(m.kind as MemoryKind))];
     const byId = new Map(facts.map((f) => [f.id, f]));
     const ordered = sessions.slice().sort((a, b) => a.started_at.localeCompare(b.started_at));
@@ -2129,6 +2138,21 @@ export async function writeDiaries(girl?: string, batch = 40): Promise<number> {
       }
       // In the hand of whoever was chosen at the time, when that is known.
       const hand = whoWasThere(picks, today.started_at) ?? girl;
+      // Whether she was sulking when this one began: only what came before it
+      // counts, or the session would make up for the sulk it is about to tell.
+      const sulk = hand
+        ? sulkOf(
+            hand,
+            picks.filter((p) => p.picked_at <= today.started_at),
+            ordered
+              .filter((s) => s.worked && s.started_at < today.started_at)
+              .map((s) => localDayKey(new Date(s.started_at))),
+            stored
+              .filter((m) => isGift(m.kind as MemoryKind) && (m.girl ?? firstGirl) === hand && m.day <= day)
+              .map((m) => m.day),
+            new Date(today.started_at)
+          )
+        : null;
       const entry = diaryFor(
         {
           today,
@@ -2136,6 +2160,7 @@ export async function writeDiaries(girl?: string, batch = 40): Promise<number> {
           lifts: at >= 0 ? ordered[at].lifts : [],
           bestBefore,
           memories: memories.filter((m) => m.day === day),
+          sulk,
         },
         hand
       );

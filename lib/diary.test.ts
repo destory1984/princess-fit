@@ -84,3 +84,34 @@ test('she writes of 「그 사람」, never of a boyfriend, and never of what sh
   }
   for (const line of all) assert.doesNotMatch(line, /오빠|남친|남자친구|자세|무릎|웃었/);
 });
+
+test('the session that ends a sulk says what she kept to herself', () => {
+  const back = { reason: 'returned' as const, other: 'dohwa', away: 4 };
+  const written = GIRLS.map((g) => diaryFor(input(fact('2026-09-23'), { sulk: back }), g)!);
+  assert.equal(new Set(written).size, 3, written.join(' / '));
+  for (const w of written) assert.match(w, /4일/);
+  assert.match(written[0], /피아/);
+  const fickle = diaryFor(input(fact('2026-09-23'), { sulk: { reason: 'fickle', other: null, away: 0 } }), 'dohwa')!;
+  assert.match(fickle, /이번 주/);
+});
+
+test('a sulk gives way to a day worth remembering, and comes before a best', () => {
+  const sulk = { reason: 'returned' as const, other: 'seora', away: 2 };
+  const hundred: Memory = { kind: 'day_100', day: '2026-09-23', line: '', detail: null };
+  assert.match(diaryFor(input(fact('2026-09-23'), { sulk, memories: [hundred] }), 'geumhwa')!, /백 번째/);
+  const lifts = [{ exercise: '벤치프레스', kg: 62.5 }];
+  const w = diaryFor(input(fact('2026-09-23'), { sulk, lifts, bestBefore: new Map([['벤치프레스', 60]]) }), 'geumhwa')!;
+  assert.doesNotMatch(w, /최고 기록/);
+});
+
+test('sulking in the diary is jealous, never possessive, and still only what was recorded', () => {
+  for (const g of GIRLS) {
+    for (const sulk of [
+      { reason: 'returned' as const, other: 'dohwa', away: 3 },
+      { reason: 'fickle' as const, other: null, away: 0 },
+    ]) {
+      const w = diaryFor(input(fact('2026-09-23'), { sulk }), g)!;
+      assert.doesNotMatch(w, /가지 마|나만|저만|오빠|남친|남자친구|자세|무릎|웃었|해요|습니다/, w);
+    }
+  }
+});

@@ -2,6 +2,8 @@ import { localDayKey } from './format.ts';
 import { isEmptyWorkout, streakOf, type WorkoutFact } from './gamification.ts';
 import { isGift, type Memory, type OnceKind } from './companion.ts';
 import { voiceOf } from './voices.ts';
+import { ADVISORS } from './advisors.ts';
+import type { Sulk } from './picks.ts';
 
 /**
  * Her diary: a line or two about each session, written the day it was paid.
@@ -28,6 +30,11 @@ export type DiaryInput = {
   bestBefore: Map<string, number>;
   /** Memories dated this session's day. */
   memories: Memory[];
+  /**
+   * The sulk she was in when this session began. A workout ends a sulk, so
+   * this is the session that made it up — the one day the diary can say it.
+   */
+  sulk?: Sulk | null;
 };
 
 /** Which of the day's memories is the news, rarest first. */
@@ -62,6 +69,14 @@ export function diaryFor(input: DiaryInput, girl?: string): string | null {
   for (const kind of MEMORY_ORDER) {
     const m = memories.find((x) => x.kind === kind);
     if (m) return write.memory[kind](m.detail ?? '');
+  }
+
+  // She was sulking until this session: what she kept to herself. Said
+  // nowhere else — out loud she only says it is over.
+  if (input.sulk) {
+    if (input.sulk.reason === 'fickle') return write.sulked.fickle;
+    const other = ADVISORS.find((a) => a.id === input.sulk!.other)?.name ?? '다른 애';
+    return write.sulked.returned(other, input.sulk.away);
   }
 
   // A new best, on something done before.
