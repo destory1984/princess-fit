@@ -8,91 +8,144 @@
  */
 const MOVE_ART: Record<string, Record<string, number>> = {
   barbell_curl: {
+    dohwa: require('../assets/moves/barbell_curl_dohwa.png'),
     geumhwa: require('../assets/moves/barbell_curl_geumhwa.png'),
+    seora: require('../assets/moves/barbell_curl_seora.png'),
   },
   barbell_row: {
+    dohwa: require('../assets/moves/barbell_row_dohwa.png'),
     geumhwa: require('../assets/moves/barbell_row_geumhwa.png'),
+    seora: require('../assets/moves/barbell_row_seora.png'),
   },
   bench_press: {
+    dohwa: require('../assets/moves/bench_press_dohwa.png'),
     geumhwa: require('../assets/moves/bench_press_geumhwa.png'),
+    seora: require('../assets/moves/bench_press_seora.png'),
   },
   calf_raise: {
+    dohwa: require('../assets/moves/calf_raise_dohwa.png'),
     geumhwa: require('../assets/moves/calf_raise_geumhwa.png'),
+    seora: require('../assets/moves/calf_raise_seora.png'),
   },
   chest_press_machine: {
+    dohwa: require('../assets/moves/chest_press_machine_dohwa.png'),
     geumhwa: require('../assets/moves/chest_press_machine_geumhwa.png'),
+    seora: require('../assets/moves/chest_press_machine_seora.png'),
+  },
+  crunch: {
+    dohwa: require('../assets/moves/crunch_dohwa.png'),
+    geumhwa: require('../assets/moves/crunch_geumhwa.png'),
+    seora: require('../assets/moves/crunch_seora.png'),
   },
   deadlift: {
+    dohwa: require('../assets/moves/deadlift_dohwa.png'),
     geumhwa: require('../assets/moves/deadlift_geumhwa.png'),
+    seora: require('../assets/moves/deadlift_seora.png'),
   },
   dips: {
+    dohwa: require('../assets/moves/dips_dohwa.png'),
     geumhwa: require('../assets/moves/dips_geumhwa.png'),
+    seora: require('../assets/moves/dips_seora.png'),
   },
   dumbbell_curl: {
+    dohwa: require('../assets/moves/dumbbell_curl_dohwa.png'),
     geumhwa: require('../assets/moves/dumbbell_curl_geumhwa.png'),
+    seora: require('../assets/moves/dumbbell_curl_seora.png'),
   },
   dumbbell_press: {
+    dohwa: require('../assets/moves/dumbbell_press_dohwa.png'),
     geumhwa: require('../assets/moves/dumbbell_press_geumhwa.png'),
+    seora: require('../assets/moves/dumbbell_press_seora.png'),
   },
   hip_thrust: {
+    dohwa: require('../assets/moves/hip_thrust_dohwa.png'),
     geumhwa: require('../assets/moves/hip_thrust_geumhwa.png'),
+    seora: require('../assets/moves/hip_thrust_seora.png'),
   },
   lat_pulldown: {
+    dohwa: require('../assets/moves/lat_pulldown_dohwa.png'),
     geumhwa: require('../assets/moves/lat_pulldown_geumhwa.png'),
+    seora: require('../assets/moves/lat_pulldown_seora.png'),
   },
   lateral_raise: {
+    dohwa: require('../assets/moves/lateral_raise_dohwa.png'),
     geumhwa: require('../assets/moves/lateral_raise_geumhwa.png'),
+    seora: require('../assets/moves/lateral_raise_seora.png'),
   },
   leg_curl: {
+    dohwa: require('../assets/moves/leg_curl_dohwa.png'),
     geumhwa: require('../assets/moves/leg_curl_geumhwa.png'),
+    seora: require('../assets/moves/leg_curl_seora.png'),
   },
   leg_extension: {
+    dohwa: require('../assets/moves/leg_extension_dohwa.png'),
     geumhwa: require('../assets/moves/leg_extension_geumhwa.png'),
+    seora: require('../assets/moves/leg_extension_seora.png'),
   },
   leg_press: {
+    dohwa: require('../assets/moves/leg_press_dohwa.png'),
     geumhwa: require('../assets/moves/leg_press_geumhwa.png'),
+    seora: require('../assets/moves/leg_press_seora.png'),
   },
   leg_raise: {
+    dohwa: require('../assets/moves/leg_raise_dohwa.png'),
     geumhwa: require('../assets/moves/leg_raise_geumhwa.png'),
+    seora: require('../assets/moves/leg_raise_seora.png'),
   },
   lunge: {
+    dohwa: require('../assets/moves/lunge_dohwa.png'),
     geumhwa: require('../assets/moves/lunge_geumhwa.png'),
+    seora: require('../assets/moves/lunge_seora.png'),
   },
   one_arm_row: {
+    dohwa: require('../assets/moves/one_arm_row_dohwa.png'),
     geumhwa: require('../assets/moves/one_arm_row_geumhwa.png'),
+    seora: require('../assets/moves/one_arm_row_seora.png'),
   },
   overhead_press: {
+    dohwa: require('../assets/moves/overhead_press_dohwa.png'),
     geumhwa: require('../assets/moves/overhead_press_geumhwa.png'),
+    seora: require('../assets/moves/overhead_press_seora.png'),
   },
   plank: {
     geumhwa: require('../assets/moves/plank_geumhwa.png'),
+    seora: require('../assets/moves/plank_seora.png'),
   },
   pull_up: {
     geumhwa: require('../assets/moves/pull_up_geumhwa.png'),
+    seora: require('../assets/moves/pull_up_seora.png'),
   },
   push_up: {
     geumhwa: require('../assets/moves/push_up_geumhwa.png'),
+    seora: require('../assets/moves/push_up_seora.png'),
   },
   pushdown: {
     geumhwa: require('../assets/moves/pushdown_geumhwa.png'),
+    seora: require('../assets/moves/pushdown_seora.png'),
   },
   romanian_deadlift: {
     geumhwa: require('../assets/moves/romanian_deadlift_geumhwa.png'),
+    seora: require('../assets/moves/romanian_deadlift_seora.png'),
   },
   running: {
     geumhwa: require('../assets/moves/running_geumhwa.png'),
+    seora: require('../assets/moves/running_seora.png'),
   },
   seated_row: {
     geumhwa: require('../assets/moves/seated_row_geumhwa.png'),
+    seora: require('../assets/moves/seated_row_seora.png'),
   },
   shoulder_press: {
     geumhwa: require('../assets/moves/shoulder_press_geumhwa.png'),
+    seora: require('../assets/moves/shoulder_press_seora.png'),
   },
   squat: {
     geumhwa: require('../assets/moves/squat_geumhwa.png'),
+    seora: require('../assets/moves/squat_seora.png'),
   },
   walking: {
     geumhwa: require('../assets/moves/walking_geumhwa.png'),
+    seora: require('../assets/moves/walking_seora.png'),
   },
 };
 

@@ -64,25 +64,38 @@ if len(runs) != frames:
                         stack.append((v, u))
         pieces.append(np.array(cells))
     if len(pieces) < frames:
-        sys.exit(f'{src}: the figures touch; found {len(pieces)} pieces, wanted {frames}')
-    order = sorted(range(len(pieces)), key=lambda i: -len(pieces[i]))
-    figures = sorted(order[:frames], key=lambda i: pieces[i][:, 1].mean())
-    centre = [pieces[i][:, 1].mean() for i in figures]
-    owner = {i: k for k, i in enumerate(figures)}
-    for i in order[frames:]:
-        owner[i] = int(np.argmin([abs(pieces[i][:, 1].mean() - c) for c in centre]))
-    which = np.zeros(small.shape, dtype=int)
-    for i, k in owner.items():
-        which[pieces[i][:, 0], pieces[i][:, 1]] = k + 1
-    big = np.kron(which, np.ones((4, 4), dtype=int))[:solid.shape[0], :solid.shape[1]]
-    full = np.zeros(solid.shape, dtype=int)
-    full[:big.shape[0], :big.shape[1]] = big
-    masks = [solid & (full == k + 1) for k in range(frames)]
-    runs = []
-    for m in masks:
-        xs = np.flatnonzero(m.any(axis=0))
-        runs.append((int(xs.min()), int(xs.max()) + 1))
-    print(f'{src.name}: no empty columns between the figures; told apart as pieces')
+        # They touch — a ponytail against the next machine's plate. Then the cut goes
+        # down the column where the least is drawn, near each equal division. A sliver
+        # of the neighbour comes along; look at what comes out.
+        filled = solid.sum(axis=0)
+        left, right = np.flatnonzero(cols)[[0, -1]]
+        step = (right - left) / frames
+        cuts = [int(left)]
+        for i in range(1, frames):
+            near, reach = int(left + step * i), int(step * 0.2)
+            cuts.append(near - reach + int(np.argmin(filled[near - reach:near + reach])))
+        cuts.append(int(right) + 1)
+        runs = list(zip(cuts, cuts[1:]))
+        print(f'{src.name}: the figures touch; cut down the thinnest columns at {cuts[1:-1]}')
+    else:
+        order = sorted(range(len(pieces)), key=lambda i: -len(pieces[i]))
+        figures = sorted(order[:frames], key=lambda i: pieces[i][:, 1].mean())
+        centre = [pieces[i][:, 1].mean() for i in figures]
+        owner = {i: k for k, i in enumerate(figures)}
+        for i in order[frames:]:
+            owner[i] = int(np.argmin([abs(pieces[i][:, 1].mean() - c) for c in centre]))
+        which = np.zeros(small.shape, dtype=int)
+        for i, k in owner.items():
+            which[pieces[i][:, 0], pieces[i][:, 1]] = k + 1
+        big = np.kron(which, np.ones((4, 4), dtype=int))[:solid.shape[0], :solid.shape[1]]
+        full = np.zeros(solid.shape, dtype=int)
+        full[:big.shape[0], :big.shape[1]] = big
+        masks = [solid & (full == k + 1) for k in range(frames)]
+        runs = []
+        for m in masks:
+            xs = np.flatnonzero(m.any(axis=0))
+            runs.append((int(xs.min()), int(xs.max()) + 1))
+        print(f'{src.name}: no empty columns between the figures; told apart as pieces')
 
 rows = np.flatnonzero(solid.any(axis=1))
 top, bottom = int(rows.min()), int(rows.max()) + 1
