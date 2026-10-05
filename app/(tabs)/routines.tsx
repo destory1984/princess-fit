@@ -182,7 +182,7 @@ export default function RoutinesScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
-  list: { padding: spacing.lg, gap: spacing.sm, paddingBottom: 110 },
+  list: { padding: spacing.lg, gap: spacing.md, paddingBottom: 110 },
   presets: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -195,8 +195,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   presetsBody: { flex: 1 },
-  presetsTitle: { color: colors.text, fontSize: 14, fontWeight: '700' },
-  presetsSub: { color: colors.textDim, fontSize: 12, marginTop: 2 },
+  presetsTitle: { color: colors.text, fontSize: 16, fontWeight: '700' },
+  presetsSub: { color: colors.textDim, fontSize: 14, marginTop: 2 },
   emptyAction: {
     marginTop: spacing.md,
     borderColor: colors.accent,
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
   addButtonText: { color: '#fff', fontWeight: '700' },
   empty: { alignItems: 'center', gap: spacing.xs, marginTop: spacing.xl },
   emptyTitle: { color: colors.text, fontWeight: '700', marginTop: spacing.sm },
-  emptyText: { color: colors.textDim, textAlign: 'center', lineHeight: 19 },
+  emptyText: { color: colors.textDim, textAlign: 'center', lineHeight: 22 },
   row: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,
@@ -233,8 +233,8 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   rowBody: { flex: 1 },
-  rowTitle: { color: colors.text, fontSize: 16, fontWeight: '600' },
-  rowSub: { color: colors.textDim, fontSize: 12, marginTop: 2 },
+  rowTitle: { color: colors.text, fontSize: 17, fontWeight: '600' },
+  rowSub: { color: colors.textDim, fontSize: 14, marginTop: 2 },
   bottomBar: {
     position: 'absolute',
     left: spacing.lg,

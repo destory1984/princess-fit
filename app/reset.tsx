@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: spacing.sm,
     marginBottom: spacing.lg,
-    lineHeight: 20,
+    lineHeight: 23,
   },
   password: { marginBottom: spacing.sm },
   input: {

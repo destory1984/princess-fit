@@ -83,7 +83,7 @@ export default function RoutinePresetsScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xl },
-  hint: { color: colors.textDim, fontSize: 12, lineHeight: 18 },
+  hint: { color: colors.textDim, fontSize: 14, lineHeight: 21 },
   card: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,
@@ -91,12 +91,12 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   name: { color: colors.text, fontSize: 18, fontWeight: '800' },
-  detail: { color: colors.textDim, fontSize: 13, lineHeight: 19 },
-  meta: { color: colors.gold, fontSize: 12, fontWeight: '700', marginTop: 2 },
+  detail: { color: colors.textDim, fontSize: 15, lineHeight: 22 },
+  meta: { color: colors.gold, fontSize: 14, fontWeight: '700', marginTop: 2 },
   list: { marginTop: spacing.sm, gap: 4 },
   line: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  lineName: { color: colors.text, fontSize: 13, flex: 1 },
-  lineSets: { color: colors.textDim, fontSize: 12 },
+  lineName: { color: colors.text, fontSize: 15, flex: 1 },
+  lineSets: { color: colors.textDim, fontSize: 14 },
   use: {
     marginTop: spacing.md,
     backgroundColor: colors.accent,
@@ -108,5 +108,5 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   useOff: { opacity: 0.6 },
-  useText: { color: '#fff', fontWeight: '800', fontSize: 15 },
+  useText: { color: '#fff', fontWeight: '800', fontSize: 16 },
 });

@@ -61,7 +61,7 @@ export default function GirlScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.lg, gap: spacing.md },
-  hint: { color: colors.textDim, fontSize: 12, lineHeight: 18 },
+  hint: { color: colors.textDim, fontSize: 14, lineHeight: 21 },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
   },
   cardOn: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
   body: { flex: 1, gap: 2 },
-  name: { color: colors.text, fontSize: 16, fontWeight: '700', lineHeight: 22 },
+  name: { color: colors.text, fontSize: 17, fontWeight: '700', lineHeight: 25 },
   nameOn: { color: colors.accent },
-  blurb: { color: colors.textDim, fontSize: 12, lineHeight: 18 },
+  blurb: { color: colors.textDim, fontSize: 14, lineHeight: 21 },
 });

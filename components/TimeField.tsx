@@ -41,7 +41,7 @@ export function TimeField({ label, value, onChange }: Props) {
 
 const styles = StyleSheet.create({
   wrap: { flex: 1, alignItems: 'center', gap: spacing.sm },
-  label: { color: colors.textDim, fontSize: 12 },
+  label: { color: colors.textDim, fontSize: 14 },
   value: { color: colors.text, fontSize: 32, fontWeight: '800', letterSpacing: -1 },
   buttons: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'stretch' },
   button: {
@@ -54,5 +54,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  buttonText: { color: colors.text, fontWeight: '700', fontSize: 12, lineHeight: 16 },
+  buttonText: { color: colors.text, fontWeight: '700', fontSize: 14, lineHeight: 19 },
 });

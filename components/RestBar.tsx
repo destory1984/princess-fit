@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
   fillHeld: { backgroundColor: colors.textDim },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   // Gives way first: four buttons while running leave little room on a phone.
-  label: { color: colors.textDim, fontSize: 13, maxWidth: 120, flexShrink: 1 },
+  label: { color: colors.textDim, fontSize: 15, maxWidth: 120, flexShrink: 1 },
   clock: { color: colors.text, fontSize: 22, fontWeight: '800', minWidth: 62 },
   clockOn: { color: colors.accent },
   clockHeld: { color: colors.textDim },
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
   },
-  buttonText: { color: colors.accent, fontWeight: '600', fontSize: 13 },
+  buttonText: { color: colors.accent, fontWeight: '600', fontSize: 15 },
   primary: { backgroundColor: colors.accentSoft, borderColor: colors.accent, borderWidth: 1 },
   primaryText: { fontWeight: '800' },
 });

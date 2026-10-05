@@ -66,7 +66,7 @@ export function BodyMap({ data, onPartPress, scale = 0.75, labels = true, fill }
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'flex-start' },
-  label: { color: colors.textDim, fontSize: 12, marginTop: spacing.xs },
+  label: { color: colors.textDim, fontSize: 14, marginTop: spacing.xs },
   legend: {
     flexDirection: 'row',
     alignItems: 'center',

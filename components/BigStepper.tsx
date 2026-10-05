@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     letterSpacing: -1,
   },
-  unit: { color: colors.textDim, fontSize: 14, fontWeight: "600" },
+  unit: { color: colors.textDim, fontSize: 16, fontWeight: "600" },
   buttons: {
     flexDirection: "row",
     alignItems: "center",
@@ -149,8 +149,8 @@ const styles = StyleSheet.create({
   buttonText: {
     color: colors.text,
     fontWeight: "700",
-    fontSize: 14,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 22,
     letterSpacing: -0.3,
   },
 });

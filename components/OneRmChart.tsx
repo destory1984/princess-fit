@@ -81,7 +81,7 @@ export function OneRmChart({ weight, height = 200 }: { weight: number; height?: 
 
 const styles = StyleSheet.create({
   axis: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: PAD.left },
-  axisText: { color: colors.textDim, fontSize: 11 },
+  axisText: { color: colors.textDim, fontSize: 13 },
   legend: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -90,5 +90,5 @@ const styles = StyleSheet.create({
   },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   swatch: { width: 10, height: 10, borderRadius: 2 },
-  legendText: { color: colors.textDim, fontSize: 11 },
+  legendText: { color: colors.textDim, fontSize: 13 },
 });

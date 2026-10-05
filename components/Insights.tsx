@@ -116,9 +116,9 @@ const styles = StyleSheet.create({
   watch: { backgroundColor: colors.accentSoft, borderColor: colors.accent },
   good: { backgroundColor: paper.bgAlt, borderColor: colors.gold },
   body: { flex: 1, gap: 2 },
-  title: { color: colors.text, fontSize: 14, fontWeight: '700', lineHeight: 20 },
-  detail: { color: colors.textDim, fontSize: 12, lineHeight: 18 },
-  watching: { color: colors.textDim, fontSize: 11, lineHeight: 17, paddingHorizontal: 2 },
+  title: { color: colors.text, fontSize: 16, fontWeight: '700', lineHeight: 23 },
+  detail: { color: colors.textDim, fontSize: 14, lineHeight: 21 },
+  watching: { color: colors.textDim, fontSize: 13, lineHeight: 20, paddingHorizontal: 2 },
   quiet: {
     backgroundColor: paper.bgAlt,
     borderColor: colors.faint,
@@ -126,5 +126,5 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     padding: spacing.md,
   },
-  quietText: { color: colors.textDim, fontSize: 12, lineHeight: 18 },
+  quietText: { color: colors.textDim, fontSize: 14, lineHeight: 21 },
 });

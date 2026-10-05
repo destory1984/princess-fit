@@ -229,8 +229,8 @@ export function TrainingHall({
 const styles = StyleSheet.create({
   caption: {
     color: paper.inkDim,
-    fontSize: 11,
-    lineHeight: 16,
+    fontSize: 13,
+    lineHeight: 19,
     textAlign: "center",
     paddingVertical: 5,
     backgroundColor: paper.bgAlt,
@@ -260,8 +260,8 @@ const styles = StyleSheet.create({
   },
   missing: {
     color: paper.inkDim,
-    fontSize: 10,
-    lineHeight: 15,
+    fontSize: 12,
+    lineHeight: 18,
     textAlign: "center",
     paddingHorizontal: 6,
     paddingBottom: 5,
@@ -269,8 +269,8 @@ const styles = StyleSheet.create({
   },
   statusPenalty: {
     color: colors.accent,
-    fontSize: 9,
-    lineHeight: 13,
+    fontSize: 11,
+    lineHeight: 16,
     marginTop: 2,
   },
   // Capping the whole card keeps the scene at 3:2 on a wide screen without
@@ -310,8 +310,8 @@ const styles = StyleSheet.create({
     borderColor: colors.gold,
     backgroundColor: colors.surface,
   },
-  dateDay: { color: paper.ink, fontSize: 13, fontWeight: "800" },
-  dateWeekday: { color: paper.accent, fontSize: 10, fontWeight: "700" },
+  dateDay: { color: paper.ink, fontSize: 15, fontWeight: "800" },
+  dateWeekday: { color: paper.accent, fontSize: 12, fontWeight: "700" },
 
   statusPanel: {
     backgroundColor: paper.bgAlt,
@@ -330,17 +330,17 @@ const styles = StyleSheet.create({
   statusLead: { flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 1 },
   statusBadge: { width: 32, height: 32 },
   statusWho: { flexShrink: 1 },
-  statusName: { color: paper.ink, fontSize: 15, fontWeight: "800" },
-  statusRank: { color: paper.inkDim, fontSize: 10, fontWeight: "700" },
+  statusName: { color: paper.ink, fontSize: 16, fontWeight: "800" },
+  statusRank: { color: paper.inkDim, fontSize: 12, fontWeight: "700" },
   statusCondition: {
     color: paper.accent,
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: "700",
     marginTop: 4,
   },
   statusNumbers: { flexDirection: "row", gap: 6 },
   statusStat: { alignItems: "center", minWidth: 28 },
-  statusStatLabel: { color: paper.inkDim, fontSize: 9, fontWeight: "700" },
-  statusStatValue: { color: paper.ink, fontSize: 14, fontWeight: "800" },
-  statusStreak: { color: paper.inkDim, fontSize: 10, fontWeight: "400" },
+  statusStatLabel: { color: paper.inkDim, fontSize: 11, fontWeight: "700" },
+  statusStatValue: { color: paper.ink, fontSize: 16, fontWeight: "800" },
+  statusStreak: { color: paper.inkDim, fontSize: 12, fontWeight: "400" },
 });

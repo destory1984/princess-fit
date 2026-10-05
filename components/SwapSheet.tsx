@@ -112,8 +112,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   title: { color: colors.text, fontSize: 20, fontWeight: '800' },
-  lead: { color: colors.textDim, fontSize: 13, lineHeight: 19 },
-  empty: { color: colors.textDim, fontSize: 13, lineHeight: 20, paddingVertical: spacing.md },
+  lead: { color: colors.textDim, fontSize: 15, lineHeight: 22 },
+  empty: { color: colors.textDim, fontSize: 15, lineHeight: 23, paddingVertical: spacing.md },
   choice: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -123,8 +123,8 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   choiceBody: { flex: 1, gap: 2 },
-  choiceLabel: { color: colors.text, fontSize: 16, fontWeight: '700' },
-  choiceDetail: { color: colors.textDim, fontSize: 12, lineHeight: 18 },
+  choiceLabel: { color: colors.text, fontSize: 17, fontWeight: '700' },
+  choiceDetail: { color: colors.textDim, fontSize: 14, lineHeight: 21 },
   note: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
     padding: spacing.md,
   },
-  noteText: { color: colors.textDim, fontSize: 12, lineHeight: 18, flex: 1 },
+  noteText: { color: colors.textDim, fontSize: 14, lineHeight: 21, flex: 1 },
   cancel: { alignItems: 'center', paddingVertical: spacing.md },
   cancelText: { color: colors.textDim, fontWeight: '700' },
 });

@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     alignItems: 'center',
   },
-  label: { color: colors.textDim, fontSize: 12, fontWeight: '700' },
+  label: { color: colors.textDim, fontSize: 14, fontWeight: '700' },
   diary: {
     color: colors.text,
     fontSize: 19,
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
   },
-  lead: { color: colors.textDim, fontSize: 14, lineHeight: 21, textAlign: 'center' },
+  lead: { color: colors.textDim, fontSize: 16, lineHeight: 24, textAlign: 'center' },
   button: {
     alignSelf: 'stretch',
     backgroundColor: colors.accent,
@@ -82,5 +82,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.xs,
   },
-  buttonText: { color: '#fff', fontWeight: '800', fontSize: 15 },
+  buttonText: { color: '#fff', fontWeight: '800', fontSize: 16 },
 });

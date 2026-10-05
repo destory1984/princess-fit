@@ -176,8 +176,8 @@ const styles = StyleSheet.create({
   about: {
     color: colors.text,
     textAlign: 'center',
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 24,
     marginTop: spacing.md,
   },
   aboutMore: { marginTop: 0, marginBottom: spacing.xl },
@@ -198,9 +198,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: spacing.sm,
   },
-  forgot: { color: colors.textDim, textAlign: 'center', fontSize: 13, marginTop: spacing.lg },
+  forgot: { color: colors.textDim, textAlign: 'center', fontSize: 15, marginTop: spacing.lg },
   buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  buttonText: { color: '#fff', fontWeight: '700', fontSize: 17 },
   social: {
     borderColor: colors.border,
     borderWidth: 1,

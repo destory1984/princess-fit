@@ -183,8 +183,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   body: { flex: 1, gap: 2 },
-  title: { color: colors.text, fontSize: 16, fontWeight: '700', lineHeight: 22 },
-  sub: { color: colors.textDim, fontSize: 12, lineHeight: 18 },
+  title: { color: colors.text, fontSize: 17, fontWeight: '700', lineHeight: 25 },
+  sub: { color: colors.textDim, fontSize: 14, lineHeight: 21 },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   chip: {
     backgroundColor: colors.bg,
@@ -204,8 +204,8 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   quietHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  quietTitle: { color: colors.text, fontSize: 14, fontWeight: '700', flex: 1 },
-  quietSub: { color: colors.textDim, fontSize: 12, lineHeight: 18 },
-  warn: { color: colors.accent, fontSize: 12, lineHeight: 18 },
-  note: { color: colors.textDim, fontSize: 11 },
+  quietTitle: { color: colors.text, fontSize: 16, fontWeight: '700', flex: 1 },
+  quietSub: { color: colors.textDim, fontSize: 14, lineHeight: 21 },
+  warn: { color: colors.accent, fontSize: 14, lineHeight: 21 },
+  note: { color: colors.textDim, fontSize: 13 },
 });

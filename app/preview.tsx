@@ -263,7 +263,7 @@ export default function PreviewScreen() {
         {MOVE_NAMES.map((name) => (
           <View key={name} style={{ width: '33%', alignItems: 'center' }}>
             <MoveDemo name={name} size={110} />
-            <Text style={{ fontSize: 11 }}>{name}</Text>
+            <Text style={{ fontSize: 13 }}>{name}</Text>
           </View>
         ))}
       </View>
@@ -603,11 +603,11 @@ export default function PreviewScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xl },
-  heading: { color: colors.text, fontSize: 15, fontWeight: '800', marginTop: spacing.md },
+  heading: { color: colors.text, fontSize: 16, fontWeight: '800', marginTop: spacing.md },
   ranks: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   rankSample: { width: 76, alignItems: 'center', gap: 2 },
   rankSampleArt: { width: 56, height: 56 },
-  rankSampleName: { color: colors.textDim, fontSize: 11 },
+  rankSampleName: { color: colors.textDim, fontSize: 13 },
   steppers: { flexDirection: 'row', gap: spacing.md },
   openPicker: {
     borderColor: colors.accent,
@@ -623,5 +623,5 @@ const styles = StyleSheet.create({
   dolls: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   dollCell: { alignItems: 'center', gap: 4, width: 100 },
   doll: { width: 100 },
-  dollLabel: { color: colors.textDim, fontSize: 10, lineHeight: 14, textAlign: 'center' },
+  dollLabel: { color: colors.textDim, fontSize: 12, lineHeight: 17, textAlign: 'center' },
 });

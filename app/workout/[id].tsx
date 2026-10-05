@@ -1866,9 +1866,9 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     paddingTop: spacing.sm,
   },
-  balanceText: { color: colors.textDim, fontSize: 12, lineHeight: 18, flex: 1 },
+  balanceText: { color: colors.textDim, fontSize: 14, lineHeight: 21, flex: 1 },
   rir: { gap: spacing.sm, paddingTop: spacing.md },
-  rirAsk: { color: colors.text, fontSize: 13, fontWeight: "700" },
+  rirAsk: { color: colors.text, fontSize: 15, fontWeight: "700" },
   rirRow: { flexDirection: "row", gap: spacing.sm },
   rirChip: {
     flex: 1,
@@ -1878,9 +1878,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.faint,
   },
-  rirChipText: { color: colors.text, fontSize: 13, fontWeight: "700" },
-  rirWhy: { color: colors.textDim, fontSize: 11, lineHeight: 17 },
-  rirSaid: { color: colors.textDim, fontSize: 12, paddingTop: spacing.sm },
+  rirChipText: { color: colors.text, fontSize: 15, fontWeight: "700" },
+  rirWhy: { color: colors.textDim, fontSize: 13, lineHeight: 20 },
+  rirSaid: { color: colors.textDim, fontSize: 14, paddingTop: spacing.sm },
   unsent: {
     flexDirection: "row",
     alignItems: "center",
@@ -1891,7 +1891,7 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     marginTop: spacing.sm,
   },
-  unsentText: { color: colors.text, fontSize: 12, lineHeight: 18, flex: 1 },
+  unsentText: { color: colors.text, fontSize: 14, lineHeight: 21, flex: 1 },
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: 220 },
   summary: {
@@ -1900,7 +1900,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   summaryTitle: { color: colors.text, fontSize: 20, fontWeight: "800" },
-  summarySub: { color: colors.textDim, marginTop: spacing.xs, fontSize: 13 },
+  summarySub: { color: colors.textDim, marginTop: spacing.xs, fontSize: 15 },
   bodyWrap: { marginTop: spacing.md },
   condition: {
     flexDirection: "row",
@@ -1912,7 +1912,7 @@ const styles = StyleSheet.create({
     borderColor: colors.gold,
     borderWidth: 1,
   },
-  conditionText: { color: colors.text, fontSize: 12, lineHeight: 19, flex: 1 },
+  conditionText: { color: colors.text, fontSize: 14, lineHeight: 22, flex: 1 },
   progressTrack: {
     height: 8,
     borderRadius: 4,
@@ -1923,7 +1923,7 @@ const styles = StyleSheet.create({
   progressFill: { height: 8, borderRadius: 4, backgroundColor: colors.accent },
   upNext: {
     color: colors.accent,
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: "700",
     marginTop: spacing.xs,
   },
@@ -1935,15 +1935,15 @@ const styles = StyleSheet.create({
   cardHead: { flexDirection: "row", alignItems: "center", gap: spacing.md },
   stripe: { width: 4, height: 32, borderRadius: 2 },
   cardHeadBody: { flex: 1 },
-  cardTitle: { color: colors.text, fontSize: 16, fontWeight: "700" },
-  cardSub: { color: colors.textDim, fontSize: 12, marginTop: 2 },
+  cardTitle: { color: colors.text, fontSize: 17, fontWeight: "700" },
+  cardSub: { color: colors.textDim, fontSize: 14, marginTop: 2 },
   metrics: {
     color: colors.text,
-    fontSize: 13,
+    fontSize: 15,
     marginTop: spacing.md,
     fontWeight: "600",
   },
-  metricsNote: { color: colors.textDim, fontSize: 11, marginTop: 2 },
+  metricsNote: { color: colors.textDim, fontSize: 13, marginTop: 2 },
   record: {
     flexDirection: "row",
     alignItems: "center",
@@ -1955,9 +1955,9 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     paddingHorizontal: spacing.sm,
   },
-  recordText: { color: colors.accent, fontSize: 12, fontWeight: "800" },
+  recordText: { color: colors.accent, fontSize: 14, fontWeight: "800" },
   cardInfo: { paddingHorizontal: spacing.xs },
-  previous: { color: colors.textDim, fontSize: 12, marginTop: spacing.xs },
+  previous: { color: colors.textDim, fontSize: 14, marginTop: spacing.xs },
   suggest: {
     flexDirection: "row",
     alignItems: "center",
@@ -1968,14 +1968,14 @@ const styles = StyleSheet.create({
     borderColor: colors.gold,
     borderWidth: 1,
   },
-  suggestText: { color: colors.text, fontSize: 12, lineHeight: 18, flex: 1 },
+  suggestText: { color: colors.text, fontSize: 14, lineHeight: 21, flex: 1 },
   suggestButton: {
     backgroundColor: colors.accent,
     borderRadius: radius.sm,
     paddingVertical: 6,
     paddingHorizontal: spacing.md,
   },
-  suggestButtonText: { color: "#fff", fontWeight: "800", fontSize: 12 },
+  suggestButtonText: { color: "#fff", fontWeight: "800", fontSize: 14 },
   circleRow: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -1990,8 +1990,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  circleValue: { color: "#fff", fontWeight: "800", fontSize: 16 },
-  circleReps: { color: colors.textDim, fontSize: 11, marginTop: 2 },
+  circleValue: { color: "#fff", fontWeight: "800", fontSize: 17 },
+  circleReps: { color: colors.textDim, fontSize: 13, marginTop: 2 },
   chipRow: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -2007,7 +2007,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingHorizontal: spacing.md,
   },
-  doneChipText: { fontWeight: "700", fontSize: 13 },
+  doneChipText: { fontWeight: "700", fontSize: 15 },
   // Framed in gold rather than in the accent: it is an offer, and it sits
   // directly above the set someone came here to do. It must be legible and
   // easy to ignore in the same glance.
@@ -2023,8 +2023,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   warmupOfferBody: { flex: 1, minWidth: 0 },
-  warmupOfferTitle: { color: colors.text, fontSize: 13, fontWeight: "700" },
-  warmupOfferSub: { color: colors.textDim, fontSize: 11, marginTop: 1 },
+  warmupOfferTitle: { color: colors.text, fontSize: 15, fontWeight: "700" },
+  warmupOfferSub: { color: colors.textDim, fontSize: 13, marginTop: 1 },
   allDone: {
     color: colors.textDim,
     textAlign: "center",
@@ -2053,8 +2053,8 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     marginTop: spacing.sm,
   },
-  tieText: { color: colors.textDim, fontSize: 13, fontWeight: "600" },
-  tied: { color: colors.accent, fontSize: 12, fontWeight: "700", marginTop: 2 },
+  tieText: { color: colors.textDim, fontSize: 15, fontWeight: "600" },
+  tied: { color: colors.accent, fontSize: 14, fontWeight: "700", marginTop: 2 },
   secondary: {
     borderColor: colors.border,
     borderWidth: 1,
@@ -2100,7 +2100,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: spacing.xs,
   },
-  actionGhostText: { color: colors.success, fontWeight: "700", fontSize: 13 },
+  actionGhostText: { color: colors.success, fontWeight: "700", fontSize: 15 },
   finish: {
     flex: 1,
     backgroundColor: colors.accent,
@@ -2109,5 +2109,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  finishText: { color: "#fff", fontWeight: "800", fontSize: 15 },
+  finishText: { color: "#fff", fontWeight: "800", fontSize: 16 },
 });

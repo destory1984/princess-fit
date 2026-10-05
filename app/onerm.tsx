@@ -85,7 +85,7 @@ export default function OneRmScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xl },
-  lead: { color: colors.textDim, fontSize: 13, lineHeight: 19 },
+  lead: { color: colors.textDim, fontSize: 15, lineHeight: 22 },
   inputs: {
     flexDirection: 'row',
     backgroundColor: colors.surface,
@@ -101,16 +101,16 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     gap: 2,
   },
-  answerLabel: { color: colors.textDim, fontSize: 12, fontWeight: '700' },
+  answerLabel: { color: colors.textDim, fontSize: 14, fontWeight: '700' },
   answerValue: { color: colors.accent, fontSize: 30, fontWeight: '800' },
-  answerNote: { color: colors.textDim, fontSize: 12, lineHeight: 18, marginTop: 2 },
+  answerNote: { color: colors.textDim, fontSize: 14, lineHeight: 21, marginTop: 2 },
   card: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,
     padding: spacing.md,
   },
   row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 5 },
-  rowName: { color: colors.text, fontSize: 13, flex: 1 },
-  rowValue: { color: colors.text, fontSize: 14, fontWeight: '700' },
-  caution: { color: colors.textDim, fontSize: 11, lineHeight: 17 },
+  rowName: { color: colors.text, fontSize: 15, flex: 1 },
+  rowValue: { color: colors.text, fontSize: 16, fontWeight: '700' },
+  caution: { color: colors.textDim, fontSize: 13, lineHeight: 20 },
 });

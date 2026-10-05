@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xl },
   privacy: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  privacyText: { color: colors.textDim, fontSize: 12, flex: 1, lineHeight: 18 },
+  privacyText: { color: colors.textDim, fontSize: 14, flex: 1, lineHeight: 21 },
   actions: { flexDirection: 'row', gap: spacing.sm },
   action: {
     flex: 1,
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     gap: spacing.sm,
   },
-  cardTitle: { color: colors.text, fontSize: 14, fontWeight: '700' },
+  cardTitle: { color: colors.text, fontSize: 16, fontWeight: '700' },
   pair: { flexDirection: 'row', gap: spacing.sm },
   pairItem: { flex: 1, gap: 4 },
   pairImage: {
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
     backgroundColor: paper.bgAlt,
   },
-  pairLabel: { color: colors.textDim, fontSize: 11, textAlign: 'center' },
+  pairLabel: { color: colors.textDim, fontSize: 13, textAlign: 'center' },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   cell: { width: CELL, gap: 2 },
   cellImage: {
@@ -194,8 +194,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
     backgroundColor: paper.bgAlt,
   },
-  cellDay: { color: colors.textDim, fontSize: 10, textAlign: 'center' },
+  cellDay: { color: colors.textDim, fontSize: 12, textAlign: 'center' },
   empty: { alignItems: 'center', gap: spacing.sm, padding: spacing.xl },
-  emptyText: { color: colors.textDim, fontSize: 13, textAlign: 'center', lineHeight: 20 },
-  note: { color: colors.textDim, fontSize: 11, lineHeight: 17 },
+  emptyText: { color: colors.textDim, fontSize: 15, textAlign: 'center', lineHeight: 23 },
+  note: { color: colors.textDim, fontSize: 13, lineHeight: 20 },
 });

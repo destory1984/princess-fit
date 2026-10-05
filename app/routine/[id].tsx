@@ -295,7 +295,7 @@ function Stepper({
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
-  content: { padding: spacing.lg, gap: spacing.sm, paddingBottom: 96 },
+  content: { padding: spacing.lg, gap: spacing.md, paddingBottom: 96 },
   bottomBar: {
     position: 'absolute',
     left: spacing.lg,
@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.xs,
   },
-  startText: { color: '#fff', fontWeight: '800', fontSize: 15 },
+  startText: { color: '#fff', fontWeight: '800', fontSize: 16 },
   title: { color: colors.text, fontSize: 22, fontWeight: '800' },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   titleInput: { flex: 1, padding: 0 },
@@ -323,11 +323,11 @@ const styles = StyleSheet.create({
   },
   bodyCaption: {
     color: colors.textDim,
-    fontSize: 13,
+    fontSize: 15,
     marginTop: spacing.sm,
     textAlign: 'center',
   },
-  hint: { color: colors.textDim, fontSize: 12, marginTop: spacing.md },
+  hint: { color: colors.textDim, fontSize: 14, marginTop: spacing.md },
   rowHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   rowHeadEnd: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   empty: { color: colors.textDim, paddingVertical: spacing.lg },
@@ -337,8 +337,8 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     gap: spacing.md,
   },
-  rowTitle: { color: colors.text, fontSize: 16, fontWeight: '600', flex: 1 },
-  rowOrder: { color: colors.textDim, fontSize: 13, fontWeight: '800', width: 16 },
+  rowTitle: { color: colors.text, fontSize: 17, fontWeight: '600', flex: 1 },
+  rowOrder: { color: colors.textDim, fontSize: 15, fontWeight: '800', width: 16 },
   rowSub: { color: colors.textDim },
   stepperRow: { flexDirection: 'row', gap: spacing.md },
   stepper: {
@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
   stepButton: { paddingVertical: spacing.sm, paddingHorizontal: spacing.md },
   stepButtonText: { color: colors.accent, fontSize: 18, fontWeight: '700' },
   stepValue: { color: colors.text, fontWeight: '700', minWidth: 44, textAlign: 'center' },
-  stepLabel: { color: colors.textDim, fontWeight: '400', fontSize: 12 },
+  stepLabel: { color: colors.textDim, fontWeight: '400', fontSize: 14 },
   secondary: {
     marginTop: spacing.md,
     borderColor: colors.border,

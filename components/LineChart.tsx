@@ -186,6 +186,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     alignItems: "center",
   },
-  tooltipLabel: { color: colors.textDim, fontSize: 11 },
+  tooltipLabel: { color: colors.textDim, fontSize: 13 },
   tooltipValue: { color: colors.text, fontWeight: "700" },
 });

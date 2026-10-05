@@ -543,23 +543,27 @@ export function ShopShelves({ ledger, busy, onSpend, gift }: Props) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
-  content: { padding: spacing.lg, gap: spacing.sm },
+  content: { padding: spacing.lg, gap: spacing.md },
   tabs: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.xs,
+    gap: spacing.sm,
     marginTop: spacing.sm,
   },
+  // Five squares of one size. Sized to their words they were five widths
+  // (「방」 next to 「장신구」), which read as five different kinds of button.
   tab: {
+    flex: 1,
+    maxWidth: 76,
+    aspectRatio: 1,
+    alignItems: "center",
+    justifyContent: "center",
     borderRadius: radius.sm,
     borderWidth: 1,
     borderColor: "transparent",
     backgroundColor: colors.surface,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
   },
   tabOn: { backgroundColor: colors.accentSoft, borderColor: colors.accent },
-  tabText: { color: colors.textDim, fontSize: 13, lineHeight: 18 },
+  tabText: { color: colors.textDim, fontSize: 15, lineHeight: 21 },
   tabTextOn: { color: colors.accent, fontWeight: "800" },
   dollRow: {
     flexDirection: "row",
@@ -579,7 +583,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
     padding: spacing.md,
   },
-  enrolledText: { color: colors.text, fontSize: 13, lineHeight: 19, flex: 1 },
+  enrolledText: { color: colors.text, fontSize: 15, lineHeight: 22, flex: 1 },
   tryRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, marginTop: spacing.sm },
   buy: {
     flex: 1,
@@ -589,9 +593,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   buyOff: { backgroundColor: colors.faint },
-  buyText: { color: "#fff", fontWeight: "800", fontSize: 13 },
+  buyText: { color: "#fff", fontWeight: "800", fontSize: 15 },
   tryOff: { paddingVertical: spacing.sm, paddingHorizontal: spacing.sm },
-  tryOffText: { color: colors.textDim, fontWeight: "700", fontSize: 12 },
+  tryOffText: { color: colors.textDim, fontWeight: "700", fontSize: 14 },
   track: {
     flex: 1,
     height: 8,
@@ -604,8 +608,8 @@ const styles = StyleSheet.create({
   fill: { height: "100%", backgroundColor: colors.gold },
   hint: {
     color: colors.textDim,
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 21,
     marginBottom: spacing.xs,
   },
   culture: {
@@ -618,10 +622,10 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   cultureRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  cultureName: { color: colors.textDim, fontSize: 12, width: 32 },
+  cultureName: { color: colors.textDim, fontSize: 14, width: 32 },
   cultureValue: {
     color: colors.textDim,
-    fontSize: 11,
+    fontSize: 13,
     width: 24,
     textAlign: "right",
   },
@@ -669,9 +673,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   body: { flex: 1, gap: 2 },
-  name: { color: colors.text, fontSize: 15, fontWeight: "700", lineHeight: 21 },
-  detail: { color: colors.textDim, fontSize: 12, lineHeight: 18 },
-  note: { color: colors.gold, fontSize: 11, lineHeight: 16 },
-  price: { color: colors.accent, fontSize: 14, fontWeight: "800" },
+  name: { color: colors.text, fontSize: 16, fontWeight: "700", lineHeight: 24 },
+  detail: { color: colors.textDim, fontSize: 14, lineHeight: 21 },
+  note: { color: colors.gold, fontSize: 13, lineHeight: 19 },
+  price: { color: colors.accent, fontSize: 16, fontWeight: "800" },
   priceOff: { color: colors.textDim },
 });

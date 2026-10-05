@@ -198,8 +198,8 @@ export default function RequestsScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
-  content: { padding: spacing.lg, gap: spacing.sm, paddingBottom: spacing.xl },
-  hint: { color: colors.textDim, fontSize: 13, lineHeight: 20, marginBottom: spacing.sm },
+  content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xl },
+  hint: { color: colors.textDim, fontSize: 15, lineHeight: 23, marginBottom: spacing.sm },
   input: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   note: { minHeight: 72, textAlignVertical: 'top' },
-  label: { color: colors.textDim, fontSize: 12, marginTop: spacing.md },
+  label: { color: colors.textDim, fontSize: 14, marginTop: spacing.md },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   chip: {
     paddingVertical: spacing.sm,
@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
     borderColor: colors.faint,
   },
   chipOn: { backgroundColor: colors.accentSoft, borderColor: colors.accent },
-  chipText: { color: colors.textDim, fontSize: 13 },
+  chipText: { color: colors.textDim, fontSize: 15 },
   chipTextOn: { color: colors.accent, fontWeight: '700' },
   send: {
     backgroundColor: colors.accent,
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
   },
   sendOff: { opacity: 0.5 },
   sendText: { color: '#fff', fontWeight: '700' },
-  heading: { color: colors.text, fontSize: 15, fontWeight: '800', marginTop: spacing.xl },
+  heading: { color: colors.text, fontSize: 16, fontWeight: '800', marginTop: spacing.xl },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -238,8 +238,8 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   rowBody: { flex: 1, gap: 2 },
-  rowTitle: { color: colors.text, fontSize: 15, fontWeight: '700' },
-  rowSub: { color: colors.textDim, fontSize: 12 },
-  fresh: { color: colors.accent, fontSize: 11, fontWeight: '800' },
-  reply: { color: colors.text, fontSize: 13, lineHeight: 19, marginTop: spacing.xs },
+  rowTitle: { color: colors.text, fontSize: 16, fontWeight: '700' },
+  rowSub: { color: colors.textDim, fontSize: 14 },
+  fresh: { color: colors.accent, fontSize: 13, fontWeight: '800' },
+  reply: { color: colors.text, fontSize: 15, lineHeight: 22, marginTop: spacing.xs },
 });

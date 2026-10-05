@@ -74,10 +74,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  badgeLevel: { color: colors.accent, fontWeight: '800', fontSize: 15 },
+  badgeLevel: { color: colors.accent, fontWeight: '800', fontSize: 16 },
   headBody: { flex: 1 },
   title: { color: colors.text, fontSize: 18, fontWeight: '800' },
-  sub: { color: colors.textDim, fontSize: 12, marginTop: 2 },
+  sub: { color: colors.textDim, fontSize: 14, marginTop: 2 },
   track: {
     height: 8,
     borderRadius: 4,
@@ -87,5 +87,5 @@ const styles = StyleSheet.create({
   fill: { height: 8, borderRadius: 4, backgroundColor: colors.accent },
   stats: { flexDirection: 'row', gap: spacing.lg },
   stat: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  statText: { color: colors.textDim, fontSize: 12 },
+  statText: { color: colors.textDim, fontSize: 14 },
 });

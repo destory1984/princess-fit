@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   head: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  title: { color: colors.text, fontSize: 15, fontWeight: '800', flex: 1 },
-  badge: { color: colors.textDim, fontSize: 10, fontWeight: '700' },
-  text: { color: colors.text, fontSize: 14, lineHeight: 22 },
+  title: { color: colors.text, fontSize: 16, fontWeight: '800', flex: 1 },
+  badge: { color: colors.textDim, fontSize: 12, fontWeight: '700' },
+  text: { color: colors.text, fontSize: 16, lineHeight: 25 },
 });

@@ -98,5 +98,5 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     alignItems: "center",
   },
-  buttonText: { color: "#fff", fontWeight: "800", fontSize: 15 },
+  buttonText: { color: "#fff", fontWeight: "800", fontSize: 16 },
 });

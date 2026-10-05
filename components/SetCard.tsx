@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
     borderColor: colors.faint,
   },
   warmupOn: { borderColor: colors.gold, backgroundColor: colors.goldSoft },
-  warmupText: { color: colors.textDim, fontSize: 11, fontWeight: '700' },
+  warmupText: { color: colors.textDim, fontSize: 13, fontWeight: '700' },
   warmupTextOn: { color: colors.text },
   card: {
     backgroundColor: colors.surfaceAlt,
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  label: { color: colors.textDim, fontSize: 13, fontWeight: '600' },
+  label: { color: colors.textDim, fontSize: 15, fontWeight: '600' },
   steppers: { flexDirection: 'row', alignItems: 'center' },
   // The margin keeps 「+10」 and 「−5」 apart: without it the two steppers sat
   // one pixel from each other and read as a single row of eight.
@@ -298,8 +298,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  barText: { color: colors.accent, fontSize: 12, fontWeight: '700' },
-  platesText: { color: colors.textDim, fontSize: 13, fontWeight: '600' },
+  barText: { color: colors.accent, fontSize: 14, fontWeight: '700' },
+  platesText: { color: colors.textDim, fontSize: 15, fontWeight: '600' },
   actions: { flexDirection: 'row', gap: spacing.sm },
   remove: {
     flex: 1,
@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.xs,
   },
-  removeText: { color: colors.danger, fontWeight: '700', fontSize: 14 },
+  removeText: { color: colors.danger, fontWeight: '700', fontSize: 16 },
   done: {
     flex: 2,
     borderRadius: radius.md,
@@ -321,5 +321,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.xs,
   },
-  doneText: { color: colors.surface, fontWeight: '800', fontSize: 15 },
+  doneText: { color: colors.surface, fontWeight: '800', fontSize: 16 },
 });

@@ -48,9 +48,9 @@ const styles = StyleSheet.create({
   },
   cardDone: { borderStyle: 'solid', borderColor: colors.accent, backgroundColor: colors.accentSoft },
   head: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  title: { flex: 1, color: colors.textDim, fontSize: 12, fontWeight: '700' },
-  progress: { color: colors.textDim, fontSize: 12, fontWeight: '800', fontVariant: ['tabular-nums'] },
+  title: { flex: 1, color: colors.textDim, fontSize: 14, fontWeight: '700' },
+  progress: { color: colors.textDim, fontSize: 14, fontWeight: '800', fontVariant: ['tabular-nums'] },
   progressDone: { color: colors.accent },
-  ask: { color: colors.text, fontSize: 13, lineHeight: 19 },
-  foot: { color: colors.textDim, fontSize: 11 },
+  ask: { color: colors.text, fontSize: 15, lineHeight: 22 },
+  foot: { color: colors.textDim, fontSize: 13 },
 });

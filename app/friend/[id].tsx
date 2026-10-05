@@ -49,5 +49,5 @@ export default function FriendRoomScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.lg, gap: spacing.md },
-  caption: { color: colors.textDim, textAlign: 'center', fontSize: 13 },
+  caption: { color: colors.textDim, textAlign: 'center', fontSize: 15 },
 });

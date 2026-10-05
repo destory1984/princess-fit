@@ -54,8 +54,8 @@ export default function ChangesScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.lg },
-  lead: { color: colors.text, fontSize: 15, fontWeight: '800' },
-  sub: { color: colors.textDim, fontSize: 12, lineHeight: 18, marginTop: 2 },
+  lead: { color: colors.text, fontSize: 16, fontWeight: '800' },
+  sub: { color: colors.textDim, fontSize: 14, lineHeight: 21, marginTop: 2 },
   list: { marginTop: spacing.md },
   row: {
     flexDirection: 'row',
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   margin: { width: 44 },
-  day: { color: colors.accent, fontSize: 14, fontWeight: '800', lineHeight: 21 },
-  version: { color: colors.textDim, fontSize: 10, fontWeight: '700' },
-  line: { flex: 1, color: colors.text, fontSize: 14, lineHeight: 21 },
+  day: { color: colors.accent, fontSize: 16, fontWeight: '800', lineHeight: 24 },
+  version: { color: colors.textDim, fontSize: 12, fontWeight: '700' },
+  line: { flex: 1, color: colors.text, fontSize: 16, lineHeight: 24 },
 });

@@ -33,6 +33,12 @@ import { useGirl } from '@/lib/girl';
 const goalLabel = (goal: Goal) => GOALS.find((g) => g.id === goal)!.label;
 const placeLabel = (place: Place) => PLACES.find((p) => p.id === place)!.label;
 
+const TABS = [
+  { id: '아이' },
+  { id: '운동' },
+  { id: '앱' },
+] as const;
+
 export default function SettingsScreen() {
   const { session } = useAuth();
   const router = useRouter();
@@ -41,6 +47,7 @@ export default function SettingsScreen() {
   // these, and nothing on screen said so — the picker quietly went unordered
   // and the findings quietly went unranked. The row says which it is.
   const [granting, setGranting] = useState<string | null>(null);
+  const [tab, setTab] = useState<(typeof TABS)[number]['id']>('아이');
   const [leaving, setLeaving] = useState(false);
 
   /**
@@ -110,229 +117,277 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <Pressable style={styles.row} onPress={() => router.push('/settings/girl')}>
-        <Portrait source={girl.base} size={48} />
-        <View style={styles.body}>
-          <Text style={styles.title}>함께 지낼 아이</Text>
-          <Text style={styles.sub}>{girl.name}</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
-      </Pressable>
-
-      <Pressable style={styles.row} onPress={() => router.push('/friends')}>
-        <View style={styles.icon}>
-          <Ionicons name="people-outline" size={22} color={colors.accent} />
-        </View>
-        <View style={styles.body}>
-          <Text style={styles.title}>친구</Text>
-          <Text style={styles.sub}>방 구경 · 선물 · 같은 날 운동하면 둘 다 보너스</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
-      </Pressable>
-
-      <Pressable style={styles.row} onPress={() => router.push('/settings/plan')}>
-        <View style={styles.icon}>
-          <Ionicons name="flag-outline" size={22} color={colors.accent} />
-        </View>
-        <View style={styles.body}>
-          <Text style={styles.title}>내 운동 계획</Text>
-          <Text style={styles.sub}>
-            {plan === null
-              ? '불러오는 중…'
-              : plan.goal && plan.place
-                ? `주 ${plan.days}회 · ${placeLabel(plan.place)} · ${goalLabel(plan.goal)}`
-                : `주 ${plan.days}회 · 운동하는 곳과 목표는 아직이에요`}
-          </Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
-      </Pressable>
-
-      <Pressable style={styles.row} onPress={() => router.push('/settings/exercises')}>
-        <View style={styles.icon}>
-          <Ionicons name="barbell-outline" size={22} color={colors.accent} />
-        </View>
-        <View style={styles.body}>
-          <Text style={styles.title}>운동 종목</Text>
-          <Text style={styles.sub}>
-            {count === null ? '세는 중…' : `${count}개 · 추가하고 지우기`}
-          </Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
-      </Pressable>
-
-      <NudgeSetting />
-
-      <Pressable style={styles.row} onPress={() => router.push('/memories')}>
-        <View style={styles.icon}>
-          <Ionicons name="heart-outline" size={22} color={colors.accent} />
-        </View>
-        <View style={styles.body}>
-          <Text style={styles.title}>함께한 날들</Text>
-          <Text style={styles.sub}>{girl.name}의 기억</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
-      </Pressable>
-
-      <Pressable style={styles.row} onPress={() => router.push('/achievements')}>
-        <View style={styles.icon}>
-          <Ionicons name="trophy-outline" size={22} color={colors.accent} />
-        </View>
-        <View style={styles.body}>
-          <Text style={styles.title}>품계와 업적</Text>
-          <Text style={styles.sub}>지금까지 오른 품계와 얻은 업적</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
-      </Pressable>
-
       {/*
-        A copy that survives this app. Placed with the ordinary settings and
-        not hidden under anything: the people who need it most are the ones
-        who have not yet had the bad day that teaches them to look.
+        Three shelves instead of one long list. Every row added made the scroll
+        longer, and the things at the bottom (backup, the way out) were the ones
+        people come here looking for. The shape (version on top, tabs of one
+        width, only the chosen shelf below) follows a screen the owner showed.
       */}
-      {/*
-        The switch exists because the question exists. From a review of the app
-        this borrows from: 「알림 때문에 바꾸고 싶지 않던 기존 플랜 변경 버튼이
-        눌립니다」. Someone with a plan they are happy with, who occasionally
-        trains something else, is asked something they never want — and one day
-        mis-taps it. A question asked often enough becomes a trap, so 「그만
-        물어봐」 has to be one of the answers.
-      */}
-      <View style={styles.row}>
-        <View style={styles.icon}>
-          <Ionicons name="help-circle-outline" size={22} color={colors.accent} />
-        </View>
-        <View style={styles.body}>
-          <Text style={styles.title}>루틴에도 넣을지 묻기</Text>
-          <Text style={styles.sub}>
-            루틴 운동 중에 종목을 더하면 물어봐요. 끄면 오늘만 하고 말아요.
-          </Text>
-        </View>
-        <Switch
-          value={askRoutine}
-          onValueChange={(next) => {
-            setAskRoutineState(next);
-            setAskRoutine(next).catch(() => setAskRoutineState(!next));
-          }}
-          trackColor={{ true: colors.accent }}
-        />
+      <Text style={styles.version}>
+        버전 {APP_VERSION} · {CHANGELOG[0].day}
+      </Text>
+      <View style={styles.tabs}>
+        {TABS.map((t) => (
+          <Pressable
+            key={t.id}
+            style={[styles.tab, tab === t.id && styles.tabOn]}
+            onPress={() => setTab(t.id)}>
+            <Text style={[styles.tabText, tab === t.id && styles.tabTextOn]}>{t.id}</Text>
+          </Pressable>
+        ))}
       </View>
 
-      <View style={styles.row}>
-        <View style={styles.icon}>
-          <Ionicons name="sparkles-outline" size={22} color={colors.accent} />
-        </View>
-        <View style={styles.body}>
-          <Text style={styles.title}>AI 모델에게 조언 묻기</Text>
-          <Text style={styles.sub}>
-            끄면 기록만 보고 짧게 말해요.
-            {/* Only a build that goes straight to a server can be kept waiting by one. */}
-            {hasDirectServer(__DEV__) ? ' 모델 서버가 없으면 꺼 두는 게 빨라요.' : ''}
-          </Text>
-        </View>
-        <Switch
-          value={byModel}
-          onValueChange={(next) => {
-            setByModelState(next);
-            setAdviceByModel(next).catch(() => setByModelState(!next));
-          }}
-          trackColor={{ true: colors.accent }}
-        />
-      </View>
+      {tab === '아이' && (
+        <>
+        <Pressable style={styles.row} onPress={() => router.push('/settings/girl')}>
+          <Portrait source={girl.base} size={48} />
+          <View style={styles.body}>
+            <Text style={styles.title}>함께 지낼 아이</Text>
+            <Text style={styles.sub}>{girl.name}</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
+        </Pressable>
 
-      {/*
-        Web only: on a phone the end of a rest is a notification, and its sound
-        is the system's. One tap steps to the next bell and rings it, so the
-        choice is made by ear rather than by reading three names.
-      */}
-      {Platform.OS === 'web' && (
-        <Pressable
-          style={styles.row}
-          onPress={() => {
-            const next = nextBell(bell);
-            setBellState(next);
-            setBell(next).catch(() => {});
-            wakeBell();
-            ringBell(next);
-          }}>
+        <Pressable style={styles.row} onPress={() => router.push('/friends')}>
           <View style={styles.icon}>
-            <Ionicons name="notifications-outline" size={22} color={colors.accent} />
+            <Ionicons name="people-outline" size={22} color={colors.accent} />
           </View>
           <View style={styles.body}>
-            <Text style={styles.title}>
-              쉬는 시간 종소리 · {BELLS.find((b) => b.id === bell)?.label}
-            </Text>
-            <Text style={styles.sub}>
-              {BELLS.find((b) => b.id === bell)?.detail}. 누르면 다음 소리로 바뀌고 한 번 울려요.
-            </Text>
+            <Text style={styles.title}>친구</Text>
+            <Text style={styles.sub}>방 구경 · 선물 · 같은 날 운동하면 둘 다 보너스</Text>
           </View>
-          <Ionicons name="swap-horizontal" size={20} color={colors.textDim} />
+          <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
         </Pressable>
-      )}
 
-      <Pressable style={styles.row} onPress={() => router.push('/settings/backup')}>
-        <View style={styles.icon}>
-          <Ionicons name="save-outline" size={22} color={colors.accent} />
-        </View>
-        <View style={styles.body}>
-          <Text style={styles.title}>기록 백업</Text>
-          <Text style={styles.sub}>받아 두고, 필요하면 다시 넣어요</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
-      </Pressable>
-
-      <Pressable style={styles.row} onPress={() => router.push('/settings/about')}>
-        <View style={styles.icon}>
-          <Ionicons name="information-circle-outline" size={22} color={colors.accent} />
-        </View>
-        <View style={styles.body}>
-          <Text style={styles.title}>앱 정보</Text>
-          <Text style={styles.sub}>
-            버전 {APP_VERSION} · {CHANGELOG[0].day} · 바뀐 것들
-          </Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
-      </Pressable>
-
-      {/*
-        Development only. Testing the shop means having spent nothing and
-        owning nothing, over and over, and the honest way to that state is a
-        button rather than hand-edited rows in someone's database. `__DEV__`
-        is false in a release build, so this cannot ship by accident.
-      */}
-      {__DEV__ && (
-        <Pressable style={styles.row} disabled={!!granting} onPress={grant}>
+        <Pressable style={styles.row} onPress={() => router.push('/memories')}>
           <View style={styles.icon}>
-            <Ionicons name="flask-outline" size={22} color={colors.textDim} />
+            <Ionicons name="heart-outline" size={22} color={colors.accent} />
           </View>
           <View style={styles.body}>
-            <Text style={styles.title}>골드 1,000 넣기</Text>
-            <Text style={styles.sub}>
-              {granting ?? '개발 중에만 보여요. 시험용이에요.'}
-            </Text>
+            <Text style={styles.title}>함께한 날들</Text>
+            <Text style={styles.sub}>{girl.name}의 기억</Text>
           </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
         </Pressable>
+
+        <Pressable style={styles.row} onPress={() => router.push('/achievements')}>
+          <View style={styles.icon}>
+            <Ionicons name="trophy-outline" size={22} color={colors.accent} />
+          </View>
+          <View style={styles.body}>
+            <Text style={styles.title}>품계와 업적</Text>
+            <Text style={styles.sub}>지금까지 오른 품계와 얻은 업적</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
+        </Pressable>
+        </>
       )}
 
-      <View style={styles.footer}>
-        <Text style={styles.account}>{session?.user.email}</Text>
-        <Pressable style={styles.logout} onPress={() => supabase.auth.signOut()}>
-          <Text style={styles.logoutText}>로그아웃</Text>
+      {tab === '운동' && (
+        <>
+        <Pressable style={styles.row} onPress={() => router.push('/settings/plan')}>
+          <View style={styles.icon}>
+            <Ionicons name="flag-outline" size={22} color={colors.accent} />
+          </View>
+          <View style={styles.body}>
+            <Text style={styles.title}>내 운동 계획</Text>
+            <Text style={styles.sub}>
+              {plan === null
+                ? '불러오는 중…'
+                : plan.goal && plan.place
+                  ? `주 ${plan.days}회 · ${placeLabel(plan.place)} · ${goalLabel(plan.goal)}`
+                  : `주 ${plan.days}회 · 운동하는 곳과 목표는 아직이에요`}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
         </Pressable>
+
+        <Pressable style={styles.row} onPress={() => router.push('/settings/exercises')}>
+          <View style={styles.icon}>
+            <Ionicons name="barbell-outline" size={22} color={colors.accent} />
+          </View>
+          <View style={styles.body}>
+            <Text style={styles.title}>운동 종목</Text>
+            <Text style={styles.sub}>
+              {count === null ? '세는 중…' : `${count}개 · 추가하고 지우기`}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
+        </Pressable>
+
         {/*
-          Small and last, under the way out that is not final. It has to be
-          findable by someone looking for it and missable by everyone else.
+          The switch exists because the question exists. From a review of the app
+          this borrows from: 「알림 때문에 바꾸고 싶지 않던 기존 플랜 변경 버튼이
+          눌립니다」. Someone with a plan they are happy with, who occasionally
+          trains something else, is asked something they never want — and one day
+          mis-taps it. A question asked often enough becomes a trap, so 「그만
+          물어봐」 has to be one of the answers.
         */}
-        <Pressable style={styles.leave} disabled={leaving} onPress={leave}>
-          <Text style={styles.leaveText}>{leaving ? '지우는 중이에요…' : '계정 지우기'}</Text>
+        <View style={styles.row}>
+          <View style={styles.icon}>
+            <Ionicons name="help-circle-outline" size={22} color={colors.accent} />
+          </View>
+          <View style={styles.body}>
+            <Text style={styles.title}>루틴에도 넣을지 묻기</Text>
+            <Text style={styles.sub}>
+              루틴 운동 중에 종목을 더하면 물어봐요. 끄면 오늘만 하고 말아요.
+            </Text>
+          </View>
+          <Switch
+            value={askRoutine}
+            onValueChange={(next) => {
+              setAskRoutineState(next);
+              setAskRoutine(next).catch(() => setAskRoutineState(!next));
+            }}
+            trackColor={{ true: colors.accent }}
+          />
+        </View>
+
+        <View style={styles.row}>
+          <View style={styles.icon}>
+            <Ionicons name="sparkles-outline" size={22} color={colors.accent} />
+          </View>
+          <View style={styles.body}>
+            <Text style={styles.title}>AI 모델에게 조언 묻기</Text>
+            <Text style={styles.sub}>
+              끄면 기록만 보고 짧게 말해요.
+              {/* Only a build that goes straight to a server can be kept waiting by one. */}
+              {hasDirectServer(__DEV__) ? ' 모델 서버가 없으면 꺼 두는 게 빨라요.' : ''}
+            </Text>
+          </View>
+          <Switch
+            value={byModel}
+            onValueChange={(next) => {
+              setByModelState(next);
+              setAdviceByModel(next).catch(() => setByModelState(!next));
+            }}
+            trackColor={{ true: colors.accent }}
+          />
+        </View>
+
+        {/*
+          Web only: on a phone the end of a rest is a notification, and its sound
+          is the system's. One tap steps to the next bell and rings it, so the
+          choice is made by ear rather than by reading three names.
+        */}
+        {Platform.OS === 'web' && (
+          <Pressable
+            style={styles.row}
+            onPress={() => {
+              const next = nextBell(bell);
+              setBellState(next);
+              setBell(next).catch(() => {});
+              wakeBell();
+              ringBell(next);
+            }}>
+            <View style={styles.icon}>
+              <Ionicons name="notifications-outline" size={22} color={colors.accent} />
+            </View>
+            <View style={styles.body}>
+              <Text style={styles.title}>
+                쉬는 시간 종소리 · {BELLS.find((b) => b.id === bell)?.label}
+              </Text>
+              <Text style={styles.sub}>
+                {BELLS.find((b) => b.id === bell)?.detail}. 누르면 다음 소리로 바뀌고 한 번 울려요.
+              </Text>
+            </View>
+            <Ionicons name="swap-horizontal" size={20} color={colors.textDim} />
+          </Pressable>
+        )}
+        </>
+      )}
+
+      {tab === '앱' && (
+        <>
+        <NudgeSetting />
+
+        {/*
+          A copy that survives this app. Placed with the ordinary settings and
+          not hidden under anything: the people who need it most are the ones
+          who have not yet had the bad day that teaches them to look.
+        */}
+        <Pressable style={styles.row} onPress={() => router.push('/settings/backup')}>
+          <View style={styles.icon}>
+            <Ionicons name="save-outline" size={22} color={colors.accent} />
+          </View>
+          <View style={styles.body}>
+            <Text style={styles.title}>기록 백업</Text>
+            <Text style={styles.sub}>받아 두고, 필요하면 다시 넣어요</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
         </Pressable>
-      </View>
+
+        <Pressable style={styles.row} onPress={() => router.push('/settings/about')}>
+          <View style={styles.icon}>
+            <Ionicons name="information-circle-outline" size={22} color={colors.accent} />
+          </View>
+          <View style={styles.body}>
+            <Text style={styles.title}>앱 정보</Text>
+            <Text style={styles.sub}>
+              버전 {APP_VERSION} · {CHANGELOG[0].day} · 바뀐 것들
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
+        </Pressable>
+
+        {/*
+          Development only. Testing the shop means having spent nothing and
+          owning nothing, over and over, and the honest way to that state is a
+          button rather than hand-edited rows in someone's database. `__DEV__`
+          is false in a release build, so this cannot ship by accident.
+        */}
+        {__DEV__ && (
+          <Pressable style={styles.row} disabled={!!granting} onPress={grant}>
+            <View style={styles.icon}>
+              <Ionicons name="flask-outline" size={22} color={colors.textDim} />
+            </View>
+            <View style={styles.body}>
+              <Text style={styles.title}>골드 1,000 넣기</Text>
+              <Text style={styles.sub}>
+                {granting ?? '개발 중에만 보여요. 시험용이에요.'}
+              </Text>
+            </View>
+          </Pressable>
+        )}
+
+        <View style={styles.footer}>
+          <Text style={styles.account}>{session?.user.email}</Text>
+          <Pressable style={styles.logout} onPress={() => supabase.auth.signOut()}>
+            <Text style={styles.logoutText}>로그아웃</Text>
+          </Pressable>
+          {/*
+            Small and last, under the way out that is not final. It has to be
+            findable by someone looking for it and missable by everyone else.
+          */}
+          <Pressable style={styles.leave} disabled={leaving} onPress={leave}>
+            <Text style={styles.leaveText}>{leaving ? '지우는 중이에요…' : '계정 지우기'}</Text>
+          </Pressable>
+        </View>
+        </>
+      )}
+
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
-  content: { padding: spacing.lg, gap: spacing.sm },
+  content: { padding: spacing.lg, gap: spacing.md },
+  version: { color: colors.textDim, fontSize: 14, textAlign: 'right' },
+  tabs: { flexDirection: 'row', gap: spacing.sm },
+  tab: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.md,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: 'transparent',
+    backgroundColor: colors.surface,
+  },
+  tabOn: { backgroundColor: colors.accentSoft, borderColor: colors.accent },
+  tabText: { color: colors.textDim, fontSize: 15, lineHeight: 21 },
+  tabTextOn: { color: colors.accent, fontWeight: '800' },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -350,12 +405,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   body: { flex: 1, gap: 2 },
-  title: { color: colors.text, fontSize: 16, fontWeight: '700', lineHeight: 22 },
-  sub: { color: colors.textDim, fontSize: 12, lineHeight: 18 },
+  title: { color: colors.text, fontSize: 17, fontWeight: '700', lineHeight: 25 },
+  sub: { color: colors.textDim, fontSize: 14, lineHeight: 21 },
   footer: { marginTop: spacing.xl, alignItems: 'center', gap: spacing.md },
   account: { color: colors.textDim },
   logout: { padding: spacing.md },
   logoutText: { color: colors.danger, fontWeight: '700' },
   leave: { padding: spacing.sm },
-  leaveText: { color: colors.textDim, fontSize: 12, textDecorationLine: 'underline' },
+  leaveText: { color: colors.textDim, fontSize: 14, textDecorationLine: 'underline' },
 });

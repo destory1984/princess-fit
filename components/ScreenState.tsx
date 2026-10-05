@@ -41,8 +41,8 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     padding: spacing.xl,
   },
-  title: { color: colors.text, fontSize: 16, fontWeight: '700' },
-  detail: { color: colors.textDim, fontSize: 13, textAlign: 'center' },
+  title: { color: colors.text, fontSize: 17, fontWeight: '700' },
+  detail: { color: colors.textDim, fontSize: 15, textAlign: 'center' },
   retry: {
     marginTop: spacing.md,
     backgroundColor: colors.accent,

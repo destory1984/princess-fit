@@ -32,13 +32,14 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderRadius: 10,
     padding: spacing.md,
-    marginTop: spacing.sm,
+    // No margin above: the bubble starts where the portrait does, so the gap to the
+    // card over it is the screen's gap and not eight more (2026-10-06).
   },
   // A small square rotated into a diamond, half tucked behind the bubble.
   tail: {
     position: 'absolute',
     left: -6,
-    top: 14,
+    top: 22,
     width: 10,
     height: 10,
     backgroundColor: paper.bgAlt,
@@ -48,6 +49,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1.5,
     transform: [{ rotate: '45deg' }],
   },
-  name: { color: colors.accent, fontSize: 11, fontWeight: '800', marginBottom: 3 },
-  text: { color: colors.text, fontSize: 13, lineHeight: 20 },
+  name: { color: colors.accent, fontSize: 13, fontWeight: '800', marginBottom: 3 },
+  text: { color: colors.text, fontSize: 15, lineHeight: 23 },
 });

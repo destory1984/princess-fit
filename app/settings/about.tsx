@@ -55,13 +55,13 @@ const styles = StyleSheet.create({
   head: { alignItems: 'center', gap: spacing.xs, paddingVertical: spacing.lg },
   face: { width: 96, height: 96, borderRadius: 22 },
   name: { color: colors.text, fontSize: 22, fontWeight: '800', marginTop: spacing.sm },
-  version: { color: colors.textDim, fontSize: 14, fontWeight: '700' },
+  version: { color: colors.textDim, fontSize: 16, fontWeight: '700' },
   card: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,
     padding: spacing.md,
     gap: spacing.xs,
   },
-  line: { color: colors.text, fontSize: 15, lineHeight: 22 },
-  dim: { color: colors.textDim, fontSize: 12, lineHeight: 18 },
+  line: { color: colors.text, fontSize: 16, lineHeight: 25 },
+  dim: { color: colors.textDim, fontSize: 14, lineHeight: 21 },
 });

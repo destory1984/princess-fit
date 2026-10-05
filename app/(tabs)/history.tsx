@@ -316,12 +316,12 @@ export default function HistoryScreen() {
 }
 
 const styles = StyleSheet.create({
-  diary: { color: colors.text, fontSize: 13, lineHeight: 19, fontStyle: 'italic', marginBottom: 4 },
-  diaryBy: { color: colors.textDim, fontSize: 11, fontStyle: 'normal' },
+  diary: { color: colors.text, fontSize: 15, lineHeight: 22, fontStyle: 'italic', marginBottom: 4 },
+  diaryBy: { color: colors.textDim, fontSize: 13, fontStyle: 'normal' },
   legend: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   legendDot: { width: 8, height: 8, borderRadius: 4 },
-  legendText: { color: colors.textDim, fontSize: 11 },
+  legendText: { color: colors.textDim, fontSize: 13 },
   tool: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -331,10 +331,10 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   toolBody: { flex: 1 },
-  toolTitle: { color: colors.text, fontSize: 14, fontWeight: '700' },
-  toolSub: { color: colors.textDim, fontSize: 12, marginTop: 2 },
+  toolTitle: { color: colors.text, fontSize: 16, fontWeight: '700' },
+  toolSub: { color: colors.textDim, fontSize: 14, marginTop: 2 },
   screen: { flex: 1, backgroundColor: colors.bg },
-  content: { padding: spacing.lg, gap: spacing.sm, paddingBottom: spacing.xl },
+  content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xl },
   addPast: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: spacing.md,
   },
-  listTitle: { color: colors.text, fontSize: 16, fontWeight: '700' },
+  listTitle: { color: colors.text, fontSize: 17, fontWeight: '700' },
   clear: { color: colors.accent, fontWeight: '600' },
   empty: { color: colors.textDim, textAlign: 'center', marginTop: spacing.lg },
   row: {
@@ -365,9 +365,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   rowMain: { flex: 1, marginRight: spacing.md },
-  rowTitle: { color: colors.text, fontSize: 16, fontWeight: '600' },
-  rowSub: { color: colors.textDim, marginTop: spacing.xs, fontSize: 12 },
+  rowTitle: { color: colors.text, fontSize: 17, fontWeight: '600' },
+  rowSub: { color: colors.textDim, marginTop: spacing.xs, fontSize: 14 },
   rowEnd: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  badge: { color: colors.textDim, fontSize: 12 },
+  badge: { color: colors.textDim, fontSize: 14 },
   badgeActive: { color: colors.success, fontWeight: '700' },
 });

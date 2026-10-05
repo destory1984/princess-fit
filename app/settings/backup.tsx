@@ -155,8 +155,8 @@ export default function BackupScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
-  content: { padding: spacing.lg, gap: spacing.sm },
-  hint: { color: colors.textDim, fontSize: 13, lineHeight: 20, marginBottom: spacing.sm },
+  content: { padding: spacing.lg, gap: spacing.md },
+  hint: { color: colors.textDim, fontSize: 15, lineHeight: 23, marginBottom: spacing.sm },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -167,8 +167,8 @@ const styles = StyleSheet.create({
   },
   icon: { width: 32, alignItems: 'center' },
   body: { flex: 1, gap: 2 },
-  title: { color: colors.text, fontSize: 15, fontWeight: '700' },
-  sub: { color: colors.textDim, fontSize: 12, lineHeight: 18 },
-  said: { color: colors.text, fontSize: 13, lineHeight: 20, paddingHorizontal: spacing.sm },
-  note: { color: colors.textDim, fontSize: 11, lineHeight: 18, marginTop: spacing.sm },
+  title: { color: colors.text, fontSize: 16, fontWeight: '700' },
+  sub: { color: colors.textDim, fontSize: 14, lineHeight: 21 },
+  said: { color: colors.text, fontSize: 15, lineHeight: 23, paddingHorizontal: spacing.sm },
+  note: { color: colors.textDim, fontSize: 13, lineHeight: 21, marginTop: spacing.sm },
 });

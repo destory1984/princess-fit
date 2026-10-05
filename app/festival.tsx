@@ -135,13 +135,13 @@ export default function FestivalScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
-  content: { padding: spacing.lg, gap: spacing.lg, paddingBottom: spacing.xl },
+  content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xl },
   row: {
     paddingVertical: spacing.sm,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
     gap: 2,
   },
-  rowTitle: { color: paper.ink, fontSize: 14, fontWeight: '700' },
-  rowLine: { color: colors.textDim, fontSize: 12 },
+  rowTitle: { color: paper.ink, fontSize: 16, fontWeight: '700' },
+  rowLine: { color: colors.textDim, fontSize: 14 },
 });

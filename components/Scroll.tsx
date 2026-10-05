@@ -37,5 +37,5 @@ const styles = StyleSheet.create({
   },
   titleWrap: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   rule: { flex: 1, height: 1, backgroundColor: paper.lineSoft },
-  title: { color: paper.ink, fontSize: 14, fontWeight: '800', letterSpacing: 2 },
+  title: { color: paper.ink, fontSize: 16, fontWeight: '800', letterSpacing: 2 },
 });

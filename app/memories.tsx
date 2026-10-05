@@ -63,10 +63,10 @@ export default function MemoriesScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
-  content: { padding: spacing.lg, gap: spacing.lg },
+  content: { padding: spacing.lg, gap: spacing.md },
   head: { alignItems: 'center', paddingVertical: spacing.md, gap: spacing.xs },
   days: { fontSize: 36, fontWeight: '700', color: paper.ink },
-  sub: { fontSize: 14, color: colors.textDim },
+  sub: { fontSize: 16, color: colors.textDim },
   row: {
     flexDirection: 'row',
     gap: spacing.md,
@@ -74,6 +74,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
   },
-  date: { width: 84, fontSize: 13, color: colors.textDim, fontVariant: ['tabular-nums'] },
-  line: { flex: 1, fontSize: 15, color: colors.text },
+  date: { width: 84, fontSize: 15, color: colors.textDim, fontVariant: ['tabular-nums'] },
+  line: { flex: 1, fontSize: 16, color: colors.text },
 });

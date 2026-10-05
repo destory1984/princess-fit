@@ -394,7 +394,7 @@ export default function ExercisesScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
-  list: { padding: spacing.lg, gap: spacing.sm },
+  list: { padding: spacing.lg, gap: spacing.md },
   header: { gap: spacing.sm, marginBottom: spacing.md },
   input: {
     backgroundColor: colors.surface,
@@ -428,7 +428,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginTop: spacing.sm,
   },
-  fieldLabel: { color: colors.textDim, fontSize: 12, marginTop: spacing.sm },
+  fieldLabel: { color: colors.textDim, fontSize: 14, marginTop: spacing.sm },
   // Quiet, like the one under it. Neither of these is the thing this screen
   // is for, and a red button says press me before anyone has read it.
   newButton: {
@@ -442,8 +442,8 @@ const styles = StyleSheet.create({
   newButtonText: { color: colors.text, fontWeight: '600' },
   seedButtonSub: {
     color: colors.textDim,
-    fontSize: 11,
-    lineHeight: 17,
+    fontSize: 13,
+    lineHeight: 20,
     textAlign: 'center',
     marginTop: 2,
   },
@@ -465,8 +465,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.faint,
   },
-  bulkText: { color: colors.textDim, fontSize: 13, fontWeight: '700' },
-  hint: { color: colors.textDim, fontSize: 12 },
+  bulkText: { color: colors.textDim, fontSize: 15, fontWeight: '700' },
+  hint: { color: colors.textDim, fontSize: 14 },
   row: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,
@@ -477,7 +477,7 @@ const styles = StyleSheet.create({
   },
   rowTap: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   rowBody: { flex: 1 },
-  rowTitle: { color: colors.text, fontSize: 15, fontWeight: '600' },
+  rowTitle: { color: colors.text, fontSize: 16, fontWeight: '600' },
   putAway: { color: colors.textDim },
-  rowSub: { color: colors.textDim, fontSize: 12, marginTop: 2 },
+  rowSub: { color: colors.textDim, fontSize: 14, marginTop: 2 },
 });

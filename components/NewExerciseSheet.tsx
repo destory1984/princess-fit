@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   title: { color: colors.text, fontSize: 20, fontWeight: '800' },
-  lead: { color: colors.textDim, fontSize: 13, lineHeight: 19 },
+  lead: { color: colors.textDim, fontSize: 15, lineHeight: 22 },
   input: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginTop: spacing.sm,
   },
-  label: { color: colors.textDim, fontSize: 12, marginTop: spacing.lg },
+  label: { color: colors.textDim, fontSize: 14, marginTop: spacing.lg },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.sm },
   chip: {
     paddingVertical: spacing.sm,
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     borderColor: colors.faint,
   },
   chipOn: { backgroundColor: colors.accentSoft, borderColor: colors.accent },
-  chipText: { color: colors.textDim, fontSize: 13 },
+  chipText: { color: colors.textDim, fontSize: 15 },
   chipTextOn: { color: colors.accent, fontWeight: '700' },
   add: {
     backgroundColor: colors.accent,

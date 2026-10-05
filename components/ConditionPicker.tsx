@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   title: { color: colors.text, fontSize: 20, fontWeight: '800' },
-  lead: { color: colors.textDim, fontSize: 13, lineHeight: 19 },
+  lead: { color: colors.textDim, fontSize: 15, lineHeight: 22 },
   tired: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
     padding: spacing.md,
   },
-  tiredText: { color: colors.text, fontSize: 13, lineHeight: 19, flex: 1 },
+  tiredText: { color: colors.text, fontSize: 15, lineHeight: 22, flex: 1 },
   advice: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -176,8 +176,8 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   adviceBody: { flex: 1, gap: 2 },
-  adviceText: { color: colors.text, fontSize: 12, lineHeight: 19 },
-  adviceDim: { color: colors.textDim, fontSize: 12, lineHeight: 19 },
+  adviceText: { color: colors.text, fontSize: 14, lineHeight: 22 },
+  adviceDim: { color: colors.textDim, fontSize: 14, lineHeight: 22 },
   choice: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -187,9 +187,9 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   choiceBody: { flex: 1, gap: 2 },
-  choiceLabel: { color: colors.text, fontSize: 16, fontWeight: '700' },
-  choiceDetail: { color: colors.textDim, fontSize: 12, lineHeight: 18 },
-  note: { color: colors.textDim, fontSize: 11, lineHeight: 17 },
+  choiceLabel: { color: colors.text, fontSize: 17, fontWeight: '700' },
+  choiceDetail: { color: colors.textDim, fontSize: 14, lineHeight: 21 },
+  note: { color: colors.textDim, fontSize: 13, lineHeight: 20 },
   cancel: { alignItems: 'center', paddingVertical: spacing.md },
   cancelText: { color: colors.textDim, fontWeight: '700' },
 });

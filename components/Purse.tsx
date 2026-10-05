@@ -56,11 +56,11 @@ const styles = StyleSheet.create({
   },
   goldRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   gold: { color: colors.text, fontSize: 20, fontWeight: '800', lineHeight: 26 },
-  goldUnit: { color: colors.gold, fontSize: 13, fontWeight: '800' },
+  goldUnit: { color: colors.gold, fontSize: 15, fontWeight: '800' },
   spacer: { flex: 1 },
-  shop: { color: colors.textDim, fontSize: 12 },
+  shop: { color: colors.textDim, fontSize: 14 },
   need: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  needLabel: { color: colors.textDim, fontSize: 12, width: 44 },
+  needLabel: { color: colors.textDim, fontSize: 14, width: 44 },
   track: {
     flex: 1,
     height: 8,
@@ -71,5 +71,5 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   fill: { height: '100%' },
-  needValue: { color: colors.textDim, fontSize: 11, width: 24, textAlign: 'right' },
+  needValue: { color: colors.textDim, fontSize: 13, width: 24, textAlign: 'right' },
 });

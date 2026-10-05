@@ -366,8 +366,8 @@ const styles = StyleSheet.create({
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xl },
   hint: { color: colors.textDim, textAlign: 'center' },
   diaryBox: { backgroundColor: colors.surfaceAlt, borderRadius: radius.lg, padding: spacing.md },
-  diary: { color: colors.text, fontSize: 14, lineHeight: 21, fontStyle: 'italic' },
-  diaryBy: { color: colors.textDim, fontSize: 12, fontStyle: 'normal' },
+  diary: { color: colors.text, fontSize: 16, lineHeight: 24, fontStyle: 'italic' },
+  diaryBy: { color: colors.textDim, fontSize: 14, fontStyle: 'normal' },
   repeat: {
     borderColor: colors.accent,
     borderWidth: 1,
@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.xs,
   },
-  repeatText: { color: colors.accent, fontWeight: '800', fontSize: 15 },
+  repeatText: { color: colors.accent, fontWeight: '800', fontSize: 16 },
   share: {
     backgroundColor: colors.accent,
     borderRadius: radius.lg,
@@ -388,7 +388,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.xs,
   },
-  shareText: { color: '#fff', fontWeight: '800', fontSize: 15 },
+  shareText: { color: '#fff', fontWeight: '800', fontSize: 16 },
   secondary: { alignItems: 'center', paddingVertical: spacing.md },
   secondaryText: { color: colors.textDim, fontWeight: '600' },
 });

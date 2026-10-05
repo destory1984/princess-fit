@@ -18,12 +18,12 @@ export default function TabLayout() {
           paddingTop: 6,
           paddingBottom: 6,
           // Tall enough for icon plus a Korean label with its descenders.
-          height: 64,
+          height: 70,
         },
         tabBarActiveTintColor: colors.gold,
         tabBarInactiveTintColor: colors.chromeDim,
         // Six tabs share the bar, so the labels sit tighter than before.
-        tabBarLabelStyle: { fontSize: 10, lineHeight: 14 },
+        tabBarLabelStyle: { fontSize: 12, lineHeight: 17 },
         tabBarItemStyle: { paddingHorizontal: 0 },
         tabBarAllowFontScaling: false,
       }}>

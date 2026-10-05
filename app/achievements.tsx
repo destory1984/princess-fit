@@ -274,13 +274,13 @@ function BadgeRow({ badge }: { badge: Badge }) {
 }
 
 const styles = StyleSheet.create({
-  yearHint: { color: paper.inkDim, fontSize: 11, lineHeight: 16, marginBottom: spacing.sm },
-  yearLabel: { color: paper.inkDim, fontSize: 12, width: 32 },
-  yearValue: { color: paper.inkDim, fontSize: 11, width: 44, textAlign: 'right' },
-  enrolled: { color: colors.gold, fontSize: 12, lineHeight: 18, marginTop: 2 },
-  refineTitle: { color: paper.ink, fontSize: 14, fontWeight: '700', marginBottom: spacing.sm },
+  yearHint: { color: paper.inkDim, fontSize: 13, lineHeight: 19, marginBottom: spacing.sm },
+  yearLabel: { color: paper.inkDim, fontSize: 14, width: 32 },
+  yearValue: { color: paper.inkDim, fontSize: 13, width: 44, textAlign: 'right' },
+  enrolled: { color: colors.gold, fontSize: 14, lineHeight: 21, marginTop: 2 },
+  refineTitle: { color: paper.ink, fontSize: 16, fontWeight: '700', marginBottom: spacing.sm },
   cultureRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: 6 },
-  cultureName: { color: paper.inkDim, fontSize: 12, width: 32 },
+  cultureName: { color: paper.inkDim, fontSize: 14, width: 32 },
   cultureTrack: {
     flex: 1,
     height: 8,
@@ -291,15 +291,15 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   cultureFill: { height: '100%', backgroundColor: paper.line },
-  cultureValue: { color: paper.inkDim, fontSize: 11, width: 24, textAlign: 'right' },
-  cultureHint: { color: paper.inkDim, fontSize: 11, lineHeight: 16, marginTop: 4 },
+  cultureValue: { color: paper.inkDim, fontSize: 13, width: 24, textAlign: 'right' },
+  cultureHint: { color: paper.inkDim, fontSize: 13, lineHeight: 19, marginTop: 4 },
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xl },
 
   nameplate: { alignItems: 'center', gap: 2 },
-  rank: { color: paper.inkDim, fontSize: 12, fontWeight: '700', letterSpacing: 1 },
+  rank: { color: paper.inkDim, fontSize: 14, fontWeight: '700', letterSpacing: 1 },
   archetype: { color: paper.ink, fontSize: 24, fontWeight: '800' },
-  archetypeDetail: { color: paper.inkDim, fontSize: 12 },
+  archetypeDetail: { color: paper.inkDim, fontSize: 14 },
 
   portraitRow: { flexDirection: 'row', gap: spacing.md, alignItems: 'center' },
   portrait: {
@@ -318,8 +318,8 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sm,
     marginTop: 2,
   },
-  xpLabel: { color: paper.inkDim, fontSize: 12, fontWeight: '700' },
-  xpValue: { color: paper.accent, fontSize: 13, fontWeight: '800' },
+  xpLabel: { color: paper.inkDim, fontSize: 14, fontWeight: '700' },
+  xpValue: { color: paper.accent, fontSize: 15, fontWeight: '800' },
 
   speech: {
     backgroundColor: paper.bgAlt,
@@ -338,13 +338,13 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 3,
   },
-  speakerText: { color: paper.bg, fontSize: 11, fontWeight: '800', letterSpacing: 1 },
-  speechText: { color: paper.ink, fontSize: 14, lineHeight: 21 },
+  speakerText: { color: paper.bg, fontSize: 13, fontWeight: '800', letterSpacing: 1 },
+  speechText: { color: paper.ink, fontSize: 16, lineHeight: 24 },
 
   goalRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  goalLabel: { color: paper.inkDim, fontSize: 12, fontWeight: '700', flex: 1 },
+  goalLabel: { color: paper.inkDim, fontSize: 14, fontWeight: '700', flex: 1 },
   goalStep: { color: paper.accent, fontSize: 20, fontWeight: '800', width: 20, textAlign: 'center' },
-  goalValue: { color: paper.ink, fontSize: 15, fontWeight: '800', minWidth: 34, textAlign: 'center' },
+  goalValue: { color: paper.ink, fontSize: 16, fontWeight: '800', minWidth: 34, textAlign: 'center' },
   weekRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm },
   weekDot: {
     width: 28,
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   weekDotOn: { backgroundColor: paper.fill, borderColor: paper.fill },
-  weekText: { color: paper.inkDim, fontSize: 12, flex: 1, marginLeft: spacing.sm },
+  weekText: { color: paper.inkDim, fontSize: 14, flex: 1, marginLeft: spacing.sm },
 
   rankRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   rankCell: {
@@ -373,11 +373,11 @@ const styles = StyleSheet.create({
   rankCellBadge: { width: 22, height: 22 },
   rankAhead: { opacity: 0.35 },
   rankNow: { backgroundColor: paper.fill, borderColor: paper.line },
-  rankCellText: { color: colors.faint, fontSize: 12, lineHeight: 17 },
+  rankCellText: { color: colors.faint, fontSize: 14, lineHeight: 20 },
   rankReached: { color: paper.inkDim },
   rankNowText: { color: paper.bg, fontWeight: '800' },
 
-  sectionTitle: { color: colors.text, fontSize: 16, fontWeight: '700', marginTop: spacing.lg },
+  sectionTitle: { color: colors.text, fontSize: 17, fontWeight: '700', marginTop: spacing.lg },
   empty: { color: colors.textDim },
   badgeRow: {
     backgroundColor: colors.surface,
@@ -398,9 +398,9 @@ const styles = StyleSheet.create({
   badgeIconOn: { backgroundColor: colors.accent },
   badgeMedal: { width: 44, height: 44 },
   badgeBody: { flex: 1, gap: 3 },
-  badgeName: { color: colors.text, fontSize: 15, fontWeight: '700' },
+  badgeName: { color: colors.text, fontSize: 16, fontWeight: '700' },
   badgeNameLocked: { color: colors.textDim },
-  badgeDetail: { color: colors.textDim, fontSize: 12 },
+  badgeDetail: { color: colors.textDim, fontSize: 14 },
   track: {
     height: 5,
     borderRadius: 3,
@@ -409,5 +409,5 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
   fill: { height: 5, borderRadius: 3, backgroundColor: colors.accent },
-  percent: { color: colors.textDim, fontSize: 12, fontWeight: '600' },
+  percent: { color: colors.textDim, fontSize: 14, fontWeight: '600' },
 });

@@ -242,7 +242,7 @@ function Toggle({ label, on, onPress }: { label: string; on: boolean; onPress: (
 const styles = StyleSheet.create({
   speakerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   speakerTitle: { flex: 1 },
-  sectionTitle: { color: colors.text, fontSize: 15, fontWeight: '800' },
+  sectionTitle: { color: colors.text, fontSize: 16, fontWeight: '800' },
   tool: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -252,8 +252,8 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   toolBody: { flex: 1 },
-  toolTitle: { color: colors.text, fontSize: 14, fontWeight: '700' },
-  toolSub: { color: colors.textDim, fontSize: 12, marginTop: 2 },
+  toolTitle: { color: colors.text, fontSize: 16, fontWeight: '700' },
+  toolSub: { color: colors.textDim, fontSize: 14, marginTop: 2 },
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xl },
   picker: {
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   pickerLabel: { color: colors.textDim, flex: 1 },
-  pickerValue: { color: colors.accent, fontWeight: '700', fontSize: 16 },
+  pickerValue: { color: colors.accent, fontWeight: '700', fontSize: 17 },
   statRow: { flexDirection: 'row', gap: spacing.md },
   statCard: {
     flex: 1,
@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   statValue: { color: colors.text, fontSize: 22, fontWeight: '800' },
-  statLabel: { color: colors.textDim, marginTop: spacing.xs, fontSize: 12 },
+  statLabel: { color: colors.textDim, marginTop: spacing.xs, fontSize: 14 },
   card: {
     backgroundColor: colors.surface,
     borderColor: colors.border,
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     gap: spacing.md,
   },
-  cardTitle: { color: colors.text, fontSize: 16, fontWeight: '800' },
+  cardTitle: { color: colors.text, fontSize: 17, fontWeight: '800' },
   toggleRow: { flexDirection: 'row', gap: spacing.sm },
   toggle: {
     backgroundColor: colors.surfaceAlt,
@@ -298,9 +298,9 @@ const styles = StyleSheet.create({
   toggleOn: { backgroundColor: colors.accentSoft },
   toggleText: { color: colors.textDim, fontWeight: '600' },
   toggleTextOn: { color: colors.accent },
-  hint: { color: colors.textDim, fontSize: 12, textAlign: 'center' },
+  hint: { color: colors.textDim, fontSize: 14, textAlign: 'center' },
   tableRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  tableDate: { color: colors.textDim, width: 44, fontSize: 13 },
-  tableSets: { color: colors.text, flex: 1, fontSize: 13 },
-  tableValue: { color: colors.text, fontWeight: '700', fontSize: 13 },
+  tableDate: { color: colors.textDim, width: 44, fontSize: 15 },
+  tableSets: { color: colors.text, flex: 1, fontSize: 15 },
+  tableValue: { color: colors.text, fontWeight: '700', fontSize: 15 },
 });
