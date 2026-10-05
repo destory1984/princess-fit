@@ -62,6 +62,7 @@ const MOVE_ART: Record<string, Record<string, number>> = {
     seora: require('../assets/moves/bench_press_seora.png'),
   },
   bent_over_dumbbell_row: {
+    dohwa: require('../assets/moves/bent_over_dumbbell_row_dohwa.png'),
     geumhwa: require('../assets/moves/bent_over_dumbbell_row_geumhwa.png'),
     seora: require('../assets/moves/bent_over_dumbbell_row_seora.png'),
   },
@@ -71,6 +72,7 @@ const MOVE_ART: Record<string, Record<string, number>> = {
     seora: require('../assets/moves/bicycle_crunch_seora.png'),
   },
   bird_dog: {
+    dohwa: require('../assets/moves/bird_dog_dohwa.png'),
     geumhwa: require('../assets/moves/bird_dog_geumhwa.png'),
     seora: require('../assets/moves/bird_dog_seora.png'),
   },
@@ -110,6 +112,7 @@ const MOVE_ART: Record<string, Record<string, number>> = {
     seora: require('../assets/moves/cable_curl_seora.png'),
   },
   cable_kickback: {
+    dohwa: require('../assets/moves/cable_kickback_dohwa.png'),
     geumhwa: require('../assets/moves/cable_kickback_geumhwa.png'),
     seora: require('../assets/moves/cable_kickback_seora.png'),
   },
@@ -144,6 +147,7 @@ const MOVE_ART: Record<string, Record<string, number>> = {
     seora: require('../assets/moves/chin_up_seora.png'),
   },
   close_grip_bench_press: {
+    dohwa: require('../assets/moves/close_grip_bench_press_dohwa.png'),
     geumhwa: require('../assets/moves/close_grip_bench_press_geumhwa.png'),
     seora: require('../assets/moves/close_grip_bench_press_seora.png'),
   },
@@ -151,6 +155,7 @@ const MOVE_ART: Record<string, Record<string, number>> = {
     geumhwa: require('../assets/moves/close_grip_lat_pulldown_geumhwa.png'),
   },
   concentration_curl: {
+    dohwa: require('../assets/moves/concentration_curl_dohwa.png'),
     geumhwa: require('../assets/moves/concentration_curl_geumhwa.png'),
     seora: require('../assets/moves/concentration_curl_seora.png'),
   },
@@ -165,6 +170,7 @@ const MOVE_ART: Record<string, Record<string, number>> = {
     seora: require('../assets/moves/cycling_seora.png'),
   },
   dead_bug: {
+    dohwa: require('../assets/moves/dead_bug_dohwa.png'),
     geumhwa: require('../assets/moves/dead_bug_geumhwa.png'),
     seora: require('../assets/moves/dead_bug_seora.png'),
   },
@@ -174,10 +180,12 @@ const MOVE_ART: Record<string, Record<string, number>> = {
     seora: require('../assets/moves/deadlift_seora.png'),
   },
   decline_bench_press: {
+    dohwa: require('../assets/moves/decline_bench_press_dohwa.png'),
     geumhwa: require('../assets/moves/decline_bench_press_geumhwa.png'),
     seora: require('../assets/moves/decline_bench_press_seora.png'),
   },
   decline_push_up: {
+    dohwa: require('../assets/moves/decline_push_up_dohwa.png'),
     geumhwa: require('../assets/moves/decline_push_up_geumhwa.png'),
     seora: require('../assets/moves/decline_push_up_seora.png'),
   },
@@ -210,6 +218,7 @@ const MOVE_ART: Record<string, Record<string, number>> = {
     seora: require('../assets/moves/dumbbell_press_seora.png'),
   },
   dumbbell_pullover: {
+    dohwa: require('../assets/moves/dumbbell_pullover_dohwa.png'),
     geumhwa: require('../assets/moves/dumbbell_pullover_geumhwa.png'),
     seora: require('../assets/moves/dumbbell_pullover_seora.png'),
   },
@@ -264,6 +273,7 @@ const MOVE_ART: Record<string, Record<string, number>> = {
     seora: require('../assets/moves/goblet_squat_seora.png'),
   },
   good_morning: {
+    dohwa: require('../assets/moves/good_morning_dohwa.png'),
     geumhwa: require('../assets/moves/good_morning_geumhwa.png'),
     seora: require('../assets/moves/good_morning_seora.png'),
   },
@@ -294,6 +304,7 @@ const MOVE_ART: Record<string, Record<string, number>> = {
     geumhwa: require('../assets/moves/hiking_geumhwa.png'),
   },
   hip_abduction: {
+    dohwa: require('../assets/moves/hip_abduction_dohwa.png'),
     geumhwa: require('../assets/moves/hip_abduction_geumhwa.png'),
     seora: require('../assets/moves/hip_abduction_seora.png'),
   },
@@ -301,6 +312,9 @@ const MOVE_ART: Record<string, Record<string, number>> = {
     dohwa: require('../assets/moves/hip_thrust_dohwa.png'),
     geumhwa: require('../assets/moves/hip_thrust_geumhwa.png'),
     seora: require('../assets/moves/hip_thrust_seora.png'),
+  },
+  hollow_hold: {
+    geumhwa: require('../assets/moves/hollow_hold_geumhwa.png'),
   },
   incline_bench_press: {
     dohwa: require('../assets/moves/incline_bench_press_dohwa.png'),
@@ -314,6 +328,7 @@ const MOVE_ART: Record<string, Record<string, number>> = {
     geumhwa: require('../assets/moves/incline_dumbbell_curl_geumhwa.png'),
   },
   incline_dumbbell_fly: {
+    dohwa: require('../assets/moves/incline_dumbbell_fly_dohwa.png'),
     geumhwa: require('../assets/moves/incline_dumbbell_fly_geumhwa.png'),
     seora: require('../assets/moves/incline_dumbbell_fly_seora.png'),
   },
@@ -326,6 +341,7 @@ const MOVE_ART: Record<string, Record<string, number>> = {
     geumhwa: require('../assets/moves/incline_walking_geumhwa.png'),
   },
   inverted_row: {
+    dohwa: require('../assets/moves/inverted_row_dohwa.png'),
     geumhwa: require('../assets/moves/inverted_row_geumhwa.png'),
     seora: require('../assets/moves/inverted_row_seora.png'),
   },
@@ -483,6 +499,7 @@ const MOVE_ART: Record<string, Record<string, number>> = {
     seora: require('../assets/moves/reverse_crunch_seora.png'),
   },
   reverse_curl: {
+    dohwa: require('../assets/moves/reverse_curl_dohwa.png'),
     geumhwa: require('../assets/moves/reverse_curl_geumhwa.png'),
     seora: require('../assets/moves/reverse_curl_seora.png'),
   },
@@ -518,6 +535,7 @@ const MOVE_ART: Record<string, Record<string, number>> = {
     seora: require('../assets/moves/russian_twist_seora.png'),
   },
   seated_calf_raise: {
+    dohwa: require('../assets/moves/seated_calf_raise_dohwa.png'),
     geumhwa: require('../assets/moves/seated_calf_raise_geumhwa.png'),
     seora: require('../assets/moves/seated_calf_raise_seora.png'),
   },
@@ -540,6 +558,7 @@ const MOVE_ART: Record<string, Record<string, number>> = {
     seora: require('../assets/moves/shoulder_press_seora.png'),
   },
   shoulder_press_machine: {
+    dohwa: require('../assets/moves/shoulder_press_machine_dohwa.png'),
     geumhwa: require('../assets/moves/shoulder_press_machine_geumhwa.png'),
     seora: require('../assets/moves/shoulder_press_machine_seora.png'),
   },
@@ -549,6 +568,7 @@ const MOVE_ART: Record<string, Record<string, number>> = {
     seora: require('../assets/moves/shrug_seora.png'),
   },
   side_lunge: {
+    dohwa: require('../assets/moves/side_lunge_dohwa.png'),
     geumhwa: require('../assets/moves/side_lunge_geumhwa.png'),
     seora: require('../assets/moves/side_lunge_seora.png'),
   },
@@ -596,10 +616,12 @@ const MOVE_ART: Record<string, Record<string, number>> = {
     geumhwa: require('../assets/moves/stairmaster_geumhwa.png'),
   },
   step_up: {
+    dohwa: require('../assets/moves/step_up_dohwa.png'),
     geumhwa: require('../assets/moves/step_up_geumhwa.png'),
     seora: require('../assets/moves/step_up_seora.png'),
   },
   straight_arm_pulldown: {
+    dohwa: require('../assets/moves/straight_arm_pulldown_dohwa.png'),
     geumhwa: require('../assets/moves/straight_arm_pulldown_geumhwa.png'),
     seora: require('../assets/moves/straight_arm_pulldown_seora.png'),
   },
@@ -617,6 +639,7 @@ const MOVE_ART: Record<string, Record<string, number>> = {
     geumhwa: require('../assets/moves/swimming_geumhwa.png'),
   },
   t_bar_row: {
+    dohwa: require('../assets/moves/t_bar_row_dohwa.png'),
     geumhwa: require('../assets/moves/t_bar_row_geumhwa.png'),
     seora: require('../assets/moves/t_bar_row_seora.png'),
   },
