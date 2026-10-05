@@ -50,7 +50,7 @@ if (Platform.OS === "web" && typeof document !== "undefined") {
   // What 「홈 화면에 추가」 reads: her face for the icon and the app's own name
   // under it, rather than a screenshot of the page and its address. Added here
   // because the single-page export has no HTML of its own to put them in, and
-  // prefixed by hand because the site lives under /refit on GitHub Pages.
+  // prefixed by hand because the site lives under /princess-fit on GitHub Pages.
   // The development server serves from the root whatever the base path is set to.
   const base = __DEV__ ? "" : (process.env.EXPO_BASE_URL ?? "");
   const head = (tag: "link" | "meta", attrs: Record<string, string>) => {

@@ -289,9 +289,10 @@
 
 - **이름은 「프린세스 핏」이다 (2026-10-04).** 「Refit」은 운동 앱이라는 것만 말하고 아이를 키운다는
   것은 말하지 않았다. 바뀐 것은 사람에게 보이는 이름뿐이다: 앱 이름(`app.json`의 `name`), 로그인
-  화면, 공유 카드, 친구 코드 문구, 관리자 페이지, 문서. **저장소 이름, 배포 주소(`/refit`), `slug`와
+  화면, 공유 카드, 친구 코드 문구, 관리자 페이지, 문서. **`slug`와
   `scheme`, 앱 식별자(`com.refit.app`), 폰에 두는 값의 이름(`refit.*`)은 그대로다** — 바꾸면 주소가
   달라지고 이미 쓰는 사람의 폰에 둔 것을 잃는다. 코드 주석의 Refit도 그대로 두었다.
+  저장소 이름과 배포 주소만 2026-10-05에 `princess-fit`으로 바꿨다(「웹 배포」).
   아이의 품계는 기사에서 여왕으로 가는 길이라 공주는 아니다. 프린세스 메이커의 짜임을 따른
   앱이라는 뜻으로 붙인 이름이다.
 
@@ -302,7 +303,7 @@
   자리는 같은 연두로 채웠다. 단색 아이콘(`monochromeImage`)은 뺐다 — Expo 로고였다.
 - **웹판을 「홈 화면에 추가」하면 아이콘과 이름이 뜬다.** `public/manifest.json`과 아이콘을 두고,
   `app/_layout.tsx`가 뜰 때 `<head>`에 링크를 단다. 한 장짜리 내보내기에는 손댈 HTML이 없고,
-  Pages에서는 주소가 `/refit` 밑이라 `process.env.EXPO_BASE_URL`을 앞에 붙여야 한다.
+  Pages에서는 주소가 `/princess-fit` 밑이라 `process.env.EXPO_BASE_URL`을 앞에 붙여야 한다.
 
 ### 웹 배포 (2026-10-04)
 
@@ -317,17 +318,17 @@
   소리 파일 없이 두 음을 그 자리에서 만든다. 브라우저는 사람이 화면을 만진 뒤에만 소리를 허락하므로
   쉬는 시간이 시작될 때(세트 완료를 누를 때) 깨워 둔다. 화면이 꺼지거나 탭이 뒤로 가면 울리지 않는다.
   **귀로는 못 들어 봤다** — 타입 검사만 통과했다. 폰 브라우저에서 한 번 들어 봐야 한다.
-- **`app.json`의 `experiments.baseUrl`이 `/refit`이다.** Pages는 저장소 이름 밑에 올라간다. 내보낼
+- **`app.json`의 `experiments.baseUrl`이 `/princess-fit`이다.** Pages는 저장소 이름 밑에 올라간다. 내보낼
   때만 붙고 개발 서버(`localhost:8081/`)는 그대로다. 저장소 이름을 바꾸면 이것도 바꾼다.
 - **`404.html`은 `index.html`의 사본이다.** 앱은 한 장짜리(`web.output`의 기본값 `single`)라
-  `/refit/shop` 같은 주소 뒤에는 파일이 없다. Pages가 404로 내주는 것이 앱 자신이어야 새로고침이
+  `/princess-fit/shop` 같은 주소 뒤에는 파일이 없다. Pages가 404로 내주는 것이 앱 자신이어야 새로고침이
   된다. `.nojekyll`이 없으면 Jekyll이 `_expo` 폴더를 버린다.
 - **Supabase 주소와 공개용 키는 GitHub의 저장소 변수(Repository variables)에 있다.** 처음엔 같은
   화면의 「환경 변수」에 들어갔고, 환경의 변수는 그 환경을 이름으로 부른 작업만 봐서 배포가 세 번
   멈췄다. 저장소 변수로 옮겼다.
   묶음 파일에 담겨 공개되는 값이지만 저장소 자체에는 넣지 않는다. 변수가 없으면 빌드가 스스로
   멈추고 까닭을 말한다. 배포 결과는 로그인 없이 볼 수 있다:
-  `https://api.github.com/repos/destory1984/refit/actions/runs?per_page=1`.
+  `https://api.github.com/repos/destory1984/princess-fit/actions/runs?per_page=1`.
 - **새 체크아웃에는 `expo-env.d.ts`가 없다.** `expo start`가 만드는 파일이라 저장소에 없고, 그래서
   `process.env.EXPO_PUBLIC_*`의 타입이 GitHub에서는 없다. 첫 배포가 타입 검사에서 멈춘 까닭이다.
   이 PC에서 같은 것을 보려면 `.expo/types`와 `expo-env.d.ts`를 잠깐 치우고 `tsc`를 돌린다.
@@ -654,9 +655,9 @@
 
 이 아래의 2026-10-03 목록들보다 이것이 새롭다. 어긋나면 이것이 이긴다.
 
-**배포판은 `https://destory1984.github.io/refit/`이다.** `master`에 푸시하면 3분쯤 뒤 저절로 올라간다.
+**배포판은 `https://destory1984.github.io/princess-fit/`이다.** `master`에 푸시하면 3분쯤 뒤 저절로 올라간다.
 올린 뒤에는 결과를 확인한다(로그인 없이 된다):
-`curl -s "https://api.github.com/repos/destory1984/refit/actions/runs?per_page=1"`.
+`curl -s "https://api.github.com/repos/destory1984/princess-fit/actions/runs?per_page=1"`.
 시험은 735건이다. 이 노트를 고친 커밋 하나만 아직 올리지 않았다(다음에 올릴 때 함께 간다).
 
 **2026-10-05 새벽에 한 것** (까닭은 2절의 해당 소절에 있다). 모두 올렸고 배포도 성공했다.
@@ -694,17 +695,16 @@
    올린 뒤 2절 「종목 시범 그림」의 「유키는 아홉 장이 들어 있다」 줄을 고친다.
    **이 세션이 뒤에서 걸어 둔 주문은 `/clear` 뒤에 믿지 않는다.** 6시 18분쯤 시간 제한으로 끊기게 돼 있었고,
    끊기지 않았더라도 위 명령은 받은 것을 건너뛰므로 다시 돌려도 해가 없다.
-2. **주소 바꾸기 — 답을 기다리는 중.** 「주소를 바꿀 수 있나」고 물었고 세 길을 아뢰었다: 저장소 이름
-   바꾸기(`…github.io/새이름/`, 로그인은 남는다), 저장소를 `destory1984.github.io`로(뿌리 주소), 도메인
-   사기(한 해 1 → 2만 원, 쓰던 사람은 다시 로그인). 길과 이름을 아직 정하지 않았다. 바꾸면 고칠 곳:
-   `app.json`의 `experiments.baseUrl`, `pages.yml`의 `og-tags.mjs` 주소, `docs/tester-notice.md`와 README의 주소.
+2. (주소는 2026-10-05에 바꿨다. 저장소 이름을 `refit` → `princess-fit`으로 바꾸는 길을 골랐다. 앞머리
+   `destory1984.github.io`가 같아 로그인은 남고, 옛 주소 `…/refit/`은 죽는다. Pages는 옛 길을 새 길로
+   넘겨주지 않는다. 고친 곳: `app.json`의 `experiments.baseUrl`, `pages.yml`의 `og-tags.mjs` 주소,
+   `docs/tester-notice.md`, README, LICENSE의 첫 줄. 이 PC의 폴더 이름(`C:\_cefit`)은 그대로다.)
 
 **사람이 해야 풀리는 것.**
-1. **Supabase 대시보드에서 「Confirm email」을 끈다.** 끄기로 했고, 껐다는 말은 듣지 못했다. 켜져 있으면
-   가입한 사람이 오지 않는 인증 메일을 기다린다. 「다시 보내기」 단추는 이제 숨겨져 있다.
-2. 배포판에서 가입 → 첫 운동 → 첫 선물까지 한 번 눌러 본다. 위 1번도 이때 드러난다.
+1. (Supabase 대시보드의 「Confirm email」은 2026-10-05 오전에 껐다고 들었다. 가입해서 확인해 보지는 않았다.)
+2. 배포판에서 가입 → 첫 운동 → 첫 선물까지 한 번 눌러 본다. 위 1번이 정말 꺼졌는지도 이때 드러난다.
 3. **폰 브라우저에서 쉬는 시간이 끝날 때 종소리가 나는지 듣는다.** 타입 검사만 통과했고 아무도 못 들었다.
-4. 카톡에 주소를 보내 미리보기 그림이 뜨는지 본다. 전에 보낸 대화방은 옛 모습일 수 있다.
+4. (카톡 미리보기는 2026-10-05 오전에 확인했다. 그림 · 이름 · 설명 · 주소가 모두 뜬다.)
 5. 폰에서 「홈 화면에 추가」했을 때 아이콘과 이름이 뜨는지 본다.
 6. GitHub의 Settings → Environments에서 `EXPO_PUBLIC_SUPABASE_URL` 환경을 지운다. 이제 쓰이지 않는다.
    `github-pages`는 지우지 않는다.
@@ -855,7 +855,7 @@ Devin MCP는 `https://mcp.devin.ai/mcp`. 키(실제로는 `cog_`가 아니었다
 - Devin에게는 `NOTES.md`·`AGENTS.md`를 먼저 읽히고, `lib/`의 규칙에는
   시험을 붙이라 이른다. 플레이북에 박아 두면 매번 이를 것도 없다.
 - 첫 일감으로 「관리자 목록 검색·페이지」를 넘기려 했으나 채비에서 멈췄다. 키에 X-Org-Id를 실어 조직은 찾았으나 세션 생성이 403이었다(키 권한 또는 요금제 문제로 보임). 그 일감은 Claude가 지었다. Devin은 키 권한을 정리한 뒤에 다시 쓴다.
-- Devin은 제 VM에서 일하니 GitHub 원격(`github.com/destory1984/refit`)이 있어야 한다.
+- Devin은 제 VM에서 일하니 GitHub 원격(`github.com/destory1984/princess-fit`)이 있어야 한다.
 
 ### 반만 된 것
 

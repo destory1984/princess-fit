@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Writes the link-preview tags into the exported page.
 //
-//   node scripts/og-tags.mjs dist/index.html https://destory1984.github.io/refit
+//   node scripts/og-tags.mjs dist/index.html https://destory1984.github.io/princess-fit
 //
 // A messenger that is sent the address reads the HTML and nothing else: it does
 // not run the app, so tags added from app/_layout.tsx as the app starts are never

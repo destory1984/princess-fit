@@ -4,7 +4,7 @@
 
 <img src="docs/img/home.jpg" alt="가구를 다 들인 방에 드레스를 입은 리나가 꽃다발을 들고 서 있다. 창턱에 축제 트로피 셋이 있고, 그 아래에 리나의 말풍선이 있다." width="320">
 
-써 보려면 https://destory1984.github.io/refit/ 을 연다. 설치하지 않고 브라우저에서 돈다.
+써 보려면 https://destory1984.github.io/princess-fit/ 을 연다. 설치하지 않고 브라우저에서 돈다.
 
 목표는 쓰는 사람의 수다. 돈 받는 기능과 광고는 없다. 방향과 짓는 순서는 [docs/direction.md](docs/direction.md)에, 왜 그렇게 되어 있는지는 [NOTES.md](NOTES.md)에 적었다.
 
@@ -80,7 +80,7 @@ npx expo start
 ## 웹으로 배포
 
 `master`에 푸시하면 GitHub Actions(`.github/workflows/pages.yml`)가 시험 3종 가운데 둘(시험, 타입)을
-돌리고 웹판을 빌드해 GitHub Pages에 올린다. 주소는 `https://<계정>.github.io/refit/`이다.
+돌리고 웹판을 빌드해 GitHub Pages에 올린다. 주소는 `https://<계정>.github.io/princess-fit/`이다.
 주소를 메신저로 보냈을 때 뜨는 그림과 글도 이때 HTML에 넣는다(`scripts/og-tags.mjs`). 저장소 이름이나
 계정이 다르면 워크플로에 적힌 주소를 고친다.
 

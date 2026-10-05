@@ -36,7 +36,7 @@
     ],
     "experiments": {
       "typedRoutes": true,
-      "baseUrl": "/refit"
+      "baseUrl": "/princess-fit"
     }
   }
 }

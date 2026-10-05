@@ -55,11 +55,11 @@ jobs:
           # forgotten-password and resend links on the login screen.
           EXPO_PUBLIC_MAIL: ${{ vars.EXPO_PUBLIC_MAIL }}
       # Pages runs Jekyll unless told not to, and Jekyll drops Expo's _expo folder.
-      # The app is one page that routes in the browser, so a deep link (/refit/shop)
+      # The app is one page that routes in the browser, so a deep link (/princess-fit/shop)
       # has no file behind it: Pages serves 404.html, which is the app itself.
       # Before the copy, so a deep link sent to someone shows the same preview.
       - run: |
-          node scripts/og-tags.mjs dist/index.html https://destory1984.github.io/refit
+          node scripts/og-tags.mjs dist/index.html https://destory1984.github.io/princess-fit
           touch dist/.nojekyll
           cp dist/index.html dist/404.html
       - uses: actions/upload-pages-artifact@v3
