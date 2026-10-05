@@ -18,9 +18,14 @@ from PIL import Image
 CELL = 256
 
 if len(sys.argv) < 4:
-    sys.exit('usage: move-assets.py <drawing.png> <move id> <advisor id> [frames=3]')
+    sys.exit('usage: move-assets.py <drawing.png> <move id> <advisor id> [frames=3] [nudges, e.g. 0,48,48]')
 src, move, girl = Path(sys.argv[1]), sys.argv[2], sys.argv[3]
 frames = int(sys.argv[4]) if len(sys.argv) > 4 else 3
+# An optional fifth argument moves frames by hand, in pixels of the picture as it came:
+# 「0,48,48」 sets the second and third 48 to the right of where best_shift put them.
+# For when the equipment was drawn in a different place in one frame and the girl's
+# body, which is most of the picture, wins the line-up (Yuki's inverted row).
+nudges = [int(n) for n in sys.argv[5].split(',')] if len(sys.argv) > 5 else [0] * frames
 
 pixels = np.array(Image.open(src).convert('RGBA'))
 solid = pixels[..., 3] >= 128
@@ -146,6 +151,7 @@ for prev, cur in zip(cuts, cuts[1:]):
     if share < 0.25:
         dx = (prev.shape[1] - cur.shape[1]) // 2
     offsets.append(offsets[-1] + dx)
+offsets = [o + n for o, n in zip(offsets, nudges)]
 left = min(offsets)
 offsets = [o - left for o in offsets]
 width = max(o + c.shape[1] for o, c in zip(offsets, cuts))
