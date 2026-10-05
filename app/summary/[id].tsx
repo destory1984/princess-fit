@@ -25,7 +25,7 @@ import {
   type WorkoutDetailExercise,
   writeDiaries,
 } from '@/lib/db';
-import { firstDayStep, isFirstWorkout } from '@/lib/firstDay';
+import { firstDayStep, hasEarlierDay, isFirstWorkout } from '@/lib/firstDay';
 import { girlOf, useGirl } from '@/lib/girl';
 import { formatDate } from '@/lib/format';
 import { GOALS, PLACES } from '@/lib/onboarding';
@@ -302,6 +302,7 @@ export default function SummaryScreen() {
         summary={summary}
         worn={ledger ? adorned(ledger.worn, ledger.wardrobe) : []}
         first={isFirst}
+        noYesterday={!hasEarlierDay(facts, workout.id)}
       />
 
       {/* On the first day her entry is at the top, large; not said twice. */}

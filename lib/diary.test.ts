@@ -135,3 +135,13 @@ test('a favour comes before a best, after a sulk, and only from the girl who ask
   // 피아 never asks for 「두 번」: with no line of hers for it, the day is written as usual.
   assert.match(diaryFor(input(fact('2026-09-23'), { favour }), 'dohwa')!, /가슴 10세트/);
 });
+
+test('a second session on a remembered day does not write the memory again', () => {
+  const firstDay: Memory = { kind: 'first_day', day: '2026-09-23', line: '', detail: null };
+  const morning = fact('2026-09-23');
+  const evening = { ...fact('2026-09-23'), id: 'evening', started_at: '2026-09-23T19:00:00' };
+  const first = diaryFor(input(morning, { memories: [firstDay], history: [evening] }), 'geumhwa')!;
+  const second = diaryFor(input(evening, { memories: [firstDay], history: [morning] }), 'geumhwa')!;
+  assert.match(first, /처음/);
+  assert.notEqual(second, first);
+});

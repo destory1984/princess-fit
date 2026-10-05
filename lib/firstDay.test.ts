@@ -4,6 +4,7 @@ import {
   cheapestGift,
   firstDayStep,
   goldAfterSmallestFirstSession,
+  hasEarlierDay,
   isFirstWorkout,
 } from './firstDay.ts';
 import type { WorkoutFact } from './gamification.ts';
@@ -64,4 +65,14 @@ test('short of gold there is no invitation to a shop that refuses', () => {
 
 test('once given, the card says so instead of asking again', () => {
   assert.deepEqual(firstDayStep([fact('a')], 'a', 0, true), { step: 'given' });
+});
+
+test('a second session on the first day has no yesterday behind it', () => {
+  const again = { ...fact('b'), started_at: '2026-10-03T21:00:00' };
+  assert.equal(hasEarlierDay([fact('a'), again], 'b'), false);
+  const nextDay = { ...fact('c'), started_at: '2026-10-04T08:00:00' };
+  assert.equal(hasEarlierDay([fact('a'), nextDay], 'c'), true);
+  // An empty session the day before was not a day of training.
+  const empty = { ...fact('e', 0), volume: 0, started_at: '2026-10-02T08:00:00' };
+  assert.equal(hasEarlierDay([empty, fact('a')], 'a'), false);
 });

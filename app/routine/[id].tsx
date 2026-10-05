@@ -217,18 +217,27 @@ export default function RoutineScreen() {
                   {byId.get(item.exercise_id)!.equipment}
                 </Text>
               ) : null}
-              <View style={styles.stepperRow}>
-                <Stepper
-                  label="세트"
-                  value={item.target_sets}
-                  onChange={(d) => adjust(item, 'target_sets', d)}
-                />
-                <Stepper
-                  label="회"
-                  value={item.target_reps}
-                  onChange={(d) => adjust(item, 'target_reps', d)}
-                />
-              </View>
+              {/*
+                Timed and cardio movements start as one entry whatever is set
+                here (startWorkout), so the steppers would be dials wired to
+                nothing — and a plank read 「3세트 · 0회」.
+              */}
+              {(byId.get(item.exercise_id)?.track_type ?? 'weight_reps') === 'weight_reps' ? (
+                <View style={styles.stepperRow}>
+                  <Stepper
+                    label="세트"
+                    value={item.target_sets}
+                    onChange={(d) => adjust(item, 'target_sets', d)}
+                  />
+                  <Stepper
+                    label="회"
+                    value={item.target_reps}
+                    onChange={(d) => adjust(item, 'target_reps', d)}
+                  />
+                </View>
+              ) : (
+                <Text style={styles.rowSub}>횟수 대신 시간을 적는 종목이에요.</Text>
+              )}
             </Pressable>
           ))
         )}

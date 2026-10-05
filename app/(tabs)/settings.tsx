@@ -4,6 +4,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { NudgeSetting } from '@/components/NudgeSetting';
 import { Portrait } from '@/components/Portrait';
+import { hasDirectServer } from '@/lib/advice';
 import { explain } from '@/lib/dbError';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { confirmAction, notify } from '@/lib/confirm';
@@ -215,7 +216,9 @@ export default function SettingsScreen() {
         <View style={styles.body}>
           <Text style={styles.title}>AI 모델에게 조언 묻기</Text>
           <Text style={styles.sub}>
-            끄면 기록만 보고 짧게 말해요. 모델 서버가 없으면 꺼 두는 게 빨라요.
+            끄면 기록만 보고 짧게 말해요.
+            {/* Only a build that goes straight to a server can be kept waiting by one. */}
+            {hasDirectServer(__DEV__) ? ' 모델 서버가 없으면 꺼 두는 게 빨라요.' : ''}
           </Text>
         </View>
         <Switch

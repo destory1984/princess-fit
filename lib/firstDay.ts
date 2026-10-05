@@ -13,6 +13,7 @@
  */
 
 import { STARTING_GOLD, workoutGold } from './economy.ts';
+import { localDayKey } from './format.ts';
 import { isEmptyWorkout, type WorkoutFact } from './gamification.ts';
 import { GARMENTS } from './outfit.ts';
 import { FURNITURE } from './room.ts';
@@ -30,6 +31,20 @@ export type FirstGift = { id: string; name: string; price: number };
 export function isFirstWorkout(facts: WorkoutFact[], workoutId: string) {
   const real = facts.filter((f) => !isEmptyWorkout(f));
   return real.length === 1 && real[0].id === workoutId;
+}
+
+/**
+ * Whether anything was done on a day before this session's. A second session
+ * on the very first day is not the first workout, but there is still no
+ * yesterday for it to have beaten.
+ */
+export function hasEarlierDay(facts: WorkoutFact[], workoutId: string) {
+  const mine = facts.find((f) => f.id === workoutId);
+  if (!mine) return true;
+  const day = localDayKey(new Date(mine.started_at));
+  return facts.some(
+    (f) => !isEmptyWorkout(f) && localDayKey(new Date(f.started_at)) < day
+  );
 }
 
 /** The least expensive thing that can be given. Free pieces are not gifts. */

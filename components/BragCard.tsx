@@ -25,6 +25,8 @@ type Props = {
   worn?: string[];
   /** The first session there has ever been. */
   first?: boolean;
+  /** Nothing was done on any day before this one, so no yesterday was beaten. */
+  noYesterday?: boolean;
 };
 
 /**
@@ -35,7 +37,7 @@ type Props = {
  * on the bench without finishing a workout first.
  */
 export const BragCard = forwardRef<View, Props>(function BragCard(
-  { workout, items, fact, summary, worn = [], first = false },
+  { workout, items, fact, summary, worn = [], first = false, noYesterday = false },
   ref
 ) {
   const girl = useGirl();
@@ -92,7 +94,7 @@ export const BragCard = forwardRef<View, Props>(function BragCard(
       if (done.length === 0) return null;
       const name = item.exercise?.name ?? '삭제된 종목';
       const seconds = done.reduce((sum, s) => sum + s.duration_sec, 0);
-      return seconds > 0 ? `${name} ${Math.round(seconds / 60)}분` : `${name} ${done.length}세트`;
+      return seconds > 0 ? `${name} ${formatDuration(seconds)}` : `${name} ${done.length}세트`;
     })
     .filter((line): line is string => line !== null);
 
@@ -103,7 +105,15 @@ export const BragCard = forwardRef<View, Props>(function BragCard(
     ? '적힌 세트가 없어요'
     : first
     ? '첫 기록을 남겼다'
-    : CHEERS[new Date(workout.started_at).getDate() % CHEERS.length];
+    : (noYesterday ? CHEERS.filter((c) => !c.includes('어제')) : CHEERS)[
+        new Date(workout.started_at).getDate() % (noYesterday ? CHEERS.length - 1 : CHEERS.length)
+      ];
+  // Only what was timed for breath. A plank is timed too, and 45 seconds of it
+  // was printed as 「유산소 45초」.
+  const cardioSec = items
+    .filter((i) => i.exercise?.track_type !== 'duration')
+    .flatMap((i) => i.sets.filter((s) => s.done && !s.warmup))
+    .reduce((sum, s) => sum + s.duration_sec, 0);
   const best = items
     .filter((i) => i.topWeight > 0)
     .sort((a, b) => b.estimatedOneRm - a.estimatedOneRm)[0];
@@ -181,9 +191,9 @@ export const BragCard = forwardRef<View, Props>(function BragCard(
             {best.estimatedOneRm}kg)
           </Text>
         )}
-        {fact.durationSec > 0 && (
+        {cardioSec > 0 && (
           <Text style={styles.highlight}>
-            유산소 {formatDuration(fact.durationSec)}
+            유산소 {formatDuration(cardioSec)}
             {fact.distanceKm > 0 && ` · ${formatKm(fact.distanceKm)}km`}
           </Text>
         )}

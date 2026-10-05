@@ -85,9 +85,11 @@ export default function StatsScreen() {
   }, [selected]);
 
   const isCardio = selected?.track_type !== 'weight_reps';
+  // A hold is drawn in seconds: in minutes every plank under 90 seconds is 「1」.
+  const isHold = selected?.track_type === 'duration';
   const points = history.map((h) => ({
     label: formatDate(h.date, 'short'),
-    value: isCardio ? Math.round(h.durationSec / 60) : h[metric],
+    value: isHold ? h.durationSec : isCardio ? Math.round(h.durationSec / 60) : h[metric],
   }));
   const best = history.reduce((m, h) => Math.max(m, h.max_weight), 0);
   const totalMinutes = Math.round(history.reduce((s, h) => s + h.durationSec, 0) / 60);
@@ -176,7 +178,7 @@ export default function StatsScreen() {
                   />
                 </View>
               )}
-              <LineChart points={points} unit={isCardio ? '분' : 'kg'} />
+              <LineChart points={points} unit={isHold ? '초' : isCardio ? '분' : 'kg'} />
               {points.length > 0 && <Text style={styles.hint}>점을 누르면 값을 볼 수 있어요.</Text>}
             </View>
 

@@ -7,16 +7,9 @@ import { TROPHY } from "@/lib/festivalArt";
 import { rankArt } from "@/lib/rankArt";
 import { DOLL_ASPECT } from "@/lib/outfitArt";
 import { roomContents } from "@/lib/room";
-import { roomTimeOf, type RoomTime } from "@/lib/roomTime";
+import { roomArt } from "@/lib/roomArt";
 import type { Girl } from "@/lib/girl";
 import { colors, paper } from "@/lib/theme";
-
-// The same room in three lights; which one is by the hour (lib/roomTime.ts).
-const ROOMS: Record<RoomTime, number> = {
-  day: require("../assets/room.png"),
-  evening: require("../assets/room_evening.png"),
-  night: require("../assets/room_night.png"),
-};
 
 // Where the first cup stands on the sill, as fractions of the room, and how far
 // along the next one is. Placed by eye against the room art (the sill runs from
@@ -88,7 +81,7 @@ export function TrainingHall({
           style={[styles.scene, { height: scene.height }]}
           onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
         >
-          <Image source={ROOMS[roomTimeOf(today)]} style={styles.room} resizeMode="cover" />
+          <Image source={roomArt(today)} style={styles.room} resizeMode="cover" />
 
           {/*
             The room art is as crisp as she is, so the two compete and she

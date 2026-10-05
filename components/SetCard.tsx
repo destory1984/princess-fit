@@ -144,13 +144,25 @@ export function SetCard({
           </>
         ) : (
           <>
-            <BigStepper
-              value={Math.round(set.duration_sec / 60)}
-              unit="분"
-              step={1}
-              bigStep={5}
-              onChange={(v) => change({ duration_sec: v * 60 })}
-            />
+            {track === 'duration' ? (
+              // A hold is counted in seconds. In whole minutes a 30 or 45
+              // second plank could not be written down at all.
+              <BigStepper
+                value={set.duration_sec}
+                unit="초"
+                step={5}
+                bigStep={30}
+                onChange={(v) => change({ duration_sec: v })}
+              />
+            ) : (
+              <BigStepper
+                value={Math.round(set.duration_sec / 60)}
+                unit="분"
+                step={1}
+                bigStep={5}
+                onChange={(v) => change({ duration_sec: v * 60 })}
+              />
+            )}
             {track === 'floors' && (
               <>
                 <View style={styles.divider} />

@@ -68,8 +68,11 @@ export function diaryFor(input: DiaryInput, girl?: string): string | null {
     (w) => w.id !== today.id && w.started_at < today.started_at && !isEmptyWorkout(w)
   );
 
-  // Something worth remembering happened today: that is the entry.
-  for (const kind of MEMORY_ORDER) {
+  // Something worth remembering happened today: that is the entry. Once: a
+  // second session the same day found the same memory and wrote 「처음 만난
+  // 날」 again, word for word, under the first.
+  const earlierToday = before.some((w) => localDayKey(new Date(w.started_at)) === day);
+  for (const kind of earlierToday ? [] : MEMORY_ORDER) {
     const m = memories.find((x) => x.kind === kind);
     if (m) return write.memory[kind](m.detail ?? '');
   }

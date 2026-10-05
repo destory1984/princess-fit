@@ -150,7 +150,8 @@ export function todaysWord(muscles: Muscle[]): string {
   if (tired.length >= Object.keys(MUSCLE_LABELS).length - 2) {
     return '거의 다 지쳐 있어요. 오늘은 쉬거나 가볍게만 하세요.';
   }
-  const named = `${tired.slice(0, 3).join(' · ')}${tired.length > 3 ? ' 외' : ''}`;
+  // 「외는」 alone reads as 「everything but these」, the opposite of what is meant.
+  const named = `${tired.slice(0, 3).join(' · ')}${tired.length > 3 ? ` 외 ${tired.length - 3}곳` : ''}`;
   return `${withParticle(named, '은는')} 아직 덜 쉬었어요.`;
 }
 

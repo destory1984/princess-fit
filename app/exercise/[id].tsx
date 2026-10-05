@@ -140,6 +140,8 @@ export default function ExerciseScreen() {
   if (!exercise) return <ScreenState error={error} onRetry={load} />;
 
   const isCardio = exercise.track_type !== 'weight_reps';
+  // A hold is drawn in seconds: in minutes every plank under 90 seconds is 「1」.
+  const isHold = exercise.track_type === 'duration';
   const best = Math.max(0, ...history.map((h) => h.max_weight));
   const bestOneRm = Math.max(
     0,
@@ -164,7 +166,9 @@ export default function ExerciseScreen() {
     const working = h.sets.filter((x) => !x.warmup);
     return {
       label: formatDate(h.date, 'short'),
-      value: isCardio
+      value: isHold
+        ? h.durationSec
+        : isCardio
         ? Math.round(h.durationSec / 60)
         : metric === 'top'
           ? h.max_weight
@@ -343,7 +347,7 @@ export default function ExerciseScreen() {
                 ))}
               </View>
             )}
-            <LineChart points={points} unit={isCardio ? '분' : 'kg'} />
+            <LineChart points={points} unit={isHold ? '초' : isCardio ? '분' : 'kg'} />
             {[...history].reverse().slice(0, 8).map((h) => (
               <View key={h.workout_id} style={styles.row}>
                 <Text style={styles.rowDate}>{formatDate(h.date, 'short')}</Text>

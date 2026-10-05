@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { daysAgo, formatKm } from './format.ts';
+import { daysAgo, formatKm, holdParts } from './format.ts';
 
 test('the float tail never reaches the screen', () => {
   // This is the actual sum of two sets logged in the app's own tenths, and
@@ -47,4 +47,12 @@ test('daysAgo counts calendar days in the old words', () => {
   assert.equal(daysAgo(at(7, 20), now), '한 달 전');
   assert.equal(daysAgo(at(5, 20), now), '석 달 전');
   assert.equal(daysAgo(new Date(2025, 5, 1).toISOString(), now), '해포 전');
+});
+
+test('a hold is written in seconds until it reaches a minute', () => {
+  assert.deepEqual(holdParts(0), ['0', '초']);
+  assert.deepEqual(holdParts(45), ['45', '초']);
+  assert.deepEqual(holdParts(60), ['1', '분']);
+  assert.deepEqual(holdParts(90), ['1:30', '분']);
+  assert.deepEqual(holdParts(125), ['2:05', '분']);
 });

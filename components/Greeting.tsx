@@ -4,8 +4,7 @@ import { Advisor } from "@/components/Advisor";
 import { PaperDoll } from "@/components/PaperDoll";
 import { colors, paper, radius, spacing } from "@/lib/theme";
 import { useGirl } from '@/lib/girl';
-
-const ROOM = require("../assets/room.png");
+import { roomArt } from "@/lib/roomArt";
 
 type Props = {
   /** Her face for this line, when the caller knows her mood. Her everyday one otherwise. */
@@ -35,7 +34,8 @@ export function Greeting({ worn, line, portrait, onDone }: Props) {
         style={styles.stage}
         onLayout={(e) => setStage(e.nativeEvent.layout)}
       >
-        <Image source={ROOM} style={styles.room} resizeMode="cover" />
+        {/* The same light as the room she will be standing in once this is dismissed. */}
+        <Image source={roomArt(new Date())} style={styles.room} resizeMode="cover" />
         <View style={styles.wash} />
 
         {stage.height > 0 && (

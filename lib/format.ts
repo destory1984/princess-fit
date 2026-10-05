@@ -13,6 +13,18 @@ export function formatDuration(totalSeconds: number) {
   return s ? `${m}분 ${s}초` : `${m}분`;
 }
 
+/**
+ * A hold, as the number in a circle and the unit under it: 45 → 45 초,
+ * 120 → 2 분, 90 → 1:30 분. A plank is counted in seconds, and writing it in
+ * whole minutes made 30 and 45 seconds impossible to record.
+ */
+export function holdParts(totalSeconds: number): [string, string] {
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  if (!m) return [String(s), '초'];
+  return [s ? `${m}:${pad(s)}` : String(m), '분'];
+}
+
 export function formatDate(iso: string, style: 'full' | 'short' = 'full') {
   const d = new Date(iso);
   return style === 'short'

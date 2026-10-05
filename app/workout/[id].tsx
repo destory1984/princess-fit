@@ -26,7 +26,7 @@ import {
 import { celebrateFeedback, successFeedback, tapFeedback } from "@/lib/feedback";
 import { withParticle } from "@/lib/korean";
 
-import { formatDate, formatDuration, formatKm, localDayKey } from "@/lib/format";
+import { formatDate, formatDuration, formatKm, holdParts, localDayKey } from "@/lib/format";
 import { arrivedLines, type ArrivedGift } from "@/lib/friends";
 import { hasDirectServer, warmUpAdvice } from "@/lib/advice";
 import { summarise } from "@/lib/gamification";
@@ -1365,7 +1365,9 @@ export default function WorkoutScreen() {
                             <Text style={styles.circleValue}>
                               {track === "weight_reps"
                                 ? s.weight_kg
-                                : Math.round(s.duration_sec / 60)}
+                                : track === "duration"
+                                  ? holdParts(s.duration_sec)[0]
+                                  : Math.round(s.duration_sec / 60)}
                             </Text>
                           </View>
                           <Text style={styles.circleReps}>
@@ -1375,7 +1377,9 @@ export default function WorkoutScreen() {
                                 ? `분 · ${formatKm(s.distance_km)}km`
                                 : track === "floors" && s.reps > 0
                                   ? `분 · ${s.reps}층`
-                                  : "분"}
+                                  : track === "duration"
+                                    ? holdParts(s.duration_sec)[1]
+                                    : "분"}
                           </Text>
                         </View>
                       ))}
@@ -1402,7 +1406,7 @@ export default function WorkoutScreen() {
                                   ? `${s.weight_kg}×${s.reps}`
                                   : track === "floors" && s.reps > 0
                                     ? `${Math.round(s.duration_sec / 60)}분 · ${s.reps}층`
-                                    : `${Math.round(s.duration_sec / 60)}분`}
+                                    : formatDuration(s.duration_sec)}
                               </Text>
                             </Pressable>
                           ))}
