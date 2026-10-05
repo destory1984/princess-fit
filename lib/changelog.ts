@@ -1,0 +1,131 @@
+/**
+ * What changed, day by day, in words for the person using the app.
+ *
+ * Not the commit log: that says why the code changed, for whoever maintains
+ * it. This says what is different on screen. Newest first. A day that raised
+ * the version carries it, and the newest entry always carries the current one
+ * (a test checks), so raising the version means writing down what it brought.
+ */
+export type ChangeDay = {
+  /** YYYY-MM-DD */
+  day: string;
+  /** The version the app reached that day, from the day versions began. */
+  version?: string;
+  changes: string[];
+};
+
+export const CHANGELOG: ChangeDay[] = [
+  {
+    day: '2026-10-05',
+    version: '0.0.1',
+    changes: [
+      '설정에 「앱 정보」와 이 화면이 생겼어요. 버전 숫자를 세기 시작했어요.',
+      '종목 화면에서 아이가 해 보이는 시범이 65종목으로 늘었어요. 버피는 일곱 장으로 처음부터 끝까지 보여 줘요.',
+      '플랭크처럼 버티는 종목을 초 단위로 적을 수 있어요.',
+      '업적 열일곱에 메달이, 품계 열둘에 방패 배지가 생겼어요.',
+      '방이 시각에 따라 낮 · 저녁 · 밤으로 바뀌어요.',
+      '새 옷 다섯 벌이 들어왔고, 옷값을 모두 내렸어요.',
+      '토라졌던 날과 부탁을 들어준 주가 일기에 적혀요.',
+      '방의 날짜 명패가 한 줄로 줄어 아이의 머리를 가리지 않아요.',
+      '지난 기록을 고치는 화면에서 쉬는 시간과 응원이 뜨지 않아요.',
+      '첫날에 맞지 않던 말들을 고쳤어요(「어제의 나를 이겼다」, 「거의 다 하셨어요」).',
+    ],
+  },
+  {
+    day: '2026-10-04',
+    changes: [
+      '이름이 「프린세스 핏」이 됐고, 덤벨을 든 리나가 아이콘이 됐어요.',
+      '설치 없이 주소만으로 여는 웹판이 열렸어요.',
+      '방과 가구 아홉 점을 도트 그림으로 다시 그렸어요.',
+      '아이의 얼굴이 기분에 따라 바뀌어요.',
+      '종목 화면에서 아이가 동작을 해 보여요.',
+      '상점의 음식과 수업, 축제의 맞수 아홉에게 그림이 생겼어요.',
+      '운동 중 응원과 인사를 아이마다 제 말투로 해요.',
+      '원판 줄에서 봉 무게를 20 · 15 · 10kg으로 바꿀 수 있어요.',
+      '웹판에서 쉬는 시간이 끝나면 종소리가 나요.',
+      '로그인 화면이 무슨 앱인지 말해 주고, 오류를 한국어로 알려 줘요.',
+    ],
+  },
+  {
+    day: '2026-10-03',
+    changes: [
+      '세 아이를 도트 그림으로 새로 그렸어요. 옷 열 벌도 도트로 다시 받았어요.',
+      '기본 종목이 80개에서 159개로 늘었어요. 찾는 종목이 없으면 그 자리에서 만들 수 있어요.',
+      '두세 종목을 번갈아 하는 슈퍼세트를 묶을 수 있어요.',
+      '바벨 종목에서 한쪽에 끼울 원판을 알려 줘요.',
+      '첫 운동을 마치면 일기와 첫 선물까지 한 번에 이어져요.',
+      '설정에서 계정을 지울 수 있어요.',
+      '백업 파일이 워밍업 · 좌우 · 힘든 정도까지 담아요.',
+    ],
+  },
+  {
+    day: '2026-09-30',
+    changes: [
+      '달마다 마지막 토요일에 축제가 열려요. 대회 셋 가운데 하나에 나가요.',
+      '아이가 한 주에 하나씩 작은 부탁을 해요. 들어주면 축제에서 점수를 더 받아요.',
+      '걷기와 계단 오르기는 거리를 묻지 않아요.',
+    ],
+  },
+  {
+    day: '2026-09-23',
+    changes: [
+      '아이가 운동마다 일기를 한 줄씩 써요.',
+      '「함께한 날들」에 기억이 쌓여요.',
+      '상점이 선물하는 곳이 됐어요. 선물은 하루에 하나, 값은 절반쯤으로 내렸어요.',
+      '세 아이가 서로 다른 것을 눈여겨보고, 조언도 제 말투로 해요.',
+      '가까움은 아이마다 따로 쌓여요. 오래 떠났다 돌아오면 토라져요.',
+      '쉬는 시간을 멈추거나 처음부터 다시 잴 수 있어요.',
+    ],
+  },
+  {
+    day: '2026-09-22',
+    changes: [
+      '친구를 맺고 방을 구경하고 골드를 선물할 수 있어요.',
+      '공유 카드에 아이가 함께 나와요.',
+      '신체 기록에 키를 적을 수 있고, 한 번에 적어 저장해요.',
+      '세트가 하나도 없는 운동은 칭찬도 골드도 받지 않아요.',
+      '달력에서 기록이 없는 지난 날을 열어 채워 넣을 수 있어요.',
+    ],
+  },
+  {
+    day: '2026-09-21',
+    changes: [
+      '보기용으로 받아 둔 CSV 파일도 다시 넣을 수 있어요.',
+      '한쪽씩 하는 종목은 좌우를 따로 적어요.',
+      '워밍업 세트의 무게를 계산해 권해 줘요.',
+      '무게 단추가 헬스장에 실제로 있는 무게로만 움직여요.',
+    ],
+  },
+  {
+    day: '2026-09-20',
+    changes: [
+      '종목을 초성과 줄임말로 찾을 수 있어요.',
+      '운동 화면이 남은 시간을 알려 줘요.',
+      '「먼저 하기」 한 번으로 종목 순서를 바꿔요.',
+      '같은 종목을 한 운동에 두 번 넣을 수 있어요.',
+      '세트마다 몇 개 더 할 수 있었는지 적을 수 있어요.',
+      '안 쓰는 종목을 지우지 않고 꺼 둘 수 있어요.',
+    ],
+  },
+  {
+    day: '2026-09-19',
+    changes: [
+      '운동 기록 앱으로 시작했어요.',
+      '큰 숫자와 한 번 누르는 단추로 세트를 적어요.',
+      '경험치와 품계, 업적이 생겼어요.',
+      '운동을 마치면 공유할 수 있는 카드가 나와요.',
+      '홈 화면이 아이가 서 있는 방이 됐어요.',
+    ],
+  },
+];
+
+/** The day the first entry was written: when the app was begun. */
+export const BEGUN = CHANGELOG[CHANGELOG.length - 1].day;
+
+/** Which day of the making `today` is, counting the first as day 1. */
+export function dayOfMaking(today: Date, begun = BEGUN): number {
+  const [y, m, d] = begun.split('-').map(Number);
+  const start = new Date(y, m - 1, d).getTime();
+  const now = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+  return Math.max(1, Math.round((now - start) / 86_400_000) + 1);
+}

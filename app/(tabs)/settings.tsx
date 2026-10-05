@@ -22,6 +22,8 @@ import {
   setAskRoutine,
 } from '@/lib/prefs';
 import { colors, radius, spacing } from '@/lib/theme';
+import { APP_VERSION } from '@/lib/version';
+import { CHANGELOG } from '@/lib/changelog';
 import { useGirl } from '@/lib/girl';
 
 const goalLabel = (goal: Goal) => GOALS.find((g) => g.id === goal)!.label;
@@ -238,6 +240,19 @@ export default function SettingsScreen() {
         <View style={styles.body}>
           <Text style={styles.title}>기록 백업</Text>
           <Text style={styles.sub}>받아 두고, 필요하면 다시 넣어요</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
+      </Pressable>
+
+      <Pressable style={styles.row} onPress={() => router.push('/settings/about')}>
+        <View style={styles.icon}>
+          <Ionicons name="information-circle-outline" size={22} color={colors.accent} />
+        </View>
+        <View style={styles.body}>
+          <Text style={styles.title}>앱 정보</Text>
+          <Text style={styles.sub}>
+            버전 {APP_VERSION} · {CHANGELOG[0].day} · 바뀐 것들
+          </Text>
         </View>
         <Ionicons name="chevron-forward" size={20} color={colors.textDim} />
       </Pressable>

@@ -196,6 +196,8 @@ function RootNavigator() {
         <Stack.Screen name="settings/plan" options={{ title: "내 운동 계획" }} />
         <Stack.Screen name="reset" options={{ headerShown: false }} />
         <Stack.Screen name="settings/backup" options={{ title: "기록 백업" }} />
+        <Stack.Screen name="settings/about" options={{ title: "앱 정보" }} />
+        <Stack.Screen name="settings/changes" options={{ title: "바뀐 것들" }} />
         <Stack.Screen name="settings/requests" options={{ title: "운동 넣어달라고 하기" }} />
         <Stack.Screen name="preview" options={{ title: "미리보기" }} />
         <Stack.Screen
