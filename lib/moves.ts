@@ -76,6 +76,11 @@ const MOVES: Record<string, Move> = {
   '니 푸시업': { id: 'knee_push_up', frames: 3 },
   '사이드 플랭크': { id: 'side_plank', frames: 1 },
   '점핑 잭': { id: 'jumping_jack', frames: 3 },
+  친업: { id: 'chin_up', frames: 3 },
+  '프론트 스쿼트': { id: 'front_squat', frames: 3 },
+  '덤벨 고블릿 스쿼트': { id: 'goblet_squat', frames: 3 },
+  '아놀드 프레스': { id: 'arnold_press', frames: 3 },
+  '케이블 컬': { id: 'cable_curl', frames: 3 },
 };
 
 /** The movement drawn for an exercise of this name, if one was. */

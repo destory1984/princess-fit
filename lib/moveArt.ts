@@ -7,6 +7,11 @@
  * demonstration by the wrong girl is still a demonstration.
  */
 const MOVE_ART: Record<string, Record<string, number>> = {
+  arnold_press: {
+    dohwa: require('../assets/moves/arnold_press_dohwa.png'),
+    geumhwa: require('../assets/moves/arnold_press_geumhwa.png'),
+    seora: require('../assets/moves/arnold_press_seora.png'),
+  },
   back_extension: {
     dohwa: require('../assets/moves/back_extension_dohwa.png'),
     geumhwa: require('../assets/moves/back_extension_geumhwa.png'),
@@ -47,6 +52,11 @@ const MOVE_ART: Record<string, Record<string, number>> = {
     geumhwa: require('../assets/moves/cable_crossover_geumhwa.png'),
     seora: require('../assets/moves/cable_crossover_seora.png'),
   },
+  cable_curl: {
+    dohwa: require('../assets/moves/cable_curl_dohwa.png'),
+    geumhwa: require('../assets/moves/cable_curl_geumhwa.png'),
+    seora: require('../assets/moves/cable_curl_seora.png'),
+  },
   calf_raise: {
     dohwa: require('../assets/moves/calf_raise_dohwa.png'),
     geumhwa: require('../assets/moves/calf_raise_geumhwa.png'),
@@ -56,6 +66,11 @@ const MOVE_ART: Record<string, Record<string, number>> = {
     dohwa: require('../assets/moves/chest_press_machine_dohwa.png'),
     geumhwa: require('../assets/moves/chest_press_machine_geumhwa.png'),
     seora: require('../assets/moves/chest_press_machine_seora.png'),
+  },
+  chin_up: {
+    dohwa: require('../assets/moves/chin_up_dohwa.png'),
+    geumhwa: require('../assets/moves/chin_up_geumhwa.png'),
+    seora: require('../assets/moves/chin_up_seora.png'),
   },
   crunch: {
     dohwa: require('../assets/moves/crunch_dohwa.png'),
@@ -102,10 +117,20 @@ const MOVE_ART: Record<string, Record<string, number>> = {
     geumhwa: require('../assets/moves/front_raise_geumhwa.png'),
     seora: require('../assets/moves/front_raise_seora.png'),
   },
+  front_squat: {
+    dohwa: require('../assets/moves/front_squat_dohwa.png'),
+    geumhwa: require('../assets/moves/front_squat_geumhwa.png'),
+    seora: require('../assets/moves/front_squat_seora.png'),
+  },
   glute_bridge: {
     dohwa: require('../assets/moves/glute_bridge_dohwa.png'),
     geumhwa: require('../assets/moves/glute_bridge_geumhwa.png'),
     seora: require('../assets/moves/glute_bridge_seora.png'),
+  },
+  goblet_squat: {
+    dohwa: require('../assets/moves/goblet_squat_dohwa.png'),
+    geumhwa: require('../assets/moves/goblet_squat_geumhwa.png'),
+    seora: require('../assets/moves/goblet_squat_seora.png'),
   },
   hammer_curl: {
     dohwa: require('../assets/moves/hammer_curl_dohwa.png'),
