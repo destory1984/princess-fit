@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/Text';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { BigStepper } from '@/components/BigStepper';
 import { nextWeight, onRack } from '@/lib/weight';

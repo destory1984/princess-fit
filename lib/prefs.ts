@@ -3,6 +3,7 @@ import { bellOf, DEFAULT_BELL, type BellKind } from './bellKind';
 import { DEFAULT_QUIET_FROM, DEFAULT_QUIET_TO } from './quiet';
 import { GOALS, PLACES, type Goal, type Place } from './onboarding';
 import { clampGoal, DEFAULT_STEP_GOAL } from './steps';
+import { DEFAULT_TEXT_SCALE, textScaleOf } from './textScale';
 
 const WEEKLY_GOAL = 'refit.weeklyGoal';
 export const DEFAULT_WEEKLY_GOAL = 3;
@@ -119,6 +120,21 @@ export async function getBell(): Promise<BellKind> {
 
 export async function setBell(kind: BellKind) {
   await AsyncStorage.setItem(BELL, kind);
+}
+
+const TEXT_SCALE = 'refit.textScale';
+
+/** How large the text is drawn, as a percentage (lib/textScale.ts). */
+export async function getTextScale() {
+  try {
+    return textScaleOf(await AsyncStorage.getItem(TEXT_SCALE));
+  } catch {
+    return DEFAULT_TEXT_SCALE;
+  }
+}
+
+export async function setTextScale(percent: number) {
+  await AsyncStorage.setItem(TEXT_SCALE, String(percent));
 }
 
 const STEP_GOAL = 'refit.stepGoal';

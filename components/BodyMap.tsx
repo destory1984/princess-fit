@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '@/components/Text';
 import Body, { type Slug } from 'react-native-body-highlighter';
 import { slugsOf, workedParts, type WorkedExercise } from '@/lib/muscles';
 import { colors, intensityRamp, spacing } from '@/lib/theme';

@@ -1,4 +1,5 @@
-import { Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/Text';
 import { useRouter } from 'expo-router';
 import { CHANGELOG } from '@/lib/changelog';
 import { colors, radius, spacing } from '@/lib/theme';

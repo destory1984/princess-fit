@@ -6,10 +6,9 @@ import {
   Modal,
   Pressable,
   StyleSheet,
-  Text,
-  TextInput,
   View,
 } from 'react-native';
+import { Text, TextInput } from '@/components/Text';
 import { ExerciseThumb } from '@/components/ExerciseThumb';
 import { MuscleTag } from '@/components/MuscleTag';
 import { NewExerciseSheet } from '@/components/NewExerciseSheet';

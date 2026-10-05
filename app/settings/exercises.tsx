@@ -4,10 +4,9 @@ import {
   Pressable,
   StyleSheet,
   Switch,
-  Text,
-  TextInput,
   View,
 } from 'react-native';
+import { Text, TextInput } from '@/components/Text';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { MuscleTag } from '@/components/MuscleTag';
 import { NewExerciseSheet } from '@/components/NewExerciseSheet';

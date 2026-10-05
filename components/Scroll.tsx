@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '@/components/Text';
 import { paper, spacing } from '@/lib/theme';
 
 /** A parchment panel with a double rule, like a page out of a training ledger. */

@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
-import { ScrollView, StyleSheet, Text } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
+import { Text } from '@/components/Text';
 import { useFocusEffect, useLocalSearchParams, useNavigation } from 'expo-router';
 import { ScreenState } from '@/components/ScreenState';
 import { TrainingHall } from '@/components/TrainingHall';

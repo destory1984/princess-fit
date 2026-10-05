@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/Text';
 import { BigStepper } from '@/components/BigStepper';
 import { OneRmChart } from '@/components/OneRmChart';
 import { estimates, MAX_REPS, spread } from '@/lib/oneRm';

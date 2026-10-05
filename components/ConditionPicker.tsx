@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/Text';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { CONDITIONS, tiredWord, type Condition } from '@/lib/condition';
 import { listMuscleLoad, listRecentConditions, routineSlugs } from '@/lib/db';

@@ -2,11 +2,11 @@ import { useState } from 'react';
 import {
   Pressable,
   StyleSheet,
-  TextInput,
   View,
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
+import { TextInput } from '@/components/Text';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { colors, radius, spacing } from '@/lib/theme';
 

@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
+import { Text } from "@/components/Text";
 import Svg, { Circle, Line, Path, Text as SvgText } from "react-native-svg";
 import { colors, spacing } from "@/lib/theme";
 

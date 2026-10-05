@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, View, Image } from 'react-native';
+import { Pressable, StyleSheet, View, Image } from 'react-native';
+import { Text } from '@/components/Text';
 import { TROPHY } from '@/lib/festivalArt';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import type { Festival } from '@/lib/festival';

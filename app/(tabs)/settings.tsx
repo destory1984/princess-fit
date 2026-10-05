@@ -1,5 +1,7 @@
 import { useCallback, useState } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, Switch, View, Text as PlainText } from 'react-native';
+import { Slider } from '@/components/Slider';
+import { Text } from '@/components/Text';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { NudgeSetting } from '@/components/NudgeSetting';
@@ -26,6 +28,14 @@ import {
   setAskRoutine,
 } from '@/lib/prefs';
 import { colors, radius, spacing } from '@/lib/theme';
+import {
+  MAX_TEXT_SCALE,
+  MIN_TEXT_SCALE,
+  scaledSize,
+  TEXT_SCALE_MARKS,
+  TEXT_SCALE_STEP,
+} from '@/lib/textScale';
+import { changeTextScale, useTextScale } from '@/lib/textScaleStore';
 import { APP_VERSION } from '@/lib/version';
 import { CHANGELOG } from '@/lib/changelog';
 import { useGirl } from '@/lib/girl';
@@ -48,6 +58,11 @@ export default function SettingsScreen() {
   // and the findings quietly went unranked. The row says which it is.
   const [granting, setGranting] = useState<string | null>(null);
   const [tab, setTab] = useState<(typeof TABS)[number]['id']>('아이');
+  const textScale = useTextScale();
+  // Where the thumb is while it is being dragged. The app itself changes size only
+  // when the finger lifts: growing the screen under a moving finger moves the track.
+  const [draft, setDraft] = useState<number | null>(null);
+  const shownScale = draft ?? textScale;
   const [leaving, setLeaving] = useState(false);
 
   /**
@@ -309,6 +324,43 @@ export default function SettingsScreen() {
 
       {tab === '앱' && (
         <>
+        {/*
+          An amount, so a slider: the shape the owner showed (label, track with
+          its numbers, the value at the end). The line under it is drawn at the
+          size the thumb is on, so the choice is seen before it is made.
+        */}
+        <View style={styles.card}>
+          <View style={styles.cardHead}>
+            <View style={styles.icon}>
+              <Ionicons name="text-outline" size={22} color={colors.accent} />
+            </View>
+            <View style={styles.body}>
+              <Text style={styles.title}>글자 크기</Text>
+              <PlainText
+                style={[
+                  styles.sample,
+                  { fontSize: scaledSize(15, shownScale), lineHeight: scaledSize(22, shownScale) },
+                ]}>
+                오늘도 한 세트, 가볍게 시작해요.
+              </PlainText>
+            </View>
+            <Text style={styles.amount}>{shownScale}%</Text>
+          </View>
+          <Slider
+            label="글자 크기"
+            value={shownScale}
+            min={MIN_TEXT_SCALE}
+            max={MAX_TEXT_SCALE}
+            step={TEXT_SCALE_STEP}
+            marks={TEXT_SCALE_MARKS}
+            onChange={setDraft}
+            onDone={(value) => {
+              changeTextScale(value);
+              setDraft(null);
+            }}
+          />
+        </View>
+
         <NudgeSetting />
 
         {/*
@@ -415,6 +467,8 @@ const styles = StyleSheet.create({
   },
   cardHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   choices: { flexDirection: 'row', gap: spacing.sm },
+  sample: { color: colors.textDim },
+  amount: { color: colors.text, fontSize: 17, fontWeight: '800', minWidth: 56, textAlign: 'right' },
   choice: {
     flex: 1,
     alignItems: 'center',

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { BAR, nextBar } from '@/lib/plates';
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/Text';
 import { Redirect } from 'expo-router';
 import { Advisor } from '@/components/Advisor';
 import { MoveDemo } from '@/components/MoveDemo';

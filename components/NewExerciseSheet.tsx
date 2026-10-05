@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Text, TextInput } from '@/components/Text';
 import { EQUIPMENT, MUSCLE_GROUPS, TRACK_TYPE_LABEL, type TrackType } from '@/lib/types';
 import { colors, muscleColor, radius, spacing } from '@/lib/theme';
 

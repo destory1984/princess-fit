@@ -12,6 +12,7 @@ import { listRoutines } from "@/lib/db";
 import { getOnboardedAt, markOnboarded } from "@/lib/prefs";
 import { askRelay, relayThenDirect, supabaseRelayStore } from "@/lib/relay";
 import { supabase } from "@/lib/supabase";
+import { loadTextScale } from "@/lib/textScaleStore";
 import { colors } from "@/lib/theme";
 
 /*
@@ -210,6 +211,8 @@ function RootNavigator() {
 }
 
 export default function RootLayout() {
+  // The chosen text size is on the phone, not in the account: read it once.
+  useEffect(loadTextScale, []);
   return (
     <SafeAreaProvider>
       <AuthProvider>

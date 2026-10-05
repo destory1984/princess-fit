@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '@/components/Text';
 import { muscleColor, radius, spacing } from '@/lib/theme';
 
 export function MuscleTag({ group }: { group: string }) {

@@ -6,9 +6,8 @@ import {
   Platform,
   Pressable,
   StyleSheet,
-  Text,
-  TextInput,
 } from 'react-native';
+import { Text, TextInput } from '@/components/Text';
 import { useRouter } from 'expo-router';
 import PasswordInput from '@/components/PasswordInput';
 import { explainAuth } from '@/lib/authError';

@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/Text';
 import { useFocusEffect } from 'expo-router';
 import { Scroll } from '@/components/Scroll';
 import { ScreenState } from '@/components/ScreenState';

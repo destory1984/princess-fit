@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/Text';
 import { BEGUN, CHANGELOG, dayOfMaking } from '@/lib/changelog';
 import { colors, radius, spacing } from '@/lib/theme';
 import { APP_VERSION } from '@/lib/version';

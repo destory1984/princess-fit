@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '@/components/Text';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { insightsFor, MIN_WORKOUTS, type Insight } from '@/lib/insight';
 import type { WorkoutFact } from '@/lib/gamification';
