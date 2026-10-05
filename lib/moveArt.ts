@@ -602,6 +602,9 @@ const MOVE_ART: Record<string, Record<string, number>> = {
   smith_squat: {
     geumhwa: require('../assets/moves/smith_squat_geumhwa.png'),
   },
+  split_squat: {
+    geumhwa: require('../assets/moves/split_squat_geumhwa.png'),
+  },
   squat: {
     dohwa: require('../assets/moves/squat_dohwa.png'),
     geumhwa: require('../assets/moves/squat_geumhwa.png'),
@@ -658,10 +661,12 @@ const MOVE_ART: Record<string, Record<string, number>> = {
     geumhwa: require('../assets/moves/triceps_dip_machine_geumhwa.png'),
   },
   triceps_kickback: {
+    dohwa: require('../assets/moves/triceps_kickback_dohwa.png'),
     geumhwa: require('../assets/moves/triceps_kickback_geumhwa.png'),
     seora: require('../assets/moves/triceps_kickback_seora.png'),
   },
   upright_row: {
+    dohwa: require('../assets/moves/upright_row_dohwa.png'),
     geumhwa: require('../assets/moves/upright_row_geumhwa.png'),
     seora: require('../assets/moves/upright_row_seora.png'),
   },
@@ -674,6 +679,7 @@ const MOVE_ART: Record<string, Record<string, number>> = {
     seora: require('../assets/moves/walking_seora.png'),
   },
   walking_lunge: {
+    dohwa: require('../assets/moves/walking_lunge_dohwa.png'),
     geumhwa: require('../assets/moves/walking_lunge_geumhwa.png'),
     seora: require('../assets/moves/walking_lunge_seora.png'),
   },

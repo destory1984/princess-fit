@@ -166,6 +166,7 @@ const MOVES: Record<string, Move> = {
   '앱 크런치 머신': { id: 'ab_crunch_machine', frames: 3 },
   '브이 업': { id: 'v_up', frames: 3 },
   '할로우 홀드': { id: 'hollow_hold', frames: 1 },
+  '스플릿 스쿼트': { id: 'split_squat', frames: 3 },
   '플러터 킥': { id: 'flutter_kick', frames: 3 },
   '토즈 투 바': { id: 'toes_to_bar', frames: 3 },
   '케이블 우드찹': { id: 'cable_woodchop', frames: 3 },
