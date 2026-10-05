@@ -109,6 +109,18 @@ const MOVES: Record<string, Move> = {
   '컨센트레이션 컬': { id: 'concentration_curl', frames: 3 },
   데드버그: { id: 'dead_bug', frames: 3 },
   버드독: { id: 'bird_dog', frames: 3 },
+  '티바 로우': { id: 't_bar_row', frames: 3 },
+  스텝업: { id: 'step_up', frames: 3 },
+  '힙 어브덕션 머신': { id: 'hip_abduction', frames: 3 },
+  굿모닝: { id: 'good_morning', frames: 3 },
+  '리버스 컬': { id: 'reverse_curl', frames: 3 },
+  '인클라인 덤벨 플라이': { id: 'incline_dumbbell_fly', frames: 3 },
+  '덤벨 풀오버': { id: 'dumbbell_pullover', frames: 3 },
+  '스트레이트 암 풀다운': { id: 'straight_arm_pulldown', frames: 3 },
+  '인버티드 로우': { id: 'inverted_row', frames: 3 },
+  '숄더 프레스 머신': { id: 'shoulder_press_machine', frames: 3 },
+  '사이드 런지': { id: 'side_lunge', frames: 3 },
+  '시티드 카프 레이즈': { id: 'seated_calf_raise', frames: 3 },
 };
 
 /** The movement drawn for an exercise of this name, if one was. */
