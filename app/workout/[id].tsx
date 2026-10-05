@@ -151,6 +151,10 @@ export default function WorkoutScreen() {
   // follows the workout on its own until you say otherwise.
   const [opened, setOpened] = useState<string | null>(null);
   const [restEnd, setRestEnd] = useState<number | null>(null);
+  // Milliseconds left on a rest held still, or null when none is. A held rest
+  // has no end — so no bell is booked and nothing counts down — only what was
+  // left of it. Not kept across a restart: it comes back as no rest at all.
+  const [restPaused, setRestPaused] = useState<number | null>(null);
 
   /**
    * Set when the rest ends, and read the clock in the same breath. The
@@ -163,6 +167,9 @@ export default function WorkoutScreen() {
     // eslint-disable-next-line react-hooks/purity
     setNow(Date.now());
     setRestEnd(end);
+    // Starting, stopping, starting over, finishing a set: each one is the end
+    // of whatever was being held.
+    setRestPaused(null);
     // A rest starting is the touch that lets the web ring when it ends.
     if (end !== null) wakeBell();
   }
@@ -405,6 +412,20 @@ export default function WorkoutScreen() {
   const restRemaining =
     restEnd === null ? null : Math.max(0, Math.ceil((restEnd - now) / 1000));
 
+  /**
+   * Hold the rest where it is. Someone asked a question, the phone rang, the
+   * bar needs loading: the rest is not over and is not being taken either.
+   * Clearing the end calls the bell off (the booking effect's cleanup), which
+   * is the point — a held rest must not ring.
+   */
+  function pauseRest() {
+    if (restEnd === null) return;
+    const at = Date.now();
+    setNow(at);
+    setRestPaused(Math.max(0, restEnd - at));
+    setRestEnd(null);
+  }
+
   const byId = useMemo(
     () => new Map(exercises.map((e) => [e.id, e])),
     [exercises],
@@ -513,7 +534,7 @@ export default function WorkoutScreen() {
   // Once it ends, the one coming up, because that is what the buttons would
   // change and what the next set will use.
   const restExercise =
-    (restEnd !== null ? byId.get(restFor ?? "") : upNext?.exercise) ??
+    (restEnd !== null || restPaused !== null ? byId.get(restFor ?? "") : upNext?.exercise) ??
     byId.get(restFor ?? "") ??
     upNext?.exercise ??
     null;
@@ -1690,6 +1711,9 @@ export default function WorkoutScreen() {
             exerciseName={restExercise?.name ?? null}
             length={restLength}
             remaining={restRemaining}
+            held={restPaused === null ? null : Math.ceil(restPaused / 1000)}
+            onPause={pauseRest}
+            onResume={() => restPaused !== null && restUntil(Date.now() + restPaused)}
             grain={REST_GRAIN}
             onAdjust={(delta) =>
               restEnd === null

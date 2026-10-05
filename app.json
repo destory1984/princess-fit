@@ -3,7 +3,7 @@
     "name": "프린세스 핏",
     "slug": "refit",
     "scheme": "refit",
-    "version": "0.0.7",
+    "version": "0.0.8",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",

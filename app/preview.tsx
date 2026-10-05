@@ -456,6 +456,20 @@ export default function PreviewScreen() {
         onStart={() => {}}
         onStop={() => {}}
         onReset={() => {}}
+        onPause={() => {}}
+      />
+      <RestBar
+        exerciseName="바벨 스쿼트"
+        length={120}
+        remaining={null}
+        held={47}
+        grain={10}
+        onAdjust={() => {}}
+        onStart={() => {}}
+        onStop={() => {}}
+        onReset={() => {}}
+        onPause={() => {}}
+        onResume={() => {}}
       />
       <RestBar
         exerciseName="덤벨 컬"
