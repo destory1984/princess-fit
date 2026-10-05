@@ -319,6 +319,25 @@ function configuredProvider(): Provider {
   };
 }
 
+/**
+ * Whether this build has a model server it can reach by itself.
+ *
+ * The default address is `localhost`, which is the developer's PC only while
+ * developing. In the build people open from a link it is their own phone, where
+ * nothing is listening: every finished workout and every workout started sent
+ * a request the browser refused. So a shipped build has a direct server only
+ * when one was named (`EXPO_PUBLIC_ADVICE_URL`); otherwise the relay is the
+ * only way to a model, and when its worker is off the rules answer at once.
+ */
+export function hasDirectServer(dev: boolean, named = process.env.EXPO_PUBLIC_ADVICE_URL) {
+  return dev || Boolean(named);
+}
+
+/** The direct hop for a build that has none: fails at once, so the rules answer. */
+export async function noDirectServer(): Promise<string> {
+  throw new Error('곧장 닿는 모델 서버 없음');
+}
+
 // A large model can take minutes to load from cold, so the UI must not wait on it.
 const REQUEST_TIMEOUT_MS = 25_000;
 

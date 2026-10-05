@@ -5,7 +5,7 @@ import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { NotificationRouter } from "@/components/NotificationRouter";
-import { askDirect, setModelTransport } from "@/lib/advice";
+import { askDirect, hasDirectServer, noDirectServer, setModelTransport } from "@/lib/advice";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { GirlProvider } from "@/lib/girl";
 import { listRoutines } from "@/lib/db";
@@ -26,7 +26,8 @@ import { colors } from "@/lib/theme";
 setModelTransport(
   relayThenDirect(
     (kind, prompt, signal) => askRelay(supabaseRelayStore(supabase), kind, prompt, { signal }),
-    askDirect,
+    // Outside development `localhost` is the phone in someone's hand.
+    hasDirectServer(__DEV__) ? askDirect : noDirectServer,
   ),
 );
 

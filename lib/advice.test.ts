@@ -5,6 +5,8 @@ import {
   buildPrompt,
   describeContext,
   EMPTY_ADVICE,
+  hasDirectServer,
+  noDirectServer,
   localRuleAdvice,
   requestAdvice,
   STAT_WORDS,
@@ -309,4 +311,15 @@ test('the model is told who she is, and that form is not in the record', () => {
   const p = buildPrompt(ctx({ today: fact({ id: 'w' }) }), 'seora');
   assert.match(p, /유키/);
   assert.match(p, /자세나 동작 모양은/);
+});
+
+test('a shipped build with no server named has no direct hop', async () => {
+  // `localhost` is the developer's PC only while developing. From the public
+  // site it is the visitor's own device, and the browser refuses the request.
+  assert.equal(hasDirectServer(false, undefined), false);
+  assert.equal(hasDirectServer(false, ''), false);
+  assert.equal(hasDirectServer(false, 'http://192.168.0.5:11434/api/generate'), true);
+  assert.equal(hasDirectServer(true, undefined), true);
+  // Fails at once rather than waiting, so the rules answer without a pause.
+  await assert.rejects(noDirectServer());
 });

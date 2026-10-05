@@ -28,7 +28,7 @@ import { withParticle } from "@/lib/korean";
 
 import { formatDate, formatDuration, formatKm, localDayKey } from "@/lib/format";
 import { arrivedLines, type ArrivedGift } from "@/lib/friends";
-import { warmUpAdvice } from "@/lib/advice";
+import { hasDirectServer, warmUpAdvice } from "@/lib/advice";
 import { summarise } from "@/lib/gamification";
 import {
   deleteWorkout,
@@ -267,7 +267,9 @@ export default function WorkoutScreen() {
 
   // Give the model a long head start on loading; advice is asked for at the end.
   useEffect(() => {
-    void getAdviceByModel().then((on) => on && warmUpAdvice());
+    // Warming up is for a server this device reaches itself; the relay's
+    // worker keeps its own model loaded.
+    if (hasDirectServer(__DEV__)) void getAdviceByModel().then((on) => on && warmUpAdvice());
     // Only used to order the picker, so a failure costs nothing but the order.
     getExerciseUsage()
       .then(setUsage)
