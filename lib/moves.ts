@@ -98,10 +98,10 @@ const ROUND = new Set(['running', 'walking', 'cycling', 'jump_rope', 'stair_clim
  * went from lying on the floor to mid-air: the way back up was never shown.
  * It is the same two drawings in reverse, so they are shown again rather than
  * drawn again. The gathering before the jump (5) and the landing (6) were drawn
- * later and sit at the end of the strip, after the jump (4).
+ * later and joined in where they happen, either side of the jump (5).
  */
 const ORDER: Record<string, number[]> = {
-  burpee: [0, 1, 2, 3, 2, 1, 5, 4, 6],
+  burpee: [0, 1, 2, 3, 2, 1, 4, 5, 6],
 };
 
 /**

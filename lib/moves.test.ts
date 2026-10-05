@@ -31,7 +31,7 @@ test('a movement drawn in more than three frames plays them all', () => {
   const burpee = moveOf('버피')!;
   assert.equal(burpee.frames, 7);
   const played = Array.from({ length: 10 }, (_, t) => frameAt(burpee, t));
-  assert.deepEqual(played, [0, 1, 2, 3, 2, 1, 5, 4, 6, 0]);
+  assert.deepEqual(played, [0, 1, 2, 3, 2, 1, 4, 5, 6, 0]);
   assert.deepEqual([...new Set(played)].sort(), [0, 1, 2, 3, 4, 5, 6]);
   // One that goes there and back would not rest twice on either end.
   const five = { id: 'made-up', frames: 5 as const };
