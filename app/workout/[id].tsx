@@ -60,7 +60,7 @@ import {
   type ExerciseHistoryPoint,
 } from "@/lib/db";
 import type { Exercise, Workout, WorkoutSet } from "@/lib/types";
-import { followOn, planFor } from "@/lib/setPlan";
+import { followOn, planFor, settle } from "@/lib/setPlan";
 import {
   applyLabel,
   progressWord,
@@ -81,6 +81,7 @@ import type { Place } from "@/lib/onboarding";
 import {
   getAdviceByModel,
   getAskRoutine,
+  getBell,
   getBars,
   getPlace,
   getRestEnd,
@@ -89,6 +90,7 @@ import {
   setBar,
 } from "@/lib/prefs";
 import { ringBell, ringSoon, wakeBell } from "@/lib/bell";
+import { DEFAULT_BELL, type BellKind } from "@/lib/bellKind";
 import { warningDue } from "@/lib/restWarning";
 import { BAR, nextBar } from "@/lib/plates";
 import { everTrained, recoveryOf, type Muscle } from "@/lib/recovery";
@@ -277,12 +279,21 @@ export default function WorkoutScreen() {
       .catch(() => {});
   }, []);
 
+  // Read once: which bell is a choice made on the settings screen, not here.
+  const bellRef = useRef<BellKind>(DEFAULT_BELL);
+  useEffect(() => {
+    void getBell().then((kind) => {
+      bellRef.current = kind;
+    });
+  }, []);
+
   useEffect(() => {
     if (restEnd === null) return;
     // Once per rest. Moving the end (±10, starting over) is a new rest as far
     // as this effect goes, so it may warn again — which is right: the ten
     // seconds it warned of are no longer the last ten.
     let warned = false;
+    const bell = bellRef.current;
     // How much of the rest this effect was handed, which is what decides whether
     // ten seconds is 「nearly over」 or most of it.
     const span = (restEnd - Date.now()) / 1000;
@@ -292,7 +303,7 @@ export default function WorkoutScreen() {
       if (warningDue(restEnd - at, span, warned)) {
         warned = true;
         tapFeedback();
-        ringSoon();
+        ringSoon(bell);
       }
       // Stop at zero rather than counting on forever: the bar goes back to
       // showing this exercise's rest length, ready for the next set.
@@ -300,7 +311,7 @@ export default function WorkoutScreen() {
         setRestEnd(null);
         celebrateFeedback();
         // The web has no notification to ring for it (lib/bell.ts).
-        ringBell();
+        ringBell(bell);
       }
     }, 500);
     return () => clearInterval(timer);
@@ -583,6 +594,18 @@ export default function WorkoutScreen() {
           // said 「a failed save shows up on reload」, which was true and was
           // the bug: what showed up was the older number.
           void Promise.all(waiting.map((w) => saveSet(w.id, carry)));
+        }
+        // And the ones laid out from last time: they stop asking for more
+        // reps than were just done, and for more weight once the reps have
+        // fallen (lib/setPlan.ts). The set just finished is read as it now is.
+        const today = sets
+          .filter((x) => x.exercise_id === finished.exercise_id)
+          .map((x) => (x.id === merged.id ? merged : x));
+        const settled = settle(today, merged);
+        if (settled.length) {
+          const next = new Map(settled.map((c) => [c.id, { weight_kg: c.weight_kg, reps: c.reps }]));
+          setSets((prev) => prev.map((x) => (next.has(x.id) ? { ...x, ...next.get(x.id)! } : x)));
+          void Promise.all(settled.map((c) => saveSet(c.id, next.get(c.id)!)));
         }
       }
     }

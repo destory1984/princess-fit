@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { bellOf, DEFAULT_BELL, type BellKind } from './bellKind';
 import { DEFAULT_QUIET_FROM, DEFAULT_QUIET_TO } from './quiet';
 import { GOALS, PLACES, type Goal, type Place } from './onboarding';
 import { clampGoal, DEFAULT_STEP_GOAL } from './steps';
@@ -103,6 +104,21 @@ export async function forgetGreeting(): Promise<() => Promise<void>> {
     // Worst case the newcomer is not greeted, which is where this started.
     return async () => {};
   }
+}
+
+const BELL = 'refit.bell';
+
+/** Which bell ends a rest on the web (lib/bellKind.ts). */
+export async function getBell(): Promise<BellKind> {
+  try {
+    return bellOf(await AsyncStorage.getItem(BELL));
+  } catch {
+    return DEFAULT_BELL;
+  }
+}
+
+export async function setBell(kind: BellKind) {
+  await AsyncStorage.setItem(BELL, kind);
 }
 
 const STEP_GOAL = 'refit.stepGoal';

@@ -1,10 +1,12 @@
 import { useCallback, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { NudgeSetting } from '@/components/NudgeSetting';
 import { Portrait } from '@/components/Portrait';
 import { hasDirectServer } from '@/lib/advice';
+import { ringBell, wakeBell } from '@/lib/bell';
+import { BELLS, DEFAULT_BELL, nextBell, type BellKind } from '@/lib/bellKind';
 import { explain } from '@/lib/dbError';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { confirmAction, notify } from '@/lib/confirm';
@@ -15,6 +17,8 @@ import { GOALS, PLACES, type Goal, type Place } from '@/lib/onboarding';
 import {
   getAdviceByModel,
   getAskRoutine,
+  getBell,
+  setBell,
   getGoal,
   getPlace,
   getWeeklyGoal,
@@ -67,6 +71,7 @@ export default function SettingsScreen() {
     );
   }
   const [askRoutine, setAskRoutineState] = useState(true);
+  const [bell, setBellState] = useState<BellKind>(DEFAULT_BELL);
   const [byModel, setByModelState] = useState(true);
   const [plan, setPlan] = useState<{
     days: number;
@@ -85,6 +90,7 @@ export default function SettingsScreen() {
         setPlan({ days, goal, place })
       );
       getAskRoutine().then(setAskRoutineState).catch(() => {});
+      getBell().then(setBellState).catch(() => {});
       getAdviceByModel().then(setByModelState).catch(() => {});
     }, [])
   );
@@ -232,6 +238,36 @@ export default function SettingsScreen() {
           trackColor={{ true: colors.accent }}
         />
       </View>
+
+      {/*
+        Web only: on a phone the end of a rest is a notification, and its sound
+        is the system's. One tap steps to the next bell and rings it, so the
+        choice is made by ear rather than by reading three names.
+      */}
+      {Platform.OS === 'web' && (
+        <Pressable
+          style={styles.row}
+          onPress={() => {
+            const next = nextBell(bell);
+            setBellState(next);
+            setBell(next).catch(() => {});
+            wakeBell();
+            ringBell(next);
+          }}>
+          <View style={styles.icon}>
+            <Ionicons name="notifications-outline" size={22} color={colors.accent} />
+          </View>
+          <View style={styles.body}>
+            <Text style={styles.title}>
+              쉬는 시간 종소리 · {BELLS.find((b) => b.id === bell)?.label}
+            </Text>
+            <Text style={styles.sub}>
+              {BELLS.find((b) => b.id === bell)?.detail}. 누르면 다음 소리로 바뀌고 한 번 울려요.
+            </Text>
+          </View>
+          <Ionicons name="swap-horizontal" size={20} color={colors.textDim} />
+        </Pressable>
+      )}
 
       <Pressable style={styles.row} onPress={() => router.push('/settings/backup')}>
         <View style={styles.icon}>

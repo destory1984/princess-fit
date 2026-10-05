@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import { DEFAULT_BELL, type BellKind } from './bellKind';
 
 /**
  * The end of a rest, on the web.
@@ -40,7 +41,12 @@ export function wakeBell() {
 }
 
 /** Tones as [seconds from now, pitch], each a quick swell and a tail. */
-function play(tones: readonly (readonly [number, number])[], loudness: number, tail: number) {
+function play(
+  tones: readonly (readonly [number, number])[],
+  loudness: number,
+  tail: number,
+  wave: OscillatorType = 'sine',
+) {
   try {
     const audio = context();
     if (!audio || audio.state !== 'running') return;
@@ -48,7 +54,7 @@ function play(tones: readonly (readonly [number, number])[], loudness: number, t
     for (const [start, pitch] of tones) {
       const tone = audio.createOscillator();
       const loud = audio.createGain();
-      tone.type = 'sine';
+      tone.type = wave;
       tone.frequency.value = pitch;
       // A quick swell and a tail, so it reads as a bell and not a buzzer.
       loud.gain.setValueAtTime(0.0001, at + start);
@@ -63,16 +69,39 @@ function play(tones: readonly (readonly [number, number])[], loudness: number, t
   }
 }
 
-/** Ring. Does nothing off the web, or where sound is not allowed. */
-export function ringBell() {
-  play([[0, 880], [0.22, 1175]], 0.25, 0.45);
+/** The same few notes again, `every` seconds apart. */
+function repeated(notes: readonly (readonly [number, number])[], times: number, every: number) {
+  return Array.from({ length: times }, (_, n) =>
+    notes.map(([start, pitch]) => [start + n * every, pitch] as const),
+  ).flat();
 }
 
 /**
- * The warning that a rest is nearly over. One low, short note, quieter than the
- * bell and below it in pitch, so the two cannot be mistaken for each other: this
- * one says 「get ready」, the bell says 「go」.
+ * Ring. Does nothing off the web, or where sound is not allowed.
+ *
+ * Three bells (lib/bellKind.ts). The soft one is the first that was made: two
+ * sine notes, which a quiet room hears and a gym does not. The other two are
+ * louder, last longer and say it more than once, and they are not sine waves:
+ * a triangle or a square has overtones, and overtones are what a phone's small
+ * speaker can actually put out.
  */
-export function ringSoon() {
-  play([[0, 587]], 0.14, 0.2);
+export function ringBell(kind: BellKind = DEFAULT_BELL) {
+  if (kind === 'soft') {
+    play([[0, 880], [0.22, 1175]], 0.25, 0.45);
+  } else if (kind === 'loud') {
+    play(repeated([[0, 1480], [0.16, 1480], [0.32, 1976]], 3, 0.75), 0.5, 0.14, 'square');
+  } else {
+    play(repeated([[0, 880], [0.2, 1175], [0.4, 1568]], 2, 0.95), 0.6, 0.55, 'triangle');
+  }
+}
+
+/**
+ * The warning that a rest is nearly over (lib/restWarning.ts). One low, short
+ * note, quieter than the bell and below it in pitch, so the two cannot be
+ * mistaken for each other: this one says 「get ready」, the bell says 「go」.
+ * With the soft bell it stays as quiet as that bell is.
+ */
+export function ringSoon(kind: BellKind = DEFAULT_BELL) {
+  if (kind === 'soft') play([[0, 587]], 0.14, 0.2);
+  else play([[0, 587], [0.18, 587]], 0.35, 0.2, 'triangle');
 }
