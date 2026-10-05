@@ -79,6 +79,32 @@ export async function markOnboarded() {
   }
 }
 
+/**
+ * Make room for a new account on a phone someone has already been greeted on.
+ *
+ * Signing out leaves the flag and the two answers behind, so the next person
+ * to sign up here was never greeted and inherited 「집 · 주 3회」 from a
+ * stranger. Called before the sign-up is sent, not after: the session lands
+ * and the layout reads the flag before the call returns. The returned function
+ * puts everything back, for a sign-up that was refused — an address that
+ * already has an account is the same person, not a new one.
+ */
+export async function forgetGreeting(): Promise<() => Promise<void>> {
+  const keys = [ONBOARDED, GOAL, PLACE];
+  try {
+    const kept = (await AsyncStorage.multiGet(keys)).filter(
+      (pair): pair is [string, string] => pair[1] !== null,
+    );
+    await AsyncStorage.multiRemove(keys);
+    return async () => {
+      await AsyncStorage.multiSet(kept).catch(() => {});
+    };
+  } catch {
+    // Worst case the newcomer is not greeted, which is where this started.
+    return async () => {};
+  }
+}
+
 const STEP_GOAL = 'refit.stepGoal';
 
 /** How far a day's walking is measured against. */

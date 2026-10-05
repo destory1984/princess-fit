@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
-import { OrnateFrame } from "@/components/OrnateFrame";
 import { PaperDoll } from "@/components/PaperDoll";
 import { STAT_META, STAT_ORDER, type Stats } from "@/lib/character";
 import { artFor } from "@/lib/furnitureArt";
@@ -160,15 +159,17 @@ export function TrainingHall({
             />
           )}
 
-          <OrnateFrame compact style={styles.datePlaque}>
-            <Text style={styles.dateMonth}>
-              {today.getFullYear()}년 {today.getMonth() + 1}월
+          {/*
+            One line, not a three-line plaque: the plaque reached down to her
+            head, and Yuki's ribbon and Pia's bun went under it. The year is
+            dropped — nobody looks at her room to learn what year it is.
+          */}
+          <View style={styles.datePlaque}>
+            <Text style={styles.dateDay}>
+              {today.getMonth() + 1}월 {today.getDate()}일
             </Text>
-            <Text style={styles.dateDay}>{today.getDate()}</Text>
-            <Text style={styles.dateWeekday}>
-              {WEEKDAYS[today.getDay()]}요일
-            </Text>
-          </OrnateFrame>
+            <Text style={styles.dateWeekday}>{WEEKDAYS[today.getDay()]}요일</Text>
+          </View>
 
         </View>
 
@@ -302,26 +303,22 @@ const styles = StyleSheet.create({
   scene: { backgroundColor: paper.bgAlt },
   room: { width: "100%", height: "100%" },
 
-  datePlaque: { position: "absolute", top: 10, left: 10, minWidth: 92 },
-  dateMonth: {
-    textAlign: "center",
-    color: paper.inkDim,
-    fontSize: 10,
-    fontWeight: "700",
+  datePlaque: {
+    position: "absolute",
+    top: 8,
+    left: 8,
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: 5,
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    borderRadius: 999,
+    borderWidth: 1.5,
+    borderColor: colors.gold,
+    backgroundColor: colors.surface,
   },
-  dateDay: {
-    textAlign: "center",
-    color: paper.ink,
-    fontSize: 26,
-    fontWeight: "800",
-    lineHeight: 30,
-  },
-  dateWeekday: {
-    textAlign: "center",
-    color: paper.accent,
-    fontSize: 10,
-    fontWeight: "700",
-  },
+  dateDay: { color: paper.ink, fontSize: 13, fontWeight: "800" },
+  dateWeekday: { color: paper.accent, fontSize: 10, fontWeight: "700" },
 
   statusPanel: {
     backgroundColor: paper.bgAlt,

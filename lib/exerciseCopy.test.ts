@@ -43,6 +43,7 @@ test('intro does not repeat a secondary group that matches the primary', () => {
 test('coaching lines match the kind of movement', () => {
   assert.match(coachTipOf(ex({ name: '바벨 스쿼트' })), /자세부터/);
   assert.match(coachTipOf(ex({ name: '러닝', track_type: 'cardio' })), /대화/);
+  assert.match(coachTipOf(ex({ name: '버피', muscle_group: '유산소', equipment: '맨몸' })), /대화/);
   assert.match(coachTipOf(ex({ name: '플랭크', track_type: 'duration' })), /버티세요/);
   assert.match(coachTipOf(ex({ name: '레그 프레스', equipment: '머신' })), /패드 높이/);
   assert.match(coachTipOf(ex({ name: '크런치', muscle_group: '복근', equipment: '맨몸' })), /반동/);

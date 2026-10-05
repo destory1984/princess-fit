@@ -90,16 +90,30 @@ export function moveOf(name: string): Move | undefined {
 
 export const MOVE_NAMES = Object.keys(MOVES);
 
-const ROUND = new Set(['running', 'walking', 'cycling', 'jump_rope', 'stair_climb', 'burpee']);
+const ROUND = new Set(['running', 'walking', 'cycling', 'jump_rope', 'stair_climb']);
+
+/**
+ * Movements whose frames are not played in the order they were drawn. A burpee
+ * drawn as stand · crouch · plank · push-up · jump and played straight through
+ * went from lying on the floor to mid-air: the way back up was never shown.
+ * It is the same two drawings in reverse, so they are shown again rather than
+ * drawn again.
+ */
+const ORDER: Record<string, number[]> = {
+  burpee: [0, 1, 2, 3, 2, 1, 4],
+};
 
 /**
  * Which frame to show at a tick: there and back again (0 1 2 1 0 1 …), because a
  * repetition goes down and comes up. Walking, running, cycling, skipping and
  * climbing stairs go round instead (0 1 2 0 1 2 …): a stride does not rewind, nor does a pedal
- * or a rope. A burpee goes round too: after the jump she is standing again.
+ * or a rope. A burpee has its own order, and goes round: after the jump she is
+ * standing again.
  */
 export function frameAt(move: Move, tick: number): number {
   if (move.frames === 1) return 0;
+  const order = ORDER[move.id];
+  if (order) return order[tick % order.length];
   if (ROUND.has(move.id)) return tick % move.frames;
   // There and back without resting twice on either end: 0 1 2 1, or 0 1 2 3 4 3 2 1.
   const at = tick % (2 * move.frames - 2);

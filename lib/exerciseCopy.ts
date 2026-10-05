@@ -51,6 +51,9 @@ const COMPOUND = ['데드리프트', '스쿼트', '벤치프레스', '오버헤�
 export function tipKindOf(e: Described): TipKind {
   if (COMPOUND.some((c) => e.name.includes(c))) return 'compound';
   if (e.track_type === 'cardio' || e.track_type === 'floors') return 'cardio';
+  // Burpees and jumping jacks are counted in reps but are still about breath:
+  // "lower it slowly" is advice for a weight, and there is none.
+  if (e.muscle_group === '유산소') return 'cardio';
   if (e.track_type === 'duration') return 'hold';
   if (e.equipment === '머신') return 'machine';
   if (e.muscle_group === '복근') return 'abs';

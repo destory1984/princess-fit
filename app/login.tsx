@@ -13,6 +13,7 @@ import { useRouter } from 'expo-router';
 import PasswordInput from '@/components/PasswordInput';
 import { explainAuth } from '@/lib/authError';
 import { notify } from '@/lib/confirm';
+import { forgetGreeting } from '@/lib/prefs';
 import {
   enabledProviders,
   PROVIDER_LABEL,
@@ -45,10 +46,12 @@ export default function LoginScreen() {
       return;
     }
     setBusy(true);
+    const restore = mode === 'signUp' ? await forgetGreeting() : null;
     const { data, error } =
       mode === 'signIn'
         ? await supabase.auth.signInWithPassword({ email: email.trim(), password })
         : await supabase.auth.signUp({ email: email.trim(), password });
+    if (error) await restore?.();
     setBusy(false);
     if (error) notify(mode === 'signIn' ? '로그인 실패' : '가입 실패', explainAuth(error.message));
     else if (mode === 'signUp' && !data.session)
