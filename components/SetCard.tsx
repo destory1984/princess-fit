@@ -266,7 +266,9 @@ const styles = StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   label: { color: colors.textDim, fontSize: 13, fontWeight: '600' },
   steppers: { flexDirection: 'row', alignItems: 'center' },
-  divider: { width: 1, height: 52, backgroundColor: colors.border },
+  // The margin keeps 「+10」 and 「−5」 apart: without it the two steppers sat
+  // one pixel from each other and read as a single row of eight.
+  divider: { width: 1, height: 52, marginHorizontal: 4, backgroundColor: colors.border },
   plates: {
     flexDirection: 'row',
     alignItems: 'center',

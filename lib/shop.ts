@@ -82,7 +82,10 @@ export const REFUSAL_TEXT: Record<Exclude<Refusal, null>, string> = {
   poor: '골드가 모자라요',
   owned: '이미 가지고 있어요',
   full: '지금은 배가 불러요',
-  given: '오늘은 이미 선물했어요. 내일 또 줘요',
+  // Short enough for one line on the button at phone width. The longer
+  // sentence it replaced wrapped and filled the button edge to edge; the line
+  // above the shelves already says that today's gift has been given.
+  given: '선물은 내일 또 줘요',
 };
 
 /** Accessories stay; food does not. */

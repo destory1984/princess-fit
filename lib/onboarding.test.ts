@@ -11,6 +11,7 @@ import {
   progressOf,
   recommendPresets,
   nextStep,
+  stepsFor,
   STEPS,
   type Goal,
   type Place,
@@ -90,7 +91,17 @@ test('the steps form one chain with a start and an end', () => {
 });
 
 test('progress rises with every step and fills at the last', () => {
-  const values = STEPS.map(progressOf);
+  const values = STEPS.map((s) => progressOf(s));
   for (let i = 1; i < values.length; i += 1) assert.ok(values[i] > values[i - 1]);
   assert.equal(values[values.length - 1], 1);
+});
+
+test('a device that cannot send the daily word is not asked when to send it', () => {
+  const web = stepsFor(false);
+  assert.ok(!web.includes('nudge'));
+  assert.deepEqual(stepsFor(true), [...STEPS]);
+  // The step before it becomes the last one, and the bar still fills there.
+  assert.equal(nextStep('routine', web), null);
+  assert.equal(progressOf('routine', web), 1);
+  assert.equal(previousStep('routine', web), 'place');
 });

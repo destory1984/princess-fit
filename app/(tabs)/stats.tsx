@@ -22,7 +22,7 @@ import {
   type GroupTotal,
 } from '@/lib/db';
 import { formatDate, formatDuration, formatKm } from '@/lib/format';
-import type { UsageMap } from '@/lib/exerciseUsage';
+import { sortByUsage, type UsageMap } from '@/lib/exerciseUsage';
 import type { WorkoutFact } from '@/lib/gamification';
 import type { Exercise } from '@/lib/types';
 import { colors, radius, spacing } from '@/lib/theme';
@@ -42,21 +42,24 @@ export default function StatsScreen() {
 
   const load = useCallback(() => {
     setError(null);
-    getExerciseUsage()
-      .then(setUsage)
-      .catch(() => {
-        // Only orders the picker.
-      });
     listWorkoutFacts()
       .then(setFacts)
       .catch(() => {
         // The charts below still work; only the reading is lost.
       });
-    Promise.all([listExercises(), getGroupTotals()])
-      .then(([list, groups]) => {
+    Promise.all([
+      listExercises(),
+      getGroupTotals(),
+      // Only orders the picker and chooses where it opens.
+      getExerciseUsage().catch((): UsageMap => new Map()),
+    ])
+      .then(([list, groups, used]) => {
         setExercises(list);
         setTotals(groups);
-        setSelected((cur) => cur ?? list[0] ?? null);
+        setUsage(used);
+        // Opens on the exercise done most recently. The first by name is
+        // 「AB 슬라이드」, which showed 0kg to someone who had only deadlifted.
+        setSelected((cur) => cur ?? sortByUsage(list, used, 'recent')[0] ?? list[0] ?? null);
       })
       .catch((e) => setError(e.message));
   }, []);

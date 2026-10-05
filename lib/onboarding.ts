@@ -105,17 +105,28 @@ export function perWeekWord(perWeek: number): string {
 export const STEPS = ['meet', 'often', 'goal', 'place', 'routine', 'nudge'] as const;
 export type Step = (typeof STEPS)[number];
 
-export function nextStep(step: Step): Step | null {
-  const i = STEPS.indexOf(step);
-  return i >= 0 && i < STEPS.length - 1 ? STEPS[i + 1] : null;
+/**
+ * The steps this device can actually walk.
+ *
+ * A browser cannot deliver the daily word, so asking what hour to send it is a
+ * question whose answer does nothing. Settings already hides the same card on
+ * the web; this is the first screen a tester sees, and it was still asking.
+ */
+export function stepsFor(canNudge: boolean): readonly Step[] {
+  return canNudge ? STEPS : STEPS.filter((s) => s !== 'nudge');
 }
 
-export function previousStep(step: Step): Step | null {
-  const i = STEPS.indexOf(step);
-  return i > 0 ? STEPS[i - 1] : null;
+export function nextStep(step: Step, steps: readonly Step[] = STEPS): Step | null {
+  const i = steps.indexOf(step);
+  return i >= 0 && i < steps.length - 1 ? steps[i + 1] : null;
+}
+
+export function previousStep(step: Step, steps: readonly Step[] = STEPS): Step | null {
+  const i = steps.indexOf(step);
+  return i > 0 ? steps[i - 1] : null;
 }
 
 /** How far along, for the bar at the top. 0–1. */
-export function progressOf(step: Step) {
-  return (STEPS.indexOf(step) + 1) / STEPS.length;
+export function progressOf(step: Step, steps: readonly Step[] = STEPS) {
+  return (steps.indexOf(step) + 1) / steps.length;
 }

@@ -138,7 +138,8 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     height: 38,
-    paddingHorizontal: 2,
+    // No side padding: at 375 wide a button is 31 across and 「−2.5」 needs 30.
+    // With 2 each side it had 28 and read 「−…」.
     borderRadius: 19,
     backgroundColor: colors.surfaceAlt,
     alignItems: "center",
@@ -150,5 +151,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 14,
     lineHeight: 19,
+    letterSpacing: -0.3,
   },
 });

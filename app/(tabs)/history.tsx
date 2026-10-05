@@ -199,16 +199,9 @@ export default function HistoryScreen() {
         }
       />
 
-      <Pressable style={styles.tool} onPress={() => router.push('/body')}>
-        <Ionicons name="body-outline" size={18} color={colors.accent} />
-        <View style={styles.toolBody}>
-          <Text style={styles.toolTitle}>신체 기록</Text>
-          <Text style={styles.toolSub}>몸무게 · 체지방 · 골격근량</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={18} color={colors.textDim} />
-      </Pressable>
-
-      {/* Colour needs a key: six dots are never told apart by hue alone. */}
+      {/* Colour needs a key: six dots are never told apart by hue alone.
+          Directly under the calendar it explains — below 신체 기록 it read as
+          a stray label between two unrelated cards. */}
       <View style={styles.legend}>
         {[...new Set([...dayGroups.values()].flat())].slice(0, 6).map((group) => (
           <View key={group} style={styles.legendItem}>
@@ -217,6 +210,15 @@ export default function HistoryScreen() {
           </View>
         ))}
       </View>
+
+      <Pressable style={styles.tool} onPress={() => router.push('/body')}>
+        <Ionicons name="body-outline" size={18} color={colors.accent} />
+        <View style={styles.toolBody}>
+          <Text style={styles.toolTitle}>신체 기록</Text>
+          <Text style={styles.toolSub}>몸무게 · 체지방 · 골격근량</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color={colors.textDim} />
+      </Pressable>
 
       <Pressable style={styles.tool} onPress={() => router.push('/photos')}>
         <Ionicons name="camera-outline" size={18} color={colors.accent} />

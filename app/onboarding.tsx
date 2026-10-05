@@ -27,6 +27,7 @@ import {
   progressOf,
   recommendPresets,
   nextStep,
+  stepsFor,
   type Goal,
   type Place,
   type Step,
@@ -47,6 +48,9 @@ import { withParticle } from '@/lib/korean';
 
 /** Hours worth offering, matching the ones the settings screen uses. */
 const HOURS = [8, 12, 18, 20, 22];
+
+// No daily word on the web, so no step asking when to send it.
+const HERE = stepsFor(Platform.OS !== 'web');
 
 /**
  * The first conversation.
@@ -104,12 +108,12 @@ export default function OnboardingScreen({ bench = false }: { bench?: boolean })
   const offered = recommendPresets(place, perWeek, goal);
 
   const back = useCallback(() => {
-    const previous = previousStep(step);
+    const previous = previousStep(step, HERE);
     if (previous) setStep(previous);
   }, [step]);
 
   function forward() {
-    const next = nextStep(step);
+    const next = nextStep(step, HERE);
     if (next) setStep(next);
     else void finish();
   }
@@ -181,11 +185,11 @@ export default function OnboardingScreen({ bench = false }: { bench?: boolean })
   return (
     <View style={styles.screen}>
       <View style={styles.bar}>
-        <View style={[styles.barFill, { width: `${progressOf(step) * 100}%` }]} />
+        <View style={[styles.barFill, { width: `${progressOf(step, HERE) * 100}%` }]} />
       </View>
 
       <View style={styles.top}>
-        {previousStep(step) ? (
+        {previousStep(step, HERE) ? (
           <Pressable hitSlop={10} onPress={back}>
             <Ionicons name="chevron-back" size={24} color={colors.textDim} />
           </Pressable>
@@ -339,7 +343,7 @@ export default function OnboardingScreen({ bench = false }: { bench?: boolean })
 
       <Pressable style={styles.next} onPress={forward}>
         <Text style={styles.nextText}>
-          {step === 'meet' ? '반가워요' : nextStep(step) ? '다음' : '시작할게요'}
+          {step === 'meet' ? '반가워요' : nextStep(step, HERE) ? '다음' : '시작할게요'}
         </Text>
       </Pressable>
     </View>
