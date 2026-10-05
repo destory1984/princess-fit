@@ -329,6 +329,11 @@
   묶음 파일에 담겨 공개되는 값이지만 저장소 자체에는 넣지 않는다. 변수가 없으면 빌드가 스스로
   멈추고 까닭을 말한다. 배포 결과는 로그인 없이 볼 수 있다:
   `https://api.github.com/repos/destory1984/princess-fit/actions/runs?per_page=1`.
+- **방문 수는 GoatCounter로 센다 (2026-10-05).** 통계 화면은 `princess-fit.goatcounter.com`이다.
+  `scripts/og-tags.mjs`가 내보낸 HTML에 스크립트를 넣는다(셋째 인자가 코드). 앱 코드에 넣지 않은 것은
+  개발 서버를 세지 않으려는 것이다. **모든 방문을 `/` 하나로 센다** — 한 장짜리 앱이라 처음 들어온 주소만
+  잡히고, 속 주소로 들어오면 그 주소에 운동 기록 번호가 들어 있어 밖으로 나간다. 화면마다 세려면 화면이
+  바뀔 때 `window.goatcounter.count`를 부르되 번호를 지우고 보내야 한다. 쿠키는 쓰지 않는다.
 - **새 체크아웃에는 `expo-env.d.ts`가 없다.** `expo start`가 만드는 파일이라 저장소에 없고, 그래서
   `process.env.EXPO_PUBLIC_*`의 타입이 GitHub에서는 없다. 첫 배포가 타입 검사에서 멈춘 까닭이다.
   이 PC에서 같은 것을 보려면 `.expo/types`와 `expo-env.d.ts`를 잠깐 치우고 `tsc`를 돌린다.

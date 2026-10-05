@@ -59,7 +59,7 @@ jobs:
       # has no file behind it: Pages serves 404.html, which is the app itself.
       # Before the copy, so a deep link sent to someone shows the same preview.
       - run: |
-          node scripts/og-tags.mjs dist/index.html https://destory1984.github.io/princess-fit
+          node scripts/og-tags.mjs dist/index.html https://destory1984.github.io/princess-fit princess-fit
           touch dist/.nojekyll
           cp dist/index.html dist/404.html
       - uses: actions/upload-pages-artifact@v3

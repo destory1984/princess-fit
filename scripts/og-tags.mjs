@@ -1,16 +1,21 @@
 #!/usr/bin/env node
 // Writes the link-preview tags into the exported page.
 //
-//   node scripts/og-tags.mjs dist/index.html https://destory1984.github.io/princess-fit
+//   node scripts/og-tags.mjs dist/index.html https://destory1984.github.io/princess-fit [goatcounter code]
 //
 // A messenger that is sent the address reads the HTML and nothing else: it does
 // not run the app, so tags added from app/_layout.tsx as the app starts are never
 // seen. The single-page export has one HTML file and this puts the tags in it.
 // The address has to be whole (og:image does not take a relative path), which is
 // why it is passed in rather than read from the base path.
+//
+// With a GoatCounter code the visit counter goes in beside them. It is put here
+// and not in the app so the development server is never counted. Every visit is
+// counted as "/" on purpose: the app is one page, so only the first address is
+// ever seen, and on a deep link that address can carry the id of a workout.
 import { readFileSync, writeFileSync } from 'node:fs';
 
-const [file, site] = process.argv.slice(2);
+const [file, site, counter] = process.argv.slice(2);
 if (!file || !site) {
   console.error('usage: og-tags.mjs <index.html> <site address without a trailing slash>');
   process.exit(2);
@@ -40,5 +45,8 @@ if (!html.includes('</head>')) {
   console.error(`${file}: no </head> to put the tags before`);
   process.exit(1);
 }
-writeFileSync(file, html.replace('</head>', `${tags}</head>`));
+const count = counter
+  ? `<script data-goatcounter="https://${counter}.goatcounter.com/count" data-goatcounter-settings='{"path":"/"}' async src="https://gc.zgo.at/count.js"></script>`
+  : '';
+writeFileSync(file, html.replace('</head>', `${tags}${count}</head>`));
 console.log(`${file}: link preview tags added`);
