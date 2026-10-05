@@ -334,3 +334,17 @@ python -X utf8 scripts/og-image.py art-orders/2026-10-04/festival/og1/og1.png
   고쳐지는지는 유키를 받아 봐야 안다.
 - **하루에 받을 수 있는 그림에 한도가 있다.** 2026-10-04에 백 장 남짓 받고 걸렸다. 걸리면 주문이
   그림 없이 바로 끝나고, 로그에 언제 풀리는지 적힌다.
+
+## 새 옷 다섯 벌 (2026-10-05)
+
+```bash
+bash art-orders/2026-10-05/clothes/order.sh
+python -X utf8 scripts/sprite-clean.py --like art-orders/2026-10-03/base-clean/base-clean.png art-orders/2026-10-05/clothes/hanbok/hanbok.png
+python -X utf8 scripts/garment-assets.py art-orders/2026-10-03/base-clean/base-clean.sprite.png art-orders/2026-10-05/clothes/hanbok/hanbok.sprite.png hanbok
+```
+
+- 다섯 장이 한꺼번에 12분쯤 걸렸고 모두 몸틀과 같은 크기(1071 × 1469 안팎)로 왔다.
+- 「세 단계로 칠하고, 테두리 장식과 단추나 무늬 같은 작은 꾸밈을 넣는다」를 적으니 물방울 무늬, 눈꽃,
+  방패 문장이 선반 크기에서도 읽힌다. 「많아야 서너 색」은 뺐다.
+- 발목까지 오는 치마는 `garment-assets.py`가 머리로 자리를 잡고 치마 안의 틈을 메운다. 깃 위로 솟은
+  목은 스크립트가 지우지 못해 손으로 지웠다.

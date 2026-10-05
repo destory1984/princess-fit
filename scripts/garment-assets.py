@@ -62,7 +62,25 @@ roomy = np.zeros((worn_small.shape[0] + pad * 2, worn_small.shape[1] + pad * 2, 
 roomy[pad:-pad, pad:-pad] = worn_small
 dy, dx = layers.place(base_small[..., 3] > 0, roomy[..., 3] > 0)
 left, top = BASE_AT[0] - (dx - pad), BASE_AT[1] - (dy - pad)
-if left < 0 or top < 0 or left + worn_small.shape[1] > CANVAS[0] or top + worn_small.shape[0] > CANVAS[1]:
+
+
+def fits(left: int, top: int) -> bool:
+    return left >= 0 and top >= 0 and left + worn_small.shape[1] <= CANVAS[0] and top + worn_small.shape[0] <= CANVAS[1]
+
+
+if not fits(left, top):
+    # A skirt to the ankles leaves no legs to find the base by, and the best match lands
+    # somewhere absurd. The base is bald and so is she here, so her head will do instead.
+    b_head, g_head = base_small[..., 3] > 0, roomy[..., 3] > 0
+    third = b_head.shape[0] // 3
+    best = -1
+    for y in range(g_head.shape[0] - b_head.shape[0] + 1):
+        for x in range(g_head.shape[1] - b_head.shape[1] + 1):
+            same = (g_head[y:y + third, x:x + b_head.shape[1]] == b_head[:third]).sum()
+            if same > best:
+                best, dy, dx = same, y, x
+    left, top = BASE_AT[0] - (dx - pad), BASE_AT[1] - (dy - pad)
+if not fits(left, top):
     sys.exit(f'{worn_path}: does not fit the canvas with the base at {BASE_AT} (it would sit at {left},{top})')
 
 base = on_canvas(base_small, *BASE_AT)
@@ -128,6 +146,18 @@ largest = max((size for size, _ in patches), default=0)
 for size, patch in patches:
     if size >= max(SMALLEST, largest * SHARE):
         garment |= patch
+
+# A long skirt is drawn over her legs, and where a fold's dark line falls on the outline
+# the base has there it was taken for the base's own. What the garment shuts in on every
+# side is the garment: close the slits (a dot with garment on both sides of it), then
+# take whatever of the drawing can no longer be walked to from outside.
+for _ in range(2):
+    wide = np.pad(garment, 1)
+    garment |= g_there & ((wide[1:-1, :-2] & wide[1:-1, 2:]) | (wide[:-2, 1:-1] & wide[2:, 1:-1]))
+open_ = np.pad(~garment, 1, constant_values=True)
+rim = np.zeros_like(open_)
+rim[0], rim[-1], rim[:, 0], rim[:, -1] = True, True, True, True
+garment |= g_there & ~layers.connected(open_, rim)[1:-1, 1:-1]
 
 # The piece itself comes from the drawing, not the sprite (scripts/hires.py): the dots
 # above only say which of its pixels are the garment.
