@@ -36,6 +36,7 @@ import {
 } from '@/lib/gamification';
 import { colors, paper, radius, spacing } from '@/lib/theme';
 import { useGirl } from '@/lib/girl';
+import { achievementArt } from '@/lib/achievementArt';
 import { rankArt } from '@/lib/rankArt';
 
 export default function TrainingLedgerScreen() {
@@ -236,15 +237,22 @@ export default function TrainingLedgerScreen() {
 }
 
 function BadgeRow({ badge }: { badge: Badge }) {
+  const medal = achievementArt(badge.id);
   return (
     <View style={styles.badgeRow}>
-      <View style={[styles.badgeIcon, badge.earned && styles.badgeIconOn]}>
-        <Ionicons
-          name={badge.icon as any}
-          size={20}
-          color={badge.earned ? colors.surface : colors.textDim}
-        />
-      </View>
+      {/* Not yet earned shows faintly, as a rank not yet reached does: what is
+          ahead, not a lock. One with no medal drawn keeps its icon. */}
+      {medal ? (
+        <Image source={medal} style={[styles.badgeMedal, !badge.earned && styles.rankAhead]} />
+      ) : (
+        <View style={[styles.badgeIcon, badge.earned && styles.badgeIconOn]}>
+          <Ionicons
+            name={badge.icon as any}
+            size={20}
+            color={badge.earned ? colors.surface : colors.textDim}
+          />
+        </View>
+      )}
       <View style={styles.badgeBody}>
         <Text style={[styles.badgeName, !badge.earned && styles.badgeNameLocked]}>
           {badge.name}
@@ -388,6 +396,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   badgeIconOn: { backgroundColor: colors.accent },
+  badgeMedal: { width: 44, height: 44 },
   badgeBody: { flex: 1, gap: 3 },
   badgeName: { color: colors.text, fontSize: 15, fontWeight: '700' },
   badgeNameLocked: { color: colors.textDim },
