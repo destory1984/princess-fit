@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { COLLAPSE, MIN_SETS, RIR_CHOICES, applyLabel, earned, progressWord, readiness } from './progress.ts';
+import { COLLAPSE, EARNING, MIN_SETS, RIR_CHOICES, applyLabel, earned, progressWord, readiness } from './progress.ts';
 import { nextWeight, PLATE_THRESHOLD } from './weight.ts';
 
 const set = (weight_kg: number, reps: number) => ({ weight_kg, reps });
@@ -271,4 +271,37 @@ test('coming down is not made to wait a month', () => {
   const read = earned([{ date: '2026-10-04T19:00:00', sets: collapsed }], new Date('2026-10-06T19:00:00'))!;
   assert.equal(read.verdict, 'ease');
   assert.equal(earned([], new Date()), null);
+});
+
+test('a small step is earned sooner than a big one', () => {
+  const at = (kg: number) => [set(kg, 10), set(kg, 10), set(kg, 10)];
+  const on = (date: string, kg: number) => ({ date: `${date}T19:00:00`, sets: at(kg) });
+  const now = new Date('2026-10-06T19:00:00');
+
+  // 60 → 62.5 is four in a hundred: three sessions over a week.
+  const squat = [on('2026-09-28', 60), on('2026-10-01', 60), on('2026-10-04', 60)];
+  const up = earned(squat, now)!;
+  assert.equal(up.verdict, 'add');
+  assert.equal(up.weight, 62.5);
+  assert.match(progressWord(up)!, /일주일 넘게 60kg/);
+  // Three sessions in three days is not a week.
+  assert.equal(earned([on('2026-10-02', 60), on('2026-10-03', 60), on('2026-10-04', 60)], now)!.verdict, 'hold');
+  assert.equal(earned(squat.slice(1), now)!.verdict, 'hold');
+
+  // 30 → 32.5 is eight in a hundred: four sessions over three weeks.
+  const press = [on('2026-09-14', 30), on('2026-09-21', 30), on('2026-09-28', 30), on('2026-10-04', 30)];
+  assert.match(progressWord(earned(press, now)!)!, /3주 넘게 30kg/);
+  assert.equal(earned(press.map((s, i) => (i === 0 ? on('2026-09-18', 30) : s)), now)!.verdict, 'hold');
+
+  // 10 → 11 is ten in a hundred, and 20 → 22.5 more: the month.
+  const curl = [on('2026-09-14', 10), on('2026-09-21', 10), on('2026-09-28', 10), on('2026-10-04', 10)];
+  assert.equal(earned(curl, now)!.verdict, 'hold');
+  assert.equal(earned(curl.map((s) => ({ ...s, sets: at(20) })), now)!.verdict, 'hold');
+
+  // The table only ever asks for more as the step grows.
+  for (let i = 1; i < EARNING.length; i += 1) {
+    assert.ok(EARNING[i].below > EARNING[i - 1].below);
+    assert.ok(EARNING[i].days >= EARNING[i - 1].days);
+    assert.ok(EARNING[i].sessions >= EARNING[i - 1].sessions);
+  }
 });
