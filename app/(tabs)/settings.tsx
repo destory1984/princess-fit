@@ -6,7 +6,7 @@ import { NudgeSetting } from '@/components/NudgeSetting';
 import { Portrait } from '@/components/Portrait';
 import { hasDirectServer } from '@/lib/advice';
 import { ringBell, wakeBell } from '@/lib/bell';
-import { BELLS, DEFAULT_BELL, nextBell, type BellKind } from '@/lib/bellKind';
+import { BELLS, DEFAULT_BELL, type BellKind } from '@/lib/bellKind';
 import { explain } from '@/lib/dbError';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { confirmAction, notify } from '@/lib/confirm';
@@ -267,32 +267,42 @@ export default function SettingsScreen() {
 
         {/*
           Web only: on a phone the end of a rest is a notification, and its sound
-          is the system's. One tap steps to the next bell and rings it, so the
-          choice is made by ear rather than by reading three names.
+          is the system's. The three are laid out as three buttons, and pressing
+          one rings it, so the choice is made by ear.
+
+          It was one row that stepped to the next bell when pressed, and looked
+          like every row beside it that only tells you something: 「눌러서 바꿀 수
+          있는 옵션이라는 생각이 안 들음」 (2026-10-06).
         */}
         {Platform.OS === 'web' && (
-          <Pressable
-            style={styles.row}
-            onPress={() => {
-              const next = nextBell(bell);
-              setBellState(next);
-              setBell(next).catch(() => {});
-              wakeBell();
-              ringBell(next);
-            }}>
-            <View style={styles.icon}>
-              <Ionicons name="notifications-outline" size={22} color={colors.accent} />
+          <View style={styles.card}>
+            <View style={styles.cardHead}>
+              <View style={styles.icon}>
+                <Ionicons name="notifications-outline" size={22} color={colors.accent} />
+              </View>
+              <View style={styles.body}>
+                <Text style={styles.title}>쉬는 시간 종소리</Text>
+                <Text style={styles.sub}>{BELLS.find((b) => b.id === bell)?.detail}</Text>
+              </View>
             </View>
-            <View style={styles.body}>
-              <Text style={styles.title}>
-                쉬는 시간 종소리 · {BELLS.find((b) => b.id === bell)?.label}
-              </Text>
-              <Text style={styles.sub}>
-                {BELLS.find((b) => b.id === bell)?.detail}. 누르면 다음 소리로 바뀌고 한 번 울려요.
-              </Text>
+            <View style={styles.choices}>
+              {BELLS.map((b) => (
+                <Pressable
+                  key={b.id}
+                  style={[styles.choice, bell === b.id && styles.choiceOn]}
+                  onPress={() => {
+                    setBellState(b.id);
+                    setBell(b.id).catch(() => {});
+                    wakeBell();
+                    ringBell(b.id);
+                  }}>
+                  <Text style={[styles.choiceText, bell === b.id && styles.choiceTextOn]}>
+                    {b.label}
+                  </Text>
+                </Pressable>
+              ))}
             </View>
-            <Ionicons name="swap-horizontal" size={20} color={colors.textDim} />
-          </Pressable>
+          </View>
         )}
         </>
       )}
@@ -396,6 +406,27 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     padding: spacing.md,
   },
+  // A setting with its choices laid out under it, rather than a row to press.
+  card: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    gap: spacing.md,
+  },
+  cardHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  choices: { flexDirection: 'row', gap: spacing.sm },
+  choice: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.bg,
+  },
+  choiceOn: { backgroundColor: colors.accentSoft, borderColor: colors.accent },
+  choiceText: { color: colors.textDim, fontSize: 15, lineHeight: 21 },
+  choiceTextOn: { color: colors.accent, fontWeight: '800' },
   icon: {
     width: 48,
     height: 48,
