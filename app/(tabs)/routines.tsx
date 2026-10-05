@@ -192,7 +192,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: radius.md,
     padding: spacing.md,
-    marginBottom: spacing.sm,
   },
   presetsBody: { flex: 1 },
   presetsTitle: { color: colors.text, fontSize: 16, fontWeight: '700' },
@@ -206,7 +205,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
   },
   emptyActionText: { color: colors.accent, fontWeight: '800' },
-  addRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
+  addRow: { flexDirection: 'row', gap: spacing.sm },
   input: {
     flex: 1,
     backgroundColor: colors.surface,

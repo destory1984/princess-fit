@@ -547,7 +547,6 @@ const styles = StyleSheet.create({
   tabs: {
     flexDirection: "row",
     gap: spacing.sm,
-    marginTop: spacing.sm,
   },
   // Five squares of one size. Sized to their words they were five widths
   // (「방」 next to 「장신구」), which read as five different kinds of button.
@@ -569,7 +568,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: spacing.md,
     alignItems: "center",
-    marginTop: spacing.sm,
   },
   doll: { width: 96 },
   dollBody: { flex: 1 },
@@ -610,7 +608,6 @@ const styles = StyleSheet.create({
     color: colors.textDim,
     fontSize: 14,
     lineHeight: 21,
-    marginBottom: spacing.xs,
   },
   culture: {
     backgroundColor: paper.bgAlt,
@@ -619,7 +616,6 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     padding: spacing.md,
     gap: spacing.sm,
-    marginTop: spacing.sm,
   },
   cultureRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   cultureName: { color: colors.textDim, fontSize: 14, width: 32 },

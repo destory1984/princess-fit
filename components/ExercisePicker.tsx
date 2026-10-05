@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     color: colors.text,
     padding: spacing.md,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
   },
   chipRow: {
     flexDirection: 'row',
