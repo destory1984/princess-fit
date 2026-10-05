@@ -1187,16 +1187,20 @@ export default function WorkoutScreen() {
 
           {/* Otherwise this screen is a spreadsheet you sweat next to. */}
           {live && (
-            <Cheer
-              doneSets={doneSets.length}
-              totalSets={sets.length}
-              suggestion={suggestion}
-              onAccept={(picked) => {
-                const exercise = exercises.find((e) => e.id === picked.id);
-                if (exercise) void addExercise(exercise);
-              }}
-              onInvite={() => setPicking(true)}
-            />
+            // Its own 12 above, like every other line in this card: without it
+            // her card sat flush against the 「금방 끝나요」 line over it.
+            <View style={styles.cheer}>
+              <Cheer
+                doneSets={doneSets.length}
+                totalSets={sets.length}
+                suggestion={suggestion}
+                onAccept={(picked) => {
+                  const exercise = exercises.find((e) => e.id === picked.id);
+                  if (exercise) void addExercise(exercise);
+                }}
+                onInvite={() => setPicking(true)}
+              />
+            </View>
           )}
         </View>
 
@@ -1888,7 +1892,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: radius.sm,
     padding: spacing.md,
-    marginTop: spacing.sm,
+    marginTop: spacing.md,
   },
   unsentText: { color: colors.text, fontSize: 14, lineHeight: 21, flex: 1 },
   screen: { flex: 1, backgroundColor: colors.bg },
@@ -1901,6 +1905,7 @@ const styles = StyleSheet.create({
   summaryTitle: { color: colors.text, fontSize: 20, fontWeight: "800" },
   summarySub: { color: colors.textDim, marginTop: spacing.xs, fontSize: 15 },
   bodyWrap: { marginTop: spacing.md },
+  cheer: { marginTop: spacing.md },
   condition: {
     flexDirection: "row",
     alignItems: "flex-start",
