@@ -88,7 +88,8 @@ import {
   forgetAdvice,
   setBar,
 } from "@/lib/prefs";
-import { ringBell, wakeBell } from "@/lib/bell";
+import { ringBell, ringSoon, wakeBell } from "@/lib/bell";
+import { warningDue } from "@/lib/restWarning";
 import { BAR, nextBar } from "@/lib/plates";
 import { everTrained, recoveryOf, type Muscle } from "@/lib/recovery";
 import { suggestExercise } from "@/lib/suggest";
@@ -278,9 +279,21 @@ export default function WorkoutScreen() {
 
   useEffect(() => {
     if (restEnd === null) return;
+    // Once per rest. Moving the end (±10, starting over) is a new rest as far
+    // as this effect goes, so it may warn again — which is right: the ten
+    // seconds it warned of are no longer the last ten.
+    let warned = false;
+    // How much of the rest this effect was handed, which is what decides whether
+    // ten seconds is 「nearly over」 or most of it.
+    const span = (restEnd - Date.now()) / 1000;
     const timer = setInterval(() => {
       const at = Date.now();
       setNow(at);
+      if (warningDue(restEnd - at, span, warned)) {
+        warned = true;
+        tapFeedback();
+        ringSoon();
+      }
       // Stop at zero rather than counting on forever: the bar goes back to
       // showing this exercise's rest length, ready for the next set.
       if (at >= restEnd) {

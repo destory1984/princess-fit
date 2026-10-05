@@ -39,26 +39,40 @@ export function wakeBell() {
   }
 }
 
-/** Ring. Does nothing off the web, or where sound is not allowed. */
-export function ringBell() {
+/** Tones as [seconds from now, pitch], each a quick swell and a tail. */
+function play(tones: readonly (readonly [number, number])[], loudness: number, tail: number) {
   try {
     const audio = context();
     if (!audio || audio.state !== 'running') return;
     const at = audio.currentTime;
-    for (const [start, pitch] of [[0, 880], [0.22, 1175]] as const) {
+    for (const [start, pitch] of tones) {
       const tone = audio.createOscillator();
       const loud = audio.createGain();
       tone.type = 'sine';
       tone.frequency.value = pitch;
       // A quick swell and a tail, so it reads as a bell and not a buzzer.
       loud.gain.setValueAtTime(0.0001, at + start);
-      loud.gain.exponentialRampToValueAtTime(0.25, at + start + 0.02);
-      loud.gain.exponentialRampToValueAtTime(0.0001, at + start + 0.45);
+      loud.gain.exponentialRampToValueAtTime(loudness, at + start + 0.02);
+      loud.gain.exponentialRampToValueAtTime(0.0001, at + start + tail);
       tone.connect(loud).connect(audio.destination);
       tone.start(at + start);
-      tone.stop(at + start + 0.5);
+      tone.stop(at + start + tail + 0.05);
     }
   } catch {
-    // As above.
+    // No sound is the same as before this existed.
   }
+}
+
+/** Ring. Does nothing off the web, or where sound is not allowed. */
+export function ringBell() {
+  play([[0, 880], [0.22, 1175]], 0.25, 0.45);
+}
+
+/**
+ * The warning that a rest is nearly over. One low, short note, quieter than the
+ * bell and below it in pitch, so the two cannot be mistaken for each other: this
+ * one says 「get ready」, the bell says 「go」.
+ */
+export function ringSoon() {
+  play([[0, 587]], 0.14, 0.2);
 }
