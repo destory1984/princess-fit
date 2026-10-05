@@ -210,7 +210,7 @@ export function ExercisePicker({
             <>
               <TextInput
                 style={styles.search}
-                placeholder="이름 · 부위 · 기구 · 초성 · 랫풀/bench"
+                placeholder="이름 · 부위 · 기구 · 초성(ㅂㅊ) · 줄임말(랫풀)"
                 placeholderTextColor={colors.textDim}
                 value={query}
                 onChangeText={setQuery}

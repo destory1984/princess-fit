@@ -457,6 +457,10 @@ export default function WorkoutScreen() {
   */
   const editing = edit === "1" && Boolean(workout?.ended_at);
   const done = Boolean(workout?.ended_at) && !editing;
+  // The session is happening now. Mending a finished one is neither done nor
+  // live: there is no next set, no time left, nobody to cheer and no rest to
+  // time — all of which the mending screen went on showing.
+  const live = !done && !editing;
   const progress = sets.length ? doneSets.length / sets.length : 0;
 
   // Only worth working out for an empty board, which is the only time she asks.
@@ -541,8 +545,10 @@ export default function WorkoutScreen() {
       if (mates(tied, block).length > 0) setOpened(turn.open);
       // persist runs from a press, never during render; the rule cannot tell
       // the difference for a function declared in the component body.
+      // Ticking a set while mending a finished session is bookkeeping, not a set
+      // just done: no rest follows it and no bell is booked.
       // eslint-disable-next-line react-hooks/purity
-      restUntil(turn.rest ? Date.now() + seconds * 1000 : null);
+      restUntil(turn.rest && !editing ? Date.now() + seconds * 1000 : null);
       successFeedback();
 
       // Carry the weight onto the sets still waiting, so a set laid out in
@@ -1042,7 +1048,7 @@ export default function WorkoutScreen() {
             {formatDate(workout.started_at)} · 총 {totalVolume.toLocaleString()}{" "}
             kg · 완료 {doneSets.length}/{sets.length} 세트
           </Text>
-          {!done && sets.length > 0 && (
+          {live && sets.length > 0 && (
             <>
               <View style={styles.progressTrack}>
                 <View
@@ -1100,7 +1106,7 @@ export default function WorkoutScreen() {
             original total, or it would go on announcing the same number all
             session and stop being read by the third set.
           */}
-          {!done && leftWord && (
+          {live && leftWord && (
             <View style={styles.condition}>
               <Ionicons name="time-outline" size={16} color={colors.gold} />
               <Text style={styles.conditionText}>{leftWord}</Text>
@@ -1121,7 +1127,7 @@ export default function WorkoutScreen() {
           )}
 
           {/* Otherwise this screen is a spreadsheet you sweat next to. */}
-          {!done && (
+          {live && (
             <Cheer
               doneSets={doneSets.length}
               totalSets={sets.length}
@@ -1630,7 +1636,7 @@ export default function WorkoutScreen() {
 
       {!done && (
         <View style={styles.bottomBar}>
-          <RestBar
+          {live && <RestBar
             exerciseName={restExercise?.name ?? null}
             length={restLength}
             remaining={restRemaining}
@@ -1650,7 +1656,7 @@ export default function WorkoutScreen() {
             // A set that took longer than planned, or a rest interrupted: the
             // same rest again from the top, for the same exercise.
             onReset={() => restUntil(Date.now() + restLength * 1000)}
-          />
+          />}
 
           <View style={styles.actions}>
             {/*
