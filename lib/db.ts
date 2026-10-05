@@ -3,7 +3,7 @@ import { carryTies } from './superset';
 import type { Exercise, Routine, RoutineExercise, Workout, WorkoutSet } from './types';
 import { localDayKey } from './format';
 import { abandonedEnd, isAbandoned } from './abandoned';
-import { isEmptyWorkout, type WorkoutFact } from './gamification';
+import { cardioSeconds, isEmptyWorkout, type WorkoutFact } from './gamification';
 import {
   afterWalk,
   afterWorkout,
@@ -367,6 +367,7 @@ export async function listWorkoutFacts(limit = 500): Promise<WorkoutFact[]> {
       volume: done.reduce((sum, s) => sum + s.weight_kg * s.reps, 0),
       durationSec: done.reduce((sum, s) => sum + s.duration_sec, 0),
       distanceKm: done.reduce((sum, s) => sum + s.distance_km, 0),
+      cardioSec: cardioSeconds(done, (id) => groupOf.get(id)),
     };
   });
 }

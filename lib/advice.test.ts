@@ -24,6 +24,7 @@ function fact(partial: Partial<WorkoutFact> & { id: string }): WorkoutFact {
     volume: 3000,
     durationSec: 0,
     distanceKm: 0,
+    cardioSec: 0,
     ...partial,
   };
 }

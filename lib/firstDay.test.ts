@@ -17,6 +17,7 @@ const fact = (id: string, doneSets = 5): WorkoutFact => ({
   volume: 1000,
   durationSec: 0,
   distanceKm: 0,
+  cardioSec: 0,
 });
 
 // The whole first day rests on this sum. If a price rises or the opening

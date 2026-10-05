@@ -51,7 +51,7 @@ export type Stats = Record<StatKey, number>;
 export function computeStats(workouts: WorkoutFact[], today = new Date()): Stats {
   const heaviest = Math.max(0, ...workouts.map((w) => w.volume));
   const totalSets = workouts.reduce((s, w) => s + w.doneSets, 0);
-  const cardioMin = workouts.reduce((s, w) => s + w.durationSec, 0) / 60;
+  const cardioMin = workouts.reduce((s, w) => s + w.cardioSec, 0) / 60;
   const km = workouts.reduce((s, w) => s + w.distanceKm, 0);
   const coverage = bestWeeklyCoverage(workouts);
 

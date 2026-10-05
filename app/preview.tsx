@@ -72,6 +72,7 @@ const benchFacts = [0, 2, 4, 7, 9, 12, 15, 18].map((daysAgo) => {
     volume: 3000,
     durationSec: 0,
     distanceKm: 0,
+    cardioSec: 0,
   };
 });
 
@@ -314,6 +315,7 @@ export default function PreviewScreen() {
           volume: 4_120,
           durationSec: 0,
           distanceKm: 0,
+          cardioSec: 0,
         }}
         summary={summarise([])}
       />

@@ -15,6 +15,7 @@ function fact(day: string, groups = ['가슴'], extra: Partial<WorkoutFact> = {}
     volume: 1000,
     durationSec: 0,
     distanceKm: 0,
+    cardioSec: 0,
     ...extra,
   };
 }

@@ -130,7 +130,7 @@ function measure(asked: Asked, week: WorkoutFact[]): number {
     case 'goal':
       return dayCount(week);
     case 'cardio':
-      return Math.floor(week.reduce((s, f) => s + f.durationSec, 0) / 60);
+      return Math.floor(week.reduce((s, f) => s + f.cardioSec, 0) / 60);
     case 'light':
       return week.some((f) => f.doneSets > 0 && f.doneSets <= 10) ? 1 : 0;
     case 'sets':

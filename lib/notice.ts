@@ -198,7 +198,7 @@ function yuki(seen: Seen, today: Date, stage: Stage): string | null {
   }
 
   const month = facts.filter((f) => dayNumber(key) - dayNumber(localDayKey(new Date(f.started_at))) < 30);
-  const cardio = Math.round(month.reduce((s, f) => s + f.durationSec, 0) / 60);
+  const cardio = Math.round(month.reduce((s, f) => s + f.cardioSec, 0) / 60);
   if (month.length >= 4 && cardio < 30) {
     return formal
       ? `유산소가 한 달에 ${cardio}분입니다. 부족합니다.`

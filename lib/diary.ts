@@ -124,8 +124,8 @@ export function diaryFor(input: DiaryInput, girl?: string): string | null {
 
   const what = today.groups.length
     ? today.groups.join(', ')
-    : today.durationSec > 0
-      ? `유산소 ${Math.round(today.durationSec / 60)}분`
+    : today.cardioSec > 0
+      ? `유산소 ${Math.round(today.cardioSec / 60)}분`
       : '운동';
   return write.plain(today.doneSets > 0 ? `${what} ${today.doneSets}세트` : what);
 }

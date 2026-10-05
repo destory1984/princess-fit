@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   bestWeeklyCoverage,
+  cardioSeconds,
   weeklyGoalRun,
   evaluateBadges,
   levelAt,
@@ -19,6 +20,7 @@ function fact(partial: Partial<WorkoutFact> & { started_at: string }): WorkoutFa
     volume: 0,
     durationSec: 0,
     distanceKm: 0,
+    cardioSec: 0,
     ...partial,
   };
 }
@@ -27,7 +29,7 @@ test('xp rewards sets, volume and cardio minutes on top of showing up', () => {
   assert.equal(workoutXp(fact({ started_at: '2026-09-19T10:00:00', doneSets: 1 })), 60);
   assert.equal(workoutXp(fact({ started_at: '2026-09-19T10:00:00', doneSets: 3 })), 80);
   assert.equal(workoutXp(fact({ started_at: '2026-09-19T10:00:00', doneSets: 1, volume: 2500 })), 85);
-  assert.equal(workoutXp(fact({ started_at: '2026-09-19T10:00:00', durationSec: 1800 })), 110);
+  assert.equal(workoutXp(fact({ started_at: '2026-09-19T10:00:00', durationSec: 1800, cardioSec: 1800 })), 110);
 });
 
 test('levels start at 100 xp and stretch out', () => {
@@ -126,4 +128,19 @@ test('an empty session earns nothing and keeps no streak', () => {
   const s = summarise([empty, done], new Date('2026-09-21T20:00:00'));
   assert.equal(s.xp, workoutXp(done));
   assert.equal(s.streak, 1);
+});
+
+test('a plank is timed and is not cardio; a walk is timed and is', () => {
+  const groups = new Map([
+    ['plank', '복근'],
+    ['walk', '유산소'],
+    ['run', '유산소'],
+  ]);
+  const sets = [
+    { exercise_id: 'plank', duration_sec: 45 },
+    { exercise_id: 'walk', duration_sec: 600 },
+    { exercise_id: 'run', duration_sec: 1200 },
+    { exercise_id: 'gone', duration_sec: 30 },
+  ];
+  assert.equal(cardioSeconds(sets, (id) => groups.get(id)), 1800);
 });

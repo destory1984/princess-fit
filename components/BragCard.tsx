@@ -109,9 +109,10 @@ export const BragCard = forwardRef<View, Props>(function BragCard(
         new Date(workout.started_at).getDate() % (noYesterday ? CHEERS.length - 1 : CHEERS.length)
       ];
   // Only what was timed for breath. A plank is timed too, and 45 seconds of it
-  // was printed as 「유산소 45초」.
+  // was printed as 「유산소 45초」. A walk is timed the same way and is cardio,
+  // so the group decides, not how it is tracked.
   const cardioSec = items
-    .filter((i) => i.exercise?.track_type !== 'duration')
+    .filter((i) => i.exercise?.muscle_group === '유산소')
     .flatMap((i) => i.sets.filter((s) => s.done && !s.warmup))
     .reduce((sum, s) => sum + s.duration_sec, 0);
   const best = items

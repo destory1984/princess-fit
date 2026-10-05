@@ -50,6 +50,7 @@ const workout = (day: string): WorkoutFact => ({
   volume: 2000,
   durationSec: 0,
   distanceKm: 0,
+  cardioSec: 0,
 });
 
 test('sleep on training days is compared with sleep on rest days', () => {

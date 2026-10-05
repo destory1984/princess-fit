@@ -329,6 +329,11 @@ export default function ExerciseScreen() {
               )}
             </View>
             {!isCardio && (
+              <Text style={styles.statNote}>
+                1RM은 딱 한 번 들 수 있는 가장 무거운 무게예요. 기록한 세트의 무게와 횟수로 어림한 값이에요.
+              </Text>
+            )}
+            {!isCardio && (
               <View style={styles.metricRow}>
                 {(
                   [
@@ -469,6 +474,7 @@ const styles = StyleSheet.create({
   altName: { color: colors.text, fontSize: 15, fontWeight: '700' },
   altWhy: { color: colors.textDim, fontSize: 12, marginTop: 2 },
   statRow: { flexDirection: 'row', gap: spacing.md, marginBottom: spacing.sm },
+  statNote: { color: colors.textDim, fontSize: 11, lineHeight: 16, marginBottom: spacing.sm },
   stat: { flex: 1 },
   statValue: { color: colors.text, fontSize: 20, fontWeight: '800' },
   statLabel: { color: colors.textDim, fontSize: 12, marginTop: 2 },

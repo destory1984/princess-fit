@@ -31,6 +31,7 @@ function fact(partial: Partial<WorkoutFact> = {}): WorkoutFact {
     volume: 0,
     durationSec: 0,
     distanceKm: 0,
+    cardioSec: 0,
     ...partial,
   };
 }
@@ -39,7 +40,7 @@ test('showing up pays, and doing more pays more', () => {
   assert.equal(workoutGold(fact({ doneSets: 1 })), 78);
   assert.equal(workoutGold(fact({ doneSets: 12 })), 111);
   assert.equal(workoutGold(fact({ doneSets: 1, volume: 3000 })), 93);
-  assert.equal(workoutGold(fact({ durationSec: 1800 })), 105);
+  assert.equal(workoutGold(fact({ durationSec: 1800, cardioSec: 1800 })), 105);
 });
 
 test('a session with nothing done pays nothing', () => {

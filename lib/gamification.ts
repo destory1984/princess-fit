@@ -7,9 +7,29 @@ export type WorkoutFact = {
   groups: string[];
   doneSets: number;
   volume: number;
+  /** Everything timed, holds included. Gold, XP and "was anything done" read this. */
   durationSec: number;
   distanceKm: number;
+  /**
+   * The part of `durationSec` spent on 유산소 exercises. A plank is timed and
+   * is not cardio, so whatever says 「유산소 N분」 reads this instead.
+   */
+  cardioSec: number;
 };
+
+/**
+ * Seconds spent on 유산소 exercises. Decided by the exercise's group, not by
+ * how it is tracked: a plank and a walk are both entered as a time, and only
+ * one of them is cardio.
+ */
+export function cardioSeconds(
+  sets: { exercise_id: string; duration_sec: number }[],
+  groupOf: (exerciseId: string) => string | undefined
+) {
+  return sets
+    .filter((s) => groupOf(s.exercise_id) === '유산소')
+    .reduce((sum, s) => sum + s.duration_sec, 0);
+}
 
 // A set is the unit of effort; volume and time top it up so heavy or long
 // sessions count for more without letting either dominate.
@@ -174,7 +194,7 @@ export function evaluateBadges(workouts: WorkoutFact[], today = new Date()): Bad
   const count = workouts.length;
   const volume = workouts.reduce((s, w) => s + w.volume, 0);
   const km = workouts.reduce((s, w) => s + w.distanceKm, 0);
-  const hours = workouts.reduce((s, w) => s + w.durationSec, 0) / 3600;
+  const hours = workouts.reduce((s, w) => s + w.cardioSec, 0) / 3600;
   const best = longestStreak(workouts);
   const heaviest = Math.max(0, ...workouts.map((w) => w.volume));
   const coverage = bestWeeklyCoverage(workouts);

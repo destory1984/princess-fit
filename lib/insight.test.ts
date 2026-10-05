@@ -16,6 +16,7 @@ function on(daysAgo: number, over: Partial<WorkoutFact> = {}): WorkoutFact {
     volume: 2000,
     durationSec: 0,
     distanceKm: 0,
+    cardioSec: 0,
     ...over,
   };
 }
@@ -64,7 +65,7 @@ test('no cardio at all says zero rather than a vague nudge', () => {
 });
 
 test('plenty of cardio draws no comment', () => {
-  const runs = [0, 2, 4, 6].map((d) => on(d, { durationSec: 1_800, groups: ['유산소'] }));
+  const runs = [0, 2, 4, 6].map((d) => on(d, { durationSec: 1_800, cardioSec: 1_800, groups: ['유산소'] }));
   assert.ok(!ids(insightsFor(runs, TODAY)).includes('cardio'));
 });
 

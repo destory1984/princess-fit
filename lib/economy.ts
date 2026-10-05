@@ -240,8 +240,8 @@ function firstNightLine(workouts: WorkoutFact[], today: Date, girl?: string): st
   if (daysBetween(localDayKey(new Date(only.started_at)), localDayKey(today)) !== 1) return null;
   const what = only.groups.length
     ? only.groups.join(', ')
-    : only.durationSec > 0
-      ? `유산소 ${Math.round(only.durationSec / 60)}분`
+    : only.cardioSec > 0
+      ? `유산소 ${Math.round(only.cardioSec / 60)}분`
       : '운동';
   return voiceOf(girl).firstNight(only.doneSets > 0 ? `${what} ${only.doneSets}세트` : what);
 }

@@ -92,6 +92,7 @@ export function goldAfterSmallestFirstSession() {
     volume: 0,
     durationSec: 0,
     distanceKm: 0,
+    cardioSec: 0,
   };
   return STARTING_GOLD + workoutGold(smallest);
 }

@@ -13,6 +13,7 @@ function fact(day: string, extra: Partial<WorkoutFact> = {}): WorkoutFact {
     volume: 2000,
     durationSec: 0,
     distanceKm: 0,
+    cardioSec: 0,
     ...extra,
   };
 }
@@ -70,7 +71,7 @@ test('later sessions are not read into an earlier entry', () => {
 });
 
 test('cardio alone is written as minutes, not as zero sets', () => {
-  const run = fact('2026-09-23', { groups: [], doneSets: 0, volume: 0, durationSec: 1800 });
+  const run = fact('2026-09-23', { groups: [], doneSets: 0, volume: 0, durationSec: 1800, cardioSec: 1800 });
   const w = diaryFor(input(run), 'seora')!;
   assert.match(w, /유산소 30분/);
   assert.doesNotMatch(w, /세트/);

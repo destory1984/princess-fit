@@ -15,6 +15,7 @@ function session(day: Date, extra: Partial<WorkoutFact> = {}): WorkoutFact {
     volume: 3000,
     durationSec: 0,
     distanceKm: 0,
+    cardioSec: 0,
     ...extra,
   };
 }
@@ -86,7 +87,7 @@ function forced(girl: string, kind: FavourKind, facts: WorkoutFact[], today = we
 }
 
 test('리나: twenty minutes of cardio, counted in minutes', () => {
-  const f = forced('geumhwa', 'cardio', [session(at(2026, 9, 29), { durationSec: 900 }), session(at(2026, 9, 30, 8), { durationSec: 400 })]);
+  const f = forced('geumhwa', 'cardio', [session(at(2026, 9, 29), { durationSec: 900, cardioSec: 900 }), session(at(2026, 9, 30, 8), { durationSec: 400, cardioSec: 400 })]);
   assert.equal(f.target, 20);
   assert.equal(f.now, 21);
   assert.equal(f.done, true);
@@ -162,7 +163,7 @@ test('favours met are counted per week between one festival and the next', () =>
   for (let w = 0; w < 5; w++) {
     for (const off of [0, 2]) {
       const d = at(2026, 9, 1 + w * 7 + off);
-      facts.push(session(d, { doneSets: 8, durationSec: 1500 }));
+      facts.push(session(d, { doneSets: 8, durationSec: 1500, cardioSec: 1500 }));
     }
   }
   // From the August festival (29th) to September's (26th): the weeks of
@@ -173,7 +174,7 @@ test('favours met are counted per week between one festival and the next', () =>
 });
 
 test('a week is judged by whoever was there that week', () => {
-  const facts = [session(at(2026, 9, 22), { durationSec: 1500, doneSets: 8 }), session(at(2026, 9, 24), { durationSec: 1500, doneSets: 8 })];
+  const facts = [session(at(2026, 9, 22), { durationSec: 1500, cardioSec: 1500, doneSets: 8 }), session(at(2026, 9, 24), { durationSec: 1500, cardioSec: 1500, doneSets: 8 })];
   const asked: string[] = [];
   favoursMet(facts, at(2026, 8, 29, 12), at(2026, 9, 26, 12), (mondayIso) => {
     asked.push(mondayIso);
@@ -184,7 +185,7 @@ test('a week is judged by whoever was there that week', () => {
 
 test('the week just after a festival counts towards the next one', () => {
   // 28 Sep is the Monday after the September festival.
-  const facts = [session(at(2026, 9, 29), { durationSec: 1500, doneSets: 8 }), session(at(2026, 10, 1), { durationSec: 1500, doneSets: 8 })];
+  const facts = [session(at(2026, 9, 29), { durationSec: 1500, cardioSec: 1500, doneSets: 8 }), session(at(2026, 10, 1), { durationSec: 1500, cardioSec: 1500, doneSets: 8 })];
   const weeks: string[] = [];
   favoursMet(facts, at(2026, 9, 26, 12), at(2026, 10, 31, 12), (iso) => {
     weeks.push(iso);

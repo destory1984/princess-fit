@@ -85,9 +85,9 @@ export function describeContext(c: AdviceContext) {
     `오늘 운동: ${c.today.groups.join(', ') || '부위 미상'}`,
     `오늘 세트 ${c.today.doneSets}개, 총 무게 ${Math.round(c.today.volume).toLocaleString()}kg`,
   ];
-  if (c.today.durationSec > 0) {
+  if (c.today.cardioSec > 0) {
     lines.push(
-      `오늘 유산소 ${formatDuration(c.today.durationSec)}` +
+      `오늘 유산소 ${formatDuration(c.today.cardioSec)}` +
         (c.today.distanceKm > 0 ? `, ${formatKm(c.today.distanceKm)}km` : '')
     );
   }
@@ -242,7 +242,7 @@ export function localRuleAdvice(c: AdviceContext, girl?: string): string {
   if (c.today.volume > avgVolume * 1.3 && avgVolume > 0) return `${praise} ${say.heavy}`;
   if (c.today.doneSets < avgSets * 0.6 && avgSets > 0) return `${praise} ${say.short}`;
   if (untouched.length >= 3) return `${praise} ${say.untouched(untouched.slice(0, 2).join(', '))}`;
-  if (c.stats.stamina < 30 && c.today.durationSec === 0) return `${praise} ${say.cardio}`;
+  if (c.stats.stamina < 30 && c.today.cardioSec === 0) return `${praise} ${say.cardio}`;
   return `${praise} ${say.steady}`;
 }
 

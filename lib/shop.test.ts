@@ -43,6 +43,7 @@ const typical: WorkoutFact = {
   volume: 3000,
   durationSec: 0,
   distanceKm: 0,
+  cardioSec: 0,
 };
 
 // The shop is where you give her things, not a list to finish. A gift is

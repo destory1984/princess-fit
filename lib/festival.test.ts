@@ -48,6 +48,7 @@ function session(day: Date, extra: Partial<WorkoutFact> = {}): WorkoutFact {
     volume: 4000,
     durationSec: 600,
     distanceKm: 0,
+    cardioSec: 600,
     ...extra,
   };
 }

@@ -98,7 +98,7 @@ export function insightsFor(
     found.push(said('lopsided', 'watch', say.lopsided(top[0], Math.round((top[1] / total) * 100))));
   }
 
-  const cardioMinutes = Math.round(month.reduce((s, w) => s + w.durationSec, 0) / 60);
+  const cardioMinutes = Math.round(month.reduce((s, w) => s + w.cardioSec, 0) / 60);
   if (aMonthIn && cardioMinutes < 30) {
     found.push(said('cardio', 'watch', say.cardio(cardioMinutes)));
   }

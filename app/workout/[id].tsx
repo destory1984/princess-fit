@@ -1313,9 +1313,14 @@ export default function WorkoutScreen() {
               {!expanded ? null : (
                 <>
                   {track === "weight_reps" && top > 0 && (
-                    <Text style={styles.metrics}>
-                      최고 무게 {top}kg · 예상 1RM {oneRm}kg
-                    </Text>
+                    <>
+                      <Text style={styles.metrics}>
+                        최고 무게 {top}kg · 예상 1RM {oneRm}kg
+                      </Text>
+                      <Text style={styles.metricsNote}>
+                        1RM은 딱 한 번 들 수 있는 가장 무거운 무게예요.
+                      </Text>
+                    </>
                   )}
                   {isRecord && (
                     <View style={styles.record}>
@@ -1914,6 +1919,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     fontWeight: "600",
   },
+  metricsNote: { color: colors.textDim, fontSize: 11, marginTop: 2 },
   record: {
     flexDirection: "row",
     alignItems: "center",
