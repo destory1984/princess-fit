@@ -25,15 +25,14 @@ test('an exercise made by hand has no drawing', () => {
   assert.equal(moveOf('한발 데드'), undefined);
 });
 
-test('a movement drawn in five frames plays all five', () => {
+test('a movement drawn in more than three frames plays them all', () => {
   // The burpee: standing, hands down, plank, push-up — then back up through
-  // the plank and the crouch before the jump, and round again.
+  // the plank and the crouch, gathering, the jump, the landing, and round again.
   const burpee = moveOf('버피')!;
-  assert.equal(burpee.frames, 5);
-  assert.deepEqual(
-    [0, 1, 2, 3, 4, 5, 6, 7, 8].map((t) => frameAt(burpee, t)),
-    [0, 1, 2, 3, 2, 1, 4, 0, 1],
-  );
+  assert.equal(burpee.frames, 7);
+  const played = Array.from({ length: 10 }, (_, t) => frameAt(burpee, t));
+  assert.deepEqual(played, [0, 1, 2, 3, 2, 1, 5, 4, 6, 0]);
+  assert.deepEqual([...new Set(played)].sort(), [0, 1, 2, 3, 4, 5, 6]);
   // One that goes there and back would not rest twice on either end.
   const five = { id: 'made-up', frames: 5 as const };
   assert.deepEqual([0, 1, 2, 3, 4, 5, 6, 7, 8].map((t) => frameAt(five, t)), [0, 1, 2, 3, 4, 3, 2, 1, 0]);

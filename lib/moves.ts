@@ -12,7 +12,7 @@
  * The pictures themselves are in `./moveArt`, kept apart so this stays plain
  * data the tests can import without a bundler.
  */
-export type Move = { id: string; frames: 1 | 3 | 5 };
+export type Move = { id: string; frames: 1 | 3 | 5 | 7 };
 
 const MOVES: Record<string, Move> = {
   스쿼트: { id: 'squat', frames: 3 },
@@ -71,7 +71,7 @@ const MOVES: Record<string, Move> = {
   '점프 스쿼트': { id: 'jump_squat', frames: 3 },
   '덩키 킥': { id: 'donkey_kick', frames: 3 },
   // Five: standing, hands down, plank, the push-up, the jump. In three it stopped at the plank.
-  버피: { id: 'burpee', frames: 5 },
+  버피: { id: 'burpee', frames: 7 },
   '맨몸 스쿼트': { id: 'bodyweight_squat', frames: 3 },
   '니 푸시업': { id: 'knee_push_up', frames: 3 },
   '사이드 플랭크': { id: 'side_plank', frames: 1 },
@@ -97,10 +97,11 @@ const ROUND = new Set(['running', 'walking', 'cycling', 'jump_rope', 'stair_clim
  * drawn as stand · crouch · plank · push-up · jump and played straight through
  * went from lying on the floor to mid-air: the way back up was never shown.
  * It is the same two drawings in reverse, so they are shown again rather than
- * drawn again.
+ * drawn again. The gathering before the jump (5) and the landing (6) were drawn
+ * later and sit at the end of the strip, after the jump (4).
  */
 const ORDER: Record<string, number[]> = {
-  burpee: [0, 1, 2, 3, 2, 1, 4],
+  burpee: [0, 1, 2, 3, 2, 1, 5, 4, 6],
 };
 
 /**
