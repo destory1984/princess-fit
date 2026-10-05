@@ -25,7 +25,7 @@ export function StatBar({ icon, name, value }: Props) {
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  name: { color: paper.ink, fontSize: 15, fontWeight: '700', width: 46 },
+  name: { color: paper.ink, fontSize: 15, fontWeight: '700', width: 54 },
   track: { flex: 1, flexDirection: 'row', gap: 2 },
   cell: { flex: 1, height: 12, backgroundColor: paper.track, borderRadius: 1 },
   cellOn: { backgroundColor: paper.fill },

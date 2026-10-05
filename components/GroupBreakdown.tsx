@@ -38,7 +38,7 @@ export function GroupBreakdown({ totals }: { totals: GroupTotal[] }) {
 const styles = StyleSheet.create({
   wrap: { gap: spacing.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  name: { color: colors.text, fontSize: 15, fontWeight: '700', width: 40 },
+  name: { color: colors.text, fontSize: 15, fontWeight: '700', width: 52 },
   track: { flex: 1, height: 14, borderRadius: 3, backgroundColor: colors.surfaceAlt },
   fill: { height: 14, borderRadius: 3 },
   value: { color: colors.text, fontSize: 14, fontWeight: '700', width: 66, textAlign: 'right' },

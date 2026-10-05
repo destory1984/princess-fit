@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
   change: { color: colors.accent, fontSize: 15, fontWeight: '700' },
   changeQuiet: { color: colors.textDim, fontSize: 14, lineHeight: 21 },
   field: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  fieldLabel: { color: colors.text, fontSize: 16, fontWeight: '600', width: 64 },
+  fieldLabel: { color: colors.text, fontSize: 16, fontWeight: '600', width: 76 },
   input: {
     flex: 1,
     backgroundColor: paper.bgAlt,
