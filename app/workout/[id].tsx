@@ -968,7 +968,7 @@ export default function WorkoutScreen() {
       const earned = await payUnpaidWorkouts().catch(() => 0);
       await forgetAdvice(id);
       await clearSavedAdvice(id).catch(() => {});
-      if (earned) notify(`+${earned} G`, "채워 넣은 운동의 골드가 들어왔어요.");
+      if (earned) notify("골드가 들어왔어요", `채워 넣은 운동으로 ${earned}G를 받았어요.`);
       router.replace({ pathname: "/summary/[id]", params: { id } });
     } catch (e: any) {
       notify("저장 실패", explain(e));

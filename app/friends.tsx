@@ -70,7 +70,7 @@ export default function FriendsScreen() {
         setFriends(list);
         const arrived = await collectGifts().catch(() => []);
         if (arrived.length) {
-          notify(`+${arrivedTotal(arrived)} G`, arrivedLines(arrived).join('\n'));
+          notify(`친구에게서 골드 ${arrivedTotal(arrived)}G가 왔어요`, arrivedLines(arrived).join('\n'));
         }
       })
       .catch((e) => setError(explain(e)));
