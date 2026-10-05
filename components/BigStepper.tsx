@@ -102,7 +102,7 @@ export function BigStepper({
               hitSlop={4}
               onPress={() => set(value + amount)}
             >
-              <Text style={styles.buttonText} numberOfLines={1}>
+              <Text style={styles.buttonText} numberOfLines={1} allowFontScaling={false}>
                 {label(amount)}
               </Text>
             </Pressable>

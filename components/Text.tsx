@@ -32,12 +32,20 @@ function sized<S extends TextStyle>(style: unknown, percent: number, nested: boo
   if (typeof flat.fontSize === 'number') next.fontSize = scaledSize(flat.fontSize, percent);
   else if (!nested) next.fontSize = scaledSize(UNSIZED, percent);
   if (typeof flat.lineHeight === 'number') next.lineHeight = scaledSize(flat.lineHeight, percent);
+  // A label given a width is a column: 「포만감」 at 44 points wide. Left at 44
+  // while its letters grew, it broke onto two lines at 125%.
+  if (typeof flat.width === 'number') next.width = scaledSize(flat.width, percent);
+  if (typeof flat.minWidth === 'number') next.minWidth = scaledSize(flat.minWidth, percent);
   return next as S;
 }
 
 export function Text({ style, ...rest }: TextProps) {
-  const percent = useTextScale();
+  const chosen = useTextScale();
   const nested = useContext(Inside);
+  // `allowFontScaling={false}` is the way out, as it is for the system's own
+  // setting: for words inside a button of fixed size (−2.5 on a 36-point
+  // stepper), where growing the letters only cuts them off.
+  const percent = rest.allowFontScaling === false ? 100 : chosen;
   return (
     <Inside.Provider value={true}>
       <PlainText {...rest} style={sized(style, percent, nested)} />

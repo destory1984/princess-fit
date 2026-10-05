@@ -244,7 +244,9 @@ export function SetCard({
         </Pressable>
         <Pressable style={styles.remove} onPress={onRemove}>
           <Ionicons name="trash-outline" size={18} color={colors.danger} />
-          <Text style={styles.removeText}>세트 삭제</Text>
+          <Text style={styles.removeText} numberOfLines={1} allowFontScaling={false}>
+            세트 삭제
+          </Text>
         </Pressable>
       </View>
     </Animated.View>

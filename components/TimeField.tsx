@@ -29,7 +29,7 @@ export function TimeField({ label, value, onChange }: Props) {
       <View style={styles.buttons}>
         {[-60, -10, 10, 60].map((delta) => (
           <Pressable key={delta} style={styles.button} hitSlop={4} onPress={() => shift(delta)}>
-            <Text style={styles.buttonText} numberOfLines={1}>
+            <Text style={styles.buttonText} numberOfLines={1} allowFontScaling={false}>
               {delta < 0 ? '−' : '+'}
               {Math.abs(delta) === 60 ? '1시간' : `${Math.abs(delta)}분`}
             </Text>
