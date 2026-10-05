@@ -57,14 +57,14 @@ import {
   DEFAULT_REST_SEC,
   REST_GRAIN,
   setExerciseRest,
-  type ExerciseHistoryPoint,
+  type LastPerformance,
 } from "@/lib/db";
 import type { Exercise, Workout, WorkoutSet } from "@/lib/types";
 import { followOn, planFor, settle } from "@/lib/setPlan";
 import {
   applyLabel,
   progressWord,
-  readiness,
+  earned,
   RIR_CHOICES,
   RIR_QUESTION,
 } from "@/lib/progress";
@@ -121,7 +121,7 @@ export default function WorkoutScreen() {
   const [workout, setWorkout] = useState<Workout | null>(null);
   const [sets, setSets] = useState<WorkoutSet[]>([]);
   const [exercises, setExercises] = useState<Exercise[]>([]);
-  const [last, setLast] = useState<Map<string, ExerciseHistoryPoint>>(
+  const [last, setLast] = useState<Map<string, LastPerformance>>(
     new Map(),
   );
   const [bests, setBests] = useState<Map<string, number>>(new Map());
@@ -1371,7 +1371,8 @@ export default function WorkoutScreen() {
                     // last time implied: 「22.5kg 어떠세요?」 stayed up over
                     // three sets at 10kg with the reps falling.
                     if (exDone.some((s) => !s.warmup)) return null;
-                    const read = previous ? readiness(previous.sets) : null;
+                    // Over a month, not over one session (`earned`).
+                    const read = previous ? earned(previous.recent, new Date(now)) : null;
                     // Whether they answered last time, so she can speak as
                     // someone who was told rather than someone who guessed.
                     const told =

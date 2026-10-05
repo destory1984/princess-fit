@@ -1265,8 +1265,16 @@ export async function getExerciseHistory(exerciseId: string, limit = 30) {
   return groupHistory(data as unknown as HistoryRow[]).slice(-limit);
 }
 
+/**
+ * The last session of an exercise, and with it the sessions before, oldest
+ * first and ending with that same last one. Whether more weight has been
+ * earned is a question about a month (lib/progress.ts), and the rows were
+ * already being fetched to find the latest.
+ */
+export type LastPerformance = ExerciseHistoryPoint & { recent: ExerciseHistoryPoint[] };
+
 export async function getLastPerformance(exerciseIds: string[], excludeWorkoutId?: string) {
-  const result = new Map<string, ExerciseHistoryPoint>();
+  const result = new Map<string, LastPerformance>();
   if (exerciseIds.length === 0) return result;
 
   let recentQuery = supabase
@@ -1297,8 +1305,9 @@ export async function getLastPerformance(exerciseIds: string[], excludeWorkoutId
     byExercise.set(row.exercise_id, list);
   }
   for (const [exerciseId, rows] of byExercise) {
-    const latest = groupHistory(rows).at(-1);
-    if (latest) result.set(exerciseId, latest);
+    const recent = groupHistory(rows);
+    const latest = recent.at(-1);
+    if (latest) result.set(exerciseId, { ...latest, recent });
   }
   return result;
 }

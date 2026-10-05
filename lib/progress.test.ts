@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { COLLAPSE, MIN_SETS, RIR_CHOICES, applyLabel, progressWord, readiness } from './progress.ts';
+import { COLLAPSE, MIN_SETS, RIR_CHOICES, applyLabel, earned, progressWord, readiness } from './progress.ts';
 import { nextWeight, PLATE_THRESHOLD } from './weight.ts';
 
 const set = (weight_kg: number, reps: number) => ({ weight_kg, reps });
@@ -232,4 +232,43 @@ test('a session abandoned partway is read off the arm that finished', () => {
     { weight_kg: 20, reps: 10, side: 'L' },
   ]);
   assert.equal(stopped?.verdict, 'add');
+});
+
+test('more weight is earned over a month at the weight, not in one good session', () => {
+  const steady = [set(10, 12), set(10, 12), set(10, 12)];
+  const on = (date: string, sets = steady) => ({ date: `${date}T19:00:00`, sets });
+  const now = new Date('2026-10-06T19:00:00');
+
+  // One good session, or a good fortnight, says nothing.
+  assert.equal(earned([on('2026-10-04')], now)!.verdict, 'hold');
+  assert.equal(
+    earned([on('2026-09-24'), on('2026-09-27'), on('2026-10-01'), on('2026-10-04')], now)!.verdict,
+    'hold',
+  );
+  // A month ago, but only three visits since: not 「꾸준히」.
+  assert.equal(earned([on('2026-09-01'), on('2026-09-20'), on('2026-10-04')], now)!.verdict, 'hold');
+
+  // A month at 10kg, once a week, every session held to the last set.
+  const month = [on('2026-09-06'), on('2026-09-13'), on('2026-09-20'), on('2026-09-27'), on('2026-10-04')];
+  const up = earned(month, now)!;
+  assert.equal(up.verdict, 'add');
+  assert.equal(up.from, 10);
+  assert.match(progressWord(up)!, /한 달 넘게 10kg/);
+
+  // The month is counted at this weight: going up three weeks ago starts it again.
+  const lighter = [set(9, 12), set(9, 12), set(9, 12)];
+  assert.equal(
+    earned([on('2026-08-30', lighter), on('2026-09-06', lighter), ...month.slice(2)], now)!.verdict,
+    'hold',
+  );
+  // One of the last three fell away: not yet.
+  const fell = [set(10, 12), set(10, 10), set(10, 8)];
+  assert.equal(earned([...month.slice(0, 3), on('2026-09-27', fell), on('2026-10-04')], now)!.verdict, 'hold');
+});
+
+test('coming down is not made to wait a month', () => {
+  const collapsed = [set(60, 10), set(60, 8), set(60, 4)];
+  const read = earned([{ date: '2026-10-04T19:00:00', sets: collapsed }], new Date('2026-10-06T19:00:00'))!;
+  assert.equal(read.verdict, 'ease');
+  assert.equal(earned([], new Date()), null);
 });

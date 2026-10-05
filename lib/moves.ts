@@ -81,6 +81,26 @@ const MOVES: Record<string, Move> = {
   '덤벨 고블릿 스쿼트': { id: 'goblet_squat', frames: 3 },
   '아놀드 프레스': { id: 'arnold_press', frames: 3 },
   '케이블 컬': { id: 'cable_curl', frames: 3 },
+  '덤벨 플라이': { id: 'dumbbell_fly', frames: 3 },
+  슈러그: { id: 'shrug', frames: 3 },
+  '스컬 크러셔': { id: 'skull_crusher', frames: 3 },
+  '바이시클 크런치': { id: 'bicycle_crunch', frames: 3 },
+  일립티컬: { id: 'elliptical', frames: 3 },
+  '덤벨 루마니안 데드리프트': { id: 'dumbbell_rdl', frames: 3 },
+  '워킹 런지': { id: 'walking_lunge', frames: 3 },
+  '리버스 런지': { id: 'reverse_lunge', frames: 3 },
+  '핵 스쿼트': { id: 'hack_squat', frames: 3 },
+  '시티드 레그 컬': { id: 'seated_leg_curl', frames: 3 },
+  '업라이트 로우': { id: 'upright_row', frames: 3 },
+  '프리처 컬': { id: 'preacher_curl', frames: 3 },
+  '트라이셉스 킥백': { id: 'triceps_kickback', frames: 3 },
+  '벤치 딥스': { id: 'bench_dips', frames: 3 },
+  '케이블 크런치': { id: 'cable_crunch', frames: 3 },
+  '리버스 크런치': { id: 'reverse_crunch', frames: 3 },
+  슈퍼맨: { id: 'superman', frames: 3 },
+  '하이 니': { id: 'high_knees', frames: 3 },
+  '박스 점프': { id: 'box_jump', frames: 3 },
+  '덤벨 스러스터': { id: 'thruster', frames: 3 },
 };
 
 /** The movement drawn for an exercise of this name, if one was. */
@@ -90,7 +110,15 @@ export function moveOf(name: string): Move | undefined {
 
 export const MOVE_NAMES = Object.keys(MOVES);
 
-const ROUND = new Set(['running', 'walking', 'cycling', 'jump_rope', 'stair_climb']);
+const ROUND = new Set([
+  'running',
+  'walking',
+  'cycling',
+  'jump_rope',
+  'stair_climb',
+  'elliptical',
+  'high_knees',
+]);
 
 /**
  * Movements whose frames are not played in the order they were drawn. A burpee

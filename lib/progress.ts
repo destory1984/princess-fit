@@ -150,6 +150,57 @@ export function readiness(sets: PastSet[]): Readiness | null {
   return { verdict: 'hold', weight: working, from: working };
 }
 
+/** A month, and a session a week through it: what 「꾸준히」 means here. */
+export const EARN_DAYS = 28;
+export const EARN_SESSIONS = 4;
+/** How many of the latest sessions must each have held up to the last set. */
+export const EARN_STEADY = 3;
+
+/** The heaviest working set of a session, or 0 when nothing was weighted. */
+export function workingWeight(sets: PastSet[]) {
+  return Math.max(0, ...sets.filter((s) => !s.warmup && s.reps > 0).map((s) => s.weight_kg));
+}
+
+/**
+ * Whether the time at this weight has earned the next one.
+ *
+ * `readiness` reads one session, and one good session is not a reason to add
+ * weight. From the person this is built for: 「무게를 한 번 올리려면 상당히 많은
+ * 시간이 필요해. 함부로 올리라고 하지 마. 꾸준히 했을 때 한 달에 한 번 정도나
+ * 될까」. So going up is said only when the same working weight has been held
+ * for a month, in at least four sessions, and the latest three each held up to
+ * their last set. Anything short of that is 「hold」, which is silent.
+ *
+ * Coming down is not made to wait: a weight that collapsed last time is too
+ * heavy today, not in a month.
+ *
+ * `sessions` are this exercise's, oldest first, the last being the one before
+ * today. A window that does not reach back a month cannot show one, and so
+ * never says 「add」 — which is the right way round to be wrong.
+ */
+export function earned(
+  sessions: { date: string; sets: PastSet[] }[],
+  now: Date
+): Readiness | null {
+  const latest = sessions[sessions.length - 1];
+  if (!latest) return null;
+  const read = readiness(latest.sets);
+  if (!read || read.verdict !== 'add') return read;
+
+  const hold: Readiness = { verdict: 'hold', weight: read.from, from: read.from };
+  // The unbroken run of sessions at this weight, back from the latest.
+  const run: typeof sessions = [];
+  for (let i = sessions.length - 1; i >= 0; i -= 1) {
+    if (workingWeight(sessions[i].sets) !== read.from) break;
+    run.unshift(sessions[i]);
+  }
+  if (run.length < EARN_SESSIONS) return hold;
+  const held = (now.getTime() - new Date(run[0].date).getTime()) / 86_400_000;
+  if (held < EARN_DAYS) return hold;
+  const steady = run.slice(-EARN_STEADY).every((s) => readiness(s.sets)?.verdict === 'add');
+  return steady ? read : hold;
+}
+
 /**
  * Her line about it, or null when there is nothing worth interrupting for.
  *
@@ -169,11 +220,14 @@ export function progressWord(
   // someone who answered the question reads as not having been listened to.
   if (said) {
     return verdict === 'add'
-      ? `지난번에 여유가 있으셨다니, 오늘 ${weight}kg 어떠세요?`
+      ? `한 달 넘게 ${from}kg에 여유가 있으셨다니, 이제 ${weight}kg을 한 번 얹어 봐도 좋겠어요.`
       : `지난번에 꽉 채우셨죠. ${weight}kg으로 내려도 괜찮아요.`;
   }
+  // Going up is only ever said after a month at the weight (`earned`), so the
+  // sentence says the month: it is the reason, and 「오늘 어떠세요?」 made a
+  // slow thing sound like a whim.
   return verdict === 'add'
-    ? `지난번 마지막 세트까지 버티셨어요. 오늘 ${weight}kg 어떠세요?`
+    ? `한 달 넘게 ${from}kg을 끝까지 버티셨어요. 이제 ${weight}kg을 한 번 얹어 봐도 좋겠어요.`
     : `지난번 뒤로 갈수록 힘들어 보였어요. ${weight}kg으로 내려도 괜찮아요.`;
 }
 
