@@ -101,6 +101,14 @@ const MOVES: Record<string, Move> = {
   '하이 니': { id: 'high_knees', frames: 3 },
   '박스 점프': { id: 'box_jump', frames: 3 },
   '덤벨 스러스터': { id: 'thruster', frames: 3 },
+  '디클라인 벤치프레스': { id: 'decline_bench_press', frames: 3 },
+  '케이블 킥백': { id: 'cable_kickback', frames: 3 },
+  '디클라인 푸시업': { id: 'decline_push_up', frames: 3 },
+  '클로즈 그립 벤치프레스': { id: 'close_grip_bench_press', frames: 3 },
+  '벤트오버 덤벨 로우': { id: 'bent_over_dumbbell_row', frames: 3 },
+  '컨센트레이션 컬': { id: 'concentration_curl', frames: 3 },
+  데드버그: { id: 'dead_bug', frames: 3 },
+  버드독: { id: 'bird_dog', frames: 3 },
 };
 
 /** The movement drawn for an exercise of this name, if one was. */
