@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { insertWorkoutSet, updateWorkoutSet } from './db';
 import {
   drain,
+  inOrder,
   mergedPatch,
   parse,
   queue,
@@ -25,6 +26,9 @@ let cache: PendingWrite[] | null = null;
 // One flush at a time. Two would replay the same edits against each other,
 // and the loser would put an already-settled write back on the queue.
 let flushing: Promise<void> | null = null;
+
+// Two edits of one set must reach the server in the order they were made.
+const perSet = inOrder();
 
 const listeners = new Set<(pending: PendingWrite[]) => void>();
 
@@ -65,11 +69,11 @@ export function watchPending(listener: (pending: PendingWrite[]) => void) {
  * Returns whether it landed. The caller uses that to decide what to say — not
  * whether to keep the number, which is kept either way.
  */
-export async function saveSet(
-  setId: string,
-  patch: SetPatch,
-  row?: NewSetRow
-): Promise<boolean> {
+export function saveSet(setId: string, patch: SetPatch, row?: NewSetRow): Promise<boolean> {
+  return perSet(setId, () => saveNow(setId, patch, row));
+}
+
+async function saveNow(setId: string, patch: SetPatch, row?: NewSetRow): Promise<boolean> {
   const waiting = await read();
   // A set still waiting to be created is written by creating it, not by
   // updating a row the server has never heard of.

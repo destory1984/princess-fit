@@ -238,3 +238,26 @@ export function parse(raw: string | null): PendingWrite[] {
     return [];
   }
 }
+
+/**
+ * Writes for one key go out one at a time, in the order they were asked for.
+ *
+ * +10 pressed twice in a row sent 「10kg」 and 「20kg」 side by side, and nothing
+ * says which the server hears last. When it was the first, the screen said 20
+ * and the record said 10 — found by pressing the button twice on a test
+ * account (2026-10-06). Different keys do not wait for each other.
+ */
+export function inOrder() {
+  const tails = new Map<string, Promise<unknown>>();
+  return function run<T>(key: string, task: () => Promise<T>): Promise<T> {
+    const before = tails.get(key) ?? Promise.resolve();
+    // A write that failed is no reason to hold up the one after it.
+    const mine = before.then(task, task);
+    const tail = mine.catch(() => undefined);
+    tails.set(key, tail);
+    void tail.then(() => {
+      if (tails.get(key) === tail) tails.delete(key);
+    });
+    return mine;
+  };
+}

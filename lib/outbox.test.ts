@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   drain,
+  inOrder,
   MAX_PENDING,
   mergedPatch,
   overlay,
@@ -194,4 +195,30 @@ test('a half-written row in storage is dropped, not retried forever', () => {
   // flush for as long as the app is installed.
   const bad = JSON.stringify([{ setId: 'new1', patch: {}, at: NOW, row: { id: 'new1' } }]);
   assert.deepEqual(parse(bad), []);
+});
+
+test('two edits of one set land in the order they were made, however slow the first', async () => {
+  const run = inOrder();
+  const server: number[] = [];
+  const send = (kg: number, ms: number) => () =>
+    new Promise<void>((done) => setTimeout(() => (server.push(kg), done()), ms));
+  // 10kg takes longer on the wire than 20kg. Side by side, the record ends at 10.
+  await Promise.all([run('a', send(10, 30)), run('a', send(20, 1))]);
+  assert.deepEqual(server, [10, 20]);
+});
+
+test('another set does not wait, and a failed write does not block the next', async () => {
+  const run = inOrder();
+  const order: string[] = [];
+  const slow = run('a', () => new Promise<void>((done) => setTimeout(() => (order.push('a'), done()), 30)));
+  const other = run('b', async () => void order.push('b'));
+  await other;
+  assert.deepEqual(order, ['b']);
+  await slow;
+  const failed = run('a', async () => {
+    throw new Error('no signal');
+  });
+  const after = run('a', async () => 'sent');
+  await assert.rejects(failed);
+  assert.equal(await after, 'sent');
 });
