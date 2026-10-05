@@ -227,7 +227,9 @@ export function localRuleAdvice(c: AdviceContext, girl?: string): string {
     const what = c.today.groups.length
       ? `${withParticle(c.today.groups.join(', '), '을/를')} ${c.today.doneSets}세트`
       : `${c.today.doneSets}세트`;
-    return `${praise} ${say.firstTime(what)}`;
+    // Without the praise: it opens 「오늘도 기록을 남겼네요」, and on the first
+    // session there has ever been there is no 「도」.
+    return say.firstTime(what);
   }
 
   const avgVolume = averageOf(past.map((w) => w.volume));

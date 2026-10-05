@@ -147,7 +147,10 @@ function pia(seen: Seen, today: Date): string | null {
 
   if (last) {
     const top = last.lifts.reduce((a, b) => (b.kg > a.kg ? b : a));
-    return `지난번 ${top.exercise} ${kg(top.kg)}이었죠? 오늘은 ${kg(nextWeight(top.kg, 1))} 도전!`;
+    // After today's session 「지난번」 is this morning and 「오늘은」 is already done.
+    return localDayKey(new Date(last.started_at)) === key
+      ? `오늘 ${top.exercise} ${kg(top.kg)} 했죠? 다음엔 ${kg(nextWeight(top.kg, 1))} 도전!`
+      : `지난번 ${top.exercise} ${kg(top.kg)}이었죠? 오늘은 ${kg(nextWeight(top.kg, 1))} 도전!`;
   }
   return null;
 }

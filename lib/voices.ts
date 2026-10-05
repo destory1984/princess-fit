@@ -27,6 +27,9 @@ import type { FavourKind } from './favour.ts';
 
 export type VoiceId = 'geumhwa' | 'dohwa' | 'seora';
 
+/** The kinds of movement the exercise screen has a line for. */
+export type TipKind = 'compound' | 'cardio' | 'hold' | 'machine' | 'abs' | 'other';
+
 type MoodLines = Record<Mood, string[]>;
 type AboutYou = Pick<MoodLines, 'happy' | 'fine' | 'lonely'>;
 
@@ -177,6 +180,12 @@ export type Voice = {
    * the number, 유키 at the record. Only what the app recorded.
    */
   firstNight: (what: string) => string;
+  /**
+   * One line on the exercise screen, chosen by what kind of movement it is
+   * (lib/exerciseCopy.ts). It was one sentence for all three, in a voice that
+   * was nobody's, printed under whichever name was there.
+   */
+  tip: Record<TipKind, string>;
 };
 
 const rina: Voice = {
@@ -370,6 +379,14 @@ const rina: Voice = {
     done: '다 끝냈어요! 오늘 정말 잘하셨어요.',
   },
   firstNight: (what) => `어제 ${what}, 적어 뒀어요. 오늘은 좀 뻐근할 텐데, 그게 한 만큼이에요.`,
+  tip: {
+    compound: '무거운 운동이에요. 무게를 올리기 전에 빈 봉으로 자세부터 익혀요.',
+    cardio: '숨이 조금 찰 정도가 좋아요. 대화가 아예 안 되면 너무 빠른 거예요.',
+    hold: '시간을 늘리기보다 자세가 무너지지 않는 데까지만 버티세요. 그걸로 충분해요.',
+    machine: '의자와 패드 높이부터 몸에 맞춰요. 그것만으로 자극이 달라져요.',
+    abs: '반동으로 올리지 마세요. 느리게 할수록 잘 들어요.',
+    other: '들어 올릴 때보다 내릴 때를 더 천천히 해요. 거기서 근육이 자라요.',
+  },
 };
 
 const pia: Voice = {
@@ -554,6 +571,14 @@ const pia: Voice = {
     done: '다 했어요! 오늘은 우리가 이겼어요!',
   },
   firstNight: (what) => `어제 ${what}! 그게 첫 기록이에요. 다음엔 그 숫자부터 넘어 봐요!`,
+  tip: {
+    compound: '숫자가 제일 크게 오르는 운동이에요! 그래도 처음엔 빈 봉으로 자세부터!',
+    cardio: '숨이 조금 찰 정도가 딱이에요! 대화가 아예 안 되면 너무 빠른 거예요!',
+    hold: '초를 늘리는 건 다음에! 자세가 무너지기 전까지만 버티세요!',
+    machine: '의자랑 패드 높이부터 맞춰요! 맞추고 나면 같은 무게가 다르게 느껴져요!',
+    abs: '반동은 반칙이에요! 느리게 할수록 잘 들어요!',
+    other: '올릴 때보다 내릴 때를 더 천천히! 거기서 근육이 자라요!',
+  },
 };
 
 const yuki: Voice = {
@@ -759,6 +784,14 @@ const yuki: Voice = {
     done: '다 마쳤어요. 수고했어요.',
   },
   firstNight: (what) => `어제 ${what}, 기록해 두었습니다. 다음에 견줄 기준이 생겼습니다.`,
+  tip: {
+    compound: '무거운 운동입니다. 무게를 올리기 전에 빈 봉으로 자세부터 익히십시오.',
+    cardio: '숨이 조금 찰 정도가 적당합니다. 대화가 아예 불가능하면 너무 빠른 것입니다.',
+    hold: '시간을 늘리기보다 자세가 무너지지 않는 데까지만 버티십시오.',
+    machine: '의자와 패드 높이부터 몸에 맞추십시오. 그것만으로 자극이 달라집니다.',
+    abs: '반동으로 올리지 마십시오. 느리게 할수록 잘 듣습니다.',
+    other: '들어 올릴 때보다 내릴 때를 더 천천히 하십시오. 거기서 근육이 자랍니다.',
+  },
 };
 
 export const VOICES: Record<VoiceId, Voice> = { geumhwa: rina, dohwa: pia, seora: yuki };

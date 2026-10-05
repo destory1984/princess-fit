@@ -301,6 +301,7 @@ export default function SummaryScreen() {
         fact={fact}
         summary={summary}
         worn={ledger ? adorned(ledger.worn, ledger.wardrobe) : []}
+        first={isFirst}
       />
 
       {/* On the first day her entry is at the top, large; not said twice. */}

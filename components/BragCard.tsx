@@ -23,6 +23,8 @@ type Props = {
   summary: ReturnType<typeof summarise>;
   /** What she has on, so the card shows the girl as she is today. */
   worn?: string[];
+  /** The first session there has ever been. */
+  first?: boolean;
 };
 
 /**
@@ -33,7 +35,7 @@ type Props = {
  * on the bench without finishing a workout first.
  */
 export const BragCard = forwardRef<View, Props>(function BragCard(
-  { workout, items, fact, summary, worn = [] },
+  { workout, items, fact, summary, worn = [], first = false },
   ref
 ) {
   const girl = useGirl();
@@ -96,8 +98,11 @@ export const BragCard = forwardRef<View, Props>(function BragCard(
 
   // Nothing done is not a win over yesterday, so it is not called one.
   const empty = isEmptyWorkout(fact);
+  // Nor is the first day: there was no yesterday to beat, and no 「오늘도」.
   const cheer = empty
     ? '적힌 세트가 없어요'
+    : first
+    ? '첫 기록을 남겼다'
     : CHEERS[new Date(workout.started_at).getDate() % CHEERS.length];
   const best = items
     .filter((i) => i.topWeight > 0)

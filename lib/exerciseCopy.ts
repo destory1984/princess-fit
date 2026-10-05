@@ -1,4 +1,5 @@
 import type { Exercise } from './types.ts';
+import { voiceOf, type TipKind } from './voices.ts';
 
 type Described = Pick<
   Exercise,
@@ -46,22 +47,17 @@ export function introOf(e: Described) {
 
 const COMPOUND = ['데드리프트', '스쿼트', '벤치프레스', '오버헤드 프레스', '바벨 로우', '풀업'];
 
-/** A short coaching line, chosen by what kind of movement it is. */
-export function coachTipOf(e: Described) {
-  if (COMPOUND.some((c) => e.name.includes(c))) {
-    return '무거운 운동입니다. 무게를 올리기 전에 빈 봉으로 자세부터 익히세요.';
-  }
-  if (e.track_type === 'cardio' || e.track_type === 'floors') {
-    return '숨이 조금 찰 정도가 좋습니다. 대화가 아예 불가능하면 너무 빠른 것입니다.';
-  }
-  if (e.track_type === 'duration') {
-    return '시간을 늘리기보다 자세가 무너지지 않는 데까지만 버티세요.';
-  }
-  if (e.equipment === '머신') {
-    return '의자와 패드 높이부터 몸에 맞추세요. 그것만으로 자극이 달라집니다.';
-  }
-  if (e.muscle_group === '복근') {
-    return '반동으로 올리지 마세요. 느리게 할수록 잘 듣습니다.';
-  }
-  return '들어 올릴 때보다 내릴 때를 더 천천히 하세요. 거기서 근육이 자랍니다.';
+/** Which of her lines fits: decided by what kind of movement it is. */
+export function tipKindOf(e: Described): TipKind {
+  if (COMPOUND.some((c) => e.name.includes(c))) return 'compound';
+  if (e.track_type === 'cardio' || e.track_type === 'floors') return 'cardio';
+  if (e.track_type === 'duration') return 'hold';
+  if (e.equipment === '머신') return 'machine';
+  if (e.muscle_group === '복근') return 'abs';
+  return 'other';
+}
+
+/** A short coaching line, in the voice of whoever is beside you. */
+export function coachTipOf(e: Described, girl?: string) {
+  return voiceOf(girl).tip[tipKindOf(e)];
 }

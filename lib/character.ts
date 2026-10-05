@@ -77,6 +77,9 @@ export function computeStats(workouts: WorkoutFact[], today = new Date()): Stats
 
 export type Archetype = { name: string; detail: string };
 
+/** Below this, the highest stat is not yet a direction. */
+export const UNDECIDED_BELOW = 50;
+
 export function archetypeOf(stats: Stats): Archetype {
   const entries = STAT_ORDER.map((k) => [k, stats[k]] as const).sort((a, b) => b[1] - a[1]);
   const [topKey, topValue] = entries[0];
@@ -84,6 +87,18 @@ export function archetypeOf(stats: Stats): Archetype {
 
   if (topValue === 0) return { name: '이름 없는 아이', detail: '아직 아무 길도 걷지 않았습니다.' };
   if (lowest >= 60) return { name: '원탁의 재목', detail: '어느 하나 모자람이 없습니다.' };
+  /*
+    A title has to be earned by more than one afternoon.
+
+    Three sets of deadlifts on the first day put strength at 39 and everything
+    else lower, and that was enough to be called 「괴력의 전사」 — the top stat
+    names the title however low the top is. Below the halfway mark no stat has
+    shown which way she is growing yet. Strength reaches 50 at a 3,000kg
+    session, discipline after a week in a row.
+  */
+  if (topValue < UNDECIDED_BELOW) {
+    return { name: '길을 찾는 아이', detail: '아직 어느 길로 갈지 정해지지 않았습니다.' };
+  }
 
   const names: Record<StatKey, Archetype> = {
     strength: { name: '괴력의 전사', detail: '무거운 것을 드는 데 능합니다.' },

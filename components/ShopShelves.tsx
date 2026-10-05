@@ -73,6 +73,10 @@ type Props = {
   /** Id of something the visitor was sent here to give: its shelf opens first. */
   gift?: string;
 };
+
+// Cheapest first. The list was in the order the clothes were drawn, which put
+// the 80G ribbon — the first thing anyone can afford — fourteenth of fifteen.
+const BY_PRICE = [...GARMENTS].sort((a, b) => a.price - b.price);
 
 function shelfOf(gift: string | undefined): Shelf {
   if (GARMENTS.some((g) => g.id === gift)) return "옷장";
@@ -449,7 +453,7 @@ export function ShopShelves({ ledger, busy, onSpend, gift }: Props) {
               )}
             </View>
           </View>
-          {GARMENTS.map((garment) => (
+          {BY_PRICE.map((garment) => (
             <GarmentRow
               key={garment.id}
               garment={garment}

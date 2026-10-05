@@ -97,3 +97,9 @@ test('a cardio session is estimated from its own minutes', () => {
 test('nothing on the board is nothing to estimate', () => {
   assert.equal(estimatedSeconds([], rest60), 0);
 });
+
+test('with most of it still ahead it does not say nearly done', () => {
+  // 1 of 3 sets: under five minutes left, but two thirds still to do.
+  assert.equal(remainingWord(150, 1 * 2 > 3), '금방 끝나요');
+  assert.equal(remainingWord(70, 2 * 2 > 3), '거의 다 하셨어요');
+});

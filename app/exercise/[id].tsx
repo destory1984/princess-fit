@@ -207,7 +207,7 @@ export default function ExerciseScreen() {
         <Text style={styles.intro}>{introOf(exercise)}</Text>
       </OrnateFrame>
 
-      <Advisor name={girl.name} portrait={girl.base}>{coachTipOf(exercise)}</Advisor>
+      <Advisor name={girl.name} portrait={girl.base}>{coachTipOf(exercise, girl.id)}</Advisor>
 
       {steps.length > 0 && (
         <View style={styles.card}>

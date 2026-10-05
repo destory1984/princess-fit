@@ -108,3 +108,13 @@ test('one modest session does not read as most of a year of strength', () => {
   const capped = computeStats([fact({ started_at: '2026-10-04T10:00:00', volume: 20_000 })], day);
   assert.equal(capped.strength, 100);
 });
+
+test('one light afternoon does not earn a title', () => {
+  // Three sets of 60kg × 10 on the first day: strength 39, the rest lower.
+  const first = computeStats(
+    [fact({ started_at: '2026-10-05T12:00:00', volume: 1800, doneSets: 3, groups: ['등'] })],
+    new Date('2026-10-05T13:00:00')
+  );
+  assert.ok(first.strength < 50);
+  assert.equal(archetypeOf(first).name, '길을 찾는 아이');
+});

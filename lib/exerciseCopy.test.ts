@@ -61,3 +61,14 @@ test('intro reads naturally for a vowel-ending group', () => {
   assert.match(introOf(ex({ name: '덤벨 숄더 프레스', muscle_group: '어깨' })), /어깨를 쓰는/);
   assert.doesNotMatch(introOf(ex({ name: '덤벨 숄더 프레스', muscle_group: '어깨' })), /어깨을/);
 });
+
+test('the tip is in the voice of whoever is beside you', () => {
+  const squat = ex({ name: '바벨 스쿼트' });
+  const said = ['geumhwa', 'dohwa', 'seora'].map((g) => coachTipOf(squat, g));
+  assert.equal(new Set(said).size, 3);
+  // The same advice from all three; only the way of saying it differs.
+  for (const line of said) assert.match(line, /빈 봉으로 자세부터/);
+  assert.match(said[0], /요\.$/);
+  assert.match(said[1], /!$/);
+  assert.match(said[2], /십시오\.$/);
+});

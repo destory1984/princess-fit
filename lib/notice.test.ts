@@ -106,3 +106,12 @@ test('an empty session does not count towards a run of days', () => {
   assert.doesNotMatch(say('geumhwa', { facts }) ?? '', /4일째/);
   assert.doesNotMatch(say('dohwa', { facts }) ?? '', /연속/);
 });
+
+test('after today\'s session she does not call it last time', () => {
+  // The day of the workout: 「지난번 60kg이었죠? 오늘은 62.5kg 도전!」 was said
+  // an hour after the 60kg, with today's lifting already finished.
+  const seen: Seen = { facts: [fact('2026-09-23')], sessions: [lifted('2026-09-23', '데드리프트', 60)] };
+  const line = say('dohwa', seen)!;
+  assert.match(line, /오늘 데드리프트 60kg 했죠\? 다음엔 62\.5kg 도전!/);
+  assert.doesNotMatch(line, /지난번/);
+});

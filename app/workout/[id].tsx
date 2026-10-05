@@ -90,7 +90,7 @@ import {
 } from "@/lib/prefs";
 import { ringBell, wakeBell } from "@/lib/bell";
 import { BAR, nextBar } from "@/lib/plates";
-import { recoveryOf, type Muscle } from "@/lib/recovery";
+import { everTrained, recoveryOf, type Muscle } from "@/lib/recovery";
 import { suggestExercise } from "@/lib/suggest";
 import * as Crypto from "expo-crypto";
 import {
@@ -224,7 +224,8 @@ export default function WorkoutScreen() {
     exercises.find((e) => e.id === exerciseId)?.rest_sec ?? DEFAULT_REST_SEC;
   const leftWord = remainingWord(
     remainingSeconds(sets, restOfExercise),
-    sets.some((s) => s.done),
+    // More behind than ahead: 1 of 3 is not 「거의 다」.
+    sets.filter((s) => s.done).length * 2 > sets.length,
   );
 
   const load = useCallback(() => {
@@ -459,7 +460,10 @@ export default function WorkoutScreen() {
   // Only worth working out for an empty board, which is the only time she asks.
   const suggestion = useMemo(
     () =>
-      sets.length > 0 || muscles === null || place === null
+      // Nor for someone with no history at all. Every muscle is equally
+      // untouched, so the pick falls to the first name in the list, and the
+      // reason given (「대퇴사두는 아직 한 번도 안 하셨어요」) is true of all of them.
+      sets.length > 0 || muscles === null || place === null || !everTrained(muscles)
         ? null
         : suggestExercise(exercises, muscles, {
             place: place.value,
