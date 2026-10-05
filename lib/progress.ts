@@ -101,11 +101,24 @@ export function readiness(sets: PastSet[]): Readiness | null {
     : counted;
   if (weighted.length < MIN_SETS) return null;
 
-  const first = weighted[0];
-  const last = weighted[weighted.length - 1];
   // The heaviest set is what the session was really about; a light back-off
   // set afterwards should not read as the working weight.
   const working = Math.max(...weighted.map((s) => s.weight_kg));
+
+  /*
+    Only the sets at that weight are read against each other.
+
+    Whether the last set held up is a question about one weight. Across
+    weights it has no answer: a session of 1kg×10, 10×10, 10×15, 20×15 「held
+    its reps to the end」 only in the sense that fifteen is more than ten, and
+    on the strength of that the board told someone who was struggling with
+    10kg to try 22.5. One set at the top is a top set, not a shape, and says
+    nothing about being ready for more.
+  */
+  const atWorking = weighted.filter((s) => s.weight_kg === working);
+  if (atWorking.length < MIN_SETS) return null;
+  const first = atWorking[0];
+  const last = atWorking[atWorking.length - 1];
 
   /*
     What they said outranks what the numbers imply.

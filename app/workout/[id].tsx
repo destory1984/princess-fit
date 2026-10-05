@@ -1366,6 +1366,11 @@ export default function WorkoutScreen() {
                   */}
                   {(() => {
                     if (done || !expanded || track !== "weight_reps") return null;
+                    // A suggestion for before the first set. Once one is done,
+                    // today has answered, and what today said outranks what
+                    // last time implied: 「22.5kg 어떠세요?」 stayed up over
+                    // three sets at 10kg with the reps falling.
+                    if (exDone.some((s) => !s.warmup)) return null;
                     const read = previous ? readiness(previous.sets) : null;
                     // Whether they answered last time, so she can speak as
                     // someone who was told rather than someone who guessed.

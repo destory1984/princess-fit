@@ -37,10 +37,21 @@ test('the boundary of a collapse is where it is documented', () => {
 });
 
 test('the working weight is the heaviest set, not a back-off after it', () => {
-  // 80 × 5, then a light 40 × 12 to finish: the session was about the 80.
-  const read = readiness([set(80, 5), set(40, 12)])!;
+  // 80 × 5 twice, then a light 40 × 12 to finish: the session was about the 80,
+  // and the twelve reps at 40 say nothing about how the 80 went.
+  const read = readiness([set(80, 5), set(80, 5), set(40, 12)])!;
   assert.equal(read.from, 80);
   assert.equal(read.verdict, 'add');
+  assert.equal(readiness([set(80, 5), set(80, 2), set(40, 12)])!.verdict, 'ease');
+});
+
+test('reps at different weights are not read against each other', () => {
+  // The session that sent someone lifting 10kg to 22.5: one set at 20, and
+  // 「held up」 only because fifteen is more than the ten done with 1kg.
+  assert.equal(readiness([set(1, 10), set(10, 10), set(10, 15), set(20, 15)]), null);
+  // A pyramid has one top set, and one set is not a shape.
+  assert.equal(readiness([set(40, 12), set(50, 10), set(60, 6)]), null);
+  assert.equal(readiness([set(80, 5), set(40, 12)]), null);
 });
 
 test('one set says nothing, and neither does none', () => {
