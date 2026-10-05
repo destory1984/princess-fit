@@ -12,7 +12,7 @@
  * The pictures themselves are in `./moveArt`, kept apart so this stays plain
  * data the tests can import without a bundler.
  */
-export type Move = { id: string; frames: 1 | 3 };
+export type Move = { id: string; frames: 1 | 3 | 5 };
 
 const MOVES: Record<string, Move> = {
   스쿼트: { id: 'squat', frames: 3 },
@@ -70,7 +70,8 @@ const MOVES: Record<string, Move> = {
   '월 싯': { id: 'wall_sit', frames: 1 },
   '점프 스쿼트': { id: 'jump_squat', frames: 3 },
   '덩키 킥': { id: 'donkey_kick', frames: 3 },
-  버피: { id: 'burpee', frames: 3 },
+  // Five: standing, hands down, plank, the push-up, the jump. In three it stopped at the plank.
+  버피: { id: 'burpee', frames: 5 },
   '맨몸 스쿼트': { id: 'bodyweight_squat', frames: 3 },
   '니 푸시업': { id: 'knee_push_up', frames: 3 },
   '사이드 플랭크': { id: 'side_plank', frames: 1 },
@@ -84,16 +85,18 @@ export function moveOf(name: string): Move | undefined {
 
 export const MOVE_NAMES = Object.keys(MOVES);
 
-const ROUND = new Set(['running', 'walking', 'cycling', 'jump_rope', 'stair_climb']);
+const ROUND = new Set(['running', 'walking', 'cycling', 'jump_rope', 'stair_climb', 'burpee']);
 
 /**
  * Which frame to show at a tick: there and back again (0 1 2 1 0 1 …), because a
  * repetition goes down and comes up. Walking, running, cycling, skipping and
  * climbing stairs go round instead (0 1 2 0 1 2 …): a stride does not rewind, nor does a pedal
- * or a rope.
+ * or a rope. A burpee goes round too: after the jump she is standing again.
  */
 export function frameAt(move: Move, tick: number): number {
   if (move.frames === 1) return 0;
-  if (ROUND.has(move.id)) return tick % 3;
-  return [0, 1, 2, 1][tick % 4];
+  if (ROUND.has(move.id)) return tick % move.frames;
+  // There and back without resting twice on either end: 0 1 2 1, or 0 1 2 3 4 3 2 1.
+  const at = tick % (2 * move.frames - 2);
+  return at < move.frames ? at : 2 * move.frames - 2 - at;
 }

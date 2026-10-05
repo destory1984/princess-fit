@@ -24,3 +24,13 @@ test('a repetition goes down and comes back; a stride goes round; a hold stays',
 test('an exercise made by hand has no drawing', () => {
   assert.equal(moveOf('한발 데드'), undefined);
 });
+
+test('a movement drawn in five frames plays all five', () => {
+  // The burpee: standing, hands down, plank, push-up, jump — and round again.
+  const burpee = moveOf('버피')!;
+  assert.equal(burpee.frames, 5);
+  assert.deepEqual([0, 1, 2, 3, 4, 5, 6].map((t) => frameAt(burpee, t)), [0, 1, 2, 3, 4, 0, 1]);
+  // One that goes there and back would not rest twice on either end.
+  const five = { id: 'made-up', frames: 5 as const };
+  assert.deepEqual([0, 1, 2, 3, 4, 5, 6, 7, 8].map((t) => frameAt(five, t)), [0, 1, 2, 3, 4, 3, 2, 1, 0]);
+});

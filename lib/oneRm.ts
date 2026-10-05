@@ -12,16 +12,16 @@
 
 export type Formula = {
   name: string;
-  /** Whose formula, for the legend. */
+  /** Whose formula, for the legend: Epley, Brzycki, Lombardi, O'Conner, Wathen, written in Hangul like the rest of the screen. */
   estimate: (weight: number, reps: number) => number;
 };
 
 export const FORMULAS: Formula[] = [
-  { name: 'Epley', estimate: (w, r) => w * (1 + r / 30) },
-  { name: 'Brzycki', estimate: (w, r) => w * (36 / (37 - r)) },
-  { name: 'Lombardi', estimate: (w, r) => w * r ** 0.1 },
-  { name: "O'Conner", estimate: (w, r) => w * (1 + r / 40) },
-  { name: 'Wathen', estimate: (w, r) => (100 * w) / (48.8 + 53.8 * Math.exp(-0.075 * r)) },
+  { name: '에플리', estimate: (w, r) => w * (1 + r / 30) },
+  { name: '브르지키', estimate: (w, r) => w * (36 / (37 - r)) },
+  { name: '롬바르디', estimate: (w, r) => w * r ** 0.1 },
+  { name: '오코너', estimate: (w, r) => w * (1 + r / 40) },
+  { name: '웨이선', estimate: (w, r) => (100 * w) / (48.8 + 53.8 * Math.exp(-0.075 * r)) },
 ];
 
 /**

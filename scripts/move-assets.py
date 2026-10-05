@@ -5,7 +5,8 @@
 # Writes assets/moves/<move id>_<advisor id>.png: the frames side by side in equal square
 # cells, which components/MoveDemo.tsx shows one at a time. The drawing comes with the
 # figures wherever the model put them, so each is found by the empty columns between
-# them, cut to its own left and right edges and centred in its cell. Vertically nothing
+# them and cut to its own left and right edges. Across, each frame is set where it
+# coincides most with the one before, so what stays still stays still. Vertically nothing
 # is moved: all the frames share the rows of the whole drawing, so a floor that was one
 # line in the drawing is one line in the strip, and she does not hop between frames.
 import sys
@@ -99,22 +100,67 @@ if len(runs) != frames:
 
 rows = np.flatnonzero(solid.any(axis=1))
 top, bottom = int(rows.min()), int(rows.max()) + 1
-side = max(bottom - top, max(b - a for a, b in runs))
-scale = CELL / side
-strip = Image.new('RGBA', (CELL * frames, CELL))
-whole = Image.fromarray(pixels, 'RGBA')
+
+cuts = []
 for i, (a, b) in enumerate(runs):
-    frame = whole
+    only = pixels
     if masks is not None:
         only = pixels.copy()
         only[~masks[i]] = 0
-        frame = Image.fromarray(only, 'RGBA')
-    cut = frame.crop((a, top, b, bottom))
+    cuts.append(only[top:bottom, a:b])
+
+
+def best_shift(prev, cur):
+    """Where `cur` sits over `prev` (its left edge, in prev's columns) for the most to coincide.
+
+    What coincides is what did not move: the bench, the machine, the trunk of someone lying
+    still. Counted on pixels of nearly the same colour, a quarter size, so a leg swinging
+    across the bench does not pull the answer.
+    """
+    p, c = prev[::4, ::4].astype(int), cur[::4, ::4].astype(int)
+    best, at = -1, 0
+    floor = int(p.shape[0] * 0.7)
+    for dx in range(-c.shape[1] + 1, p.shape[1]):
+        lo, hi = max(dx, 0), min(dx + c.shape[1], p.shape[1])
+        if hi - lo < 8:
+            continue
+        pa, ca = p[:, lo:hi], c[:, lo - dx:hi - dx]
+        same = (pa[..., 3] > 0) & (ca[..., 3] > 0) & (np.abs(pa[..., :3] - ca[..., :3]).sum(axis=2) < 48)
+        # What touches the floor counts three times over: feet, hips and the legs of a
+        # bench are what a repetition leaves in place. Without it a sit-up lined up on
+        # her hair, which is most of her, and her feet slid along the floor.
+        score = int(same.sum()) + 2 * int(same[floor:].sum())
+        if score > best:
+            best, at = score, dx
+    smaller = min(int((p[..., 3] > 0).sum()), int((c[..., 3] > 0).sum()))
+    return at * 4, best / max(smaller, 1)
+
+
+# Each frame is placed against the one before it, not centred on its own width. Centred,
+# a girl lying on a leg-curl bench slid sideways as her feet came up, and the bench with
+# her: her width changed, so her middle did. Frames that share too little to line up
+# (standing, then flat on the floor) fall back to sharing a centre.
+offsets = [0]
+for prev, cur in zip(cuts, cuts[1:]):
+    dx, share = best_shift(prev, cur)
+    if share < 0.25:
+        dx = (prev.shape[1] - cur.shape[1]) // 2
+    offsets.append(offsets[-1] + dx)
+left = min(offsets)
+offsets = [o - left for o in offsets]
+width = max(o + c.shape[1] for o, c in zip(offsets, cuts))
+
+side = max(bottom - top, width)
+scale = CELL / side
+strip = Image.new('RGBA', (CELL * frames, CELL))
+pad = (CELL - round(width * scale)) // 2
+for i, (cut, off) in enumerate(zip(cuts, offsets)):
+    cut = Image.fromarray(cut, 'RGBA')
     size = (max(1, round(cut.width * scale)), max(1, round(cut.height * scale)))
     # Premultiplied through the resize, or the transparent black bleeds into the rim.
     cut = cut.convert('RGBa').resize(size, Image.LANCZOS).convert('RGBA')
     # Set on the cell's floor: what is left over goes above her head.
-    strip.alpha_composite(cut, (i * CELL + (CELL - size[0]) // 2, CELL - size[1]))
+    strip.alpha_composite(cut, (i * CELL + pad + round(off * scale), CELL - size[1]))
 
 out = Path(__file__).parent.parent / 'assets' / 'moves'
 out.mkdir(parents=True, exist_ok=True)
