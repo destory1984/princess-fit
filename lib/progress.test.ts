@@ -194,7 +194,10 @@ test('a warm-up does not make the working sets look like a collapse', () => {
     { weight_kg: 60, reps: 6 },
     { weight_kg: 60, reps: 6 },
   ]);
-  assert.equal(asItWas?.verdict, 'ease');
+  // Unmarked, the same light set used to read as the opening set and turn two
+  // steady sixes into a collapse. Sets are now read only against others at the
+  // same weight, so forgetting to mark the warm-up no longer costs anything.
+  assert.equal(asItWas?.verdict, 'add');
 });
 
 test('warm-ups alone leave nothing to read', () => {
