@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { ADVISORS } from './advisors.ts';
 import {
+  firstWords,
   GOALS,
+  INTRODUCTIONS,
   MAX_PER_WEEK,
   MIN_PER_WEEK,
   PLACES,
@@ -104,4 +107,36 @@ test('a device that cannot send the daily word is not asked when to send it', ()
   assert.equal(nextStep('routine', web), null);
   assert.equal(progressOf('routine', web), 1);
   assert.equal(previousStep('routine', web), 'place');
+});
+
+test('she is chosen first, and every girl who can be chosen is introduced', () => {
+  assert.equal(STEPS[0], 'who');
+  for (const a of ADVISORS.filter((x) => x.playable)) {
+    const intro = INTRODUCTIONS[a.id];
+    assert.ok(intro, `${a.name} has no introduction`);
+    assert.ok(intro.temper && intro.about && intro.hello);
+  }
+});
+
+test('the first conversation is in the hand of whoever was chosen', () => {
+  const said = (girl: string) => [
+    firstWords(girl).meet('이름'),
+    perWeekWord(3, girl),
+    firstWords(girl).goal,
+    firstWords(girl).place.home,
+    planWord('habit', 'gym', 3, girl),
+    firstWords(girl).quiet,
+    firstWords(girl).nudge(20),
+  ];
+  const [rina, pia, yuki] = ['geumhwa', 'dohwa', 'seora'].map(said);
+  for (let i = 0; i < rina.length; i += 1) {
+    assert.equal(new Set([rina[i], pia[i], yuki[i]]).size, 3, `line ${i} is shared`);
+  }
+  // Yuki is formal from the first word; Pia cannot say a thing quietly.
+  for (const line of yuki) assert.match(line, /니다\.|십시오\.|군요\./, line);
+  for (const line of pia) assert.match(line, /!/, line);
+  // Seven days a week is warned about once, by all three.
+  for (const g of ['geumhwa', 'dohwa', 'seora']) assert.match(perWeekWord(7, g), /쉬는 날/);
+  // Someone unknown speaks as the first girl does.
+  assert.equal(perWeekWord(3, 'nobody'), perWeekWord(3));
 });

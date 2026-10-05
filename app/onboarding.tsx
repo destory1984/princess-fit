@@ -11,13 +11,17 @@ import {
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { Advisor } from '@/components/Advisor';
+import { Portrait } from '@/components/Portrait';
+import { ADVISORS } from '@/lib/advisors';
 import { seedDefaultExercises } from '@/lib/catalog';
 import { explain } from '@/lib/dbError';
 import { notify } from '@/lib/confirm';
 import { createRoutineFromPreset, listRoutines } from '@/lib/db';
 import { ensureNotificationPermission } from '@/lib/notify';
 import {
+  firstWords,
   GOALS,
+  INTRODUCTIONS,
   MAX_PER_WEEK,
   MIN_PER_WEEK,
   PLACES,
@@ -43,7 +47,8 @@ import {
 } from '@/lib/prefs';
 import type { RoutinePreset } from '@/lib/routinePresets';
 import { colors, radius, spacing } from '@/lib/theme';
-import { useGirl } from '@/lib/girl';
+import { girlOf, useGirlChoice } from '@/lib/girl';
+import { portraitOf } from '@/lib/portraits';
 import { withParticle } from '@/lib/korean';
 
 /** Hours worth offering, matching the ones the settings screen uses. */
@@ -67,8 +72,12 @@ const HERE = stepsFor(Platform.OS !== 'web');
  */
 export default function OnboardingScreen({ bench = false }: { bench?: boolean }) {
   const router = useRouter();
-  const girl = useGirl();
-  const [step, setStep] = useState<Step>('meet');
+  const { girl: current, choose } = useGirlChoice();
+  // Held here like every other answer, and only made hers at the end: backing
+  // out halfway must not leave a different girl in the room.
+  const [picked, setPicked] = useState<string | null>(null);
+  const girl = girlOf(picked ?? current.id);
+  const [step, setStep] = useState<Step>('who');
   const [perWeek, setPerWeek] = useState(DEFAULT_WEEKLY_GOAL);
   const [goal, setChosenGoal] = useState<Goal>('habit');
   const [place, setChosenPlace] = useState<Place>('gym');
@@ -129,6 +138,7 @@ export default function OnboardingScreen({ bench = false }: { bench?: boolean })
     try {
       setBusy('약속을 적어 두는 중이에요');
       await Promise.all([setWeeklyGoal(perWeek), setGoal(goal), setPlace(place)]);
+      await choose(girl.id);
 
       if (preset) {
         setBusy('운동 종목을 불러오는 중이에요');
@@ -202,9 +212,41 @@ export default function OnboardingScreen({ bench = false }: { bench?: boolean })
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        <Advisor name={girl.name} portrait={girl.base}>
-          {said(step, girl.name, { perWeek, goal, place, preset, hour })}
-        </Advisor>
+        {step !== 'who' && (
+          <Advisor name={girl.name} portrait={girl.base}>
+            {said(step, girl, { perWeek, goal, place, preset, hour })}
+          </Advisor>
+        )}
+
+        {step === 'who' && (
+          <>
+            <Text style={styles.question}>누구와 지내시겠어요?</Text>
+            {ADVISORS.filter((a) => a.playable).map((a) => {
+              const on = a.id === girl.id;
+              const intro = INTRODUCTIONS[a.id];
+              return (
+                <Pressable
+                  key={a.id}
+                  style={[styles.choice, styles.who, on && styles.choiceOn]}
+                  onPress={() => setPicked(a.id)}>
+                  <Portrait source={portraitOf(a.id)} size={64} active={on} />
+                  <View style={styles.choiceBody}>
+                    <Text style={[styles.choiceLabel, on && styles.choiceLabelOn]}>
+                      {a.name}
+                      <Text style={styles.temper}> · {intro?.temper}</Text>
+                    </Text>
+                    <Text style={styles.choiceDetail}>{intro?.about}</Text>
+                    <Text style={styles.hello}>「{intro?.hello}」</Text>
+                  </View>
+                  {on && <Ionicons name="checkmark-circle" size={22} color={colors.accent} />}
+                </Pressable>
+              );
+            })}
+            <Text style={styles.note}>
+              나중에 설정에서 바꿀 수 있어요. 다만 가까워지는 건 아이마다 따로예요.
+            </Text>
+          </>
+        )}
 
         {step === 'meet' && (
           <View style={styles.card}>
@@ -343,7 +385,13 @@ export default function OnboardingScreen({ bench = false }: { bench?: boolean })
 
       <Pressable style={styles.next} onPress={forward}>
         <Text style={styles.nextText}>
-          {step === 'meet' ? '반가워요' : nextStep(step, HERE) ? '다음' : '시작할게요'}
+          {step === 'who'
+            ? `${girl.name}와 지낼게요`
+            : step === 'meet'
+              ? '반가워요'
+              : nextStep(step, HERE)
+                ? '다음'
+                : '시작할게요'}
         </Text>
       </Pressable>
     </View>
@@ -357,7 +405,7 @@ export default function OnboardingScreen({ bench = false }: { bench?: boolean })
  */
 function said(
   step: Step,
-  name: string,
+  girl: { id: string; name: string },
   answers: {
     perWeek: number;
     goal: Goal;
@@ -366,23 +414,23 @@ function said(
     hour: number | null;
   }
 ): string {
+  const words = firstWords(girl.id);
   switch (step) {
+    // Nobody speaks on the first step: she has not been chosen yet.
+    case 'who':
+      return '';
     case 'meet':
-      return `저는 ${name}예요. 여기서 기다리고 있을게요. 몇 가지만 여쭤봐도 될까요?`;
+      return words.meet(girl.name);
     case 'often':
-      return perWeekWord(answers.perWeek);
+      return perWeekWord(answers.perWeek, girl.id);
     case 'goal':
-      return '뭘 바라고 오셨는지 알면, 제가 드릴 말씀도 달라져요.';
+      return words.goal;
     case 'place':
-      return answers.place === 'home'
-        ? '집이라면 기구 없이 할 수 있는 걸로 드릴게요.'
-        : '기구가 있으면 고를 수 있는 게 많아져요.';
+      return words.place[answers.place];
     case 'routine':
-      return planWord(answers.goal, answers.place, answers.perWeek);
+      return planWord(answers.goal, answers.place, answers.perWeek, girl.id);
     case 'nudge':
-      return answers.hour === null
-        ? '알겠어요. 조용히 기다릴게요.'
-        : `그럼 ${answers.hour}시쯤에 한 마디 보낼게요. 하루에 한 번만요.`;
+      return answers.hour === null ? words.quiet : words.nudge(answers.hour);
   }
 }
 
@@ -486,6 +534,9 @@ const styles = StyleSheet.create({
   choiceLabel: { color: colors.text, fontSize: 16, fontWeight: '700' },
   choiceLabelOn: { color: colors.accent },
   choiceDetail: { color: colors.textDim, fontSize: 12, lineHeight: 18 },
+  who: { alignItems: 'flex-start', padding: spacing.md },
+  temper: { color: colors.textDim, fontSize: 13, fontWeight: '700' },
+  hello: { color: colors.text, fontSize: 13, lineHeight: 19, marginTop: 4 },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   chip: {
     backgroundColor: colors.surface,

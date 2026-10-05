@@ -72,10 +72,111 @@ export function recommendPresets(
 }
 
 /**
+ * Who she is, said before she is chosen.
+ *
+ * The first thing asked, because everything after it is asked by her. Each is
+ * told by what she will actually do — the three look at different records
+ * (lib/notice.ts) — and then speaks one line herself, since how she talks is
+ * half of what is being chosen. Keyed by advisor id.
+ */
+export const INTRODUCTIONS: Record<string, { temper: string; about: string; hello: string }> = {
+  geumhwa: {
+    temper: '자상한 아이',
+    about: '쉬어도 나무라지 않아요. 잠은 잘 잤는지, 뭉친 데는 없는지를 먼저 물어요.',
+    hello: '오래 쉬다 오셔도 괜찮아요. 여기서 기다릴게요.',
+  },
+  dohwa: {
+    temper: '지기 싫어하는 아이',
+    about: '숫자를 좋아해요. 최고 기록과 연속 일수를 세고, 어제의 나를 이겨 보자고 해요.',
+    hello: '같이 기록 깨 봐요! 숫자는 제가 다 세어 둘게요!',
+  },
+  seora: {
+    temper: '엄격한 아이',
+    about: '빈틈을 그냥 넘기지 않아요. 오래 안 한 부위와 못 채운 목표를 짚어요. 말은 딱딱하지만 가까워지면 조금 풀려요.',
+    hello: '빠뜨린 것은 제가 짚겠습니다. 하기로 한 것만 지키십시오.',
+  },
+};
+
+/**
+ * The first conversation, in each girl's own way of speaking. It was written
+ * for Rina alone while she was the only one who could open the door; chosen
+ * first, Yuki would have greeted in Rina's soft 해요체 and then turned formal
+ * the moment the room appeared.
+ */
+type FirstWords = {
+  meet: (name: string) => string;
+  perWeek: [string, string, string, string];
+  goal: string;
+  place: Record<Place, string>;
+  heard: string;
+  quiet: string;
+  nudge: (hour: number) => string;
+};
+
+const FIRST_WORDS: Record<string, FirstWords> = {
+  geumhwa: {
+    meet: (name) => `저는 ${name}예요. 여기서 기다리고 있을게요. 몇 가지만 여쭤봐도 될까요?`,
+    perWeek: [
+      '한 번이라도 꾸준하면 그게 제일 좋아요.',
+      '그 정도가 제일 오래 가요.',
+      '꽤 자주 오시네요. 기다리는 보람이 있겠어요.',
+      '거의 매일이네요. 쉬는 날도 하루쯤 두세요.',
+    ],
+    goal: '뭘 바라고 오셨는지 알면, 제가 드릴 말씀도 달라져요.',
+    place: {
+      home: '집이라면 기구 없이 할 수 있는 걸로 드릴게요.',
+      gym: '기구가 있으면 고를 수 있는 게 많아져요.',
+    },
+    heard: '그렇게 알고 있을게요.',
+    quiet: '알겠어요. 조용히 기다릴게요.',
+    nudge: (hour) => `그럼 ${hour}시쯤에 한 마디 보낼게요. 하루에 한 번만요.`,
+  },
+  dohwa: {
+    meet: (name) => `저는 ${name}예요! 같이 기록 깨 봐요! 몇 가지만 물어볼게요!`,
+    perWeek: [
+      '한 번이라도 좋아요! 그 한 번을 꼭 지켜 봐요!',
+      '딱 좋아요! 오래 가는 숫자예요!',
+      '자주 오시네요! 기록이 금방 쌓이겠어요!',
+      '거의 매일이네요! 그래도 쉬는 날이 하루는 있어야 숫자가 올라요!',
+    ],
+    goal: '뭘 바라는지 알면 어떤 숫자를 볼지 정할 수 있어요!',
+    place: {
+      home: '집이면 맨몸으로 하는 걸로 가요!',
+      gym: '기구가 있으면 올릴 숫자가 많아요!',
+    },
+    heard: '좋아요, 그렇게 가요!',
+    quiet: '알겠어요! 조용히 기다릴게요!',
+    nudge: (hour) => `그럼 ${hour}시쯤에 한 마디 보낼게요! 하루에 한 번만요!`,
+  },
+  seora: {
+    meet: (name) => `${name}입니다. 시작하기 전에 몇 가지 확인하겠습니다.`,
+    perWeek: [
+      '한 번이면 충분합니다. 거르지만 마십시오.',
+      '적당합니다. 오래 지킬 수 있는 횟수입니다.',
+      '많은 편입니다. 지키는지 보겠습니다.',
+      '거의 매일이군요. 쉬는 날을 하루는 두십시오.',
+    ],
+    goal: '무엇을 바라는지 알아야 무엇을 짚을지 정할 수 있습니다.',
+    place: {
+      home: '집이라면 기구 없이 하는 종목으로 드리겠습니다.',
+      gym: '기구가 있으면 고를 수 있는 종목이 많습니다.',
+    },
+    heard: '그렇게 적어 두겠습니다.',
+    quiet: '알겠습니다. 보내지 않겠습니다.',
+    nudge: (hour) => `${hour}시쯤에 한 번 보내겠습니다. 하루에 한 번입니다.`,
+  },
+};
+
+/** Her first words; an unknown girl speaks as the first one does. */
+export function firstWords(girl?: string): FirstWords {
+  return FIRST_WORDS[girl ?? ''] ?? FIRST_WORDS.geumhwa;
+}
+
+/**
  * Her word on the plan just described, said back in her own words so the
  * answers read as heard rather than stored.
  */
-export function planWord(goal: Goal, place: Place, perWeek: number) {
+export function planWord(goal: Goal, place: Place, perWeek: number, girl?: string) {
   const where = place === 'home' ? '집에서' : '헬스장에서';
   const aim: Record<Goal, string> = {
     strength: '힘을 키우는 쪽으로',
@@ -84,7 +185,7 @@ export function planWord(goal: Goal, place: Place, perWeek: number) {
     habit: '거르지 않는 쪽으로',
     stamina: '숨이 덜 차는 쪽으로',
   };
-  return `${where} 일주일에 ${perWeek}번, ${aim[goal]}. 그렇게 알고 있을게요.`;
+  return `${where} 일주일에 ${perWeek}번, ${aim[goal]}. ${firstWords(girl).heard}`;
 }
 
 /**
@@ -95,14 +196,16 @@ export function planWord(goal: Goal, place: Place, perWeek: number) {
  * saying so once, gently, before it has failed is kinder than the streak
  * counter saying it afterwards.
  */
-export function perWeekWord(perWeek: number): string {
-  if (perWeek <= 1) return '한 번이라도 꾸준하면 그게 제일 좋아요.';
-  if (perWeek <= 3) return '그 정도가 제일 오래 가요.';
-  if (perWeek <= 5) return '꽤 자주 오시네요. 기다리는 보람이 있겠어요.';
-  return '거의 매일이네요. 쉬는 날도 하루쯤 두세요.';
+export function perWeekWord(perWeek: number, girl?: string): string {
+  const said = firstWords(girl).perWeek;
+  if (perWeek <= 1) return said[0];
+  if (perWeek <= 3) return said[1];
+  if (perWeek <= 5) return said[2];
+  return said[3];
 }
 
-export const STEPS = ['meet', 'often', 'goal', 'place', 'routine', 'nudge'] as const;
+// 'who' comes first: the rest is asked by whoever is chosen there.
+export const STEPS = ['who', 'meet', 'often', 'goal', 'place', 'routine', 'nudge'] as const;
 export type Step = (typeof STEPS)[number];
 
 /**
