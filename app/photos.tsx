@@ -167,6 +167,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent,
     borderRadius: radius.md,
     paddingVertical: spacing.md,
+    minHeight: 48,
   },
   actionGhost: { backgroundColor: 'transparent', borderColor: colors.accent, borderWidth: 1 },
   actionText: { color: '#fff', fontWeight: '800' },

@@ -286,6 +286,8 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     alignItems: 'center',
     marginTop: spacing.xs,
+    minHeight: 48,
+    justifyContent: 'center',
   },
   saveOff: { opacity: 0.6 },
   saveText: { color: '#fff', fontWeight: '800' },

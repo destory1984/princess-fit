@@ -552,9 +552,11 @@ const styles = StyleSheet.create({
   next: {
     backgroundColor: colors.accent,
     borderRadius: radius.md,
-    paddingVertical: spacing.lg,
+    paddingVertical: spacing.md,
     alignItems: 'center',
     margin: spacing.lg,
+    minHeight: 48,
+    justifyContent: 'center',
   },
   nextText: { color: '#fff', fontWeight: '800', fontSize: 17 },
 });

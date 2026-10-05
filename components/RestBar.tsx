@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
   clock: { color: colors.text, fontSize: 22, fontWeight: '800', minWidth: 62 },
   clockOn: { color: colors.accent },
   clockHeld: { color: colors.textDim },
-  actions: { flexDirection: 'row', gap: spacing.xs, marginLeft: 'auto' },
+  actions: { flexDirection: 'row', gap: spacing.sm, marginLeft: 'auto' },
   button: {
     justifyContent: 'center',
     backgroundColor: colors.surfaceAlt,

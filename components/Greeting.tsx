@@ -96,8 +96,11 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: colors.accent,
     borderRadius: radius.md,
-    padding: spacing.lg,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
     alignItems: "center",
+    minHeight: 48,
+    justifyContent: "center",
   },
   buttonText: { color: "#fff", fontWeight: "800", fontSize: 16 },
 });

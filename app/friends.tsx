@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
   addText: { color: colors.bg, fontWeight: '700' },
   off: { opacity: 0.5 },
   note: { color: colors.textDim, fontSize: 14, textAlign: 'center' },
-  empty: { color: colors.textDim, textAlign: 'center', marginTop: spacing.lg },
+  empty: { color: colors.textDim, textAlign: 'center' },
   row: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -77,11 +77,12 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
     backgroundColor: colors.accent,
     borderRadius: radius.lg,
-    paddingVertical: spacing.lg,
+    paddingVertical: spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.xs,
+    minHeight: 48,
   },
   buttonText: { color: '#fff', fontWeight: '800', fontSize: 16 },
 });

@@ -48,9 +48,9 @@ const styles = StyleSheet.create({
   button: {
     flex: 1,
     minWidth: 0,
-    height: 34,
+    height: 38,
     paddingHorizontal: 2,
-    borderRadius: 17,
+    borderRadius: 19,
     backgroundColor: colors.surfaceAlt,
     alignItems: 'center',
     justifyContent: 'center',

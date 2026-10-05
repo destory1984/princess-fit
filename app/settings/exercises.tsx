@@ -410,7 +410,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
   },
-  chipText: { color: colors.textDim },
+  chipText: { color: colors.textDim, fontSize: 15, lineHeight: 21 },
   chipOn: { backgroundColor: colors.accentSoft, borderColor: colors.accent },
   chipTextOn: { color: colors.accent, fontWeight: '700' },
   addButton: {

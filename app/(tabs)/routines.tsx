@@ -247,11 +247,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.accent,
     borderRadius: radius.lg,
-    paddingVertical: spacing.lg,
+    paddingVertical: spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.xs,
+    minHeight: 48,
   },
   newText: { color: '#fff', fontWeight: '800' },
 });

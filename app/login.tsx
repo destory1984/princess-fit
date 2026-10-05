@@ -193,9 +193,12 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: colors.accent,
     borderRadius: radius.md,
-    padding: spacing.lg,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
     alignItems: 'center',
     marginTop: spacing.sm,
+    minHeight: 48,
+    justifyContent: 'center',
   },
   forgot: { color: colors.textDim, textAlign: 'center', fontSize: 15, marginTop: spacing.lg },
   buttonDisabled: { opacity: 0.6 },

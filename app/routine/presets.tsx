@@ -107,6 +107,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.xs,
+    minHeight: 48,
   },
   useOff: { opacity: 0.6 },
   useText: { color: '#fff', fontWeight: '800', fontSize: 16 },

@@ -215,6 +215,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     paddingVertical: spacing.md,
     alignItems: 'center',
+    minHeight: 48,
+    justifyContent: 'center',
   },
   saveOff: { opacity: 0.6 },
   saveText: { color: '#fff', fontWeight: '800', fontSize: 16 },

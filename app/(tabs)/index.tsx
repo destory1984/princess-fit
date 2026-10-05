@@ -695,7 +695,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: spacing.md,
   },
   sectionTitle: { color: colors.text, fontSize: 17, fontWeight: '700' },
   sectionAction: { color: colors.accent, fontWeight: '600' },

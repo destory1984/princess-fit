@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
   rankReached: { color: paper.inkDim },
   rankNowText: { color: paper.bg, fontWeight: '800' },
 
-  sectionTitle: { color: colors.text, fontSize: 17, fontWeight: '700', marginTop: spacing.lg },
+  sectionTitle: { color: colors.text, fontSize: 17, fontWeight: '700' },
   empty: { color: colors.textDim },
   badgeRow: {
     backgroundColor: colors.surface,

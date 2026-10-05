@@ -306,11 +306,12 @@ const styles = StyleSheet.create({
   start: {
     backgroundColor: colors.accent,
     borderRadius: radius.lg,
-    paddingVertical: spacing.lg,
+    paddingVertical: spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.xs,
+    minHeight: 48,
   },
   startText: { color: '#fff', fontWeight: '800', fontSize: 16 },
   title: { color: colors.text, fontSize: 22, fontWeight: '800' },
