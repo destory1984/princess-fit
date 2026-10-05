@@ -1036,13 +1036,17 @@ export default function WorkoutScreen() {
       );
       const lines = [
         after.level > before.level
-          ? `Lv.${after.level} ${after.title} 달성!`
+          ? `제 ${after.level} 품 ${after.title}에 올랐어요!`
           : "",
         fresh.length ? `새 업적 · ${fresh.map((b) => b.name).join(", ")}` : "",
         after.streak > 1 ? `${after.streak}일 연속 운동 중` : "",
         ...arrivedLines(arrived),
       ].filter(Boolean);
-      const title = earned ? `+${gained} XP · +${earned} G` : `+${gained} XP`;
+      // Said only when there is news the next screen does not carry. The
+      // numbers alone are on that screen already, and as a bare browser box
+      // 「+94 XP · +89 G」 took a long look to recognise as a reward at all.
+      const title = "운동을 마쳤어요";
+      const reward = earned ? `경험치 +${gained} · 골드 +${earned}` : `경험치 +${gained}`;
 
       celebrateFeedback();
       if (unpaid) {
@@ -1050,8 +1054,7 @@ export default function WorkoutScreen() {
           "골드를 넣지 못했어요",
           "운동 기록은 저장됐어요. 이번 골드만 들어가지 않았어요.",
         );
-      } else if (lines.length) notify(title, lines.join("\n"));
-      else if (earned) notify(title);
+      } else if (lines.length) notify(title, [reward, ...lines].join("\n"));
       router.replace({ pathname: "/summary/[id]", params: { id } });
     } catch (e: any) {
       notify("종료 실패", explain(e));

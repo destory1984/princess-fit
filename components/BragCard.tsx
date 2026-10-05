@@ -171,13 +171,13 @@ export const BragCard = forwardRef<View, Props>(function BragCard(
         <View style={styles.badgeRow}>
           {!empty && (
             <>
-              <Pill icon="flash" text={`+${workoutXp(fact)} XP`} tint={colors.accent} />
-              <Pill icon="ellipse" text={`+${workoutGold(fact)} G`} tint={colors.gold} />
+              <Pill icon="flash" text={`경험치 +${workoutXp(fact)}`} tint={colors.accent} />
+              <Pill icon="ellipse" text={`골드 +${workoutGold(fact)}`} tint={colors.gold} />
             </>
           )}
           <Pill
             icon="ribbon"
-            text={`Lv.${summary.level} ${summary.title}`}
+            text={`제 ${summary.level} 품 ${summary.title}`}
             tint={colors.success}
           />
           {summary.streak > 1 && (

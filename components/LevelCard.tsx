@@ -31,12 +31,12 @@ export function LevelCard({
       <Pressable style={styles.card} onPress={onPress}>
       <View style={styles.head}>
         <View style={styles.badge}>
-          <Text style={styles.badgeLevel}>Lv.{level}</Text>
+          <Text style={styles.badgeLevel}>{level}품</Text>
         </View>
         <View style={styles.headBody}>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.sub}>
-            {xp.toLocaleString()} XP · 다음 품계까지 {toNext.toLocaleString()}
+            경험치 {xp.toLocaleString()} · 다음 품계까지 {toNext.toLocaleString()}
           </Text>
         </View>
         <Ionicons name="chevron-forward" size={18} color={colors.textDim} />
