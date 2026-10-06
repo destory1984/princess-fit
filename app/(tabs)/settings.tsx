@@ -44,8 +44,8 @@ const goalLabel = (goal: Goal) => GOALS.find((g) => g.id === goal)!.label;
 const placeLabel = (place: Place) => PLACES.find((p) => p.id === place)!.label;
 
 const TABS = [
-  { id: '아이' },
   { id: '운동' },
+  { id: '아이' },
   { id: '앱' },
 ] as const;
 
@@ -57,7 +57,7 @@ export default function SettingsScreen() {
   // these, and nothing on screen said so — the picker quietly went unordered
   // and the findings quietly went unranked. The row says which it is.
   const [granting, setGranting] = useState<string | null>(null);
-  const [tab, setTab] = useState<(typeof TABS)[number]['id']>('아이');
+  const [tab, setTab] = useState<(typeof TABS)[number]['id']>('운동');
   const textScale = useTextScale();
   // Where the thumb is while it is being dragged. The app itself changes size only
   // when the finger lifts: growing the screen under a moving finger moves the track.
