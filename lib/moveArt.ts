@@ -771,6 +771,7 @@ const MOVE_ART: Record<string, Record<string, number>> = {
     seora: require('../assets/moves/upright_row_seora.png'),
   },
   v_up: {
+    dohwa: require('../assets/moves/v_up_dohwa.png'),
     geumhwa: require('../assets/moves/v_up_geumhwa.png'),
     seora: require('../assets/moves/v_up_seora.png'),
   },
@@ -790,10 +791,12 @@ const MOVE_ART: Record<string, Record<string, number>> = {
     seora: require('../assets/moves/wall_sit_seora.png'),
   },
   wrist_curl: {
+    dohwa: require('../assets/moves/wrist_curl_dohwa.png'),
     geumhwa: require('../assets/moves/wrist_curl_geumhwa.png'),
     seora: require('../assets/moves/wrist_curl_seora.png'),
   },
   y_raise: {
+    dohwa: require('../assets/moves/y_raise_dohwa.png'),
     geumhwa: require('../assets/moves/y_raise_geumhwa.png'),
     seora: require('../assets/moves/y_raise_seora.png'),
   },
