@@ -12,7 +12,8 @@ import {
 } from './textScale.ts';
 
 test('a chosen size lands on a step inside the range', () => {
-  assert.equal(clampTextScale(103), 105);
+  assert.equal(clampTextScale(103), 100);
+  assert.equal(clampTextScale(111), 120);
   assert.equal(clampTextScale(10), MIN_TEXT_SCALE);
   assert.equal(clampTextScale(900), MAX_TEXT_SCALE);
   assert.equal(clampTextScale(Number.NaN), DEFAULT_TEXT_SCALE);

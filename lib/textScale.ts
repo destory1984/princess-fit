@@ -8,7 +8,8 @@
  */
 export const MIN_TEXT_SCALE = 80;
 export const MAX_TEXT_SCALE = 140;
-export const TEXT_SCALE_STEP = 5;
+// Four stops: 80, 100, 120, 140. Twenty at a time, as the owner asked, to start with.
+export const TEXT_SCALE_STEP = 20;
 export const DEFAULT_TEXT_SCALE = 100;
 
 /** The numbers written under the slider. */
