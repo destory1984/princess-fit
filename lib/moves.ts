@@ -99,8 +99,8 @@ const MOVES: Record<string, Move> = {
   '리버스 크런치': { id: 'reverse_crunch', frames: 3 },
   슈퍼맨: { id: 'superman', frames: 3 },
   '하이 니': { id: 'high_knees', frames: 3 },
-  '박스 점프': { id: 'box_jump', frames: 3 },
-  '덤벨 스러스터': { id: 'thruster', frames: 3 },
+  '박스 점프': { id: 'box_jump', frames: 5 },
+  '덤벨 스러스터': { id: 'thruster', frames: 5 },
   '디클라인 벤치프레스': { id: 'decline_bench_press', frames: 3 },
   '케이블 킥백': { id: 'cable_kickback', frames: 3 },
   '디클라인 푸시업': { id: 'decline_push_up', frames: 3 },
@@ -154,7 +154,7 @@ const MOVES: Record<string, Move> = {
   '싱글 레그 글루트 브릿지': { id: 'single_leg_glute_bridge', frames: 3 },
   '케이블 풀 스루': { id: 'cable_pull_through', frames: 3 },
   '노르딕 햄스트링 컬': { id: 'nordic_curl', frames: 3 },
-  '파워 클린': { id: 'power_clean', frames: 3 },
+  '파워 클린': { id: 'power_clean', frames: 5 },
   '인클라인 덤벨 컬': { id: 'incline_dumbbell_curl', frames: 3 },
   '이지바 컬': { id: 'ez_bar_curl', frames: 3 },
   '암 컬 머신': { id: 'arm_curl_machine', frames: 3 },
@@ -199,6 +199,8 @@ const ROUND = new Set([
   'hiking',
   'air_bike',
   'shadow_boxing',
+  // Up onto the box and that is the repetition: played backwards she would jump off it backwards.
+  'box_jump',
 ]);
 
 /**
