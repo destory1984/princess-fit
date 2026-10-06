@@ -108,6 +108,66 @@ export const ROUTINE_PRESETS: RoutinePreset[] = [
       { name: '버피', sets: 3, reps: 10 },
     ],
   },
+  // 2026-10-06. The six above were the same for everyone. These four are for
+  // someone in particular: the two that work the hips and legs are what most
+  // women at a gym are there for and no routine here did, and the two with a
+  // bar are for someone who has outgrown the machines (lib/profile.ts).
+  {
+    id: 'glutes',
+    name: '하체 · 엉덩이 날',
+    detail: '엉덩이와 허벅지 뒤를 중심으로. 상체 날과 번갈아 하기 좋아요.',
+    minutes: 50,
+    days: '주 1~2회',
+    exercises: [
+      { name: '힙 쓰러스트', sets: 4, reps: 12 },
+      { name: '레그 프레스', sets: 3, reps: 12 },
+      { name: '불가리안 스플릿 스쿼트', sets: 3, reps: 10 },
+      { name: '케이블 킥백', sets: 3, reps: 15 },
+      { name: '힙 어브덕션 머신', sets: 3, reps: 15 },
+    ],
+  },
+  {
+    id: 'home-glutes',
+    name: '집에서 하체 · 엉덩이',
+    detail: '기구 없이 엉덩이와 다리만. 매트 한 장이면 돼요.',
+    minutes: 30,
+    days: '주 2~3회',
+    exercises: [
+      { name: '글루트 브릿지', sets: 4, reps: 15 },
+      { name: '스플릿 스쿼트', sets: 3, reps: 12 },
+      { name: '덩키 킥', sets: 3, reps: 15 },
+      { name: '사이드 런지', sets: 3, reps: 12 },
+      { name: '싱글 레그 글루트 브릿지', sets: 3, reps: 12 },
+    ],
+  },
+  {
+    id: 'upper-strength',
+    name: '상체 날 · 바벨',
+    detail: '해 본 분께. 바벨로 밀고 당기는 큰 종목 위주예요.',
+    minutes: 60,
+    days: '주 2회',
+    exercises: [
+      { name: '벤치프레스', sets: 4, reps: 8 },
+      { name: '바벨 로우', sets: 4, reps: 8 },
+      { name: '오버헤드 프레스', sets: 3, reps: 8 },
+      { name: '풀업', sets: 3, reps: 8 },
+      { name: '페이스 풀', sets: 3, reps: 15 },
+    ],
+  },
+  {
+    id: 'lower-strength',
+    name: '하체 날 · 바벨',
+    detail: '해 본 분께. 스쿼트와 데드리프트를 한 날에 해요.',
+    minutes: 60,
+    days: '주 2회',
+    exercises: [
+      { name: '스쿼트', sets: 4, reps: 8 },
+      { name: '데드리프트', sets: 3, reps: 5 },
+      { name: '레그 익스텐션', sets: 3, reps: 12 },
+      { name: '레그 컬', sets: 3, reps: 12 },
+      { name: '행잉 레그 레이즈', sets: 3, reps: 12 },
+    ],
+  },
 ];
 
 export function presetById(id: string) {

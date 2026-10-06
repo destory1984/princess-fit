@@ -106,7 +106,7 @@ test('a device that cannot send the daily word is not asked when to send it', ()
   // The step before it becomes the last one, and the bar still fills there.
   assert.equal(nextStep('routine', web), null);
   assert.equal(progressOf('routine', web), 1);
-  assert.equal(previousStep('routine', web), 'place');
+  assert.equal(previousStep('routine', web), 'you');
 });
 
 test('she is chosen first, and every girl who can be chosen is introduced', () => {
@@ -139,4 +139,45 @@ test('the first conversation is in the hand of whoever was chosen', () => {
   for (const g of ['geumhwa', 'dohwa', 'seora']) assert.match(perWeekWord(7, g), /쉬는 날/);
   // Someone unknown speaks as the first girl does.
   assert.equal(perWeekWord(3, 'nobody'), perWeekWord(3));
+});
+
+test('saying nothing about yourself leaves the offer as it was', () => {
+  for (const { id: place } of PLACES) {
+    for (let n = MIN_PER_WEEK; n <= MAX_PER_WEEK; n += 1) {
+      assert.deepEqual(recommendPresets(place, n, null, {}), recommendPresets(place, n));
+      assert.deepEqual(
+        recommendPresets(place, n, null, { sex: null, level: 'beginner' }),
+        recommendPresets(place, n)
+      );
+    }
+  }
+});
+
+test('a woman is shown the hips-and-legs day second, wherever she trains', () => {
+  assert.equal(recommendPresets('gym', 3, null, { sex: 'female' })[1].id, 'glutes');
+  assert.equal(recommendPresets('home', 3, null, { sex: 'female' })[1].id, 'home-glutes');
+  // What goes first is still her own answers about how often and what for.
+  assert.equal(recommendPresets('gym', 3, null, { sex: 'female' })[0].id, 'full-body');
+  assert.equal(recommendPresets('gym', 3, 'stamina', { sex: 'female' })[0].id, 'cardio');
+});
+
+test('someone who has trained is shown the barbell days first, and only where there is a bar', () => {
+  const gym = recommendPresets('gym', 4, null, { level: 'intermediate' }).map((p) => p.id);
+  assert.deepEqual(gym.slice(0, 2), ['upper-strength', 'lower-strength']);
+  const home = recommendPresets('home', 4, null, { level: 'intermediate' }).map((p) => p.id);
+  assert.ok(home.every((id) => id.startsWith('home')), home.join());
+});
+
+test('who is asking only reorders: nothing offered before is taken away, and no routine twice', () => {
+  for (const { id: place } of PLACES) {
+    for (const sex of ['female', 'male', null] as const) {
+      for (const level of ['beginner', 'intermediate'] as const) {
+        const before = recommendPresets(place, 3).map((p) => p.id);
+        const after = recommendPresets(place, 3, null, { sex, level }).map((p) => p.id);
+        assert.equal(new Set(after).size, after.length);
+        assert.ok(after.length <= 4);
+        if (after.length < 4) for (const id of before) assert.ok(after.includes(id), `${id} lost`);
+      }
+    }
+  }
 });

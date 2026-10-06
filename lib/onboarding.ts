@@ -1,3 +1,4 @@
+import type { Level, Sex } from './profile.ts';
 import { ROUTINE_PRESETS, type RoutinePreset } from './routinePresets.ts';
 
 /**
@@ -54,8 +55,50 @@ export const MAX_PER_WEEK = 7;
 export function recommendPresets(
   place: Place,
   perWeek: number,
-  goal: Goal | null = null
+  goal: Goal | null = null,
+  who: { sex?: Sex | null; level?: Level } = {}
 ): RoutinePreset[] {
+  return fitted(byPlan(place, perWeek, goal), place, who);
+}
+
+/** How many are offered at once. More than this is a catalogue, not a suggestion. */
+const OFFERED = 4;
+
+/**
+ * The same answer, bent toward who is asking (2026-10-06).
+ *
+ * Someone who has trained before is shown the barbell days ahead of the
+ * machine ones: the machine split is where they have been. A woman is shown
+ * the hips-and-legs day second — second and not first, because what goes first
+ * is still decided by how often she comes and what for, and those she said
+ * herself. Saying nothing about either leaves the list exactly as it was.
+ *
+ * Nothing is taken away, only put in front: a guess about someone from their
+ * sex that removed a routine would be the app deciding for them.
+ */
+function fitted(
+  base: RoutinePreset[],
+  place: Place,
+  who: { sex?: Sex | null; level?: Level }
+): RoutinePreset[] {
+  const pick = (...ids: string[]) =>
+    ids.map((id) => ROUTINE_PRESETS.find((p) => p.id === id)).filter((p): p is RoutinePreset => !!p);
+  let list = base;
+  if (who.level === 'intermediate' && place === 'gym') {
+    list = [...pick('upper-strength', 'lower-strength'), ...list];
+  }
+  if (who.level === 'intermediate' && place === 'home') {
+    list = [...pick('home-strength'), ...list];
+  }
+  if (who.sex === 'female') {
+    const hips = pick(place === 'home' ? 'home-glutes' : 'glutes');
+    list = [...list.slice(0, 1), ...hips, ...list.slice(1)];
+  }
+  const seen = new Set<string>();
+  return list.filter((p) => !seen.has(p.id) && seen.add(p.id)).slice(0, OFFERED);
+}
+
+function byPlan(place: Place, perWeek: number, goal: Goal | null): RoutinePreset[] {
   const pick = (...ids: string[]) =>
     ids.map((id) => ROUTINE_PRESETS.find((p) => p.id === id)).filter((p): p is RoutinePreset => !!p);
 
@@ -109,6 +152,8 @@ type FirstWords = {
   goal: string;
   place: Record<Place, string>;
   heard: string;
+  /** Before asking who they are: sex, how long they have trained, what they weigh. */
+  you: string;
   quiet: string;
   nudge: (hour: number) => string;
 };
@@ -128,6 +173,7 @@ const FIRST_WORDS: Record<string, FirstWords> = {
       gym: '기구가 있으면 고를 수 있는 게 많아져요.',
     },
     heard: '그렇게 알고 있을게요.',
+    you: '어떤 분인지 알면 권해 드릴 게 달라져요. 말하기 싫은 건 비워 두셔도 괜찮아요.',
     quiet: '알겠어요. 조용히 기다릴게요.',
     nudge: (hour) => `그럼 ${hour}시쯤에 한 마디 보낼게요. 하루에 한 번만요.`,
   },
@@ -145,6 +191,7 @@ const FIRST_WORDS: Record<string, FirstWords> = {
       gym: '기구가 있으면 올릴 숫자가 많아요!',
     },
     heard: '좋아요, 그렇게 가요!',
+    you: '어떤 분인지 알려 주세요! 시작 무게를 맞춰 드릴게요! 비워 둬도 돼요!',
     quiet: '알겠어요! 조용히 기다릴게요!',
     nudge: (hour) => `그럼 ${hour}시쯤에 한 마디 보낼게요! 하루에 한 번만요!`,
   },
@@ -162,6 +209,7 @@ const FIRST_WORDS: Record<string, FirstWords> = {
       gym: '기구가 있으면 고를 수 있는 종목이 많습니다.',
     },
     heard: '그렇게 적어 두겠습니다.',
+    you: '맞는 루틴과 시작 무게를 정하려면 몇 가지가 필요합니다. 답하지 않으셔도 됩니다.',
     quiet: '알겠습니다. 보내지 않겠습니다.',
     nudge: (hour) => `${hour}시쯤에 한 번 보내겠습니다. 하루에 한 번입니다.`,
   },
@@ -205,7 +253,23 @@ export function perWeekWord(perWeek: number, girl?: string): string {
 }
 
 // 'who' comes first: the rest is asked by whoever is chosen there.
-export const STEPS = ['who', 'meet', 'often', 'goal', 'place', 'routine', 'nudge'] as const;
+/**
+ * Said once someone who started as a beginner has trained long enough to be
+ * offered the barbell days (`levelUpDue`, lib/profile.ts). An offer: the level
+ * is changed by the person, on the button under these words.
+ */
+const LEVEL_UP: Record<string, string> = {
+  geumhwa: '이제 꽤 익숙해지셨어요. 바벨을 쓰는 루틴도 한번 보실래요? 지금 것이 편하시면 그대로 두셔도 돼요.',
+  dohwa: '벌써 이만큼 했어요! 이제 바벨 루틴으로 올라가 봐요! 더 큰 숫자가 기다려요!',
+  seora: '기록이 충분히 쌓였습니다. 바벨 루틴으로 올릴 때입니다. 정하는 것은 직접 하십시오.',
+};
+
+export function levelUpWord(girl?: string) {
+  return LEVEL_UP[girl ?? ''] ?? LEVEL_UP.geumhwa;
+}
+
+// 'you' sits just before 'routine': what is offered there depends on its answers.
+export const STEPS = ['who', 'meet', 'often', 'goal', 'place', 'you', 'routine', 'nudge'] as const;
 export type Step = (typeof STEPS)[number];
 
 /**

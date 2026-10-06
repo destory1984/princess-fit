@@ -16,7 +16,7 @@ import { ADVISORS } from '@/lib/advisors';
 import { seedDefaultExercises } from '@/lib/catalog';
 import { explain } from '@/lib/dbError';
 import { notify } from '@/lib/confirm';
-import { createRoutineFromPreset, listRoutines } from '@/lib/db';
+import { createRoutineFromPreset, listRoutines, saveBodyLog } from '@/lib/db';
 import { ensureNotificationPermission } from '@/lib/notify';
 import {
   firstWords,
@@ -37,12 +37,23 @@ import {
   type Step,
 } from '@/lib/onboarding';
 import {
+  DEFAULT_LEVEL,
+  LEVELS,
+  MAX_BODY_KG,
+  MIN_BODY_KG,
+  SEXES,
+  type Level,
+  type Sex,
+} from '@/lib/profile';
+import {
   DEFAULT_NUDGE_HOUR,
   DEFAULT_WEEKLY_GOAL,
   markOnboarded,
   setGoal,
+  setLevel,
   setNudgeHour,
   setPlace,
+  setSex,
   setWeeklyGoal,
 } from '@/lib/prefs';
 import type { RoutinePreset } from '@/lib/routinePresets';
@@ -82,6 +93,11 @@ export default function OnboardingScreen({ bench = false }: { bench?: boolean })
   const [goal, setChosenGoal] = useState<Goal>('habit');
   const [place, setChosenPlace] = useState<Place>('gym');
   const [preset, setPreset] = useState<RoutinePreset | null>(null);
+  // Who they are (lib/profile.ts). Each may be left unsaid, and unsaid is the
+  // start: nobody is assumed to be anything.
+  const [sex, setChosenSex] = useState<Sex | null>(null);
+  const [level, setChosenLevel] = useState<Level>(DEFAULT_LEVEL);
+  const [bodyKg, setBodyKg] = useState<number | null>(null);
   const [hour, setHour] = useState<number | null>(DEFAULT_NUDGE_HOUR);
   const [busy, setBusy] = useState<string | null>(null);
   // On the development bench there is no account to ask and nowhere to send
@@ -114,7 +130,7 @@ export default function OnboardingScreen({ bench = false }: { bench?: boolean })
   // The goal steers which presets are offered, not only what she says about
   // them — a stamina answer that still produced a bodybuilding split would be
   // the question having been decoration.
-  const offered = recommendPresets(place, perWeek, goal);
+  const offered = recommendPresets(place, perWeek, goal, { sex, level });
 
   const back = useCallback(() => {
     const previous = previousStep(step, HERE);
@@ -137,7 +153,16 @@ export default function OnboardingScreen({ bench = false }: { bench?: boolean })
     if (busy || bench) return;
     try {
       setBusy('약속을 적어 두는 중이에요');
-      await Promise.all([setWeeklyGoal(perWeek), setGoal(goal), setPlace(place)]);
+      await Promise.all([
+        setWeeklyGoal(perWeek),
+        setGoal(goal),
+        setPlace(place),
+        setSex(sex),
+        setLevel(level),
+      ]);
+      // The weight goes where weights are kept, as today's reading, so the body
+      // screen and this agree. Not saving it must not stop the rest.
+      if (bodyKg !== null) await saveBodyLog({ weight_kg: bodyKg }).catch(() => {});
       await choose(girl.id);
 
       if (preset) {
@@ -245,6 +270,38 @@ export default function OnboardingScreen({ bench = false }: { bench?: boolean })
             <Text style={styles.note}>
               나중에 설정에서 바꿀 수 있어요. 다만 가까워지는 건 아이마다 따로예요.
             </Text>
+
+            {/*
+              Asked here, beside choosing her, as the owner said: 「성별은 처음에
+              여자애들 설정하고 할 때 같이 물어보자」. It changes which routines
+              are offered and what weight a first set starts at, and it can be
+              left unsaid.
+            */}
+            <Text style={styles.subQuestion}>그리고, 운동하실 분은요?</Text>
+            <View style={styles.row}>
+              {SEXES.map((s) => (
+                <Pressable
+                  key={s.id}
+                  style={[styles.chip, sex === s.id && styles.chipOn]}
+                  onPress={() => {
+                    setChosenSex(s.id);
+                    setPreset(null);
+                  }}>
+                  <Text style={[styles.chipText, sex === s.id && styles.chipTextOn]}>{s.label}</Text>
+                </Pressable>
+              ))}
+              <Pressable
+                style={[styles.chip, sex === null && styles.chipOn]}
+                onPress={() => {
+                  setChosenSex(null);
+                  setPreset(null);
+                }}>
+                <Text style={[styles.chipText, sex === null && styles.chipTextOn]}>
+                  말하지 않을래요
+                </Text>
+              </Pressable>
+            </View>
+            <Text style={styles.note}>맞는 루틴과 시작 무게를 권하는 데만 써요.</Text>
           </>
         )}
 
@@ -317,6 +374,67 @@ export default function OnboardingScreen({ bench = false }: { bench?: boolean })
                 }}
               />
             ))}
+          </>
+        )}
+
+        {step === 'you' && (
+          <>
+            <Text style={styles.question}>운동은 해 보셨나요?</Text>
+            {LEVELS.map((l) => (
+              <Choice
+                key={l.id}
+                on={level === l.id}
+                label={l.label}
+                detail={l.detail}
+                onPress={() => {
+                  setChosenLevel(l.id);
+                  // What is offered next depends on this, so a routine picked
+                  // under the other answer must not survive it.
+                  setPreset(null);
+                }}
+              />
+            ))}
+
+            <Text style={styles.subQuestion}>몸무게를 알려 주실래요?</Text>
+            {bodyKg === null ? (
+              <View style={styles.row}>
+                <Pressable style={styles.chip} onPress={() => setBodyKg(sex === 'male' ? 70 : 55)}>
+                  <Text style={styles.chipText}>적을게요</Text>
+                </Pressable>
+                <View style={[styles.chip, styles.chipOn]}>
+                  <Text style={[styles.chipText, styles.chipTextOn]}>적지 않을래요</Text>
+                </View>
+              </View>
+            ) : (
+              <>
+                <View style={styles.counter}>
+                  <Pressable
+                    style={[styles.round, bodyKg <= MIN_BODY_KG && styles.roundOff]}
+                    disabled={bodyKg <= MIN_BODY_KG}
+                    onPress={() => setBodyKg(bodyKg - 1)}
+                    onLongPress={() => setBodyKg(Math.max(MIN_BODY_KG, bodyKg - 10))}>
+                    <Ionicons name="remove" size={24} color={colors.accent} />
+                  </Pressable>
+                  <View style={styles.counterBody}>
+                    <Text style={styles.counterValue}>{bodyKg}kg</Text>
+                    <Text style={styles.counterSub}>길게 누르면 10씩</Text>
+                  </View>
+                  <Pressable
+                    style={[styles.round, bodyKg >= MAX_BODY_KG && styles.roundOff]}
+                    disabled={bodyKg >= MAX_BODY_KG}
+                    onPress={() => setBodyKg(bodyKg + 1)}
+                    onLongPress={() => setBodyKg(Math.min(MAX_BODY_KG, bodyKg + 10))}>
+                    <Ionicons name="add" size={24} color={colors.accent} />
+                  </Pressable>
+                </View>
+                <Pressable hitSlop={8} onPress={() => setBodyKg(null)}>
+                  <Text style={styles.skip}>적지 않을래요</Text>
+                </Pressable>
+              </>
+            )}
+            <Text style={styles.note}>
+              처음 하는 종목의 시작 무게를 어림하는 데만 써요. 신체 기록에 오늘 것으로 적혀요.
+            </Text>
           </>
         )}
 
@@ -427,6 +545,8 @@ function said(
       return words.goal;
     case 'place':
       return words.place[answers.place];
+    case 'you':
+      return words.you;
     case 'routine':
       return planWord(answers.goal, answers.place, answers.perWeek, girl.id);
     case 'nudge':

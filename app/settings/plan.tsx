@@ -17,12 +17,17 @@ import {
   type Place,
 } from '@/lib/onboarding';
 import { watchingWord } from '@/lib/plan';
+import { DEFAULT_LEVEL, LEVELS, SEXES, type Level, type Sex } from '@/lib/profile';
 import {
   getGoal,
+  getLevel,
   getPlace,
+  getSex,
   getWeeklyGoal,
   setGoal,
+  setLevel,
   setPlace,
+  setSex,
   setWeeklyGoal,
 } from '@/lib/prefs';
 import { colors, paper, radius, spacing } from '@/lib/theme';
@@ -41,15 +46,21 @@ export default function PlanScreen() {
   const [perWeek, setPerWeek] = useState<number | null>(null);
   const [goal, setChosenGoal] = useState<Goal | null>(null);
   const [place, setChosenPlace] = useState<Place | null>(null);
+  const [sex, setChosenSex] = useState<Sex | null>(null);
+  const [level, setChosenLevel] = useState<Level>(DEFAULT_LEVEL);
 
   const load = useCallback(() => {
     let alive = true;
-    Promise.all([getWeeklyGoal(), getGoal(), getPlace()]).then(([days, g, p]) => {
-      if (!alive) return;
-      setPerWeek(days);
-      setChosenGoal(g);
-      setChosenPlace(p);
-    });
+    Promise.all([getWeeklyGoal(), getGoal(), getPlace(), getSex(), getLevel()]).then(
+      ([days, g, p, s, l]) => {
+        if (!alive) return;
+        setPerWeek(days);
+        setChosenGoal(g);
+        setChosenPlace(p);
+        setChosenSex(s);
+        setChosenLevel(l);
+      },
+    );
     return () => {
       alive = false;
     };
@@ -88,6 +99,28 @@ export default function PlanScreen() {
     } catch (e: any) {
       notify('저장 실패', explain(e));
       setChosenPlace(previous);
+    }
+  }
+
+  async function changeSex(next: Sex | null) {
+    const previous = sex;
+    setChosenSex(next);
+    try {
+      await setSex(next);
+    } catch (e: any) {
+      notify('저장 실패', explain(e));
+      setChosenSex(previous);
+    }
+  }
+
+  async function changeLevel(next: Level) {
+    const previous = level;
+    setChosenLevel(next);
+    try {
+      await setLevel(next);
+    } catch (e: any) {
+      notify('저장 실패', explain(e));
+      setChosenLevel(previous);
     }
   }
 
@@ -160,6 +193,45 @@ export default function PlanScreen() {
           짚어드리는 내용 자체는 그대로예요. 순서만 달라져요.
         </Text>
       </View>
+
+      {/*
+        Who is training (lib/profile.ts). Asked in the first conversation since
+        2026-10-06; this is where an account from before that is asked, and
+        where anyone changes their answer.
+      */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>운동하시는 분은</Text>
+        <View style={styles.chips}>
+          {SEXES.map((s) => (
+            <Pressable
+              key={s.id}
+              style={[styles.chip, sex === s.id && styles.chipOn]}
+              onPress={() => changeSex(s.id)}>
+              <Text style={[styles.chipText, sex === s.id && styles.chipTextOn]}>{s.label}</Text>
+            </Pressable>
+          ))}
+          <Pressable
+            style={[styles.chip, sex === null && styles.chipOn]}
+            onPress={() => changeSex(null)}>
+            <Text style={[styles.chipText, sex === null && styles.chipTextOn]}>말하지 않을래요</Text>
+          </Pressable>
+        </View>
+        {LEVELS.map((l) => (
+          <Choice
+            key={l.id}
+            on={level === l.id}
+            label={l.label}
+            detail={l.detail}
+            onPress={() => changeLevel(l.id)}
+          />
+        ))}
+        <Text style={styles.effect}>
+          짜여 있는 루틴에서 무엇을 먼저 권할지, 처음 하는 종목을 몇 kg에서 시작할지가 달라져요.
+        </Text>
+        <Text style={styles.note}>
+          시작 무게는 몸무게도 알아야 권해 드려요. 몸무게는 기록 탭의 「신체 기록」에 적어요.
+        </Text>
+      </View>
     </ScrollView>
   );
 }
@@ -207,6 +279,19 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   cardTitle: { color: colors.text, fontSize: 16, fontWeight: '800' },
+  // The app's one chip: 39 tall (NOTES, 「간격과 단추 크기의 법」).
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  chip: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: 'transparent',
+    backgroundColor: colors.surfaceAlt,
+  },
+  chipOn: { backgroundColor: colors.accentSoft, borderColor: colors.accent },
+  chipText: { color: colors.textDim, fontSize: 15, lineHeight: 21 },
+  chipTextOn: { color: colors.accent, fontWeight: '800' },
   counter: {
     flexDirection: 'row',
     alignItems: 'center',

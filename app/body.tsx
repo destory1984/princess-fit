@@ -270,9 +270,12 @@ const styles = StyleSheet.create({
   change: { color: colors.accent, fontSize: 15, fontWeight: '700' },
   changeQuiet: { color: colors.textDim, fontSize: 14, lineHeight: 21 },
   field: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  fieldLabel: { color: colors.text, fontSize: 16, fontWeight: '600', width: 76 },
+  // Never squeezed: in a narrow window the input took the room and the label stood one letter wide.
+  fieldLabel: { color: colors.text, fontSize: 16, fontWeight: '600', width: 76, flexShrink: 0 },
   input: {
     flex: 1,
+    // A browser's text box will not go narrower than about twenty letters unless told.
+    minWidth: 0,
     backgroundColor: paper.bgAlt,
     borderRadius: radius.sm,
     color: colors.text,

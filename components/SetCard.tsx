@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.xs,
   },
-  removeText: { color: colors.danger, fontWeight: '700', fontSize: 16 },
+  removeText: { color: colors.danger, fontWeight: '700', fontSize: 14 },
   done: {
     flex: 2,
     borderRadius: radius.md,

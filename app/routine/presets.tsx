@@ -1,11 +1,17 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/Text';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { Advisor } from '@/components/Advisor';
 import { explain } from '@/lib/dbError';
 import { notify } from '@/lib/confirm';
-import { createRoutineFromPreset } from '@/lib/db';
+import { createRoutineFromPreset, listWorkoutFacts } from '@/lib/db';
+import { isEmptyWorkout } from '@/lib/gamification';
+import { useGirlChoice } from '@/lib/girl';
+import { levelUpWord, recommendPresets, type Goal, type Place } from '@/lib/onboarding';
+import { DEFAULT_WEEKLY_GOAL, getGoal, getLevel, getPlace, getSex, getWeeklyGoal, setLevel } from '@/lib/prefs';
+import { DEFAULT_LEVEL, levelUpDue, type Level, type Sex } from '@/lib/profile';
 import { ROUTINE_PRESETS, type RoutinePreset } from '@/lib/routinePresets';
 import { colors, radius, spacing } from '@/lib/theme';
 import { withParticle } from '@/lib/korean';
@@ -21,6 +27,43 @@ import { withParticle } from '@/lib/korean';
 export default function RoutinePresetsScreen() {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
+  const { girl } = useGirlChoice();
+  // What they said about themselves, so the ones that fit come first. Until it
+  // is read the shelf is in its plain order, which is also the order for
+  // someone who said nothing.
+  const [plan, setPlan] = useState<{
+    place: Place | null;
+    perWeek: number;
+    goal: Goal | null;
+    sex: Sex | null;
+    level: Level;
+  }>({ place: null, perWeek: DEFAULT_WEEKLY_GOAL, goal: null, sex: null, level: DEFAULT_LEVEL });
+  const [due, setDue] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      let alive = true;
+      Promise.all([getPlace(), getWeeklyGoal(), getGoal(), getSex(), getLevel()])
+        .then(async ([place, perWeek, goal, sex, level]) => {
+          if (!alive) return;
+          setPlan({ place, perWeek, goal, sex, level });
+          if (level !== 'beginner') return setDue(false);
+          // Only real sessions count toward having outgrown the first routines.
+          const facts = await listWorkoutFacts().catch(() => []);
+          if (alive) setDue(levelUpDue(level, facts.filter((f) => !isEmptyWorkout(f))));
+        })
+        .catch(() => {});
+      return () => {
+        alive = false;
+      };
+    }, []),
+  );
+
+  const fitting = plan.place
+    ? recommendPresets(plan.place, plan.perWeek, plan.goal, { sex: plan.sex, level: plan.level })
+    : [];
+  const fits = new Set(fitting.map((p) => p.id));
+  const shelf = [...fitting, ...ROUTINE_PRESETS.filter((p) => !fits.has(p.id))];
 
   async function use(preset: RoutinePreset) {
     if (busy) return;
@@ -47,8 +90,26 @@ export default function RoutinePresetsScreen() {
         골라서 그대로 쓰고, 나중에 종목을 빼거나 더하면 돼요.
       </Text>
 
-      {ROUTINE_PRESETS.map((preset) => (
-        <View key={preset.id} style={styles.card}>
+      {due && (
+        <>
+          <Advisor name={girl.name} portrait={girl.base}>
+            {levelUpWord(girl.id)}
+          </Advisor>
+          <Pressable
+            style={styles.levelUp}
+            onPress={() => {
+              setLevel('intermediate').catch(() => {});
+              setPlan({ ...plan, level: 'intermediate' });
+              setDue(false);
+            }}>
+            <Text style={styles.levelUpText}>바벨 루틴부터 보여 주세요</Text>
+          </Pressable>
+        </>
+      )}
+
+      {shelf.map((preset) => (
+        <View key={preset.id} style={[styles.card, fits.has(preset.id) && styles.cardFits]}>
+          {fits.has(preset.id) && <Text style={styles.fits}>말씀하신 것에 맞춰 권해요</Text>}
           <Text style={styles.name}>{preset.name}</Text>
           <Text style={styles.detail}>{preset.detail}</Text>
           <Text style={styles.meta}>
@@ -91,6 +152,19 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     gap: spacing.xs,
   },
+  cardFits: { borderColor: colors.gold, borderWidth: 1 },
+  fits: { color: colors.gold, fontSize: 13, fontWeight: '800' },
+  levelUp: {
+    borderColor: colors.accent,
+    borderWidth: 1,
+    borderRadius: radius.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    minHeight: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  levelUpText: { color: colors.accent, fontWeight: '800', fontSize: 16 },
   name: { color: colors.text, fontSize: 18, fontWeight: '800' },
   detail: { color: colors.textDim, fontSize: 15, lineHeight: 22 },
   meta: { color: colors.gold, fontSize: 14, fontWeight: '700', marginTop: 2 },

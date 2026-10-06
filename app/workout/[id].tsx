@@ -75,12 +75,16 @@ import {
   shapePlan,
 } from "@/lib/condition";
 import type { UsageMap } from "@/lib/exerciseUsage";
-import { listMuscleLoad } from "@/lib/db";
+import { listBodyLogs, listMuscleLoad } from "@/lib/db";
 import type { Place } from "@/lib/onboarding";
+import { latest } from "@/lib/body";
+import { DEFAULT_LEVEL, isPerHand, startWeight, type Who } from "@/lib/profile";
 import {
   getAdviceByModel,
   getAskRoutine,
   getBell,
+  getLevel,
+  getSex,
   getBars,
   getPlace,
   getRestEnd,
@@ -176,6 +180,20 @@ export default function WorkoutScreen() {
   const [now, setNow] = useState(() => Date.now());
   const [error, setError] = useState<string | null>(null);
   const [usage, setUsage] = useState<UsageMap>(new Map());
+  // Who is training, for the weight offered on a movement with no record yet
+  // (lib/profile.ts). Read once; until then nothing is offered.
+  const [who, setWho] = useState<Who>({ sex: null, level: DEFAULT_LEVEL, bodyKg: null });
+  useEffect(() => {
+    let alive = true;
+    Promise.all([getSex(), getLevel(), listBodyLogs(60).catch(() => [])])
+      .then(([sex, level, logs]) => {
+        if (alive) setWho({ sex, level, bodyKg: latest(logs, "weight_kg") });
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
   /*
     For the movement she offers on an empty board: what has rested, and where
     they said they train.
@@ -1403,6 +1421,30 @@ export default function WorkoutScreen() {
                     // last time implied: 「22.5kg 어떠세요?」 stayed up over
                     // three sets at 10kg with the reps falling.
                     if (exDone.some((s) => !s.warmup)) return null;
+                    // Never done before, and nothing set yet: a place to begin,
+                    // from who they said they are. Only then — a number already
+                    // on the board is theirs, and is not argued with.
+                    const first =
+                      !previous && exerciseSets.every((x) => x.weight_kg === 0)
+                        ? startWeight(exercise?.name ?? "", who)
+                        : null;
+                    if (first) {
+                      return (
+                        <View style={styles.suggest}>
+                          <Ionicons name="flag-outline" size={15} color={colors.gold} />
+                          <Text style={styles.suggestText}>
+                            처음이시면 {isPerHand(exercise?.name ?? "") ? "한 손에 " : ""}
+                            {first}kg쯤에서 시작해 보세요. 몸무게로 어림한 값이에요.
+                          </Text>
+                          <Pressable
+                            style={styles.suggestButton}
+                            onPress={() => applyWeight(position, first)}
+                          >
+                            <Text style={styles.suggestButtonText}>{first}kg로</Text>
+                          </Pressable>
+                        </View>
+                      );
+                    }
                     // Over a month, not over one session (`earned`).
                     const read = previous ? earned(previous.recent, new Date(now)) : null;
                     // Whether they answered last time, so she can speak as

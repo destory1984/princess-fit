@@ -55,5 +55,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  buttonText: { color: colors.text, fontWeight: '700', fontSize: 14, lineHeight: 19 },
+  // 12 and no larger, for the same reason as BigStepper's: 「−1시간」 in a fixed button.
+  buttonText: { color: colors.text, fontWeight: '700', fontSize: 12, lineHeight: 16 },
 });

@@ -150,8 +150,11 @@ const styles = StyleSheet.create({
   buttonText: {
     color: colors.text,
     fontWeight: "700",
-    fontSize: 16,
-    lineHeight: 22,
+    // 14, and it stays 14: the type was made larger everywhere on 2026-10-06 and
+    // these, at 16, read 「−.」 and 「+.」 on a phone. The button is as wide as
+    // an eighth of the card and no wider.
+    fontSize: 14,
+    lineHeight: 19,
     letterSpacing: -0.3,
   },
 });

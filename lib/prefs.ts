@@ -3,6 +3,7 @@ import { bellOf, DEFAULT_BELL, type BellKind } from './bellKind';
 import { DEFAULT_QUIET_FROM, DEFAULT_QUIET_TO } from './quiet';
 import { GOALS, PLACES, type Goal, type Place } from './onboarding';
 import { clampGoal, DEFAULT_STEP_GOAL } from './steps';
+import { levelOf, sexOf, type Level, type Sex } from './profile';
 import { DEFAULT_TEXT_SCALE, textScaleOf } from './textScale';
 
 const WEEKLY_GOAL = 'refit.weeklyGoal';
@@ -120,6 +121,36 @@ export async function getBell(): Promise<BellKind> {
 
 export async function setBell(kind: BellKind) {
   await AsyncStorage.setItem(BELL, kind);
+}
+
+const SEX = 'refit.sex';
+const LEVEL = 'refit.level';
+
+/** Who is training (lib/profile.ts). Null means they did not say. */
+export async function getSex(): Promise<Sex | null> {
+  try {
+    return sexOf(await AsyncStorage.getItem(SEX));
+  } catch {
+    return null;
+  }
+}
+
+/** Null takes the answer back: 「말하지 않을래요」 is an answer too. */
+export async function setSex(sex: Sex | null) {
+  if (sex === null) await AsyncStorage.removeItem(SEX);
+  else await AsyncStorage.setItem(SEX, sex);
+}
+
+export async function getLevel(): Promise<Level> {
+  try {
+    return levelOf(await AsyncStorage.getItem(LEVEL));
+  } catch {
+    return levelOf(null);
+  }
+}
+
+export async function setLevel(level: Level) {
+  await AsyncStorage.setItem(LEVEL, level);
 }
 
 const TEXT_SCALE = 'refit.textScale';
