@@ -21,6 +21,13 @@ export const colors = {
   chromeDim: '#9A8873',
 };
 
+/**
+ * The bar across the top of every screen, on the web. 64 by default, which on a phone
+ * is a twelfth of the screen for one word and a back arrow. Native bars keep the
+ * system's height: the native stack does not take one.
+ */
+export const HEADER_HEIGHT = 48;
+
 export const spacing = {
   xs: 4,
   sm: 8,

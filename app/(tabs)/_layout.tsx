@@ -1,12 +1,12 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router';
-import { colors } from '@/lib/theme';
+import { colors, HEADER_HEIGHT } from '@/lib/theme';
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerStyle: { backgroundColor: colors.chrome },
+        headerStyle: { backgroundColor: colors.chrome, height: HEADER_HEIGHT },
         headerTintColor: colors.chromeText,
         headerTitleStyle: { fontWeight: '800' },
         headerShadowVisible: false,

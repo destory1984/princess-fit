@@ -26,6 +26,7 @@ import {
   setExerciseUnilateral,
   type ExerciseHistoryPoint,
 } from '@/lib/db';
+import { cautionOf } from '@/lib/cautions';
 import { coachTipOf, introOf } from '@/lib/exerciseCopy';
 import { formatDate, formatDuration, formatKm } from '@/lib/format';
 import { isUnilateral } from '@/lib/sides';
@@ -41,6 +42,8 @@ export default function ExerciseScreen() {
   const router = useRouter();
   const girl = useGirl();
   const [exercise, setExercise] = useState<Exercise | null>(null);
+  // Which of her lines today: she has more than one for each kind of movement.
+  const [today] = useState(() => Math.floor(Date.now() / 86_400_000));
   const [history, setHistory] = useState<ExerciseHistoryPoint[]>([]);
   // The whole catalogue, kept so substitutes can be read off it without a
   // second round trip — the list is already being fetched to find this one.
@@ -150,6 +153,7 @@ export default function ExerciseScreen() {
   );
   // Rows created before the how_to column exists come back without it.
   const steps = (exercise.how_to ?? '').split('\n').filter(Boolean);
+  const caution = cautionOf(exercise.name);
   const alternatives = substitutesHere(exercise, catalogue, place);
   /*
     Two ways to read the same sessions, and they disagree on purpose.
@@ -212,7 +216,7 @@ export default function ExerciseScreen() {
         <Text style={styles.intro}>{introOf(exercise)}</Text>
       </OrnateFrame>
 
-      <Advisor name={girl.name} portrait={girl.base}>{coachTipOf(exercise, girl.id)}</Advisor>
+      <Advisor name={girl.name} portrait={girl.base}>{coachTipOf(exercise, girl.id, today)}</Advisor>
 
       {steps.length > 0 && (
         <View style={styles.card}>
@@ -224,6 +228,17 @@ export default function ExerciseScreen() {
             </View>
           ))}
           <Text style={styles.caution}>아프면 멈추세요.</Text>
+        </View>
+      )}
+
+      {/* The exercise's own text, not hers: she cannot see anyone's knees (lib/cautions.ts). */}
+      {caution && (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>조심할 점</Text>
+          <Text style={styles.stepText}>{caution}</Text>
+          <Text style={styles.caution}>
+            흔히 알려진 내용이에요. 무거운 종목은 자세를 봐 줄 사람과 함께 하세요.
+          </Text>
         </View>
       )}
 

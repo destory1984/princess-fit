@@ -13,7 +13,7 @@ import { getOnboardedAt, markOnboarded } from "@/lib/prefs";
 import { askRelay, relayThenDirect, supabaseRelayStore } from "@/lib/relay";
 import { supabase } from "@/lib/supabase";
 import { loadTextScale } from "@/lib/textScaleStore";
-import { colors } from "@/lib/theme";
+import { colors, HEADER_HEIGHT } from "@/lib/theme";
 
 /*
   Every question to a model goes through the relay from here on: a row in
@@ -143,7 +143,7 @@ function RootNavigator() {
       {session && Platform.OS !== "web" && <NotificationRouter />}
       <Stack
         screenOptions={{
-          headerStyle: { backgroundColor: colors.chrome },
+          headerStyle: { backgroundColor: colors.chrome, height: HEADER_HEIGHT } as { backgroundColor: string },
           headerTintColor: colors.chromeText,
           headerTitleStyle: { fontWeight: "800" },
           headerShadowVisible: false,

@@ -79,6 +79,7 @@ import { listBodyLogs, listMuscleLoad } from "@/lib/db";
 import type { Place } from "@/lib/onboarding";
 import { latest } from "@/lib/body";
 import { DEFAULT_LEVEL, isPerHand, startWeight, type Who } from "@/lib/profile";
+import { cautionOf } from "@/lib/cautions";
 import {
   getAdviceByModel,
   getAskRoutine,
@@ -1407,6 +1408,22 @@ export default function WorkoutScreen() {
                   })()}
 
                   {/*
+                    What to watch for in this one. Before its first set and gone
+                    once a set is done: a line that never leaves is one people
+                    stop reading. The exercise's text, not hers — she cannot see
+                    the lift.
+                  */}
+                  {!done &&
+                  expanded &&
+                  !exDone.some((s) => !s.warmup) &&
+                  cautionOf(exercise?.name ?? "") ? (
+                    <View style={styles.watch}>
+                      <Ionicons name="alert-circle-outline" size={15} color={colors.textDim} />
+                      <Text style={styles.watchText}>{cautionOf(exercise?.name ?? "")}</Text>
+                    </View>
+                  ) : null}
+
+                  {/*
                     The board already carries last time's weight forward, and
                     said nothing about whether it had been earned — so the
                     number that got you here could sit there for months. Only
@@ -2015,6 +2032,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   suggestText: { color: colors.text, fontSize: 14, lineHeight: 21, flex: 1 },
+  watch: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.sm },
+  watchText: { color: colors.textDim, fontSize: 14, lineHeight: 21, flex: 1 },
   suggestButton: {
     backgroundColor: colors.accent,
     borderRadius: radius.sm,
