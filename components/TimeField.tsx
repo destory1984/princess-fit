@@ -27,9 +27,9 @@ export function TimeField({ label, value, onChange }: Props) {
       <Text style={styles.label}>{label}</Text>
       <Text style={styles.value}>{formatMinuteOfDay(value)}</Text>
       <View style={styles.buttons}>
-        {[-60, -10, 10, 60].map((delta) => (
+        {[-60, 60, -10, 10].map((delta) => (
           <Pressable key={delta} style={styles.button} hitSlop={4} onPress={() => shift(delta)}>
-            <Text style={styles.buttonText} numberOfLines={1} allowFontScaling={false}>
+            <Text style={styles.buttonText} numberOfLines={1}>
               {delta < 0 ? '−' : '+'}
               {Math.abs(delta) === 60 ? '1시간' : `${Math.abs(delta)}분`}
             </Text>
@@ -44,9 +44,12 @@ const styles = StyleSheet.create({
   wrap: { flex: 1, alignItems: 'center', gap: spacing.sm },
   label: { color: colors.textDim, fontSize: 14 },
   value: { color: colors.text, fontSize: 32, fontWeight: '800', letterSpacing: -1 },
-  buttons: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'stretch' },
+  // Two rows of two, hours over minutes. Four across, with two fields side by side on a
+  // phone, left each button 30 points and 「−1시간」 read 「−1시…」 at any text size.
+  buttons: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, alignSelf: 'stretch' },
   button: {
-    flex: 1,
+    flexGrow: 1,
+    flexBasis: '40%',
     minWidth: 0,
     height: 38,
     paddingHorizontal: 2,
@@ -55,6 +58,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  // 12 and no larger, for the same reason as BigStepper's: 「−1시간」 in a fixed button.
-  buttonText: { color: colors.text, fontWeight: '700', fontSize: 12, lineHeight: 16 },
+  buttonText: { color: colors.text, fontWeight: '700', fontSize: 13, lineHeight: 17 },
 });

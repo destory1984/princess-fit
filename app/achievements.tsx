@@ -7,6 +7,8 @@ import { BodyMap, workedParts } from '@/components/BodyMap';
 import { Scroll } from '@/components/Scroll';
 import { StatBar } from '@/components/StatBar';
 import { ScreenState } from '@/components/ScreenState';
+import { scaledSize } from '@/lib/textScale';
+import { useTextScale } from '@/lib/textScaleStore';
 import {
   CULTURE_META,
   CULTURE_ORDER,
@@ -40,8 +42,12 @@ import { useGirl } from '@/lib/girl';
 import { achievementArt } from '@/lib/achievementArt';
 import { rankArt } from '@/lib/rankArt';
 
+// The least a stat line needs at 100: icon, name, a bar wide enough to read, number.
+const STATS_MIN = 190;
+
 export default function TrainingLedgerScreen() {
   const girl = useGirl();
+  const textScale = useTextScale();
   const [facts, setFacts] = useState<WorkoutFact[] | null>(null);
   const [goal, setGoal] = useState(3);
   const [error, setError] = useState<string | null>(null);
@@ -120,7 +126,7 @@ export default function TrainingLedgerScreen() {
           <View style={styles.portrait}>
             <BodyMap data={trained} scale={0.5} labels={false} fill={paper.track} />
           </View>
-          <View style={styles.stats}>
+          <View style={[styles.stats, { minWidth: scaledSize(STATS_MIN, textScale) }]}>
             {STAT_ORDER.map((key) => (
               <StatBar
                 key={key}
@@ -302,7 +308,15 @@ const styles = StyleSheet.create({
   archetype: { color: paper.ink, fontSize: 24, fontWeight: '800' },
   archetypeDetail: { color: paper.inkDim, fontSize: 14 },
 
-  portraitRow: { flexDirection: 'row', gap: spacing.md, alignItems: 'center' },
+  // On a phone the figure leaves the bars about ninety points, and 「지구력」 and its number
+  // each broke onto two lines. Too narrow to hold a bar, they go under the figure instead.
+  portraitRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: spacing.md,
+    alignItems: 'center',
+  },
   portrait: {
     backgroundColor: paper.bgAlt,
     borderColor: paper.lineSoft,

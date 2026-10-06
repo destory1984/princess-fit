@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/Text';
+import { scaledSize } from '@/lib/textScale';
+import { useTextScale } from '@/lib/textScaleStore';
 import { BEGUN, CHANGELOG, dayOfMaking } from '@/lib/changelog';
 import { colors, radius, spacing } from '@/lib/theme';
 import { APP_VERSION } from '@/lib/version';
@@ -33,6 +35,8 @@ const LINES = CHANGELOG.flatMap((entry) =>
 export default function ChangesScreen() {
   // Read once per mount; the screen is not open across midnight often enough to matter.
   const today = new Date();
+  // The margin holds text, so it widens with it: at 44 points 「9.30」 broke in two at 140.
+  const margin = { width: scaledSize(44, useTextScale()) };
   const [shown, setShown] = useState(PAGE);
   const left = LINES.length - shown;
   return (
@@ -47,7 +51,7 @@ export default function ChangesScreen() {
       <View style={styles.list}>
         {LINES.slice(0, shown).map(({ entry, line, i }, at) => (
           <View key={`${entry.day}-${i}`} style={styles.row}>
-            <View style={styles.margin}>
+            <View style={margin}>
               {/* A day cut by the page break gets its date again where it resumes. */}
               {(i === 0 || at === 0) && <Text style={styles.day}>{shortDay(entry.day)}</Text>}
               {i === 0 && entry.version ? (
@@ -82,7 +86,6 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  margin: { width: 44 },
   day: { color: colors.accent, fontSize: 15, fontWeight: '800', lineHeight: 23 },
   version: { color: colors.textDim, fontSize: 11, fontWeight: '700' },
   // One size under the rest of the app: this is a long list to be skimmed.

@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/Text';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { colors, radius, spacing } from '@/lib/theme';
+import { useTextScale } from '@/lib/textScaleStore';
 
 type Props = {
   /** The exercise this rest belongs to, or null before anything is done. */
@@ -55,6 +56,15 @@ export function RestBar({
   const running = remaining !== null;
   const holding = !running && held !== null;
   const left = running ? remaining : holding ? held : null;
+  // Beside the clock the label is what gives way, and with larger text it gave way to
+  // 「휴…」. Someone who asked for larger text gets it whole, on a line of its own.
+  const above = useTextScale() > 100;
+  const label = (
+    <Text style={[styles.label, above && styles.labelAbove]} numberOfLines={1}>
+      {holding ? '멈춤' : '휴식'}
+      {exerciseName ? ` · ${exerciseName}` : ''}
+    </Text>
+  );
 
   return (
     <View>
@@ -70,11 +80,9 @@ export function RestBar({
         </View>
       )}
 
+      {above && label}
       <View style={styles.row}>
-        <Text style={styles.label} numberOfLines={1}>
-          {holding ? '멈춤' : '휴식'}
-          {exerciseName ? ` · ${exerciseName}` : ''}
-        </Text>
+        {!above && label}
         <Text style={[styles.clock, running && styles.clockOn, holding && styles.clockHeld]}>
           {clock(left ?? length)}
         </Text>
@@ -146,6 +154,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   // Gives way first: four buttons while running leave little room on a phone.
   label: { color: colors.textDim, fontSize: 15, maxWidth: 120, flexShrink: 1 },
+  labelAbove: { maxWidth: undefined, marginBottom: 2 },
   clock: { color: colors.text, fontSize: 22, fontWeight: '800', minWidth: 62 },
   clockOn: { color: colors.accent },
   clockHeld: { color: colors.textDim },

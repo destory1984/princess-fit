@@ -289,7 +289,9 @@ const styles = StyleSheet.create({
     fontSize: 17,
   },
   addRow: { flexDirection: 'row', gap: spacing.sm },
-  addInput: { flex: 1, letterSpacing: 2 },
+  // minWidth: a browser's text box holds about twenty letters' width unless told, and at
+  // 140 that pushed 「맺기」 off the right edge of a phone.
+  addInput: { flex: 1, minWidth: 0, letterSpacing: 2 },
   addButton: {
     backgroundColor: colors.accent,
     borderRadius: radius.sm,

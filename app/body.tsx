@@ -6,6 +6,7 @@ import { useFocusEffect } from 'expo-router';
 import { BodyAdviceCard } from '@/components/BodyAdviceCard';
 import { LineChart } from '@/components/LineChart';
 import { ScreenState } from '@/components/ScreenState';
+import { useTextScale } from '@/lib/textScaleStore';
 import {
   BODY_METRIC_ORDER,
   BODY_METRICS,
@@ -30,6 +31,9 @@ import { colors, paper, radius, spacing } from '@/lib/theme';
  * says nothing at all when there are too few readings to mean it.
  */
 export default function BodyScreen() {
+  // Four across leaves each tile about 54 points for its words on a phone: 「골격근량」 broke
+  // at 120 and 「55 kg」 at 140. Larger text gets two rows of two.
+  const twoRows = useTextScale() > 100;
   const [logs, setLogs] = useState<BodyLog[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [metric, setMetric] = useState<BodyMetric>('weight_kg');
@@ -168,7 +172,7 @@ export default function BodyScreen() {
           return (
             <Pressable
               key={key}
-              style={[styles.tile, on && styles.tileOn]}
+              style={[styles.tile, twoRows && styles.tileHalf, on && styles.tileOn]}
               onPress={() => setMetric(key)}>
               <Text style={[styles.tileValue, on && styles.tileValueOn]}>
                 {value === null ? '—' : value}
@@ -245,7 +249,7 @@ export default function BodyScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xl },
-  tiles: { flexDirection: 'row', gap: spacing.sm },
+  tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   tile: {
     flex: 1,
     backgroundColor: colors.surface,
@@ -254,6 +258,7 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
     padding: spacing.md,
   },
+  tileHalf: { flexBasis: '40%' },
   tileOn: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
   tileValue: { color: colors.text, fontSize: 20, fontWeight: '800' },
   tileValueOn: { color: colors.accent },
