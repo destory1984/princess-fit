@@ -14,8 +14,8 @@ test('no two exercises share a drawing', () => {
 });
 
 test('a repetition goes down and comes back; a stride goes round; a hold stays', () => {
-  const squat = moveOf('스쿼트')!;
-  assert.deepEqual([0, 1, 2, 3, 4, 5].map((t) => frameAt(squat, t)), [0, 1, 2, 1, 0, 1]);
+  const press = moveOf('벤치프레스')!;
+  assert.deepEqual([0, 1, 2, 3, 4, 5].map((t) => frameAt(press, t)), [0, 1, 2, 1, 0, 1]);
   const run = moveOf('러닝')!;
   assert.deepEqual([0, 1, 2, 3, 4].map((t) => frameAt(run, t)), [0, 1, 2, 0, 1]);
   assert.equal(frameAt(moveOf('플랭크')!, 7), 0);

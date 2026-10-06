@@ -15,9 +15,9 @@
 export type Move = { id: string; frames: 1 | 3 | 5 | 7 };
 
 const MOVES: Record<string, Move> = {
-  스쿼트: { id: 'squat', frames: 3 },
+  스쿼트: { id: 'squat', frames: 5 },
   벤치프레스: { id: 'bench_press', frames: 3 },
-  데드리프트: { id: 'deadlift', frames: 3 },
+  데드리프트: { id: 'deadlift', frames: 5 },
   '덤벨 프레스': { id: 'dumbbell_press', frames: 3 },
   푸시업: { id: 'push_up', frames: 3 },
   '바벨 로우': { id: 'barbell_row', frames: 3 },
@@ -61,7 +61,7 @@ const MOVES: Record<string, Move> = {
   '로잉 머신': { id: 'rowing_machine', frames: 3 },
   '백 익스텐션': { id: 'back_extension', frames: 3 },
   '스모 데드리프트': { id: 'sumo_deadlift', frames: 3 },
-  '케틀벨 스윙': { id: 'kettlebell_swing', frames: 3 },
+  '케틀벨 스윙': { id: 'kettlebell_swing', frames: 5 },
   '행잉 레그 레이즈': { id: 'hanging_leg_raise', frames: 3 },
   '러시안 트위스트': { id: 'russian_twist', frames: 3 },
   줄넘기: { id: 'jump_rope', frames: 3 },

@@ -5,4 +5,4 @@
  * value the tests can import; a test keeps app.json and package.json saying the
  * same thing. When to raise it is in NOTES.md (6절).
  */
-export const APP_VERSION = '0.0.13';
+export const APP_VERSION = '0.0.14';
