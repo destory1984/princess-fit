@@ -5,10 +5,10 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Advisor } from '@/components/Advisor';
 import { festivalTitle, rivalRemark, type Result } from '@/lib/festival';
 import { Portrait } from '@/components/Portrait';
-import { rivalArt, TROPHY } from '@/lib/festivalArt';
+import { hallArt, rivalArt, SCENE_ASPECT, TROPHY } from '@/lib/festivalArt';
 import { faceArt } from '@/lib/outfitArt';
 import { voiceOf } from '@/lib/voices';
-import { colors, paper, spacing } from '@/lib/theme';
+import { colors, paper, radius, spacing } from '@/lib/theme';
 
 type Props = {
   result: Result;
@@ -49,6 +49,13 @@ export function FestivalReveal({ result, girl, prize, animate }: Props) {
 
   return (
     <Pressable onPress={() => setShown(total)} disabled={done}>
+      {hallArt(result.contest) && (
+        // A box of the scene's shape with the picture filling it: on the web an image
+        // given only a width and a ratio takes its height from the file instead.
+        <View style={styles.scene}>
+          <Image source={hallArt(result.contest)} style={styles.sceneArt} resizeMode="cover" accessibilityLabel={`${result.contestName} 그림`} />
+        </View>
+      )}
       <View style={styles.head}>
         <Text style={styles.title}>{festivalTitle(result)}</Text>
         <Text style={styles.contest}>{result.contestName}</Text>
@@ -121,6 +128,8 @@ const medal = StyleSheet.create({
 });
 
 const styles = StyleSheet.create({
+  scene: { width: '100%', aspectRatio: SCENE_ASPECT, borderRadius: radius.sm, overflow: 'hidden', marginBottom: spacing.md },
+  sceneArt: { width: '100%', height: '100%' },
   head: { alignItems: 'center', gap: 2, marginBottom: spacing.md },
   title: { color: paper.ink, fontSize: 18, fontWeight: '800', letterSpacing: 1 },
   contest: { color: colors.textDim, fontSize: 15 },

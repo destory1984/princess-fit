@@ -1,14 +1,47 @@
+import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Text } from '@/components/Text';
 import Body, { type Slug } from 'react-native-body-highlighter';
 import { slugsOf, workedParts, type WorkedExercise } from '@/lib/muscles';
 import { colors, intensityRamp, spacing } from '@/lib/theme';
+import { getSex, onSexChange } from '@/lib/prefs';
+import type { Sex } from '@/lib/profile';
 
 // Re-exported so callers that draw a body and work out what to draw keep one
 // import. The logic itself lives in lib, where node can run it.
 export { slugsOf, workedParts, type WorkedExercise };
 
 const SKIN = '#C9B89A';
+
+// Read once and kept: a list draws forty thumbnails, and forty readings of the
+// same answer would have each of them start as one body and turn into the other.
+let known: Sex | null | undefined;
+
+/**
+ * Whose body the muscles are drawn on: the one they said was theirs. Someone
+ * who did not say gets the body the app always drew.
+ */
+export function useBodyGender(): 'male' | 'female' {
+  const [sex, setSex] = useState<Sex | null>(known ?? null);
+  useEffect(() => {
+    let live = true;
+    if (known === undefined) {
+      getSex().then((s) => {
+        known = s;
+        if (live) setSex(s);
+      });
+    }
+    const stop = onSexChange((s) => {
+      known = s;
+      if (live) setSex(s);
+    });
+    return () => {
+      live = false;
+      stop();
+    };
+  }, []);
+  return sex === 'female' ? 'female' : 'male';
+}
 
 type Props = {
   // Plain strings in, cast at the one place the library is actually called:
@@ -24,6 +57,7 @@ type Props = {
 };
 
 export function BodyMap({ data, onPartPress, scale = 0.75, labels = true, fill }: Props) {
+  const gender = useBodyGender();
   // Passing a handler makes the library attach onPress to every SVG path, which
   // react-native-web cannot map — so only pass one when a caller wants taps.
   const press = onPartPress
@@ -32,7 +66,7 @@ export function BodyMap({ data, onPartPress, scale = 0.75, labels = true, fill }
 
   const common = {
     data: data as { slug: Slug; intensity: number }[],
-    gender: 'male',
+    gender,
     scale,
     colors: intensityRamp,
     defaultFill: fill ?? SKIN,

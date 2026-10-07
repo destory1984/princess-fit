@@ -139,6 +139,17 @@ export async function getSex(): Promise<Sex | null> {
 export async function setSex(sex: Sex | null) {
   if (sex === null) await AsyncStorage.removeItem(SEX);
   else await AsyncStorage.setItem(SEX, sex);
+  for (const heard of sexListeners) heard(sex);
+}
+
+const sexListeners = new Set<(sex: Sex | null) => void>();
+
+/** Told when the answer changes, so a body already on screen changes with it. Returns the way to stop. */
+export function onSexChange(heard: (sex: Sex | null) => void) {
+  sexListeners.add(heard);
+  return () => {
+    sexListeners.delete(heard);
+  };
 }
 
 export async function getLevel(): Promise<Level> {

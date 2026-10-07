@@ -15,11 +15,11 @@ import {
   type Festival,
   type Standing,
 } from '@/lib/festival';
-import { rivalArt } from '@/lib/festivalArt';
+import { monthArt, rivalArt, SCENE_ASPECT } from '@/lib/festivalArt';
 import { Portrait } from '@/components/Portrait';
 import { faceArt } from '@/lib/outfitArt';
 import { voiceOf } from '@/lib/voices';
-import { colors, paper, spacing } from '@/lib/theme';
+import { colors, paper, radius, spacing } from '@/lib/theme';
 
 type Props = {
   festival: Festival;
@@ -52,6 +52,13 @@ export function FestivalAhead({ festival, today, girl, standing, formDays, index
 
   return (
     <View style={styles.wrap}>
+      {monthArt(festival.month) && (
+        // A box of the scene's shape with the picture filling it: on the web an image
+        // given only a width and a ratio takes its height from the file instead.
+        <View style={styles.scene}>
+          <Image source={monthArt(festival.month)} style={styles.sceneArt} resizeMode="cover" accessibilityLabel={`${festival.name} 그림`} />
+        </View>
+      )}
       <View style={styles.head}>
         <Text style={styles.title}>
           {festival.month}월 {festival.name}
@@ -167,6 +174,8 @@ function Bar({
 
 const styles = StyleSheet.create({
   wrap: { gap: spacing.md },
+  scene: { width: '100%', aspectRatio: SCENE_ASPECT, borderRadius: radius.sm, overflow: 'hidden' },
+  sceneArt: { width: '100%', height: '100%' },
   head: { alignItems: 'center', gap: 2 },
   title: { color: paper.ink, fontSize: 20, fontWeight: '800', letterSpacing: 1 },
   when: { color: colors.textDim, fontSize: 15 },

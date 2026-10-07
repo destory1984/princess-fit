@@ -1,6 +1,6 @@
 {
   "name": "refit",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "main": "expo-router/entry",
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",

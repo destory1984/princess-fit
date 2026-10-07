@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 import Body, { type Slug } from 'react-native-body-highlighter';
-import { slugsOf, type WorkedExercise } from '@/components/BodyMap';
+import { slugsOf, useBodyGender, type WorkedExercise } from '@/components/BodyMap';
 import { colors, radius } from '@/lib/theme';
 
 const SKIN = '#C9B89A';
@@ -22,12 +22,13 @@ function sideFor(slugs: string[]) {
 
 export function ExerciseThumb({ exercise }: { exercise: WorkedExercise }) {
   const slugs = slugsOf(exercise);
+  const gender = useBodyGender();
   return (
     <View style={styles.wrap}>
       <Body
         data={slugs.map((slug) => ({ slug: slug as Slug, intensity: 1 }))}
         side={sideFor(slugs)}
-        gender="male"
+        gender={gender}
         scale={0.13}
         colors={[colors.accent]}
         defaultFill={SKIN}
