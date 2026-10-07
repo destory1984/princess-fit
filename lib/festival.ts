@@ -4,6 +4,7 @@ import { computeStats, type Stats } from './character.ts';
 import { conditionFactor, type Household } from './economy.ts';
 import type { Culture } from './lessons.ts';
 import { effectiveCulture } from './shop.ts';
+import { suitedTo } from './outfit.ts';
 import { isFestival, type Memory } from './companion.ts';
 import { voiceOf } from './voices.ts';
 
@@ -41,9 +42,9 @@ export const CONTESTS: Contest[] = [
   {
     id: 'tournament',
     name: '기사 대회',
-    hint: '요즘의 기세가 가장 크고, 근력·활력·지구력이 뒤를 받쳐요',
+    hint: '요즘의 기세가 가장 크고, 근력·활력·지구력이 뒤를 받쳐요. 차림새가 조금',
     icon: 'shield-outline',
-    weights: { form: 0.4, strength: 0.3, vitality: 0.15, stamina: 0.15 },
+    weights: { form: 0.35, strength: 0.25, vitality: 0.15, stamina: 0.15, attire: 0.1 },
   },
   {
     id: 'ball',
@@ -55,9 +56,9 @@ export const CONTESTS: Contest[] = [
   {
     id: 'debate',
     name: '문답 대회',
-    hint: '교양이 가장 크고, 꾸준함이 뒤를 받쳐요',
+    hint: '교양이 가장 크고, 꾸준함이 뒤를 받쳐요. 차림새가 조금',
     icon: 'book-outline',
-    weights: { learning: 0.6, discipline: 0.4 },
+    weights: { learning: 0.55, discipline: 0.35, attire: 0.1 },
   },
 ];
 
@@ -180,6 +181,8 @@ export type Standing = {
   culture: Culture;
   /** 0–100, how her clothes are holding up. */
   attire: number;
+  /** The contests her clothes are the right ones for (suitedTo). */
+  suited?: ContestId[];
   form: number;
   /** How she is faring, 0.7–1 (conditionFactor). Hunger costs her here too. */
   factor: number;
@@ -216,15 +219,28 @@ export function standingAt(facts: WorkoutFact[], keeping: Keeping, day: Date, fa
     stats: computeStats(upTo, day),
     culture: effectiveCulture(keeping.culture, keeping.wardrobe, keeping.worn),
     attire: keeping.house.attire,
+    suited: suitedTo(keeping.worn),
     form: formOf(upTo, day),
     factor: conditionFactor(keeping.house),
     favours,
   };
 }
 
+/**
+ * What her clothes are worth in a contest, 0–100. Dressed for it, all of it:
+ * the right clothes are the right clothes however long she has had them.
+ * Otherwise half of how well what she has on is holding up — a clean blouse
+ * is something at a ball, and it is not a gown.
+ */
+export const UNSUITED_SHARE = 0.5;
+
+export function attireFor(contest: ContestId, s: Pick<Standing, 'attire' | 'suited'>): number {
+  return s.suited?.includes(contest) ? 100 : s.attire * UNSUITED_SHARE;
+}
+
 /** Her score in a contest before the day's luck, 0–100. */
 export function scoreOf(contest: ContestId, s: Standing): number {
-  const values: Record<string, number> = { ...s.stats, ...s.culture, attire: s.attire, form: s.form };
+  const values: Record<string, number> = { ...s.stats, ...s.culture, attire: attireFor(contest, s), form: s.form };
   const raw = Object.entries(contestById(contest).weights).reduce(
     (sum, [k, w]) => sum + (values[k] ?? 0) * (w ?? 0),
     0

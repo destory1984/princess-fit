@@ -83,8 +83,13 @@ export type Garment = {
   charm: number;
   /** Slots this garment covers on its own, hiding anything in them. */
   hides?: OutfitSlot[];
+  /** The festival contest it is the right thing to wear to (lib/festival.ts). */
+  suits?: Occasioned;
   fit: Fit;
 };
+
+/** The three contests, named here so the festival can read clothes without a circle of imports. */
+export type Occasioned = 'tournament' | 'ball' | 'debate';
 
 export const GARMENTS: Garment[] = [
   {
@@ -167,11 +172,12 @@ export const GARMENTS: Garment[] = [
     id: 'gown',
     slot: 'top',
     name: '한 벌 드레스',
-    detail: '일 년을 걸어야 닿는 자리',
+    detail: '무도회에 어울려요. 일 년을 걸어야 닿는 자리',
     price: 670,
     charm: 10,
     // A whole outfit: anything underneath would only fight with it.
     hides: ['top', 'bottom'],
+    suits: 'ball',
     // full
     fit: { x: 0.14, y: 0.36, w: 0.72 },
   },
@@ -212,10 +218,11 @@ export const GARMENTS: Garment[] = [
     id: 'knight',
     slot: 'top',
     name: '수련 기사의 제복',
-    detail: '처음 받는 제복',
+    detail: '기사 대회에 어울려요. 처음 받는 제복',
     price: 560,
     charm: 8,
     hides: ['top', 'bottom'],
+    suits: 'tournament',
     // full
     fit: { x: 0.14, y: 0.36, w: 0.72 },
   },
@@ -227,6 +234,67 @@ export const GARMENTS: Garment[] = [
     price: 610,
     charm: 9,
     hides: ['top', 'bottom'],
+    // full
+    fit: { x: 0.14, y: 0.36, w: 0.72 },
+  },
+  // Five for the festival (2026-10-07): the debate had nothing to wear to it at all.
+  {
+    id: 'scribe',
+    slot: 'top',
+    name: '필경사의 차림',
+    detail: '문답 대회에 어울려요. 조끼 단추를 끝까지 채운',
+    price: 520,
+    charm: 7,
+    hides: ['top', 'bottom'],
+    suits: 'debate',
+    // full
+    fit: { x: 0.14, y: 0.36, w: 0.72 },
+  },
+  {
+    id: 'tabard',
+    slot: 'top',
+    name: '마상 시합의 겉옷',
+    detail: '기사 대회에 어울려요. 가슴에 금빛 사자',
+    price: 580,
+    charm: 8,
+    hides: ['top', 'bottom'],
+    suits: 'tournament',
+    // full
+    fit: { x: 0.14, y: 0.36, w: 0.72 },
+  },
+  {
+    id: 'scholar',
+    slot: 'top',
+    name: '학자의 가운',
+    detail: '문답 대회에 어울려요. 깃펜 문장이 달린',
+    price: 590,
+    charm: 8,
+    hides: ['top', 'bottom'],
+    suits: 'debate',
+    // full
+    fit: { x: 0.14, y: 0.36, w: 0.72 },
+  },
+  {
+    id: 'evening',
+    slot: 'top',
+    name: '밤하늘 드레스',
+    detail: '무도회에 어울려요. 치마에 별이 뜬',
+    price: 630,
+    charm: 9,
+    hides: ['top', 'bottom'],
+    suits: 'ball',
+    // full
+    fit: { x: 0.14, y: 0.36, w: 0.72 },
+  },
+  {
+    id: 'ballgown',
+    slot: 'top',
+    name: '무도회 드레스',
+    detail: '무도회에 어울려요. 발목까지 퍼지는 장밋빛',
+    price: 650,
+    charm: 9,
+    hides: ['top', 'bottom'],
+    suits: 'ball',
     // full
     fit: { x: 0.14, y: 0.36, w: 0.72 },
   },
@@ -261,6 +329,14 @@ export const OUTFIT_TOTAL = GARMENTS.reduce((sum, g) => sum + g.price, 0);
 
 export function garmentById(id: string) {
   return GARMENTS.find((g) => g.id === id) ?? null;
+}
+
+/**
+ * The contests she is dressed for: what the clothes that show on her suit. A
+ * gown under nothing counts; a uniform hidden by a gown put on over it does not.
+ */
+export function suitedTo(worn: string[]): Occasioned[] {
+  return [...new Set(layersOf(worn).flatMap((g) => (g.suits ? [g.suits] : [])))];
 }
 
 /**

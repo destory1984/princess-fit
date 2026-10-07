@@ -26,7 +26,9 @@ import {
   unresolved,
   type ContestId,
   type Standing,
+  attireFor,
 } from './festival.ts';
+import { GARMENTS } from './outfit.ts';
 import { computeStats } from './character.ts';
 import { EMPTY_CULTURE } from './lessons.ts';
 import { dailyLine, newHousehold } from './economy.ts';
@@ -135,6 +137,7 @@ test('a perfect standing scores 100 in every contest, and nothing scores 0', () 
     stats: { strength: 100, stamina: 100, vitality: 100, balance: 100, discipline: 100 },
     culture: { grace: 100, learning: 100, charm: 100 },
     attire: 100,
+    suited: ['tournament', 'ball', 'debate'],
     form: 100,
     factor: 1,
     favours: 0,
@@ -142,7 +145,7 @@ test('a perfect standing scores 100 in every contest, and nothing scores 0', () 
   for (const c of CONTESTS) assert.equal(scoreOf(c.id, full), 100, c.id);
   // Favours met lift a perfect standing no further.
   for (const c of CONTESTS) assert.equal(scoreOf(c.id, { ...full, favours: 4 }), 100, c.id);
-  for (const c of CONTESTS) assert.equal(scoreOf(c.id, { ...full, stats: { ...full.stats, strength: 0, stamina: 0, vitality: 0, balance: 0, discipline: 0 }, culture: EMPTY_CULTURE, attire: 0, form: 0 }), 0);
+  for (const c of CONTESTS) assert.equal(scoreOf(c.id, { ...full, stats: { ...full.stats, strength: 0, stamina: 0, vitality: 0, balance: 0, discipline: 0 }, culture: EMPTY_CULTURE, attire: 0, suited: [], form: 0 }), 0);
 });
 
 test('letting her go hungry costs her at the festival too', () => {
@@ -235,10 +238,15 @@ test('a year in, only someone who kept at it and kept learning still wins', () =
   const index = festivalIndex(year, festival);
   assert.equal(index, 12);
   const schooled = { grace: 90, learning: 90, charm: 90 };
-  const s = standingAt(year, { house: fed, culture: schooled, wardrobe: [], worn: [] }, new Date(`${festival.day}T12:00:00`));
+  // Dressed for each: a year in she has the clothes, and they are part of it.
+  const dressed = (worn: string[]) =>
+    standingAt(year, { house: fed, culture: schooled, wardrobe: worn, worn }, new Date(`${festival.day}T12:00:00`));
+  const right = { tournament: 'knight', ball: 'gown', debate: 'scholar' } as const;
   for (const c of CONTESTS) {
-    assert.ok(judge(c.id, s, festival, index).place <= 2, c.id);
+    assert.ok(judge(c.id, dressed([right[c.id]]), festival, index).place <= 2, c.id);
   }
+  // The ball is where it tells: in her everyday clothes she is a place lower.
+  assert.equal(judge('ball', dressed([]), festival, index).place, 3);
   const unschooled = standingAt(year, { house: fed, culture: EMPTY_CULTURE, wardrobe: [], worn: [] }, new Date(`${festival.day}T12:00:00`));
   assert.equal(judge('ball', unschooled, festival, index).place, 4);
   assert.equal(judge('debate', unschooled, festival, index).place, 4);
@@ -443,4 +451,23 @@ test('a cup stands in her room for each festival she won, and only for those', (
   assert.equal(trophiesOf(many as never), TROPHIES_SHOWN);
   // A line that cannot be read is not a win.
   assert.equal(trophiesOf([{ kind: 'festival:2026-09', detail: 'not json' }] as never), 0);
+});
+
+test('the right clothes count in full, and anything else for half of how they are holding up', () => {
+  const kept = { house: fed, culture: EMPTY_CULTURE, wardrobe: [], worn: [] as string[] };
+  const day = at(2026, 9, 26);
+  const plain = standingAt([session(at(2026, 9, 20))], kept, day);
+  for (const c of CONTESTS) assert.equal(attireFor(c.id, plain), 50, c.id);
+  for (const [id, contest] of [['tabard', 'tournament'], ['evening', 'ball'], ['scribe', 'debate']] as const) {
+    const s = standingAt([session(at(2026, 9, 20))], { ...kept, worn: [id] }, day);
+    for (const c of CONTESTS) assert.equal(attireFor(c.id, s), c.id === contest ? 100 : 50, `${id} at ${c.id}`);
+    assert.ok(scoreOf(contest, s) > scoreOf(contest, plain), id);
+  }
+  // Two whole outfits are one on her and one in the wardrobe: only what shows counts.
+  const both = standingAt([], { ...kept, worn: ['knight', 'gown'] }, day);
+  assert.equal(both.suited?.length, 1);
+});
+
+test('every contest has something to wear to it', () => {
+  for (const c of CONTESTS) assert.ok(GARMENTS.some((g) => g.suits === c.id), c.id);
 });

@@ -6,6 +6,7 @@ import { GARMENTS, OUTFIT_TOTAL } from './outfit.ts';
 import { EMPTY_CULTURE, LESSONS } from './lessons.ts';
 import { DAILY_UPKEEP, workoutGold, type Household } from './economy.ts';
 import type { WorkoutFact } from './gamification.ts';
+import { prizeFor } from './festival.ts';
 
 const rich: Household = { gold: 10_000, satiety: 50, attire: 10, settledOn: '2026-09-20' };
 
@@ -59,13 +60,24 @@ test('any one gift is a week or two of training, not a season', () => {
 // And steady training can give her all of it within the year, alongside her
 // meals and her schooling — checked end to end rather than by eyeballing
 // constants in different files.
+//
+// All of it but the spare festival clothes (2026-10-07). A contest wants one
+// thing to wear to it, and the second gown is a choice between two, not a
+// rung: the year pays for the cheapest of each. And the year has twelve
+// festivals in it, which pay 40G apiece to someone who only ever comes third.
 test('a year of steady training pays for every gift, her meals and her schooling', () => {
+  const forContests = GARMENTS.filter((g) => g.suits);
+  const oneEach = [...new Set(forContests.map((g) => g.suits))].map((c) =>
+    Math.min(...forContests.filter((g) => g.suits === c).map((g) => g.price))
+  );
+  const spares = forContests.reduce((s, g) => s + g.price, 0) - oneEach.reduce((s, p) => s + p, 0);
+  const prizes = 12 * prizeFor(3);
   const earned = workoutGold(typical) * 156;
   const upkeep = DAILY_UPKEEP * 365;
   const meals = 25 * 180;
   const schooling = 20 * (LESSONS.reduce((s, l) => s + l.price, 0) / LESSONS.length);
   const accessories = ACCESSORIES.reduce((s, a) => s + a.price, 0);
-  const spare = earned - upkeep - meals - schooling - OUTFIT_TOTAL - ROOM_TOTAL - accessories;
+  const spare = earned + prizes - upkeep - meals - schooling - (OUTFIT_TOTAL - spares) - ROOM_TOTAL - accessories;
   assert.ok(spare >= 0, `short by ${Math.round(-spare)}`);
 });
 

@@ -343,6 +343,10 @@ python -X utf8 scripts/sprite-clean.py --like art-orders/2026-10-03/base-clean/b
 python -X utf8 scripts/garment-assets.py art-orders/2026-10-03/base-clean/base-clean.sprite.png art-orders/2026-10-05/clothes/hanbok/hanbok.sprite.png hanbok
 ```
 
+- **축제 옷 다섯 벌 (2026-10-07, `art-orders/2026-10-07/festival-clothes/`).** 같은 주문 글 틀로 받았고
+  다섯 장이 한 번에 쓸 만하게 왔다. `garment-assets.py`로 뗀 뒤 `tidy.py`를 돌린다: 깃 위의 목, 치마 밑의
+  발목처럼 바깥에서 닿는 살색 · 회색과 여섯 점보다 작은 부스러기를 지우고 선반 그림을 다시 만든다.
+  소매 안의 팔처럼 옷에 갇힌 살색은 둔다.
 - 다섯 장이 한꺼번에 12분쯤 걸렸고 모두 몸틀과 같은 크기(1071 × 1469 안팎)로 왔다.
 - 「세 단계로 칠하고, 테두리 장식과 단추나 무늬 같은 작은 꾸밈을 넣는다」를 적으니 물방울 무늬, 눈꽃,
   방패 문장이 선반 크기에서도 읽힌다. 「많아야 서너 색」은 뺐다.

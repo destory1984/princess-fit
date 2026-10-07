@@ -584,6 +584,11 @@ export default function PreviewScreen() {
           ['sundress'],
           ['knight'],
           ['hanbok', 'ribbon'],
+          ['scribe'],
+          ['scholar'],
+          ['tabard'],
+          ['ballgown', 'ribbon'],
+          ['evening', 'necklace'],
         ].map(
           (worn, i) => (
             <View key={i} style={styles.dollCell}>

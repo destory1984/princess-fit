@@ -107,6 +107,11 @@ export function FestivalAhead({ festival, today, girl, standing, formDays, index
               )}
             </View>
             <Text style={styles.hint}>{c.hint}</Text>
+            <Text style={styles.hint}>
+              {standing.suited?.includes(c.id)
+                ? '이 대회에 어울리는 옷을 입고 있어요.'
+                : '상점에 이 대회에 어울리는 옷이 있어요. 입고 나가면 차림새가 가득 차요.'}
+            </Text>
             <Bar label={`${girl.name} (지금)`} value={mine} her face={<Portrait source={faceArt(girl.id, 'fine')} size={FACE} />} />
             {rivals.map((r) => (
               <Bar
