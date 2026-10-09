@@ -16,6 +16,11 @@ export type ChangeDay = {
 
 export const CHANGELOG: ChangeDay[] = [
   {
+    day: '2026-10-09',
+    version: '0.0.18',
+    changes: ['10월 말까지 개발을 쉬어 간다는 안내가 오늘 화면 맨 위에 보여요.'],
+  },
+  {
     day: '2026-10-07',
     version: '0.0.17',
     changes: [

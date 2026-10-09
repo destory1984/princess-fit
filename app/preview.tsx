@@ -41,6 +41,7 @@ import { ShopShelves } from '@/components/ShopShelves';
 import { Purse } from '@/components/Purse';
 import { FestivalAhead } from '@/components/FestivalAhead';
 import { FestivalCard } from '@/components/FestivalCard';
+import { PauseCard } from '@/components/PauseCard';
 import { FestivalReveal } from '@/components/FestivalReveal';
 import { judge, latestFestival, nextFestival, type ContestId, type Standing } from '@/lib/festival';
 import { TrainingHall } from '@/components/TrainingHall';
@@ -171,6 +172,7 @@ export default function PreviewScreen() {
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <Text style={styles.heading}>축제 · 오늘 화면의 알림</Text>
+      <PauseCard today={new Date()} />
       <FestivalCard
         next={nextFestival()}
         left={9}

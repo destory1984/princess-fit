@@ -12,6 +12,7 @@ import { Purse } from '@/components/Purse';
 import { TrainingHall } from '@/components/TrainingHall';
 import { WalkCard } from '@/components/WalkCard';
 import { FestivalCard } from '@/components/FestivalCard';
+import { PauseCard } from '@/components/PauseCard';
 import { FavourCard } from '@/components/FavourCard';
 import { favourFor } from '@/lib/favour';
 import {
@@ -338,6 +339,8 @@ export default function TodayScreen() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+      <PauseCard today={new Date()} />
+
       {isNew && (
         <View style={styles.guide}>
           <Text style={styles.guideTitle}>처음이신가요?</Text>
